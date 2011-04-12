@@ -9,16 +9,21 @@ This page includes a range of user documentation, as prepared in the "Using the 
 = Youtube Videos =
 
 Registering with the site
+
 <wiki:video url="http://www.youtube.com/watch?v=c0WT2EQ_Xlk"/>
 
 Resetting your password
+
 <wiki:video url="http://www.youtube.com/watch?v=uu-HwFhqVDM"/>
 
 Excel-like Forms
+
 <wiki:video url="http://www.youtube.com/watch?v=5Mt1Ffz-5nA"/>
 
 Loading bulk data
+
 <wiki:video url="http://www.youtube.com/watch?v=tqTXjOcyTvI"/>
 
 Downloading data
+
 <wiki:video url="http://www.youtube.com/watch?v=6ZrK50kNshg"/>
