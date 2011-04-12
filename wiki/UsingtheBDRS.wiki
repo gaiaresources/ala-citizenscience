@@ -6,6 +6,8 @@ This page includes a range of user documentation, as prepared in the "Using the 
 
 = Written Documentation =
 
+We're still developing written documentation for the BDRS.
+
 = Youtube Videos =
 
 Registering with the site
