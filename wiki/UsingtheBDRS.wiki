@@ -2,7 +2,7 @@
 
 = Introduction =
 
-This page includes a range of user documentation, as prepared in the "Using the BDRS" playlist developed by Gaia Resources.
+This page includes a range of user documentation, aimed at showing you how to use BDRS.  These resources are focus on a technical level, so that you can get to grips with the workings of the BDRS software.
 
 = Written Documentation =
 
