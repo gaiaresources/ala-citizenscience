@@ -4,7 +4,7 @@
 
 This page includes a range of user documentation, aimed at showing you an overview of the BDRS.  These resources are focus on a general level, so that you can better understand the BDRS and how it is put together.
  
-= Written Documentation
+= Written Documentation =
 
 We're still developing written documentation for the BDRS
 
