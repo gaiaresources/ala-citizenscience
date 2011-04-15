@@ -18,6 +18,10 @@ Resetting your password
 
 <wiki:video url="http://www.youtube.com/watch?v=uu-HwFhqVDM"/>
 
+Setting up projects
+
+<wiki:video url="http://www.youtube.com/watch?v=Ebwh5f4jkYA"/>
+
 Excel-like Forms
 
 <wiki:video url="http://www.youtube.com/watch?v=5Mt1Ffz-5nA"/>
