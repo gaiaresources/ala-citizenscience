@@ -15,6 +15,7 @@ To setup a BDRS development environment you will need to install the following d
   * PostgreSQL – An open source database. 
   * PostGIS – Spatial extensions to the Postgres database.
   * Maven2 – Software dependency management and build tool.
+  * Eclipse – Integrated Development Environment 
 On Ubuntu you can install all of these dependencies by running
 
 `$ sudo apt-get install subversion postgresql-8.4 postgresql-8.4-postgis maven2 eclipse`
