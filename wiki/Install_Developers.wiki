@@ -1,0 +1,141 @@
+#summary Installation Guide for the BDRS
+
+= Introduction =
+
+This document is a guide for developers to setup a development environment for the BDRS, run a development server, and deploy a BDRS instance to production.
+
+This document will assume that you are using a debian based system such as Ubuntu however the BDRS can be run on other operating systems.
+
+= Dependencies =
+
+To setup a BDRS development environment you will need to install the following dependencies.
+
+  * Subversion – A software versioning and revision control system. You will need this to check out the source code from our public repository.
+  * PostgreSQL – An open source database. 
+  * PostGIS – Spatial extensions to the Postgres database.
+  * Maven2 – Software dependency management and build tool.
+On Ubuntu you can install all of these dependencies by running
+
+_$ sudo apt-get install subversion postgresql-8.4 postgresql-8.4-postgis maven2 eclipse_
+
+= Source Code =
+
+Next we will check out the BDRS source code from the public repository.
+
+_$ svn checkout http://ala-citizenscience.googlecode.com/svn/trunk/ ala-citizenscience-read-only_ 
+
+After checking out the source code, you will need to modify the “pom.xml” file located at the base directory. Open the file using a text editor and locate the profiles section at the bottom of the file.
+At a minimum, you will need to update the
+
+_bdrs.db.user.name_
+
+_bdrs.db.user.password_
+
+_bdrs.db.url_
+
+with the credentials to your postgres database. For example,
+
+_<bdrs.db.user.name>postgres</bdrs.db.user.name>_
+
+_<bdrs.db.user.password>postgres</bdrs.db.user.password>_
+
+_<bdrs.db.url>jdbc:postgresql://localhost:5432/ala-citizenscience-read-only</bdrs.db.url>_
+
+In this case, we login in with the username/password postgres/postgres and connect to the database called “ala-citizenscience-read-only”. We haven't created this database yet so lets do that in the next section.
+
+= Setting up the Database =
+
+First lets create a spatial database template. You will need to execute the commands as a privileged database user. For example you can use the following to become the postgres user.
+
+_$ sudo su – postgres_
+
+Once you are the database super user you may then execute the following commands to create the spatial database template.
+
+_$ createdb template_postgis_
+
+_$ createlang plpgsql template_postgis_
+
+_$ psql -d template_postgis -f /usr/share/postgresql/8.4/contrib/postgis-1.5/postgis.sql_
+
+_$ psql -d template_postgis -f /usr/share/postgresql/8.4/contrib/postgis-1.5/spatial_ref_sys.sql_
+
+Now we will create our project database.
+
+_$ createdb ala-citizenscience-read-only -T template_postgis_
+
+Note:
+You can stop using the postgres user at this point and revert back to your normal user account.
+
+At this stage, this is just an empty spatial database. We will need to create tables for the BDRS. Execute the following to generate the SQL creation scripts.
+
+_$ mvn -Pdev -DskipTests clean package hibernate3:hbm2ddl_
+
+Note: 
+The command above skips the unit tests because we haven't created a test database yet. 
+Compiling for the first time may take a while as maven downloads all the BDRS dependencies.
+
+In addition to printing the SQL create commands to the console, they are also stored in “ala-citizenscience-read-only/target/hibernate3/sql/bdrs-core.sql”.
+
+Run this script against the spatial database that we created earlier.
+
+_psql -U postgres ala-citizenscience-read-only -f target/hibernate3/sql/bdrs-core.sql_
+
+We now have a working BDRS database. Next we will run the unit tests.
+
+= Running the BDRS Unit Tests =
+
+To run the unit tests, we will need to create a test database. The unit tests are run against this database instead of your development database so that the test environment remains constant for all tests. The BDRS tables in the test database must be completely empty when starting the tests else some tests will fail and further build steps will not be possible.
+
+To create a test database, perform the same procedure as creating the BDRS database except in this case, give the test database a different name e.g. “ala-citizenscience-read-only-test”.
+
+Open “src/main/webapp/WEB-INF/climatewatch-hibernate-datasource-test.xml” in a text editor and update the file with the appropriate settings for your test database.
+
+To run the unit tests execute the following command:
+
+_$ mvn -Pdev test_
+
+Test results can be found in “target/surefire-reports”.
+
+= Running a web server for Development =
+
+During development you can use a light weight open source web server called Jetty. Jetty has already been mostly configured for you in the POM so that it does not require the Web Application Archive (WAR) file to be packaged. Instead Jetty directly executes the application from the class files in the target directory and the template files in the source directory.
+
+The price that you pay for having this convenience is that maven filtering does not get executed (because we are not building a WAR file) and so we will need to make a manual change to a file that is normally taken care of by maven.
+
+Open “src/main/webapp/WEB-INF/climatewatch-hibernate-datasource.xml” in a text editor.
+Locate the following keys and replace them with their equivalents in your POM file.
+
+_${ bdrs.db.driver }_
+
+_${ bdrs.db.url }_
+
+_${ bdrs.db.user.name }_
+
+_${ bdrs.db.user.password }_
+
+It should look something like this when you have made the substitutions.
+
+{{{
+<property name="driverClassName" value="org.postgresql.Driver"/>
+<property name="url" value="jdbc:postgresql://localhost:5432/ala-citizenscience-read-only"/>
+<property name="username" value="postgres"/>
+<property name="password" value="postgres"/>
+}}}
+
+You can now start Jetty using the command
+
+_$ mvn -Pdev compile jetty:run_
+
+Navigate to http://localhost:8080/BDRS/home.htm to see if you have been successful.
+
+= Creating a Web Application Archive (WAR) File =
+
+Before you can deploy the BDRS to a web server such as Tomcat, we will need to package the application into a WAR file by running the command:
+
+_$ mvn -Pstage clean package_
+
+Note:
+In this example, we are packaging the BDRS using the 'stage' profile instead of the 'dev' profile. The staging profile should contain the appropriate settings for your staging environment which may or may not be different to your development environment.
+Packaging the BDRS will automatically run the unit tests. If you wish to skip running the unit tests (not recommended) you can do so by adding -DskipTests to the command line parameters.
+
+The generate WAR file can be found in target/bdrs-core.war
