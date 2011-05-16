@@ -20,6 +20,23 @@ On Ubuntu you can install all of these dependencies by running
 
 `$ sudo apt-get install subversion postgresql-8.4 postgresql-8.4-postgis maven2 eclipse`
 
+Under OpenSuSE add the following repository: 
+`$ http://download.opensuse.org/repositories/Application:/Geo/openSUSE_11.3/
+
+and use Yast to install:
+
+  * maven2
+  * postgresql-server
+  * postgresql-devel
+  * postgis
+  * postgis-utils
+
+And on Mac OSX, make sure you have Xcode tools and the Java SDK installed, then install Homebrew and do:
+
+  * brew install maven
+  * brew install postgresql
+  * brew install postgis
+
 = Source Code =
 
 Next we will check out the BDRS source code from the public repository.
