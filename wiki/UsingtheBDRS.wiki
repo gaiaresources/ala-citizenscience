@@ -18,7 +18,7 @@ Resetting your password
 
 <wiki:video url="http://www.youtube.com/watch?v=uu-HwFhqVDM"/>
 
-Setting up projects
+Setting up projects (Administrator only!)
 
 <wiki:video url="http://www.youtube.com/watch?v=Ebwh5f4jkYA"/>
 
@@ -33,3 +33,7 @@ Loading bulk data
 Downloading data
 
 <wiki:video url="http://www.youtube.com/watch?v=6ZrK50kNshg"/>
+
+Editing Content (Administrator only!)
+
+<wiki:video url="http://www.youtube.com/watch?v=x_ain6vgd0g"/>
