@@ -8,7 +8,7 @@ From version to version, it is sometimes necessary to update your database, this
 
 This was the first opensource release. You should just generate the database using the hibernate3:hbm2ddl target.
 
-= rXX=
+= r26=
 create table CENSUS_METHOD (CENSUS_METHOD_ID serial not null, WEIGHT int4, CREATED_AT timestamp, UPDATED_AT timestamp, CREATED_BY int4, UPDATED_BY int4, name varchar(255) not null, taxonomic bool, PORTAL_ID int4, primary key (CENSUS_METHOD_ID));
 create table CENSUS_METHOD_ATTRIBUTE (CENSUS_METHOD_CENSUS_METHOD_ID int4 not null, attributes_ATTRIBUTE_ID int4 not null, pos int4 not null, primary key (CENSUS_METHOD_CENSUS_METHOD_ID, pos), unique (attributes_ATTRIBUTE_ID));
 create table CENSUS_METHOD_CENSUS_METHOD (CENSUS_METHOD_CENSUS_METHOD_ID int4 not null, censusMethods_CENSUS_METHOD_ID int4 not null, pos int4 not null, primary key (CENSUS_METHOD_CENSUS_METHOD_ID, pos));
