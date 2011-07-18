@@ -1,0 +1,232 @@
+#These are the database changes you'll have to make to support new versions of the software.
+
+= Introduction =
+
+From version to version, it is sometimes necessary to update your database, this page tracks the SQL script that is needed between versions.
+
+= r24 =
+
+This was the first opensource release. You should just generate the database using the hibernate3:hbm2ddl target.
+
+= rXX=
+create table CENSUS_METHOD (CENSUS_METHOD_ID serial not null, WEIGHT int4, CREATED_AT timestamp, UPDATED_AT timestamp, CREATED_BY int4, UPDATED_BY int4, name varchar(255) not null, taxonomic bool, PORTAL_ID int4, primary key (CENSUS_METHOD_ID));
+create table CENSUS_METHOD_ATTRIBUTE (CENSUS_METHOD_CENSUS_METHOD_ID int4 not null, attributes_ATTRIBUTE_ID int4 not null, pos int4 not null, primary key (CENSUS_METHOD_CENSUS_METHOD_ID, pos), unique (attributes_ATTRIBUTE_ID));
+create table CENSUS_METHOD_CENSUS_METHOD (CENSUS_METHOD_CENSUS_METHOD_ID int4 not null, censusMethods_CENSUS_METHOD_ID int4 not null, pos int4 not null, primary key (CENSUS_METHOD_CENSUS_METHOD_ID, pos));
+
+alter table CENSUS_METHOD add constraint FK222D93DBC136AD4E foreign key (PORTAL_ID) references PORTAL;
+alter table CENSUS_METHOD_ATTRIBUTE add constraint FKE57731871755D68 foreign key (CENSUS_METHOD_CENSUS_METHOD_ID) references CENSUS_METHOD;
+alter table CENSUS_METHOD_ATTRIBUTE add constraint FKE5773188EFC338 foreign key (attributes_ATTRIBUTE_ID) references ATTRIBUTE;
+alter table CENSUS_METHOD_CENSUS_METHOD add constraint FK1F9F9E7771755D68 foreign key (CENSUS_METHOD_CENSUS_METHOD_ID) references CENSUS_METHOD;
+alter table CENSUS_METHOD_CENSUS_METHOD add constraint FK1F9F9E77364FB9F6 foreign key (censusMethods_CENSUS_METHOD_ID) references CENSUS_METHOD;
+
+-- Remove null constraints on DwC fields
+alter table record alter column INDICATOR_SPECIES_ID drop not null;
+alter table record alter column NUMBER_SEEN drop not null;
+
+-- add reference to census method
+alter table record add INDICATOR_CENSUSMETHOD_ID int4;
+alter table RECORD add constraint RECORD_CENSUSMETHOD_FK foreign key (INDICATOR_CENSUSMETHOD_ID) references CENSUS_METHOD;
+
+-- so I heard you like records...
+alter table record add PARENT_RECORD_ID int4;
+alter table RECORD add constraint PARENT_RECORD_TO_RECORD_FK foreign key (PARENT_RECORD_ID) references RECORD;
+
+-- surveys and census methods...
+create table SURVEY_CENSUS_METHOD (SURVEY_SURVEY_ID int4 not null, censusMethods_CENSUS_METHOD_ID int4 not null, pos int4 not null, primary key (SURVEY_SURVEY_ID, pos));
+alter table SURVEY_CENSUS_METHOD add constraint FK6FEA1BB66B93B13B foreign key (SURVEY_SURVEY_ID) references SURVEY;
+alter table SURVEY_CENSUS_METHOD add constraint FK6FEA1BB6364FB9F6 foreign key (censusMethods_CENSUS_METHOD_ID) references CENSUS_METHOD;
+
+alter table CENSUS_METHOD add type varchar(255);
+alter table CENSUS_METHOD add description varchar(1023);
+
+create table GEO_MAP (GEO_MAP_ID serial not null, WEIGHT int4, CREATED_AT timestamp, UPDATED_AT timestamp, CREATED_BY int4, UPDATED_BY int4, NAME varchar(255) not null, DESCRIPTION varchar(1023) not null, HIDE_PRIVATE_DETAILS bool not null, ROLE_REQUIRED varchar(255) not null, PUBLISH bool not null, ANONYMOUS_ACCESS bool not null, PORTAL_ID int4, primary key (GEO_MAP_ID));
+create table GEO_MAP_GEO_MAP_LAYER (GEO_MAP_GEO_MAP_ID int4 not null, mapLayers_GEO_MAP_LAYER_ID int4 not null, pos int4 not null, primary key (GEO_MAP_GEO_MAP_ID, pos));
+create table GEO_MAP_LAYER (GEO_MAP_LAYER_ID serial not null, WEIGHT int4, CREATED_AT timestamp, UPDATED_AT timestamp, CREATED_BY int4, UPDATED_BY int4, NAME varchar(255) not null, DESCRIPTION varchar(1023) not null, MANAGED_FILE_UUID varchar(255), HIDE_PRIVATE_DETAILS bool not null, ROLE_REQUIRED varchar(255), PUBLISH bool not null, SURVEY_ID int4, PORTAL_ID int4, primary key (GEO_MAP_LAYER_ID));
+
+alter table GEO_MAP add constraint FK261E6B2EC136AD4E foreign key (PORTAL_ID) references PORTAL;
+alter table GEO_MAP_GEO_MAP_LAYER add constraint FKBFED258F33EF01C1 foreign key (mapLayers_GEO_MAP_LAYER_ID) references GEO_MAP_LAYER;
+alter table GEO_MAP_GEO_MAP_LAYER add constraint FKBFED258F6138E048 foreign key (GEO_MAP_GEO_MAP_ID) references GEO_MAP;
+alter table GEO_MAP_LAYER add constraint FKFA2B10E0C136AD4E foreign key (PORTAL_ID) references PORTAL;
+alter table GEO_MAP_LAYER add constraint GEO_MAP_LAYER_TO_SURVEY_FK foreign key (SURVEY_ID) references SURVEY;
+  
+-- As of bdrs-core rev 205 and mobile rev 91, you will need to increase
+-- the maximum POST data size so that the mobile tool can post records 
+-- to the server.
+
+-- 1) Locate and edit 'server.xml'. On gaiaweb01, this file can be found at '/usr/local/apache-tomcat-6.0.14/conf/server.xml'.
+-- 2) Locate the line that looks like,
+-- '<Connector port="8009" protocol="AJP/1.3" redirectPort="8443"/>'
+-- 3) Modify the line to look like,
+-- <Connector port="8009" protocol="AJP/1.3" redirectPort="8443" maxPostSize="-1" maxSavePostSize="-1"/>
+-- 4) Save and Exit
+-- 5) Profit
+
+create table DEVICE_CAPABILITY (WURFLDEVICE_DEVICE_ID int4 not null, capabilities_CAPABILITY_ID int4 not null, primary key (WURFLDEVICE_DEVICE_ID, capabilities_CAPABILITY_ID), unique (capabilities_CAPABILITY_ID));
+
+create table WURFLCAPABILITY (CAPABILITY_ID serial not null, WEIGHT int4, CREATED_AT timestamp, UPDATED_AT timestamp, CREATED_BY int4, UPDATED_BY int4, NAME varchar(255), VALUE varchar(255), CAPABILITY_GROUP varchar(255), PORTAL_ID int4, primary key (CAPABILITY_ID));
+
+create table WURFLDEVICE (DEVICE_ID serial not null, WEIGHT int4, CREATED_AT timestamp, UPDATED_AT timestamp, CREATED_BY int4, UPDATED_BY int4, USERAGENT varchar(255), DEVICEIDSTRING varchar(255), PORTAL_ID int4, FALLBACK_ID int4, primary key (DEVICE_ID));
+
+alter table DEVICE_CAPABILITY add constraint FK7FA2A2A1D5F1186B foreign key (capabilities_CAPABILITY_ID) references WURFLCAPABILITY;
+alter table DEVICE_CAPABILITY add constraint FK7FA2A2A17971CFE5 foreign key (WURFLDEVICE_DEVICE_ID) references WURFLDEVICE;
+
+alter table WURFLCAPABILITY add constraint FK2AD97D92C136AD4E foreign key (PORTAL_ID) references PORTAL;
+
+alter table WURFLDEVICE add constraint FKC7F0CBD01EA2E568 foreign key (FALLBACK_ID) references WURFLDEVICE;
+alter table WURFLDEVICE add constraint FKC7F0CBD0C136AD4E foreign key (PORTAL_ID) references PORTAL;
+
+ALTER TABLE device_capability DROP CONSTRAINT device_capability_capabilities_capability_id_key;
+
+create table GALLERY (GALLERY_ID serial not null, WEIGHT int4, CREATED_AT timestamp, UPDATED_AT timestamp, CREATED_BY int4, UPDATED_BY int4, NAME varchar(255) not null, DESCRIPTION varchar(1023) not null, PORTAL_ID int4, primary key (GALLERY_ID));
+create table GALLERY_ITEMS (GALLERY_ID int4 not null, MANAGED_FILE_UUID varchar(255), MANAGED_FILE_ORDER int4 not null, primary key (GALLERY_ID, MANAGED_FILE_ORDER));
+
+alter table GALLERY add constraint FK1F180332C136AD4E foreign key (PORTAL_ID) references PORTAL;
+alter table GALLERY_ITEMS add constraint GALLERY_GALLERY_ITEMS_PK foreign key (GALLERY_ID) references GALLERY;
+
+-- create the join tables
+create table GEO_MAP_LAYER_ATTRIBUTES (GEO_MAP_LAYER_GEO_MAP_LAYER_ID int4 not null, attributes_ATTRIBUTE_ID int4 not null, unique (attributes_ATTRIBUTE_ID));
+create table GEO_MAP_LAYER_RECORDS (GEO_MAP_LAYER_GEO_MAP_LAYER_ID int4 not null, records_RECORD_ID int4 not null, unique (records_RECORD_ID));
+
+alter table GEO_MAP_LAYER_ATTRIBUTES add constraint FKD8B18E168EFC338 foreign key (attributes_ATTRIBUTE_ID) references ATTRIBUTE;
+alter table GEO_MAP_LAYER_ATTRIBUTES add constraint FKD8B18E162CF3BE5F foreign key (GEO_MAP_LAYER_GEO_MAP_LAYER_ID) references GEO_MAP_LAYER;
+alter table GEO_MAP_LAYER_RECORDS add constraint FK99DE81C3C26275EC foreign key (records_RECORD_ID) references RECORD;
+alter table GEO_MAP_LAYER_RECORDS add constraint FK99DE81C32CF3BE5F foreign key (GEO_MAP_LAYER_GEO_MAP_LAYER_ID) references GEO_MAP_LAYER;
+
+-- add layer source column to geo map layer.
+-- all default values should be overwritten after the updates
+alter table GEO_MAP_LAYER add LAYER_SOURCE varchar(255) not null default 'defaultvalue';
+update GEO_MAP_LAYER set LAYER_SOURCE='SURVEY' where survey_id is not null;
+update GEO_MAP_LAYER set LAYER_SOURCE='KML' where survey_id is null;
+
+--updated to be compatible with older versions of postgres
+
+BEGIN;
+alter table record add column accuracy float8;
+alter table census_method rename column taxonomic to taxonomic_boolean;
+alter table census_method add column taxonomic varchar(255);
+update census_method set taxonomic = 'TAXONOMIC' where taxonomic_boolean = true;
+update census_method set taxonomic = 'NONTAXONOMIC' where taxonomic_boolean = false;
+alter table census_method drop column taxonomic_boolean;
+  
+-- in addition to doing the database migration run
+-- migrateRecordAttributeToAttributeValue.sh
+-- which has been attached to this file. There are instructions
+-- inside the script and it has a few checks in it to make sure
+-- you can't screw up too bad.
+-- The script will move your uploaded files which used to be
+-- attached to a RecordAttribute object and will place them
+-- under a AttributeValue object, keeping the ID the same.
+
+
+-- start, GEO_MAP_FEATURE
+
+-- renaming column
+alter table RECORD rename column POINT to GEOM;
+
+alter table GEO_MAP_LAYER_RECORDS drop constraint FK99DE81C3C26275EC;
+alter table GEO_MAP_LAYER_RECORDS drop constraint FK99DE81C32CF3BE5F;
+drop table GEO_MAP_LAYER_RECORDS;
+
+create table GEO_MAP_FEATURE (GEO_MAP_FEATURE_ID serial not null, WEIGHT int4, CREATED_AT timestamp, UPDATED_AT timestamp, CREATED_BY int4, UPDATED_BY int4, GEOM geometry, GEO_MAP_LAYER_ID int4 not null, PORTAL_ID int4, primary key (GEO_MAP_FEATURE_ID));
+create table GEO_MAP_FEATURE_RECORD_ATTRIBUTE (GEO_MAP_FEATURE_GEO_MAP_FEATURE_ID int4 not null, attributes_RECORD_ATTRIBUTE_ID int4 not null, primary key (GEO_MAP_FEATURE_GEO_MAP_FEATURE_ID, attributes_RECORD_ATTRIBUTE_ID), unique (attributes_RECORD_ATTRIBUTE_ID));
+
+alter table GEO_MAP_FEATURE add constraint GEO_MAP_FEATURE_TO_GEO_MAP_LAYER_FK foreign key (GEO_MAP_LAYER_ID) references GEO_MAP_LAYER;
+alter table GEO_MAP_FEATURE add constraint FKE3CD0AC5C136AD4E foreign key (PORTAL_ID) references PORTAL;
+alter table GEO_MAP_FEATURE_RECORD_ATTRIBUTE add constraint FKF8133E48AEC460FA foreign key (GEO_MAP_FEATURE_GEO_MAP_FEATURE_ID) references GEO_MAP_FEATURE;
+alter table GEO_MAP_FEATURE_RECORD_ATTRIBUTE add constraint FKF8133E48B2F71680 foreign key (attributes_RECORD_ATTRIBUTE_ID) references RECORD_ATTRIBUTE;
+
+-- end geo map feature section
+
+
+-- start renaming RecordAttribute to AttributeValue
+
+-- drop the old join tables contraints since hibernate changes the key
+alter table GEO_MAP_FEATURE_RECORD_ATTRIBUTE drop constraint FKF8133E48AEC460FA;
+alter table GEO_MAP_FEATURE_RECORD_ATTRIBUTE drop constraint FKF8133E48B2F71680;
+
+alter table RECORD_ATTRIBUTE drop constraint FK821EA40EC136AD4E;
+alter table RECORD_ATTRIBUTE drop constraint FK821EA40EE3DD50;
+
+alter table RECORD_RECORD_ATTRIBUTE drop constraint FK5563323C4F3EBD3B;
+alter table RECORD_RECORD_ATTRIBUTE drop constraint FK5563323CB2F71680;
+
+-- rename tables
+alter table GEO_MAP_FEATURE_RECORD_ATTRIBUTE rename to GEO_MAP_FEATURE_ATTRIBUTE_VALUE;
+alter table RECORD_ATTRIBUTE rename to ATTRIBUTE_VALUE;
+alter table RECORD_RECORD_ATTRIBUTE rename to RECORD_ATTRIBUTE_VALUE;
+-- rename primary key column in attribute_value table...
+alter table ATTRIBUTE_VALUE rename column record_attribute_id to attribute_value_id;
+-- rename column in join tables
+alter table GEO_MAP_FEATURE_ATTRIBUTE_VALUE rename column attributes_RECORD_ATTRIBUTE_ID to attributes_ATTRIBUTE_VALUE_ID;
+alter table RECORD_ATTRIBUTE_VALUE rename column attributes_RECORD_ATTRIBUTE_ID to attributes_ATTRIBUTE_VALUE_ID;
+
+-- recreate index
+drop index record_attribute_string_value_index;
+create index attribute_value_string_value_index on ATTRIBUTE_VALUE (STRING_VALUE);
+
+-- rename sequence
+alter table record_attribute_record_attribute_id_seq rename to attribute_value_attribute_value_id_seq;
+
+-- recreate constraints
+alter table ATTRIBUTE_VALUE add constraint FK5127E9CEC136AD4E foreign key (PORTAL_ID) references PORTAL;
+alter table ATTRIBUTE_VALUE add constraint FK5127E9CEE3DD50 foreign key (ATTRIBUTE_ID) references ATTRIBUTE;
+
+alter table GEO_MAP_FEATURE_ATTRIBUTE_VALUE add constraint FK657A2054AEC460FA foreign key (GEO_MAP_FEATURE_GEO_MAP_FEATURE_ID) references GEO_MAP_FEATURE;
+alter table GEO_MAP_FEATURE_ATTRIBUTE_VALUE add constraint FK657A20547C59E1B3 foreign key (attributes_ATTRIBUTE_VALUE_ID) references ATTRIBUTE_VALUE;
+
+alter table RECORD_ATTRIBUTE_VALUE add constraint FKFD21DDE04F3EBD3B foreign key (RECORD_RECORD_ID) references RECORD;
+alter table RECORD_ATTRIBUTE_VALUE add constraint FKFD21DDE07C59E1B3 foreign key (attributes_ATTRIBUTE_VALUE_ID) references ATTRIBUTE_VALUE;
+
+-- end record attribute rename section
+
+--<strong>Read This</strong>
+--If the above constraint deletions fail then you may want to use the --following lines instead
+
+-- Change:
+-- alter table RECORD_ATTRIBUTE drop constraint FK821EA40EE3DD50;
+-- alter table RECORD_RECORD_ATTRIBUTE drop constraint FK5563323C4F3EBD3B;
+-- alter table RECORD_RECORD_ATTRIBUTE drop constraint FK5563323CB2F71680;
+
+to:
+-- alter table RECORD_ATTRIBUTE drop constraint fk821ea40e8c85a7a6;
+-- alter table RECORD_RECORD_ATTRIBUTE drop constraint fk5563323c11af5025;
+-- alter table RECORD_RECORD_ATTRIBUTE drop constraint fk5563323cdc2c2ad6;
+
+-- START
+-- create new table
+create table ASSIGNED_GEO_MAP_LAYER (ASSIGNED_GEO_MAP_LAYER_ID serial not null, WEIGHT int4, CREATED_AT timestamp, UPDATED_AT timestamp, CREATED_BY int4, UPDATED_BY int4, visible bool not null, PORTAL_ID int4, GEO_MAP_ID int4 not null, GEO_MAP_LAYER_ID int4 not null, primary key (ASSIGNED_GEO_MAP_LAYER_ID));
+alter table ASSIGNED_GEO_MAP_LAYER add constraint ASSIGNED_GEO_MAP_LAYER_TO_GEO_MAP_FK foreign key (GEO_MAP_ID) references GEO_MAP;
+alter table ASSIGNED_GEO_MAP_LAYER add constraint ASSIGNED_GEO_MAP_LAYER_TO_GEO_MAP_LAYER_FK foreign key (GEO_MAP_LAYER_ID) references GEO_MAP_LAYER;
+alter table ASSIGNED_GEO_MAP_LAYER add constraint FK8AE3A02FC136AD4E foreign key (PORTAL_ID) references PORTAL;
+
+-- copy data from old to new table. For every row in the old join table create a row in the new table
+-- with map and layer ids filled out appropriately. set visible and weight to 0
+insert into ASSIGNED_GEO_MAP_LAYER(weight, visible, GEO_MAP_ID, GEO_MAP_LAYER_ID)
+select pos, true, GEO_MAP_GEO_MAP_ID, mapLayers_GEO_MAP_LAYER_ID from GEO_MAP_GEO_MAP_LAYER;
+
+-- update the portal ids...
+update ASSIGNED_GEO_MAP_LAYER as a set portal_id = (select portal_id from GEO_MAP_LAYER as g where a.geo_map_layer_id=g.geo_map_layer_id);
+
+-- drop old join table...
+alter table GEO_MAP_GEO_MAP_LAYER drop constraint FKBFED258F33EF01C1;
+alter table GEO_MAP_GEO_MAP_LAYER drop constraint FKBFED258F6138E048;
+drop table GEO_MAP_GEO_MAP_LAYER;
+
+-- END
+
+
+alter TABLE wurflcapability drop CONSTRAINT fk2ad97d92c136ad4e;
+alter TABLE wurflcapability drop COLUMN portal_id;
+
+alter TABLE wurfldevice drop CONSTRAINT fkc7f0cbd0c136ad4e;
+alter table wurfldevice drop COLUMN portal_id;
+
+
+alter table geo_map_layer add column STROKE_COLOR varchar(15) not null default '#EE9900';
+alter table geo_map_layer add column FILL_COLOR varchar(15) not null default '#EE9900';
+alter table geo_map_layer add column SYMBOL_SIZE int4 not null default '5';
+alter table geo_map_layer add column STROKE_WIDTH int4 not null default '1';
+
+ALTER TABLE survey ADD COLUMN surveyenddate timestamp without time zone;
+
+--rev 295 core
