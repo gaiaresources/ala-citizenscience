@@ -188,7 +188,7 @@ alter table RECORD_ATTRIBUTE_VALUE add constraint FKFD21DDE07C59E1B3 foreign key
 -- alter table RECORD_RECORD_ATTRIBUTE drop constraint FK5563323C4F3EBD3B;
 -- alter table RECORD_RECORD_ATTRIBUTE drop constraint FK5563323CB2F71680;
 
-to:
+-- to:
 -- alter table RECORD_ATTRIBUTE drop constraint fk821ea40e8c85a7a6;
 -- alter table RECORD_RECORD_ATTRIBUTE drop constraint fk5563323c11af5025;
 -- alter table RECORD_RECORD_ATTRIBUTE drop constraint fk5563323cdc2c2ad6;
