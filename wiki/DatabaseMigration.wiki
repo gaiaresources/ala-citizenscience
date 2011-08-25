@@ -232,3 +232,30 @@ ALTER TABLE survey ADD COLUMN surveyenddate timestamp without time zone;
 
 --rev 295 core
 </code>
+= r =
+<code language="sql">
+begin;
+
+alter table ASSIGNED_GEO_MAP_LAYER add column upperZoomLimit int4;
+alter table ASSIGNED_GEO_MAP_LAYER add column lowerZoomLimit int4;
+
+-- START --------------------------------------
+
+-- add record visibility property
+-- note that some sites will NOT want to default to owner only! Take this into
+-- account when doing database migrations on prod!
+alter table record add column record_visibility varchar(50) default 'OWNER_ONLY';
+
+-- we could use a longer description for our surveys.
+alter table survey alter column description type varchar(1023);
+
+-- add census method meta data
+create table CENSUS_METHOD_METADATA (CENSUS_METHOD_CENSUS_METHOD_ID int4 not null, metadata_ID int4 not null, primary key (CENSUS_METHOD_CENSUS_METHOD_ID, metadata_ID));
+alter table CENSUS_METHOD_METADATA add constraint FK40742F1371755D68 foreign key (CENSUS_METHOD_CENSUS_METHOD_ID) references CENSUS_METHOD;
+alter table CENSUS_METHOD_METADATA add constraint FK40742F13510B318B foreign key (metadata_ID) references METADATA;
+
+-- END ---------------------------------------
+
+commit;
+--rev 360 core
+</code>
