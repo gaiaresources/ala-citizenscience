@@ -232,7 +232,7 @@ ALTER TABLE survey ADD COLUMN surveyenddate timestamp without time zone;
 
 --rev 295 core
 </code>
-= r =
+= r33 =
 <code language="sql">
 begin;
 
