@@ -259,3 +259,31 @@ alter table CENSUS_METHOD_METADATA add constraint FK40742F13510B318B foreign key
 commit;
 --rev 360 core
 </code>
+
+
+= r35 =
+<code language="sql">
+-- to help speed up map server stuff. will help in general with spatial queries.
+
+begin;
+
+create index geo_map_feature_geom on geo_map_feature using GIST (geom);
+cluster geo_map_feature_geom on geo_map_feature;
+
+create index record_geom on record using GIST (geom);
+cluster record_geom on record;
+
+create table LOCATION_ATTRIBUTE_VALUE (LOCATION_LOCATION_ID int4 not null, attributes_ATTRIBUTE_VALUE_ID int4 not null, primary key (LOCATION_LOCATION_ID, attributes_ATTRIBUTE_VALUE_ID), unique (attributes_ATTRIBUTE_VALUE_ID));
+
+alter table LOCATION_ATTRIBUTE_VALUE add constraint FK75AC5445446447B foreign key (LOCATION_LOCATION_ID) references LOCATION;
+alter table LOCATION_ATTRIBUTE_VALUE add constraint FK75AC5447C59E1B3 foreign key (attributes_ATTRIBUTE_VALUE_ID) references ATTRIBUTE_VALUE;
+
+
+create table THEME_PAGE (theme_page_id serial not null, WEIGHT int4, CREATED_AT timestamp, UPDATED_AT timestamp, CREATED_BY int4, UPDATED_BY int4, KEY varchar(255) not null, DESCRIPTION varchar(2047), TITLE varchar(255), PORTAL_ID int4, THEME_ID int4, primary key (theme_page_id));
+
+alter table THEME_PAGE add constraint THEME_THEME_PAGE_FK foreign key (THEME_ID) references THEME;
+alter table THEME_PAGE add constraint FK3F67B765C136AD4E foreign key (PORTAL_ID) references PORTAL;
+
+commit;
+-- rev 399 core
+</code>
