@@ -287,3 +287,16 @@ alter table THEME_PAGE add constraint FK3F67B765C136AD4E foreign key (PORTAL_ID)
 commit;
 -- rev 399 core
 </code>
+
+= r37 =
+<code language="sql">
+
+begin;
+alter table location add column description character varying(255);
+
+alter table Threshold add column name varchar(255);
+alter table Threshold add column description varchar(1023);
+commit;
+
+-- rev 417 core
+</code>
