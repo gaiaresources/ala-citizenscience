@@ -300,3 +300,33 @@ commit;
 
 -- rev 417 core
 </code>
+
+= rXX =
+<code language="sql">
+
+begin;
+
+alter table theme add column isdefault boolean NOT NULL default false;
+alter table theme alter column theme_file_uuid drop not null;
+
+alter table attribute_value alter column string_value type text;
+
+--rev 470 core
+
+alter table portal add constraint portal_name_key unique(name);
+
+--rev 475 core
+
+update metadata set key = replace(key, 'Record.','RECORD.') || '.WEIGHT' where key like 'Record.%';
+alter TABLE record ALTER COLUMN when_date DROP NOT NULL;
+alter TABLE record ALTER COLUMN last_date DROP NOT NULL;
+
+
+--rev 494 core
+ALTER TABLE preference ALTER COLUMN description TYPE text;
+
+-- rev 496 core
+commit;
+
+
+</code>
