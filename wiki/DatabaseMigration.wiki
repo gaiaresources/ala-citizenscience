@@ -301,7 +301,7 @@ commit;
 -- rev 417 core
 </code>
 
-= rXX =
+= r51 =
 <code language="sql">
 
 begin;
