@@ -327,6 +327,21 @@ ALTER TABLE preference ALTER COLUMN description TYPE text;
 
 -- rev 496 core
 commit;
+</code>
 
+= r58 =
+<code language="sql">
+BEGIN;
+update record set held = FALSE where held is null;
+alter table record alter column held set default FALSE;
+alter table record alter column held set not null;
 
+alter table action add column actionevent character varying(255) not null default 'CREATE_AND_UPDATE';
+update action set actionevent='CREATE_AND_UPDATE';
+
+create table REPORT (REPORT_ID serial not null, WEIGHT int4, CREATED_AT timestamp, UPDATED_AT timestamp, CREATED_BY int4, UPDATED_BY int4, NAME varchar(255) not null, ACTIVE bool not null, DESCRIPTION text not null, ICONFILENAME varchar(255) not null, PORTAL_ID int4, primary key (REPORT_ID));
+alter table REPORT add constraint FK8FDF4934C136AD4E foreign key (PORTAL_ID) references PORTAL;
+
+COMMIT;
+--rev 526 core
 </code>
