@@ -43,24 +43,7 @@ Next we will check out the BDRS source code from the public repository.
 
 `$ svn checkout http://ala-citizenscience.googlecode.com/svn/trunk/ ala-citizenscience-read-only`
 
-After checking out the source code, you will need to modify the “pom.xml” file located at the base directory. Open the file using a text editor and locate the profiles section at the bottom of the file.
-At a minimum, you will need to update the
-
-`bdrs.db.user.name`
-
-`bdrs.db.user.password`
-
-`bdrs.db.url`
-
-with the credentials to your postgres database. For example,
-
-`<bdrs.db.user.name>postgres</bdrs.db.user.name>`
-
-`<bdrs.db.user.password>postgres</bdrs.db.user.password>`
-
-`<bdrs.db.url>jdbc:postgresql://localhost:5432/ala-citizenscience-read-only</bdrs.db.url>`
-
-In this case, we login in with the username/password postgres/postgres and connect to the database called “ala-citizenscience-read-only”. We haven't created this database yet so lets do that in the next section.
+After checking out the source code, you will need to create the database and modify the "pom.xml" file with the newly created database settings as specified in the next section.
 
 = Setting up the Database =
 
@@ -99,7 +82,30 @@ Run this script against the spatial database that we created earlier.
 
 `psql -U postgres ala-citizenscience-read-only -f target/hibernate3/sql/bdrs-core.sql`
 
-We now have a working BDRS database. Next we will run the unit tests.
+Now we need to modify the “pom.xml” file located at the base directory with these database settings. Open the file using a text editor and locate the profiles section at the bottom of the file.
+At a minimum, you will need to update the
+
+`bdrs.db.driver`
+
+`bdrs.db.url`
+
+`bdrs.db.user.name`
+
+`bdrs.db.user.password`
+
+with the credentials to your postgres database. For example,
+
+`<bdrs.db.driver>org.postgresql.Driver</bdrs.db.driver>`
+
+`<bdrs.db.url>jdbc:postgresql://localhost:5432/ala-citizenscience-read-only</bdrs.db.url>`
+
+`<bdrs.db.user.name>postgres</bdrs.db.user.name>`
+
+`<bdrs.db.user.password>postgres</bdrs.db.user.password>`
+
+In this case, we login in with the username/password postgres/postgres and connect to the database called “ala-citizenscience-read-only”.
+
+We now have a working BDRS database.  Next we will run the unit tests.
 
 = Running the BDRS Unit Tests =
 
