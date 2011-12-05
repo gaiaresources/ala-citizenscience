@@ -37,6 +37,43 @@ And on Mac OSX, make sure you have Xcode tools and the Java SDK installed, then 
   * brew install postgresql
   * brew install postgis
 
+== Native Dependencies ==
+
+In addition to the packages above, the BDRS also requires 
+    * Jepp - Embdeds CPython in Java
+
+Assuming you are using Ubuntu, you can install Jepp by running:
+{{{
+# This indicates which version of Java to use when compiling Jepp
+export JAVA_HOME=/usr/lib/jvm/default-java
+
+# Required packages for compiling
+sudo apt-get install python-dev libssl-dev
+
+wget http://downloads.sourceforge.net/project/jepp/jep/2.4/jep-2.4.tar.gz
+tar -zxvf jep-2.4.tar.gz
+cd jep-2.4 
+
+./configure && make 
+sudo make install
+
+# This will install Jep to your local maven repository
+mvn install:install-file -Dfile=jep.jar -DgroupId=jep -DartifactId=jep -Dversion=2.4 -Dpackaging=jar
+}}}
+
+== Python Dependencies ==
+If you wish to create reports, you will also need to install the required Python libraries. Pip handles
+the installation of libraries for you by downloading them from the Python Package Index (PyPI)
+`sudo apt-get install python-pip`
+
+The precise libraries that you will need will depend on which reports you have installed however the following will be a good start.
+{{{
+pip install cheetah
+pip install xlrd
+pip install xlwt
+pip install xlutils
+}}}
+
 = Source Code =
 
 Next we will check out the BDRS source code from the public repository.
@@ -147,6 +184,16 @@ It should look something like this when you have made the substitutions.
 <property name="password" value="postgres"/>
 }}}
 
+You will also need to tell Jepp where to find the native libraries that it requires.
+{{{
+# You will need to update this for your specific system.
+# If you are unsure which path to use, please refer to http://jepp.sourceforge.net/usage.html
+
+export LD_LIBRARY_PATH=/usr/local/lib/
+export LD_PRELOAD=/usr/lib/libpython2.7.so.1.0
+export CLASSPATH=~/.m2/repository/jep/jep/2.4/jep-2.4.jar:$CLASSPATH
+}}}
+
 You can now start Jetty using the command
 
 `$ mvn -Pdev compile jetty:run`
@@ -164,3 +211,26 @@ In this example, we are packaging the BDRS using the 'stage' profile instead of 
 Packaging the BDRS will automatically run the unit tests. If you wish to skip running the unit tests (not recommended) you can do so by adding -DskipTests to the command line parameters.
 
 The generate WAR file can be found in target/bdrs-core.war
+
+== Deploying to Tomcat ==
+For deployment, we need to configure Tomcat so that it can correctly locate native libraries required to create reports.
+
+ * Copy the Jepp jar file (jep-2.4.jar) to Tomcat's shared library directory. 
+ ** You can find jep-2.4.jar in the Maven Repository on your build machine 
+ `~/.m2/repository/jep/jep/2.4`
+ ** On Ubuntu the Tomcat shared library is 
+ `/usr/share/tomcat6/lib`
+ * Compile and install jep.
+ * Configure environment variables for Tomcat
+ ** Find the tomcat startup script `startup.sh`. On Ubuntu this is in 
+ `/usr/share/tomcat6/bin`.
+ ** Create a new file in that directory called `setenv.sh`. Place the following in the file.
+_*Don't forget to update the content for that specific machine*_
+{{{
+ #!/bin/bash
+ export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+ export LD_PRELOAD=/usr/lib/libpython2.7.so.1.0:$LD_PRELOAD
+}}}
+
+ * Finally give the file the correct file permissions
+{{{sudo chmod 655 ./setenv.sh}}}
