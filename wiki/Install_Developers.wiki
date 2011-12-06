@@ -151,6 +151,9 @@ Note:
 Currently there are some deficiencies with the build setup and this will cause problems when running the unit tests. To work around these problems do the following: 
  # Open the climatewatch-email.xml file and set the host and ports of the email server else you will not be able to run the tests.
  # Open the climatewatch-hibernate-datasource-test.xml file and set the database details for your test database appropriately. DON'T set your test database to be the same as any production BDRS database used to run a web server because ALL OF YOUR DATA WILL BE ERASED.
+ # Open the file.properties file and set the file store directory for the BDRS. For the unit tests it is ok to use the /tmp directory.
+
+*For all of these changes note that to use the pom settings when creating your WAR file, you must revert your changes else maven will not be able to do its usual filtering.*
 ----
 
 To run the unit tests, we will need to create a test database. The unit tests are run against this database instead of your development database so that the test environment remains constant for all tests. The BDRS tables in the test database must be completely empty when starting the tests else some tests will fail and further build steps will not be possible.
@@ -173,6 +176,9 @@ Currently there are some deficiencies with the build setup and this will cause p
  
  # Open the climatewatch-email.xml file and set the host and ports of the email server else you will not be able to run the tests.
  # Open the climatewatch-hibernate-datasource.xml file and set the  database details for your database appropriately.
+ # Open the file.properties file and set the file store directory for the BDRS. For a webserver you do not want to use the /tmp directory as by default your files may be erased when the computer resets.
+
+*For all of these changes note that to use the pom settings when creating your WAR file, you must revert your changes else maven will not be able to do its usual filtering.*
 ----
 
 During development you can use a light weight open source web server called Jetty. Jetty has already been mostly configured for you in the POM so that it does not require the Web Application Archive (WAR) file to be packaged. Instead Jetty directly executes the application from the class files in the target directory and the template files in the source directory.
