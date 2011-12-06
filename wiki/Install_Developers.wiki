@@ -177,6 +177,7 @@ Currently there are some deficiencies with the build setup and this will cause p
  # Open the climatewatch-email.xml file and set the host and ports of the email server else you will not be able to run the tests.
  # Open the climatewatch-hibernate-datasource.xml file and set the  database details for your database appropriately.
  # Open the file.properties file and set the file store directory for the BDRS. For a webserver you do not want to use the /tmp directory as by default your files may be erased when the computer resets.
+ # For email functionality to work (e.g. the user registration signup notifications), you must edit the email.properties file.
 
 *For all of these changes note that to use the pom settings when creating your WAR file, you must revert your changes else maven will not be able to do its usual filtering.*
 ----
