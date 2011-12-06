@@ -146,6 +146,13 @@ We now have a working BDRS database.  Next we will run the unit tests.
 
 = Running the BDRS Unit Tests =
 
+Note:
+----
+Currently there are some deficiencies with the build setup and this will cause problems when running the unit tests. To work around these problems do the following: 
+ # Open the climatewatch-email.xml file and set the host and ports of the email server else you will not be able to run the tests.
+ # Open the climatewatch-hibernate-datasource-test.xml file and set the database details for your test database appropriately. DON'T set your test database to be the same as any production BDRS database used to run a web server because ALL OF YOUR DATA WILL BE ERASED.
+----
+
 To run the unit tests, we will need to create a test database. The unit tests are run against this database instead of your development database so that the test environment remains constant for all tests. The BDRS tables in the test database must be completely empty when starting the tests else some tests will fail and further build steps will not be possible.
 
 To create a test database, perform the same procedure as creating the BDRS database except in this case, give the test database a different name e.g. “ala-citizenscience-read-only-test”.
@@ -161,12 +168,12 @@ Test results can be found in “target/surefire-reports”.
 = Running a web server for Development =
 
 Note:
-****
-If you are attempting to run the BDRS on jetty in non-exploded mode you must do the following changes.
-Currently there are some deficiencies with the build setup. To work around these problems do the following: 
-1. Open the climatewatch-email.xml file and set the host and ports of the email server else you will not be able to run the tests.
-2. Open the climatewatch-hibernate-datasource.xml file and set the database details for your database appropriately.
-****
+----
+Currently there are some deficiencies with the build setup and this will cause problems when running on Jetty. To work around these problems do the following:
+ 
+ # Open the climatewatch-email.xml file and set the host and ports of the email server else you will not be able to run the tests.
+ # Open the climatewatch-hibernate-datasource.xml file and set the  database details for your database appropriately.
+----
 
 During development you can use a light weight open source web server called Jetty. Jetty has already been mostly configured for you in the POM so that it does not require the Web Application Archive (WAR) file to be packaged. Instead Jetty directly executes the application from the class files in the target directory and the template files in the source directory.
 
