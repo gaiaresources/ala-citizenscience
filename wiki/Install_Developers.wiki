@@ -160,6 +160,14 @@ Test results can be found in “target/surefire-reports”.
 
 = Running a web server for Development =
 
+Note:
+****
+If you are attempting to run the BDRS on jetty in non-exploded mode you must do the following changes.
+Currently there are some deficiencies with the build setup. To work around these problems do the following: 
+1. Open the climatewatch-email.xml file and set the host and ports of the email server else you will not be able to run the tests.
+2. Open the climatewatch-hibernate-datasource.xml file and set the database details for your database appropriately.
+****
+
 During development you can use a light weight open source web server called Jetty. Jetty has already been mostly configured for you in the POM so that it does not require the Web Application Archive (WAR) file to be packaged. Instead Jetty directly executes the application from the class files in the target directory and the template files in the source directory.
 
 The price that you pay for having this convenience is that maven filtering does not get executed (because we are not building a WAR file) and so we will need to make a manual change to a file that is normally taken care of by maven.
