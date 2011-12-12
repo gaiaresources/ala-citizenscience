@@ -1,0 +1,17 @@
+#summary Instructions for the Administrator of the BDRS system.
+
+= Introduction =
+
+This page includes a range of administrator documentation, aimed at showing you how to administrate BDRS.
+
+= Setup =
+
+== Adding the Google Maps API Key ==
+
+When setting up a new system or a new portal on the system, you must add a google maps API key or you will get an error on all pages with a map.  Set up the key preference using the following steps:
+
+  # Get a Google Maps API key from http://code.google.com/apis/maps/signup.html.
+  # Sign in to your BDRS instance/portal with an admin account.
+  # Go to the Admin > Manage Portal > Edit Preferences menu.
+  # Scroll down the page to the heading "API Keys"
+  # Create the google maps API key according to the directions on the page.  For example, if your server is running on www.example.com, enter a description like "Google Map API key for www.example.com", a key of "google.map.key.example" and value of "www.example.com, {{{[key from google maps api page]}}}".
