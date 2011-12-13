@@ -6,6 +6,10 @@ This page includes a range of administrator documentation, aimed at showing you 
 
 = Setup =
 
+== Default Passwords ==
+
+After installing and starting up the system, two user accounts will be automatically created for you: "root" and "admin" with default password "password".  You will want to change these passwords before your system goes live.  To change the password, log in with the given credentials and go to Profile > My Profile.  From this page, you can enter a new password.
+
 == Adding the Google Maps API Key ==
 
 When setting up a new system or a new portal on the system, you must add a google maps API key or you will get an error on all pages with a map.  Set up the key preference using the following steps:
