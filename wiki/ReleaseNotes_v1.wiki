@@ -2,11 +2,30 @@
 
 = BDRS 1.0 Release Notes =
 
-Welcome to BDRS 1.0!
+Welcome to BDRS v1.0!
 
+This release represents a lot of work - almost 2 years of development - and a general move towards this software being more of a mature product.  This is our first push out of a versioned release, and will be the start of many under this project.
+
+Behind the scenes, pre-version 1.0, we've been working in a very agile methodology with the Atlas of Living Australia, and this will be seen in the code and the issues below.  This initial period of development has been guiding the direction of the software - initially from a simple recording form for biological data to what is now pretty much an all-singing, all-dancing recording system that can actually handle both biological and non-biological data.
+
+One of the things that you won't find in v1.0 is a pre-packaged mobile system.  While we've been delivering mobile solutions and prototypes, we've found some significant issues with the technologies we are using, and are going to be refactoring mobile in a coming release.  There is mobile code in the trunk of this release, but keep in mind it's something we'll be reworking significantly.
+
+So, despite all of this effort, yes, we have some known issues in the software. We've done our best to remove them as we get to version 1.0, but there are some we simple have had to push back to v1.1 in order to meet the v1.0 deadline.  However, we will be pushing out a new release in the first quarter of 2012 that should address these issues.
+
+The nature of open source projects mean that you could check out our trunk code - which we update here on Google Code regularly from our internal repository where active development occurs - and get some of these fixes early.  We'd only recommend you check out a trunk version if you are a developer; and let us know if you plan to do that.  We would love to hear what you are interested in, and help you become part of the BDRS family.
+
+The BDRS has a bright future.  Gaia Resources is funded to do another six months of development on the core product for the Atlas of Living Australia (ALA), and that will mean more releases.  In addition, we are also putting in place other instances of the software outside of the ALA contract.  We are intending to develop a community site around this code repository in early 2012, and to really establish this software as a useful tool for as many groups as we can.
+
+Please contact us either through this Google Code implementation, or directly at Gaia Resources if you want to know more, get help, or be involved in this project.
+
+Thanks for your interest in the BDRS!
+
+Piers Higgs
+Director, Gaia Resources
+piers@gaiaresources.com.au
 
 == Known Issues ==
-We’ve done our best to make BDRS 1.0 as solid as possible, but unfortunately there are a couple of issues that we know about in the release.
+We’ve done our best to make BDRS 1.0 as solid as possible, but as is always the case with software, there are a couple of issues that we know about in this release.
 
 === Creating records with a hidden latitude and longitude ===
 When creating or editing a record for a project with hidden latitude and longitude fields, the map will still be displayed. You may click on the map and a point will appear but on submission no spatial data will be saved.
