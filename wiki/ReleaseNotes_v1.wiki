@@ -1,0 +1,16 @@
+#summary Release notes for BDRS 1.0
+
+= BDRS 1.0 Release Notes =
+
+Welcome to BDRS 1.0!
+
+
+== Known Issues ==
+We’ve done our best to make BDRS 1.0 as solid as possible, but unfortunately there are a couple of issues that we know about in the release.
+
+=== Creating records with a hidden latitude and longitude ===
+When creating or editing a record for a survey with hidden latitude and longitude fields, the map will still be displayed. You may click on the map and a point will appear but on submission no spatial data will be saved.
+
+_Note that you will not be able to see your record on the map tab of the `MySightings` page because the record does not have a latitude and longitude._
+
+This bug will be fixed in the next release of the BDRS.
