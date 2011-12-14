@@ -10,7 +10,7 @@ Behind the scenes, pre-version 1.0, we've been working in a very agile methodolo
 
 One of the things that you won't find in v1.0 is a pre-packaged mobile system.  While we've been delivering mobile solutions and prototypes, we've found some significant issues with the technologies we are using, and are going to be refactoring mobile in a coming release.  There is mobile code in the trunk of this release, but keep in mind it's something we'll be reworking significantly.
 
-So, despite all of this effort, yes, we have some known issues in the software. We've done our best to remove them as we get to version 1.0, but there are some we simple have had to push back to v1.1 in order to meet the v1.0 deadline.  However, we will be pushing out a new release in the first quarter of 2012 that should address these issues.
+So, despite all of this effort, yes, we have some known issues in the software. We've done our best to remove them as we get to version 1.0, but there are some we simply have had to push back to v1.1 in order to meet the v1.0 deadline.  However, we will be pushing out a new release in the first quarter of 2012 that should address these issues.
 
 The nature of open source projects mean that you could check out our trunk code - which we update here on Google Code regularly from our internal repository where active development occurs - and get some of these fixes early.  We'd only recommend you check out a trunk version if you are a developer; and let us know if you plan to do that.  We would love to hear what you are interested in, and help you become part of the BDRS family.
 
