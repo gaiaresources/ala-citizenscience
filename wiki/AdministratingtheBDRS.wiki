@@ -30,7 +30,7 @@ To do this,
  # Update the content for `public/privacyStatement` and `public/termsAndConditions`
 
 == Setting up the Atlas Tracker Form ==
-When creating a new project, one of the available form renderers is called the `Atlas Tracker`. This is a special recording form that was designed specifically for the Atlas of Living Australia. This form is not available to users via the normal menu system. To access this form you must go directly to the URL,
+When creating a new project, one of the available form types is called the `Atlas Tracker`. This is a special recording form that was designed specifically for the Atlas of Living Australia. This form is not available to users via the normal menu system. To access this form you must go directly to the URL,
 
 <pre>
 http://<domain>:<port>/bdrs-core/bdrs/user/atlas.htm?surveyId=<survey primary key>&taxonSearch=<Scientific name of an existing taxon>
@@ -44,3 +44,7 @@ http://<domain>:<port>/bdrs-core/bdrs/user/atlas.htm?surveyId=1&taxonSearch=macr
 - or -
 http://<domain>:<port>/bdrs-core/bdrs/user/atlas.htm?surveyId=1&guid=urn:lsid:biodiversity.org.au:afd.taxon:aa745ff0-c776-4d0e-851d-369ba0e6f537
 </pre>
+
+Note that this form has some limitations.
+ * The form will not display any survey, record or location attributes except exactly one data file attribute. All moderation attributes are displayed as normal.
+ * This form does not support the hiding of darwin core attributes.
