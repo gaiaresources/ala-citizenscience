@@ -46,3 +46,11 @@ If Group A is added to a project and then only User X and User Y will have acces
 When adding taxonomy groups to a project, only the taxa in the group at the time of submission will be added to the project. If a taxa is added to the group at a later time, this taxa will not be added to the project.
 
 As a workaround you can edit the relevant project and re-save the group selection to add the missing taxa.
+
+=== Bulk data menu item ===
+Currently it is important that the Bulk Data menu item is not renamed in the `menu.config` file if you wish to ensure that the item appears last on the contribute menu.
+
+=== Displaying the last modified record on a map ===
+When a record is created or modified, the `MySightings` page will show the position of the record on a map as a red point. Sometimes the record may occupy the same position as another record. In these cases, the modified record will be displayed in red, on top of the other records at the same position. This means that when you click on the point, you will in fact be clicking on the top most record and will only see details for that record in the popup. Specifically, you will not be able to view all the records at that position using the popup.
+
+If you navigate to the `MySightings` view using the menu, then no particular record will be highlighted in red and you can view all records as normal by clicking on the point.
