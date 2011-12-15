@@ -20,6 +20,15 @@ When setting up a new system or a new portal on the system, you must add a googl
   # Scroll down the page to the heading "API Keys"
   # Create the google maps API key according to the directions on the page.  For example, if your server is running on www.example.com, enter a description like "Google Map API key for www.example.com", a key of "google.map.key.example" and value of "www.example.com, {{{[key from google maps api page]}}}".
 
+== Privacy Notice & Terms and Conditions ==
+Placeholder pages have been added to the BDRS for a Privacy Notice and Terms and Conditions. It is up to the you to insert the appropriate content for your situation.
+
+To do this, 
+
+ # Log into the BDRS using your administrator account. 
+ # Go to the Admin > Manage Portal > Edit Content menu.
+ # Update the content for `public/privacyStatement` and `public/termsAndConditions`
+
 == Setting up the Atlas Tracker Form ==
 When creating a new project, one of the available form renderers is called the `Atlas Tracker`. This is a special recording form that was designed specifically for the Atlas of Living Australia. This form is not available to users via the normal menu system. To access this form you must go directly to the URL,
 
