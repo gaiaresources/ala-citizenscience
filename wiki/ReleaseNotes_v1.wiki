@@ -54,3 +54,6 @@ Currently it is important that the Bulk Data menu item is not renamed in the `me
 When a record is created or modified, the `MySightings` page will show the position of the record on a map as a red point. Sometimes the record may occupy the same position as another record. In these cases, the modified record will be displayed in red, on top of the other records at the same position. This means that when you click on the point, you will in fact be clicking on the top most record and will only see details for that record in the popup. Specifically, you will not be able to view all the records at that position using the popup.
 
 If you navigate to the `MySightings` view using the menu, then no particular record will be highlighted in red and you can view all records as normal by clicking on the point.
+
+=== Gallery and Gallery Widget ===
+The Gallery and Gallery Widget has been temporarily removed from the user interface while we improve this feature to meet quality standards.
