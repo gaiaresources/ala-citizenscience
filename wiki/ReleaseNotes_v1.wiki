@@ -60,3 +60,6 @@ If you navigate to the `MySightings` view using the menu, then no particular rec
 
 === Gallery and Gallery Widget ===
 The Gallery and Gallery Widget has been temporarily removed from the user interface while we improve this feature to meet quality standards.
+
+=== Species Auto-completion ===
+The species auto-complete widget on record entry forms does not set the species if you paste in the species name.  You must select a value from the auto-complete pop-up list in order for the species to be set.
