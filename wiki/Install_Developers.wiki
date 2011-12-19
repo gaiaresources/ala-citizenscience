@@ -256,3 +256,21 @@ _*Don't forget to update the content for that specific machine*_
 
  * Finally give the file the correct file permissions
 {{{sudo chmod 655 ./setenv.sh}}}
+
+=== Setting the welcome file ===
+By default when a user navigates to the root of the web application, namely, 
+
+<pre>http://<domain>:<port>/bdrs-core/</pre>
+
+they will be  redirected to a page that lists all `Portal`s running on the BDRS instance.
+
+To alter this default behaviour, edit 
+{{{
+src/main/index.jsp
+}}}
+and modify the line that reads,
+{{{ 
+<meta HTTP-EQUIV="REFRESH" content="0; url=index.html"> 
+}}}
+
+You will need to modify the `index.html` to point at the location in the BDRS to redirect to.
