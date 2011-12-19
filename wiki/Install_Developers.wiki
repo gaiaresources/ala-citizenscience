@@ -274,3 +274,15 @@ and modify the line that reads,
 }}}
 
 You will need to modify the `index.html` to point at the location in the BDRS to redirect to.
+
+=== Tomcat Session Persistence ===
+If you are experiencing an issue where if you are logged into the BDRS and restart the Tomcat server, the next browser refresh may cause a redirect loop.
+
+This is caused by Tomcat persisting the session when it stops and restoring the session when it starts again. Unfortunately when Tomcat does this, Spring is not aware of this session and will throw an exception.
+
+The workaround for this is to disable the [http://tomcat.apache.org/tomcat-6.0-doc/config/manager.html#Disable_Session_Persistence Tomcat Session Persistence]. Simply edit 
+<pre>/etc/tomcat6/context.xml</pre>
+and uncomment
+{{{
+<Manager pathname=""/> 
+}}}
