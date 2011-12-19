@@ -34,6 +34,13 @@ _Note that you will not be able to see your record on the map tab of the `MySigh
 
 This bug will be fixed in the next release of the BDRS.
 
+=== Creating records with a hidden/non-mandatory when or time field ===
+Internally the BDRS stores the darwin core `date` and `time` fields as a single date-time value in the database. This means that if the date or time field is hidden or not set, the BDRS is forced to create a default value for the field so that the value can be stored in the database.
+
+For the moment, we recommend that the `date` and `time` fields are either both mandatory or both hidden to ensure that any dates and times entered are accurate (without the need for default data).
+
+By default the date is January 1, 1970, 00:00:00.
+
 === Project access for child user groups ===
 When configuring user group access to a project, only members of the specified group are given access to a project. For example,
 
