@@ -83,3 +83,8 @@ On the `Single-Site Multi-Species` and `Single-Site All Species` projects, if th
 File and Image uploads to a `Yearly Sightings` project will be overridden if any records are added or modified. 
 
 It is recommended that until this issue is resolved, users should avoid using these field types on a `Yearly Sightings` project.
+
+=== Popup dialog width on Internet Explorer 7 ===
+Dialog popups in Internet Explorer 7 are incorrectly formatted and are drawn with at 100% screen width.
+
+See jQuery UI Ticket [http://bugs.jqueryui.com/ticket/4437 #4437] for more information
