@@ -24,6 +24,27 @@ Piers Higgs
 Director, Gaia Resources
 piers@gaiaresources.com.au
 
+== Content ==
+The following items of content have been updated. 
+<pre>
+admin/censusMethodEdit
+admin/editProject/editLocations
+admin/editProject/editTaxonomy
+admin/groupListing
+admin/taxonomy/listing
+public/about
+public/help
+public/home
+root/portalListing
+root/theme/edit/advanced/editFile
+user/widgetBuilder
+user/locations/edit
+</pre>
+If you do not have any custom content, you may choose to update the content pages above by
+ * Logging into the BDRS as an Administrator
+ * Navigate to the `Edit Content` page through the menu using Admin -> Manage Portal -> Edit Content
+ * For each of the items in the list above, select the item in the drop down list and click `Reset Current Content Default`
+
 == Known Issues ==
 We’ve done our best to make BDRS 1.0 as solid as possible, but as is always the case with software, there are a couple of issues that we know about in this release.
 
