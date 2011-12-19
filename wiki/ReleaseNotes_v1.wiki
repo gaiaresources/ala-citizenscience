@@ -54,6 +54,11 @@ When adding taxonomy groups to a project, only the taxa in the group at the time
 
 As a workaround you can edit the relevant project and re-save the group selection to add the missing taxa.
 
+=== Adding a selection of species to a project ===
+If a project is configured to have a selection of species, when the project taxonomy is modified, the page shows all of the taxon groups containing the selected species instead of the original selection of species.
+
+Rest assured that unless the user clicks save, the original selection of species is retained. To modify the selection of species, re-select the `Selection of Species` option and modify the list as appropriate. 
+
 === Bulk data menu item ===
 Currently it is important that the Bulk Data menu item is not renamed in the `menu.config` file if you wish to ensure that the item appears last on the contribute menu.
 
