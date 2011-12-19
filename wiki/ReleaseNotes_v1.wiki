@@ -77,4 +77,9 @@ When a `Multi Select`, `Single Checkbox` or `Multi Checkbox` field is added to a
 The reason that all records are saved for these field types is because they are represented on the screen as checkboxes or multi-select lists. By their nature, these widgets contain information when they are ticked and also when they are not ticked. Therefore it is not possible to discern the difference between an intentionally unselected widget and an ignored widget.
 
 === Javascript validation on Single-Site Multi-Species and Single-Site All Species ===
-On the `Single-Site Multi-Species` and `Single-Site All Species` forms, if the table is wide enough to require a horizontal scrollbar, javascript errors that are normally displayed using a popup balloon will not be positioned correctly.
+On the `Single-Site Multi-Species` and `Single-Site All Species` projects, if the table is wide enough to require a horizontal scrollbar, javascript errors that are normally displayed using a popup balloon will not be positioned correctly.
+
+=== File and Image Attributes on the Yearly Sightings Form ===
+File and Image uploads to a `Yearly Sightings` project will be overridden if any records are added or modified. 
+
+It is recommended that until this issue is resolved, users should avoid using these field types on a `Yearly Sightings` project.
