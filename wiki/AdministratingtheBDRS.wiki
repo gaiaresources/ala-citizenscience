@@ -48,3 +48,9 @@ http://<domain>:<port>/bdrs-core/bdrs/user/atlas.htm?surveyId=1&guid=urn:lsid:bi
 Note that this form has some limitations.
  * The form will not display any survey, record or location attributes except exactly one data file attribute. All moderation attributes are displayed as normal.
  * This form does not support the hiding of darwin core attributes.
+
+== Viewing all portals ==
+To view all `Portals` in a BDRS instance, navigate to
+<pre>
+http://<domain>:<port>/bdrs-core/index.html
+</pre>
