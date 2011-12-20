@@ -114,3 +114,16 @@ It is recommended that until this issue is resolved, users should avoid using th
 Dialog popups in Internet Explorer 7 are incorrectly formatted and are drawn with 100% screen width.
 
 See jQuery UI Ticket [http://bugs.jqueryui.com/ticket/4437 #4437] for more information
+
+=== Field Guide `Record Now` button ===
+In order to record a taxon directly from the field guide, the administrator must set up a project such that the taxonomy for the project is either 
+
+ # A Single Species,
+ # A Selection of Species, or
+ # A Related Group of Species
+
+For the `Record Now` button to work correctly, please ensure that
+
+ * The project is configured using one of the taxonomy selections above, and
+ * There is exactly one project that can be used to record the taxon. Having one more than one project for the taxon will mean that the project selected to record the taxon will be indeterminate.
+ 
