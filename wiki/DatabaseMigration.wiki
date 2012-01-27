@@ -345,3 +345,12 @@ alter table REPORT add constraint FK8FDF4934C136AD4E foreign key (PORTAL_ID) ref
 COMMIT;
 --rev 526 core
 </code>
+
+= r58 =
+<code language="sql">
+BEGIN;
+ALTER TABLE portal ADD COLUMN isactive boolean not null default true;
+
+COMMIT;
+-- rev 567 core
+</code>
