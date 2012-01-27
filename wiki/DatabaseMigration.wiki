@@ -346,7 +346,7 @@ COMMIT;
 --rev 526 core
 </code>
 
-= r58 =
+= r97 =
 <code language="sql">
 BEGIN;
 ALTER TABLE portal ADD COLUMN isactive boolean not null default true;
