@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!DOCTYPE tiles-definitions PUBLIC
+       "-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN"
+       "http://tiles.apache.org/dtds/tiles-config_2_0.dtd">
+
+<tiles-definitions>
+
+    <!--  static page renderer with theming -->
+    <definition name="static_public" extends="template">
+        <put-attribute name="content" value="/WEB-INF/jsp/template/theme/static_public.jsp"/>
+    </definition>
+    
+    <!-- page title renderer. allows page title overriding -->
+    <definition name="title" template="/WEB-INF/jsp/bdrs/title.jsp"></definition>
+    
+    <!-- Portal Select -->
+    <definition name="index" extends="template">
+        <put-attribute name="title" value="Select Portal"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/public/index.jsp"/>
+    </definition>
+    
+    <!-- map viewer -->
+    <definition name="viewMap" extends="template">
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/map/viewMap.jsp"/>
+        <put-attribute name="maps" value="true"/>
+        <put-list-attribute name="customCss">
+        </put-list-attribute>
+        <put-list-attribute name="customJavaScript">
+        </put-list-attribute>
+    </definition>
+
+    <!-- reCAPTCHA -->
+    <definition name="recaptcha" extends="template">
+        <put-attribute name="title" value="Register"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/public/recaptcha.jsp"/>
+    </definition>
+
+    <!-- Confirmed Registration -->
+    <definition name="registrationConfirmed" extends="template">
+        <put-attribute name="title" value="Registration Confirmed"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/public/registrationConfirmed.jsp"/>
+    </definition>
+
+    <!-- Password reminder -->
+    <definition name="password-reminder" extends="template">
+        <put-attribute name="title" value="Password Reminder"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/public/passwordReminder.jsp"/>
+    </definition>
+    
+    <!-- Privacy Statement page -->
+    <definition name="privacyStatement" extends="template">
+        <put-attribute name="title" value="Privacy Statement"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/public/privacyStatement.jsp"/>
+    </definition>
+    
+    <!-- Terms and Conditions page -->
+    <definition name="termsAndConditions" extends="template">
+        <put-attribute name="title" value="Terms and Conditions"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/public/termsAndConditions.jsp"/>
+    </definition>
+
+    <!-- Error page -->
+    <definition name="error" extends="template">
+        <put-attribute name="title" value="Error"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/public/error.jsp"/>
+    </definition>
+    
+    <!-- Embedded -->
+    <definition name="widget-template" template="/WEB-INF/jsp/bdrs/embedded/widget_template.jsp">
+    </definition>
+    
+    <definition name="latest_statistics" extends="widget-template">
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/embedded/latest_statistics.jsp"/>
+    </definition>
+	
+	<definition name="image_slideshow" extends="widget-template">
+		<put-attribute name="content" value="/WEB-INF/jsp/bdrs/embedded/image_slideshow.jsp"/>
+	</definition>
+    
+    <definition name="bdrs_embed_js" template="/WEB-INF/jsp/bdrs/embedded/bdrs-embed.js.jsp">
+    </definition>
+    <definition name="bdrs_embed_css" template="/WEB-INF/jsp/bdrs/embedded/bdrs-embed.css.jsp">
+    </definition>
+    
+    <!-- Field Guide -->
+    <definition name="fieldGuideGroupListing" extends="template">
+        <put-attribute name="title" value="Field Guide Group Selection"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/public/fieldguide/groupListing.jsp"/>
+    </definition>
+    
+    <definition name="fieldGuideTaxaListing" extends="template">
+        <put-attribute name="title" value="Field Guide Taxon Selection"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/public/fieldguide/taxaListing.jsp"/>
+    </definition>
+    
+    <definition name="fieldGuideViewTaxon" extends="template">
+        <put-attribute name="title" value="Field Guide Taxon Selection"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/public/fieldguide/taxonView.jsp"/>
+        <put-list-attribute name="customJavaScript">
+            <add-attribute>html5media/html5media.min.js</add-attribute>
+        </put-list-attribute>
+    </definition>
+    
+    <definition name="fieldGuideTaxonRankRow" template="/WEB-INF/jsp/bdrs/public/fieldguide/taxonRankRow.jsp">
+        <put-attribute name="taxon" value="object"/>
+    </definition>
+
+    <!-- Maps -->
+    <definition name="recordEntryMap" template="/WEB-INF/jsp/bdrs/map/recordEntryMap.jsp">
+        <put-attribute name="maps" value="true"/>
+        <put-list-attribute name="customCss">
+        </put-list-attribute>
+        <put-list-attribute name="customJavaScript">
+        </put-list-attribute>
+    </definition>
+    
+    <definition name="locationEntryMap" template="/WEB-INF/jsp/bdrs/map/locationEntryMap.jsp">
+        <put-attribute name="maps" value="true"/>
+        <put-list-attribute name="customCss">
+        </put-list-attribute>
+        <put-list-attribute name="customJavaScript">
+        </put-list-attribute>
+    </definition>
+	
+	<definition name="recordFormHeader" template="/WEB-INF/jsp/bdrs/user/record/render/recordFormHeader.jsp">
+	</definition>
+	
+	<definition name="recordFormFooter" template="/WEB-INF/jsp/bdrs/user/record/render/recordFormFooter.jsp">
+	</definition>
+	
+	<definition name="unlockRecordWidget" template="/WEB-INF/jsp/bdrs/user/record/render/unlockRecordWidget.jsp">
+    </definition>
+	
+</tiles-definitions>
