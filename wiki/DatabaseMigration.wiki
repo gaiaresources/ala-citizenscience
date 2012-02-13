@@ -354,3 +354,21 @@ ALTER TABLE portal ADD COLUMN isactive boolean not null default true;
 COMMIT;
 -- rev 567 core
 </code>
+
+
+= r120 =
+<code language="sql">
+begin;
+
+alter table indicator_species add column source text;
+alter table indicator_species add column source_id text;
+
+create index indicator_species_source_id_index on indicator_species(source_id);
+
+update indicator_species myspecies set source_id=(select m.value from indicator_species s join indicator_species_metadata s_m on s.indicator_species_id=s_m.indicator_species_indicator_species_id join metadata m on s_m.metadata_id=m.id where m.key='TaxonSourceDataID' and s.indicator_species_id=myspecies.indicator_species_id);
+
+delete from indicator_species_metadata where metadata_id in (select m.id from metadata m where key='TaxonSourceDataID');
+delete from metadata where key='TaxonSourceDataID';
+
+commit;
+</code>
