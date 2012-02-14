@@ -372,3 +372,12 @@ delete from metadata where key='TaxonSourceDataID';
 
 commit;
 </code>
+
+= r123 =
+<code language="sql">
+begin;
+
+alter table attribute_value alter column numeric_value TYPE numeric(19,10);
+
+commit;
+</code>
