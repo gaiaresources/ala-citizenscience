@@ -381,3 +381,17 @@ alter table attribute_value alter column numeric_value TYPE numeric(19,10);
 
 commit;
 </code>
+
+= r134 =
+<code language="sql">
+BEGIN;
+
+create table LOCATION_METADATA (LOCATION_LOCATION_ID int4 not null, metadata_ID int4 not null, primary key (LOCATION_LOCATION_ID, metadata_ID));
+alter table LOCATION_METADATA add constraint FK5B00E8795446447B foreign key (LOCATION_LOCATION_ID) references LOCATION;
+alter table LOCATION_METADATA add constraint FK5B00E879510B318B foreign key (metadata_ID) references METADATA;
+
+alter table attribute_value alter column numeric_value TYPE numeric(24,12);
+alter table location alter column description type text;
+
+ROLLBACK;
+</code>
