@@ -61,7 +61,7 @@ public class PySurveyDAO {
      * @return a JSON serialized survey with the specified primary key. 
      */
     public String getSurveyById(int surveyId, boolean includeAttributes, boolean includeLocations) {
-        return getSurveyById(surveyId, includeAttributes, false);
+        return getSurveyById(surveyId, includeAttributes, includeLocations, false);
     }
     
     /**
