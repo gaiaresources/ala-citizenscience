@@ -76,9 +76,10 @@
                     </td>
                     <script type="text/javascript">
                         jQuery(function() {
-                            var func = bdrs.attribute.getRowTypeChangedFunc();
+                            var rowTypeChanged = bdrs.attribute.getRowTypeChangedFunc();
+                            var rowScopeChanged = bdrs.attribute.getRowScopeChangedFunc();
                             var eventData = {index: ${index}, bNewRow: true};
-                            jQuery("[name=add_typeCode_"+${index}+"]").change(eventData, func);
+                            jQuery("[name=add_typeCode_"+${index}+"]").change(eventData, rowTypeChanged);
                             jQuery("[name=add_scope_"+${index}+"]").change(eventData, rowScopeChanged);
                         });
                     </script>
@@ -185,9 +186,10 @@
                     
                     <script type="text/javascript">
                         jQuery(function() {
-                            var func = bdrs.attribute.getRowTypeChangedFunc();
+                            var rowTypeChanged = bdrs.attribute.getRowTypeChangedFunc();
+                            var rowScopeChanged = bdrs.attribute.getRowScopeChangedFunc();
                             var eventData = {index: ${formField.attribute.id}, bNewRow: false};
-                            jQuery("[name=typeCode_"+${formField.attribute.id}+"]").change(eventData, func);
+                            jQuery("[name=typeCode_"+${formField.attribute.id}+"]").change(eventData, rowTypeChanged);
                             jQuery("[name=scope_"+${formField.attribute.id}+"]").change(eventData, rowScopeChanged);
                         });
                     </script>

@@ -118,6 +118,40 @@ bdrs.attribute.rowTypeChanged = function(event) {
     }
 }
 
+bdrs.attribute.rowScopeChanged = function(event) {
+        var index = event.data.index;
+        var bNewRow = event.data.bNewRow;
+        
+        var changedElement = jQuery(event.currentTarget);
+        var newScopeCode = changedElement.val();
+        var attrScope = bdrs.model.taxa.attributeScope.value[newScopeCode];
+        
+        if (attrScope.isModerationScope()) {
+            // show the moderation email settings div
+            jQuery("#moderationSettingsLink").css("display","block");
+            var isVisible = jQuery("#moderationSettings").css('display') !== 'none';
+            if (!isVisible) {
+            	toggleModerationSettings("#moderationSettings", "#moderationSettingsLink a");
+            }
+        } else {
+            var isOneModScope = false;
+            // if there are no moderation attributes, hide the email settings
+            changedElement.parents("table").find(".attrScopeSelect").each(function() {
+                var scope = bdrs.model.taxa.attributeScope.value[jQuery(this).val()];
+                isOneModScope |= scope.isModerationScope();
+            });
+            
+            if (!isOneModScope) {
+                // hide the moderation email settings div
+                jQuery("#moderationSettingsLink").css("display","none");
+                var isVisible = jQuery("#moderationSettings").css('display') !== 'none';
+                if (isVisible) {
+                    toggleModerationSettings("#moderationSettings", "#moderationSettingsLink a");
+                }
+            }
+        }
+    };
+
 /**
  * Returns a function to be attached to the onchanged event of the field type
  * input.
@@ -129,6 +163,10 @@ bdrs.attribute.rowTypeChanged = function(event) {
  */
 bdrs.attribute.getRowTypeChangedFunc = function() {
     return bdrs.attribute.rowTypeChanged;
+};
+
+bdrs.attribute.getRowScopeChangedFunc = function() {
+    return bdrs.attribute.rowScopeChanged;
 };
 
 bdrs.attribute.validateClassRegex = /validate\([\w,\s]+\)/;
