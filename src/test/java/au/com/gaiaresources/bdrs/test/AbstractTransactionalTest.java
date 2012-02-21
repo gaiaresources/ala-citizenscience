@@ -42,7 +42,7 @@ public abstract class AbstractTransactionalTest extends AbstractSpringContextTes
     private boolean dropDatabase = false;
     
     @Before
-    public final void primeDatabase() {
+    public void primeDatabase() {
         dropDatabase = false;
         try {
             sesh = sessionFactory.getCurrentSession();

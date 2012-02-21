@@ -12,6 +12,7 @@ import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
 
 /**
@@ -60,6 +61,18 @@ public class PySurveyDAO {
      * @return a JSON serialized survey with the specified primary key. 
      */
     public String getSurveyById(int surveyId, boolean includeAttributes, boolean includeLocations) {
+        return getSurveyById(surveyId, includeAttributes, false);
+    }
+    
+    /**
+     * Returns a JSON serialized survey with the specified primary key. 
+     * 
+     * @param id the primary key of the survey to be returned.
+     * @param includeAttributeValues true if {@link AttributeValue}s for the
+     * returned locations should be included (as opposed to simple primary keys).
+     * @return a JSON serialized survey with the specified primary key. 
+     */
+    public String getSurveyById(int surveyId, boolean includeAttributes, boolean includeLocations, boolean includeLocationAttributeValues) {
         Survey survey = surveyDAO.getSurvey(surveyId);
         Map<String, Object> flatSurvey = survey.flatten();
         
@@ -75,7 +88,17 @@ public class PySurveyDAO {
         if(includeLocations) {
             List<Map<String, Object>> flatLocList = new ArrayList<Map<String, Object>>();
             for(Location loc : survey.getLocations()) {
-                flatLocList.add(loc.flatten());
+                
+                Map<String, Object> flatLoc = loc.flatten();
+                if(includeLocationAttributeValues) {
+                    List<Map<String, Object>> flatAttrValList = new ArrayList<Map<String, Object>>();
+                    for(AttributeValue attrVal : loc.getAttributes()) {
+                        flatAttrValList.add(attrVal.flatten());
+                    }
+                    
+                    flatLoc.put("attributes", flatAttrValList);
+                }
+                flatLocList.add(flatLoc);
             }
             
             flatSurvey.put("locations", flatLocList);

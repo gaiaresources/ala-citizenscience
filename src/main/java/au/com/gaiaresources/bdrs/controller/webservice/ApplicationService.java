@@ -16,9 +16,6 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import au.com.gaiaresources.bdrs.json.JSONArray;
-import au.com.gaiaresources.bdrs.json.JSONObject;
-
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.log4j.Logger;
 import org.postgresql.util.Base64;
@@ -33,6 +30,8 @@ import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
 import au.com.gaiaresources.bdrs.file.FileService;
+import au.com.gaiaresources.bdrs.json.JSONArray;
+import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
@@ -46,6 +45,7 @@ import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValueDAO;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaService;
@@ -79,6 +79,9 @@ public class ApplicationService extends AbstractController {
     private CensusMethodDAO censusMethodDAO;
     
     @Autowired
+    private AttributeValueDAO attributeValueDAO;
+    
+    @Autowired
     private TaxaService taxaService;
     
     @Autowired
@@ -97,7 +100,7 @@ public class ApplicationService extends AbstractController {
                            @RequestParam(value = "ident", defaultValue = "") String ident,
                            @RequestParam(value = "sid", defaultValue = "-1") int surveyRequested) throws IOException {
 
-    	long now = System.currentTimeMillis();
+        long now = System.currentTimeMillis();
         // Checks if a user exists with the provided ident. If not a response error is returned.
         if (userDAO.getUserByRegistrationKey(ident) == null) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
@@ -180,19 +183,16 @@ public class ApplicationService extends AbstractController {
         log.debug("Flatted locations in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
         
         Map<String, Object> speciesMap = null;
-        int count = 0;
         for (IndicatorSpecies s : species) {
-        	
-	            // TODO AJ modified so that we don't send down taxon group 
-	        	// attributes with EVERY taxa, need to figure out how to 
-	        	// efficiently cram in indicator_species_attributes.
-	        	// previously this was flattening to depth 2.
-	        	speciesMap = s.flatten(1, true, true);
-	        	speciesMap.put("taxonGroup", s.getTaxonGroup().getId()); // unflatten the taxongroup.
-	        	speciesMap.remove("_class");
-	        	speciesArray.add(speciesMap);
-        	
-        	count++;
+            
+                // TODO AJ modified so that we don't send down taxon group 
+                // attributes with EVERY taxa, need to figure out how to 
+                // efficiently cram in indicator_species_attributes.
+                // previously this was flattening to depth 2.
+                speciesMap = s.flatten(1, true, true);
+                speciesMap.put("taxonGroup", s.getTaxonGroup().getId()); // unflatten the taxongroup.
+                speciesMap.remove("_class");
+                speciesArray.add(speciesMap);
         }
         log.debug("Flattened Species in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
         
@@ -207,10 +207,10 @@ public class ApplicationService extends AbstractController {
         log.debug("Flatted Census Methods in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
         
         for (RecordPropertyType recordPropertyType : RecordPropertyType.values()) {
-        	RecordProperty recordProperty = new RecordProperty(survey, recordPropertyType, metadataDAO);
-        	if (!recordProperty.isHidden()) {
-        		recordPropertiesArray.add(recordProperty.flatten(true, false));
-        	}
+            RecordProperty recordProperty = new RecordProperty(survey, recordPropertyType, metadataDAO);
+            if (!recordProperty.isHidden()) {
+                recordPropertiesArray.add(recordProperty.flatten(true, false));
+            }
         }
         log.debug("Flatted RecordProperties in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
         
@@ -240,8 +240,8 @@ public class ApplicationService extends AbstractController {
         log.debug("Wrote out data in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
     }
     
-    @RequestMapping(value = "/webservice/application/clientSync.htm", method = RequestMethod.POST)
-    public ModelAndView clientSync(HttpServletRequest request, HttpServletResponse response,
+    @RequestMapping(value = "/webservice/application/clientSyncLocations.htm", method = RequestMethod.POST)
+    public ModelAndView clientSyncLocations(HttpServletRequest request, HttpServletResponse response,
             @RequestParam(value="inFrame", defaultValue="true") boolean inFrame) throws IOException {
         /*
          * { 
@@ -256,33 +256,31 @@ public class ApplicationService extends AbstractController {
          *      500 : { ... }
          * }
          */
-        
         JSONObject jsonObj = new JSONObject();
         try {
             String ident = request.getParameter("ident");
             if(ident == null) {
-                throw new NullPointerException("Missing GET parameter 'ident'.");
+                throw new NullPointerException("Missing POST parameter 'ident'.");
             }
             
             String jsonData = request.getParameter("syncData");
 
             if(jsonData == null) {
-                throw new NullPointerException("Missing GET parameter 'syncData'.");
+                throw new NullPointerException("Missing POST parameter 'syncData'.");
             }
             
-            if (userDAO.getUserByRegistrationKey(ident) != null) {
-                User user = userDAO.getUserByRegistrationKey(ident);
+            User user = userDAO.getUserByRegistrationKey(ident);
+            if (user != null) {
                 JSONObject status = new JSONObject();
-
                 // The list of json objects that shall be passed back to the 
                 // client.
+                
                 // This should be a list of objects that map the client id 
                 // to the new server id.
                 List<Map<String, Object>> syncResponseList = new ArrayList<Map<String, Object>>(); 
                 JSONArray clientData = JSONArray.fromString(jsonData);
-                
-                for(Object jsonRecordBean : clientData){
-                    syncRecord(syncResponseList, jsonRecordBean, user);
+                for(Object jsonLocationBean : clientData){
+                    syncLocation(syncResponseList, jsonLocationBean, user);
                 }
                 
                 status.put("sync_result", syncResponseList);
@@ -323,6 +321,162 @@ public class ApplicationService extends AbstractController {
         }
     }
     
+    private void syncLocation(List<Map<String, Object>> syncResponseList, Object jsonLocationBean, User user) 
+            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, IOException {
+        
+        String clientID = getJSONString(jsonLocationBean, "id", null);
+        if(clientID == null) {
+            throw new NullPointerException();
+        }
+        
+        Integer locationPk = getJSONInteger(jsonLocationBean, "server_id", 0);
+        Location loc;
+        if(locationPk < 1) {
+            loc = locationDAO.getLocationByClientID(clientID);
+            if(loc == null) {
+                loc = new Location();
+            }
+        } else {
+            loc = locationDAO.getLocation(locationPk);
+        }
+        
+        // Name & Description
+        loc.setName(getJSONString(jsonLocationBean, "name", ""));
+        loc.setDescription(getJSONString(jsonLocationBean, "description", ""));
+        
+        // Location Owner (if there is one)
+        Integer userPk = getJSONInteger(jsonLocationBean, "user_id", 0);
+        User owner = userDAO.getUser(userPk);
+        if(owner != null) {
+            loc.setUser(owner);
+        }
+        
+        // Geometry
+        String locationWKT = getJSONString(jsonLocationBean, "location", null);
+        if(locationWKT != null && !locationWKT.isEmpty()) {
+            loc.setLocation(locationService.createGeometryFromWKT(locationWKT));
+        }
+        
+        loc = locationDAO.save(loc);
+        
+        // Attribute Values
+        List<Object> locAttrBeanList = (List<Object>) PropertyUtils.getProperty(jsonLocationBean, "attributes");
+        for(Object jsonLocAttrValBean : locAttrBeanList) { 
+            AttributeValue locAttrVal = syncAttributeValue(syncResponseList, jsonLocAttrValBean);
+            loc.getAttributes().add(locAttrVal);
+        }
+        
+        // Save the client ID.
+        Metadata md = loc.getMetadataForKey(Metadata.LOCATION_CLIENT_ID_KEY);
+        if(md == null) {
+            md = new Metadata();
+            md.setKey(Metadata.LOCATION_CLIENT_ID_KEY);
+        }
+        md.setValue(clientID);
+        md = metadataDAO.save(md);
+        loc.getMetadata().add(md);
+        
+        // Add the location to the survey if needed
+        Integer surveyPk = getJSONInteger(jsonLocationBean, "survey_id", 0);
+        Survey survey = surveyDAO.getSurvey(surveyPk);
+        if(survey != null) {
+            if(!survey.getLocations().contains(loc)) {
+                survey.getLocations().add(loc);
+                survey = surveyDAO.save(survey);
+            }
+        }
+        
+        loc = locationDAO.save(loc);
+        
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("id", clientID);
+        map.put("server_id", loc.getId().intValue());
+        map.put("klass", Location.class.getSimpleName());
+        syncResponseList.add(map);
+    }
+    
+    @RequestMapping(value = "/webservice/application/clientSync.htm", method = RequestMethod.POST)
+    public ModelAndView clientSync(HttpServletRequest request, HttpServletResponse response,
+            @RequestParam(value="inFrame", defaultValue="true") boolean inFrame) throws IOException {
+        /*
+         * { 
+         *      status : 200,
+         *      200 : { ... } 
+         * }
+         * 
+         * or
+         * 
+         * {
+         *      status : 500,
+         *      500 : { ... }
+         * }
+         */
+        
+        JSONObject jsonObj = new JSONObject();
+        try {
+            String ident = request.getParameter("ident");
+            if(ident == null) {
+                throw new NullPointerException("Missing POST parameter 'ident'.");
+            }
+            
+            String jsonData = request.getParameter("syncData");
+
+            if(jsonData == null) {
+                throw new NullPointerException("Missing POST parameter 'syncData'.");
+            }
+            
+            if (userDAO.getUserByRegistrationKey(ident) != null) {
+                User user = userDAO.getUserByRegistrationKey(ident);
+                JSONObject status = new JSONObject();
+
+                // The list of json objects that shall be passed back to the 
+                // client.
+                // This should be a list of objects that map the client id 
+                // to the new server id.
+                List<Map<String, Object>> syncResponseList = new ArrayList<Map<String, Object>>();
+                JSONArray clientData = JSONArray.fromString(jsonData);
+                
+                for(Object jsonRecordBean : clientData){
+                    syncRecord(syncResponseList, jsonRecordBean, user);
+                }
+                
+                status.put("sync_result", syncResponseList);
+                jsonObj.put(CLIENT_SYNC_STATUS_KEY, HttpServletResponse.SC_OK);
+                jsonObj.put(HttpServletResponse.SC_OK, status);
+            } else {
+                JSONObject auth = new JSONObject();
+                auth.put("message", "Unauthorized");
+                
+                jsonObj.put(CLIENT_SYNC_STATUS_KEY, HttpServletResponse.SC_UNAUTHORIZED);
+                jsonObj.put(HttpServletResponse.SC_UNAUTHORIZED, auth);
+            }
+        } catch(Throwable e) {
+            // Catching throwable is bad but we do not want to cause an 
+            // unhandled anything. Ever.
+            // The reason is that the cross window communication on the client
+            // side won't get triggered and the client will not have any idea
+            // what happened.
+            
+            log.error(e.getMessage(), e);
+            
+            JSONObject error = new JSONObject();
+            error.put("type", jsonStringEscape(e.getClass().getSimpleName().toString()));
+            error.put("message", jsonStringEscape(e.getMessage()));
+            
+            jsonObj.put(CLIENT_SYNC_STATUS_KEY, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            jsonObj.put(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, error);
+        }
+
+        if (inFrame) {
+            ModelAndView mv = new ModelAndView("postMessage");
+            mv.addObject("message", jsonObj.toString());
+            return mv;
+        } else {
+            this.writeJson(request, response, jsonObj.toString());
+            return null;
+        }
+    }
+    
     @RequestMapping(value = "/webservice/application/ping.htm", method = RequestMethod.GET)
     public void ping(HttpServletRequest request, HttpServletResponse response) throws IOException {
         // support for JSONP
@@ -352,27 +506,27 @@ public class ApplicationService extends AbstractController {
             rec = recordDAO.getRecord(recordPk);
         }
         
-		
-		String latitudeString = getJSONString(jsonRecordBean, "latitude", "");
+        
+        String latitudeString = getJSONString(jsonRecordBean, "latitude", "");
         Double latitude = latitudeString.trim().isEmpty() ? null : Double.parseDouble(latitudeString);
-		String longitudeString = getJSONString(jsonRecordBean, "longitude", "");
+        String longitudeString = getJSONString(jsonRecordBean, "longitude", "");
         Double longitude = longitudeString.trim().isEmpty() ? null : Double.parseDouble(longitudeString);
-		if (latitude != null && longitude != null) {
-			rec.setPoint(locationService.createPoint(latitude, longitude));
-		}
+        if (latitude != null && longitude != null) {
+            rec.setPoint(locationService.createPoint(latitude, longitude));
+        }
 
-		String accuracyStr = getJSONString(jsonRecordBean, "accuracy", "");
+        String accuracyStr = getJSONString(jsonRecordBean, "accuracy", "");
         Double accuracy = accuracyStr.trim().isEmpty() ? null : Double.parseDouble(accuracyStr);
-		rec.setAccuracyInMeters(accuracy);
-		
-		//set location for record if exists
-		Integer locationId = getJSONInteger(jsonRecordBean, "location", null);
-		if (locationId != null) {
-			Location l = locationDAO.getLocation(locationId.intValue());
-			rec.setLocation(l);
-		}
-		
-		//set other dwc values
+        rec.setAccuracyInMeters(accuracy);
+        
+        //set location for record if exists
+        Integer locationId = getJSONInteger(jsonRecordBean, "location", null);
+        if (locationId != null) {
+            Location l = locationDAO.getLocation(locationId.intValue());
+            rec.setLocation(l);
+        }
+        
+        //set other dwc values
         Date when = getJSONDate(jsonRecordBean, "when", null);
         rec.setWhen(when);
         rec.setTime(when == null ? null : when.getTime());
@@ -382,11 +536,11 @@ public class ApplicationService extends AbstractController {
         
         Long lastTime = null;
         if (lastDate == null) {
-        	if (when != null) {
-        		lastTime = when.getTime();
-        	}
+            if (when != null) {
+                lastTime = when.getTime();
+            }
         } else {
-	        lastTime = lastDate.getTime();
+            lastTime = lastDate.getTime();
         }
         rec.setLastTime(lastTime);
         
@@ -413,7 +567,7 @@ public class ApplicationService extends AbstractController {
                 AttributeValue fieldName = new AttributeValue();
                 fieldName.setStringValue(scientificName);
                 fieldName.setAttribute(taxaService.getFieldNameAttribute());
-                fieldName = recordDAO.saveAttributeValue(fieldName);
+                fieldName = attributeValueDAO.save(fieldName);
                 rec.getAttributes().add(fieldName);
             }
             rec.setSpecies(taxon);
@@ -421,8 +575,8 @@ public class ApplicationService extends AbstractController {
         
         rec.setUser(user);
         if(surveyPk != null) {
-	        rec.setSurvey(surveyDAO.getSurvey(surveyPk));
-	    }
+            rec.setSurvey(surveyDAO.getSurvey(surveyPk));
+        }
 
         rec = recordDAO.saveRecord(rec);
         
@@ -435,7 +589,7 @@ public class ApplicationService extends AbstractController {
         
         List<Object> recAttrBeanList = (List<Object>) PropertyUtils.getProperty(jsonRecordBean, "attributeValues");
         for(Object jsonRecAttrBean : recAttrBeanList) { 
-            AttributeValue recAttr = syncRecordAttribute(syncResponseList, jsonRecAttrBean);
+            AttributeValue recAttr = syncAttributeValue(syncResponseList, jsonRecAttrBean);
             rec.getAttributes().add(recAttr);
         }
         
@@ -448,41 +602,41 @@ public class ApplicationService extends AbstractController {
         recordDAO.saveRecord(rec);
     }
     
-    private AttributeValue syncRecordAttribute(List<Map<String, Object>> syncResponseList, Object jsonRecAttrBean) 
+    private AttributeValue syncAttributeValue(List<Map<String, Object>> syncResponseList, Object jsonRecAttrBean) 
         throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException {
         String id = getJSONString(jsonRecAttrBean, "id", null);
         if(id == null) {
             throw new NullPointerException();
         }
         
-        Integer recAttrPk = getJSONInteger(jsonRecAttrBean, "server_id", 0);
+        Integer attrValPk = getJSONInteger(jsonRecAttrBean, "server_id", 0);
         Integer attrPk = getJSONInteger(jsonRecAttrBean, "attribute_id", null);
         String value = getJSONString(jsonRecAttrBean, "value", "");
         
         Attribute attr = taxaDAO.getAttribute(attrPk);
         
-        AttributeValue recAttr = recAttrPk < 1 ? new AttributeValue() : recordDAO.getAttributeValue(recAttrPk);
-        recAttr.setAttribute(attr);
+        AttributeValue attrVal = attrValPk < 1 ? new AttributeValue() : attributeValueDAO.get(attrValPk);
+        attrVal.setAttribute(attr);
         String filename = null;
         String base64 = null;
         switch(attr.getType()) {
             case INTEGER:
             case INTEGER_WITH_RANGE:
             case DECIMAL:
-                recAttr.setStringValue(value);
+                attrVal.setStringValue(value);
                 if(value != null && !value.isEmpty()) {
-                    recAttr.setNumericValue(new BigDecimal(value));
+                    attrVal.setNumericValue(new BigDecimal(value));
                 }
                 break;
             
             case DATE:
                 Date date = getJSONDate(jsonRecAttrBean, "value", null);
                 if(date != null) {
-                    recAttr.setDateValue(date);
-                    recAttr.setStringValue(dateFormat.format(date));
+                    attrVal.setDateValue(date);
+                    attrVal.setStringValue(dateFormat.format(date));
                 } else {
-                    recAttr.setDateValue(null);
-                    recAttr.setStringValue("");
+                    attrVal.setDateValue(null);
+                    attrVal.setStringValue("");
                 }
                 break;
             case HTML:
@@ -498,21 +652,21 @@ public class ApplicationService extends AbstractController {
             case MULTI_SELECT:
             case BARCODE:
             case REGEX:
-                recAttr.setStringValue(value);
+                attrVal.setStringValue(value);
                 break;
             case SINGLE_CHECKBOX:
-            	recAttr.setBooleanValue(value);
-            	break;
+                attrVal.setBooleanValue(value);
+                break;
             case IMAGE:
                 if(value != null && !value.isEmpty()) {
                     base64 = value;
                     // The mobile only uploads jpeg images.
                     filename = String.format("%s.jpeg",UUID.randomUUID().toString());
-                    recAttr.setStringValue(filename);
+                    attrVal.setStringValue(filename);
                 } else {
                     filename = null;
                     base64 = null;
-                    recAttr.setStringValue("");
+                    attrVal.setStringValue("");
                 }
                 break;
                 
@@ -522,19 +676,19 @@ public class ApplicationService extends AbstractController {
             default:
                 throw new UnsupportedOperationException("Unsupported Attribute Type: "+attr.getType().toString());
         }
-        recAttr = recordDAO.saveAttributeValue(recAttr);
+        attrVal = attributeValueDAO.save(attrVal);
         
         if(filename != null && base64 != null) {
-            fileService.createFile(recAttr.getClass(), recAttr.getId(), filename, Base64.decode(base64));
+            fileService.createFile(attrVal.getClass(), attrVal.getId(), filename, Base64.decode(base64));
         }
         
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("id", id);
-        map.put("server_id", recAttr.getId().intValue());
+        map.put("server_id", attrVal.getId().intValue());
         map.put("klass", AttributeValue.class.getSimpleName());
         
         syncResponseList.add(map);
-        return recAttr;
+        return attrVal;
     }
     
     private Integer getJSONInteger(Object bean, String propertyName, Integer defaultValue) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {

@@ -23,6 +23,8 @@ import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.db.impl.QueryPaginator;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
+import au.com.gaiaresources.bdrs.model.metadata.Metadata;
+import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.region.Region;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.user.User;
@@ -68,6 +70,24 @@ public class LocationDAOImpl extends AbstractDAOImpl implements LocationDAO {
             sesh = super.getSession();
         }
         return (Location)sesh.get(Location.class, pk);
+    }
+    
+    @Override
+    public Location getLocationByClientID(String clientID) {
+        return getLocationByClientID(super.getSession(), clientID);
+    }
+    
+    @Override
+    public Location getLocationByClientID(org.hibernate.Session session, String clientID) {
+        if(clientID == null) {
+            throw new NullPointerException();
+        }
+        
+        Query q = session.createQuery("select distinct loc from Location loc left join loc.metadata md where md.key = :key and md.value = :value");
+        q.setParameter("key", Metadata.LOCATION_CLIENT_ID_KEY);
+        q.setParameter("value", clientID);
+        q.setMaxResults(1);
+        return (Location)q.uniqueResult();
     }
 
     @SuppressWarnings("unchecked")

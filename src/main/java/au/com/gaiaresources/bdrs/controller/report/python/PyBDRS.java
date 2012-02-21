@@ -2,17 +2,21 @@ package au.com.gaiaresources.bdrs.controller.report.python;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
-import au.com.gaiaresources.bdrs.json.JSONObject;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 
 import au.com.gaiaresources.bdrs.controller.report.python.model.PyCensusMethodDAO;
+import au.com.gaiaresources.bdrs.controller.report.python.model.PyLocationDAO;
 import au.com.gaiaresources.bdrs.controller.report.python.model.PyRecordDAO;
 import au.com.gaiaresources.bdrs.controller.report.python.model.PySurveyDAO;
 import au.com.gaiaresources.bdrs.controller.report.python.model.PyTaxaDAO;
 import au.com.gaiaresources.bdrs.file.FileService;
+import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.model.location.LocationDAO;
 import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.report.Report;
@@ -30,6 +34,8 @@ import au.com.gaiaresources.bdrs.model.user.User;
 public class PyBDRS {
     private Logger log = Logger.getLogger(getClass());
     
+    private HttpServletRequest request;
+    
     private Report report;      
     private User user;
     private PyResponse response;
@@ -38,12 +44,14 @@ public class PyBDRS {
     private PyTaxaDAO pyTaxaDAO;
     private PyRecordDAO pyRecordDAO;
     private PyCensusMethodDAO pyCensusMethodDAO;
+    private PyLocationDAO pyLocationDAO;
     
     private FileService fileService;
     
     /**
      * Creates a new instance.
      * 
+     * @param request the request from the client.
      * @param fileService retrieves files from the files store.
      * @param report the report that will be using this bridge.
      * @param user the user accessing data. 
@@ -51,7 +59,12 @@ public class PyBDRS {
      * @param taxaDAO retrieves taxon and taxon group related data.
      * @param recordDAO retrieves record related data.
      */
-    public PyBDRS(FileService fileService, Report report, User user, SurveyDAO surveyDAO, CensusMethodDAO censusMethodDAO, TaxaDAO taxaDAO, RecordDAO recordDAO) {
+    public PyBDRS(HttpServletRequest request, 
+            FileService fileService, Report report, User user, 
+            SurveyDAO surveyDAO, CensusMethodDAO censusMethodDAO, 
+            TaxaDAO taxaDAO, RecordDAO recordDAO, 
+            LocationDAO locationDAO) {
+        this.request = request;
         this.fileService = fileService;
         this.report = report;
         
@@ -63,6 +76,39 @@ public class PyBDRS {
         this.pyTaxaDAO = new PyTaxaDAO(user, surveyDAO, taxaDAO);
         this.pyRecordDAO = new PyRecordDAO(user, recordDAO);
         this.pyCensusMethodDAO = new PyCensusMethodDAO(censusMethodDAO);
+        this.pyLocationDAO = new PyLocationDAO(user, locationDAO, surveyDAO);
+    }
+    
+    /**
+     * Returns the portion of the request URI that indicates the 
+     * context of the request.
+     * @return the portion of the request URI that indicates the 
+     * context of the request.
+     */
+    public String getContextPath() {
+        
+        return this.request.getContextPath();
+    }
+    
+    /**
+     * Returns the host name of the Internet Protocol (IP) interface on which
+     * the request was received.
+     * 
+     * @return a <code>String</code> containing the IP address on which the
+     *         request was received.
+     */
+    public String getLocalName() {
+        return this.request.getLocalName();
+    }
+    
+    /**
+     * Returns the Internet Protocol (IP) port number of the interface
+     * on which the request was received.
+     *
+     * @return an integer specifying the port number
+     */
+    public int getLocalPort() {
+        return this.request.getLocalPort();
     }
     
     /**
@@ -98,11 +144,21 @@ public class PyBDRS {
     }
     
     /**
+     * Returns the python wrapped {@link LocationDAO}
+     * @return the user the python wrapped {@link LocationDAO}
+     */
+    public PyLocationDAO getLocationDAO() {
+        return pyLocationDAO;
+    }
+    
+    /**
      * Returns a json serialized representation of the logged in {@link User}
      * @return the user a json serialized representation of the logged in {@link User}
      */
     public String getUser() {
-        return JSONObject.fromMapToString(user.flatten());
+        Map<String, Object> flat = user.flatten();
+        flat.put("registrationKey", user.getRegistrationKey());
+        return JSONObject.fromMapToString(flat);
     }
     
     /**

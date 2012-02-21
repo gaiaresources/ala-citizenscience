@@ -34,6 +34,8 @@ public class Report extends PortalPersistentImpl {
     private String iconFilename;
     private boolean active = true;
     
+//    private Set<ReportCapability> capabilities = new HashSet<ReportCapability>();
+    
     /**
      * Creates a new blank (and invalid) report.
      */
@@ -120,4 +122,22 @@ public class Report extends PortalPersistentImpl {
     public void setIconFilename(String iconFilename) {
         this.iconFilename = iconFilename;
     }
+
+//    /**
+//     * @return the capabilities
+//     */
+//    @CollectionOfElements(targetElement = ReportCapability.class)
+//    @JoinTable(name = "REPORT_REPORT_CAPABILITY", joinColumns = @JoinColumn(name = "REPORT_ID"))
+//    @Column(name = "CAPABILITY", nullable = false)
+//    @Enumerated(EnumType.STRING)
+//    public Set<ReportCapability> getCapabilities() {
+//        return capabilities;
+//    }
+//
+//    /**
+//     * @param capabilities the capabilities to set
+//     */
+//    public void setCapabilities(Set<ReportCapability> capabilities) {
+//        this.capabilities = capabilities;
+//    }
 }

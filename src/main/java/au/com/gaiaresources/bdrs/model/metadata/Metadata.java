@@ -132,6 +132,12 @@ public class Metadata extends PortalPersistentImpl {
     public static final String RECORD_CLIENT_ID_KEY = "Record.ClientID";
     
     /**
+     * The unique key for the metadata item storing the client ID for an 
+     * uploaded location.
+     */
+    public static final String LOCATION_CLIENT_ID_KEY = "Location.ClientID";
+    
+    /**
      * The primary key of a user's default user location.
      */
     public static final String DEFAULT_LOCATION_ID = "DefaultLocationId";

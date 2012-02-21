@@ -132,7 +132,6 @@ public class TaxonomyManagementController extends AbstractController {
     @RequestMapping(value = "/bdrs/admin/taxonomy/importTaxon.htm", method = RequestMethod.GET)
     public ModelAndView importTaxon(HttpServletRequest request,
             HttpServletResponse response) {
-        
         ModelAndView mv = new ModelAndView("importTaxon");
         return mv;
     }
