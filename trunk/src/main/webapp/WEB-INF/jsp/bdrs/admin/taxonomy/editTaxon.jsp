@@ -19,7 +19,7 @@
 </c:choose>
 
 <cw:getContent key="admin/taxonomy/editTaxonomy" />
-<form method="POST" action="${pageContext.request.contextPath}/bdrs/admin/taxonomy/edit.htm" enctype="multipart/form-data">
+<form id="speciesForm" method="POST" action="${pageContext.request.contextPath}/bdrs/admin/taxonomy/edit.htm" enctype="multipart/form-data">
     <c:if test="${ taxon.id != null }">
        <input id="taxonPk" type="hidden" name="taxonPk" value="${ taxon.id }"/>
    </c:if>
@@ -129,13 +129,96 @@
     </div>
 </form>
 
+
+<jsp:include page="/WEB-INF/jsp/bdrs/admin/taxonomy/editTaxonDialogs.jsp"/>
+
+<cw:speciesProfileType/>
 <script type="text/javascript">
     jQuery(function() {
         bdrs.taxonomy.initEditTaxon("#parent","#parentPk", 
                                     "#taxonGroup", "#taxonGroupPk",
                                     "#taxonPk", "#taxonAttributeTable", 
                                     "#taxonProfileTable", "#newProfileIndex");
+        // Render the html editor using a jquery dialog.
+        $( "#htmlEditorDialog" ).dialog({
+            width: 'auto',
+            modal: true,
+            autoOpen: false,
+            buttons: {
+                Cancel: function() {
+                	bdrs.attribute.closeHtmlEditor($(this));
+                },
+                "Clear": function() {
+                    $('#markItUp')[0].value = "";
+                },
+                "OK": function() {
+                	bdrs.attribute.saveAndUpdateContent(jQuery("#markItUp")[0]);
+                    bdrs.attribute.closeHtmlEditor(jQuery(this));
+                }
+            }
+        });
+
+       /**
+        * Closes the attach file dialog and updates the position of the
+        * row in the species profile table if the "make this the default profile
+        * iamge" checkbox was selected.
+        * @param dialog the dialog to close.
+        * @param checkBoxSelector a jQuery selector that can be used to locate the
+        * correct checkbox.
+        */
+        var closeAndUpdateRowPosition = function(dialog, checkBoxSelector) {
+            jQuery(dialog).dialog('close');
+            if (jQuery(checkBoxSelector).is(":checked")) {
+                var row = jQuery(contentFieldBeingEdited).parents('tr:first');
+                bdrs.taxonomy.moveRowToTop(row);
+            }
+        };
+
+        /**
+         * Callback when the OK button on the file selection dialog is pressed.
+         * Checks if the selection is valid and performs the appropriate action
+         * depending on whether a file was selected or a new file was added.
+         */
+        var fileSelectionDialogOkPressed = function() {
+
+            var selected = jQuery('#attachFileDialog').accordion("option", "active");
+
+            if (selected === ACCORDION_EXISTING_FILE_TAB) {
+                var selectedUuid = jQuery('#selectedUuid').val();
+                if (selectedUuid != null && selectedUuid.length > 0) {
+                    jQuery(contentFieldBeingEdited).attr("value", selectedUuid);
+                    closeAndUpdateRowPosition(this, "#selectPreferred");
+                }
+                else {
+                    jQuery('#selectionError').show();
+                }
+            }
+            else {
+
+                if (isAddManagedFileFormValid()) {
+
+                    var options = {
+                        success: function(data){jQuery(contentFieldBeingEdited).attr("value", data.data.uuid);},
+                        dataType : 'json'
+                    };
+                    jQuery("#saveManagedFile").ajaxSubmit(options);
+                    closeAndUpdateRowPosition(this, '#addNewPreferred');
+                }
+            }
+        };
+
+        // Attach the event handler for when the OK button is selected on the file selection dialog.
+        jQuery('#attachFileDialog').dialog("option", "buttons")[1].click = fileSelectionDialogOkPressed;
+       
+        $('#markItUp').markItUp(bdrs.admin.myHtmlSettings);
+
+        // Attach focus event handlers to the text fields in the Content column of the profile table.
+        // New rows in the table have different values for the name attribute, hence the requirement for
+        // two event handlers.
+        jQuery('#taxonProfileTable').delegate('input[name^=profile_content_]', 'focus', 'profile_type_', contentFocusHandler);
+        jQuery('#taxonProfileTable').delegate('input[name^=new_profile_content_]', 'focus', 'new_profile_type_', contentFocusHandler);
     });
+
 
     var importALAProfile = function() {
         var taxonPk = jQuery('#taxonPk').val();
@@ -152,5 +235,41 @@
                 window.document.location = url;
             }
         }
-    }
+    };
+
+    var showHtmlEditor = function(textField) {
+        bdrs.attribute.showHtmlEditor($('#htmlEditorDialog'), $('#markItUp')[0], textField);
+    };
+
+    /**
+     * Tracks the text field that is being updated via the #attachFileDialog dialog. This is so it's
+     * value can be updated when the dialog is closed.
+     */
+    var contentFieldBeingEdited;
+
+    /**
+     * Responds to focus events fired by the text field in the Content column of the Species profile table.
+     * @param event event.data must contain the prefix used by the name attribute of the select element in the
+     * same row as the text field that fired this event.
+     */
+    var contentFocusHandler = function(event) {
+
+        var type = jQuery(this).parents('tr:first').find('select[name^='+event.data+']').attr("value");
+
+        if (bdrs.taxonomy.speciesProfileType.isTextType(type)) {
+            showHtmlEditor(this);
+        }
+        else if (bdrs.taxonomy.speciesProfileType.isFileType(type) || bdrs.taxonomy.speciesProfileType.isImageType(type)) {
+            contentFieldBeingEdited = this;
+            showFileSelector();
+        }
+    };
+
+    var showFileSelector = function() {
+        jQuery('#attachFileDialog').dialog('option', 'height', getHeight());
+        jQuery( "#attachFileDialog" ).dialog('open');
+    };
+
+
+    
 </script>

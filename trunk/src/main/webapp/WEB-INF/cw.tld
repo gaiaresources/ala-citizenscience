@@ -302,7 +302,17 @@
     <tag-class>au.org.ala.commonui.tag.UserNameTag</tag-class>
     <body-content>JSP</body-content>
   </tag>
-  
+
+  <tag>
+      <description>
+          Inserts a javascript object used to determine the categorise a species profile type as
+          is done by the SpeciesProfile class.  This tag requires jQuery.
+      </description>
+      <name>speciesProfileType</name>
+      <tag-class>au.com.gaiaresources.bdrs.servlet.jsp.tag.SpeciesProfileTypeTag</tag-class>
+      <body-content>empty</body-content>
+  </tag>
+
   <function>
     <name>hasCsvValue</name>
     <function-class>au.com.gaiaresources.bdrs.util.CSVUtils</function-class>

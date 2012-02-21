@@ -556,6 +556,9 @@ bdrs.taxonomy.addNewProfile = function(newProfileIndexSelector, profileTableSele
     
     jQuery.get(bdrs.contextPath+'/bdrs/admin/taxonomy/ajaxAddProfile.htm', params, function(data) {
         jQuery(profileTableSelector).find("tbody").append(data);
+
+        // Focus the row we just added, if the table is long it can be unclear if the add function did anything.
+        jQuery(profileTableSelector).find('tr:last input[type=text]:first').focus();
     });
 };
 
@@ -623,4 +626,19 @@ bdrs.taxonomy.importALAProfile = function(guidListSelector, taxonGroupNameSelect
     };
     // kick off our first item...
     ajaxImportFunc(guidArray, taxonGroupName, shortProfile);
+};
+
+/**
+ * Moves the supplied row to the top of it's enclosing table.
+ * Used to allow a specific image to be configured as the profile default.
+ * @param row a jQuery object wrapping the row to move to top.
+ */
+bdrs.taxonomy.moveRowToTop = function(row) {
+    // Move the row to the top of the table.
+    row.insertBefore(row.siblings().first());
+    // Focus the first text field in the row so the user gets some indication of what has happened.
+    row.find('input[type=text]').first().focus();
+    // Manually invoke the drop handler so as to update the sort_weight for the rows in the table.
+    bdrs.dnd.tableDnDDropHandler(row.parents("table:first")[0], row);
+
 };
