@@ -25,6 +25,7 @@ import jep.JepException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.codec.Base64;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,6 +44,7 @@ import au.com.gaiaresources.bdrs.file.FileService;
 import au.com.gaiaresources.bdrs.json.JSON;
 import au.com.gaiaresources.bdrs.json.JSONException;
 import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.model.location.LocationDAO;
 import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.report.Report;
@@ -171,6 +173,8 @@ public class ReportController extends AbstractController {
     private TaxaDAO taxaDAO;
     @Autowired
     private RecordDAO recordDAO;
+    @Autowired
+    private LocationDAO locationDAO;
     @Autowired
     private FileService fileService;
 
@@ -341,7 +345,7 @@ public class ReportController extends AbstractController {
      * @param reportId the primary key of the report to be rendered.
      */
     @RolesAllowed({  Role.USER, Role.POWERUSER, Role.SUPERVISOR, Role.ADMIN })
-    @RequestMapping(value = REPORT_RENDER_URL, method = RequestMethod.GET)
+    @RequestMapping(value = REPORT_RENDER_URL)
     public ModelAndView renderReport(HttpServletRequest request,
                                      HttpServletResponse response,
                                      @PathVariable(REPORT_ID_PATH_VAR) int reportId) {
@@ -352,7 +356,11 @@ public class ReportController extends AbstractController {
             File reportDir = fileService.getTargetDirectory(report, Report.REPORT_DIR, true);
             
             // Setup the parameters to send to the Python report.
-            PyBDRS bdrs = new PyBDRS(fileService, report, getRequestContext().getUser(), surveyDAO, censusMethodDAO, taxaDAO, recordDAO);
+            PyBDRS bdrs = new PyBDRS(request, 
+                                     fileService, report, getRequestContext().getUser(), 
+                                     surveyDAO, censusMethodDAO, 
+                                     taxaDAO, recordDAO, 
+                                     locationDAO);
             JSONObject jsonParams = toJSONParams(request);
             
             // Fire up a new Python interpreter
@@ -476,8 +484,9 @@ public class ReportController extends AbstractController {
      * 
      * @param request the browser request
      * @return 
+     * @throws IOException 
      */
-    private JSONObject toJSONParams(HttpServletRequest request) {
+    private JSONObject toJSONParams(HttpServletRequest request) throws IOException {
         // The documentation says the map is of the specified type.
         @SuppressWarnings("unchecked")
         Map<String, String[]> rawMap = request.getParameterMap();
@@ -490,6 +499,17 @@ public class ReportController extends AbstractController {
         
         JSONObject params = new JSONObject();
         params.accumulateAll(paramMap);
+        
+        if(request instanceof MultipartHttpServletRequest) {
+            MultipartHttpServletRequest req = (MultipartHttpServletRequest) request; 
+            // Base 64 encode all uploaded file data
+            
+            for(Map.Entry<String, MultipartFile> pair : req.getFileMap().entrySet()) {
+                String data = new String(Base64.encode(pair.getValue().getBytes()));
+                params.accumulate(pair.getKey(), data);
+            }
+        }
+        
         return params;
     }
 

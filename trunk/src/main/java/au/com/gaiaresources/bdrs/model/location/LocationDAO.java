@@ -162,4 +162,27 @@ public interface LocationDAO extends TransactionDAO {
      * @return
      */
     PagedQueryResult<Location> getSurveylocations(PaginationFilter filter, User user, int surveyIdToExclude);
+
+    /**
+     * Retrieves the {@link Location} that was synchronized with the specified
+     * client identifier.
+     * 
+     * @param clientID the identifier used by the client that originally 
+     * synchronized this location. 
+     * @return the {@link Location} that was synchronized with the specified
+     * client identifier.
+     */
+    Location getLocationByClientID(String clientID);
+    
+    /**
+     * Retrieves the {@link Location} that was synchronized with the specified
+     * client identifier.
+     * 
+     * @param sesh the session to use when retrieving the {@link Location}
+     * @param clientID the identifier used by the client that originally 
+     * synchronized this location. 
+     * @return the {@link Location} that was synchronized with the specified
+     * client identifier.
+     */
+    Location getLocationByClientID(org.hibernate.Session sesh, String clientID);
     }

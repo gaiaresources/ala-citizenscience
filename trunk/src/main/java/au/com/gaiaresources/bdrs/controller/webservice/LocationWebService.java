@@ -84,9 +84,7 @@ public class LocationWebService extends AbstractController {
         if (surveyId != -1) {
             filterAttributesBySurvey(surveyId, location, locationObj);
         }
-        
-        response.setContentType("application/json");
-        response.getWriter().write(JSONObject.fromMapToString(locationObj));
+        writeJson(request, response, JSONObject.fromMapToString(location.flatten(3)));
     }
 
     @RequestMapping(value="/webservice/location/getLocationsById.htm", method=RequestMethod.GET)

@@ -21,6 +21,7 @@ import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValueDAO;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
@@ -203,8 +204,21 @@ public interface RecordDAO extends TransactionDAO {
 	List<Record> getLatestRecords(User user, String scientificNameSearch,
 			int limit);
 
+	/**
+	 * 
+	 * @param recAttr
+	 * @return
+	 * @deprecated Use {@link AttributeValueDAO#save(AttributeValue)} instead.
+	 */
 	@Deprecated
 	AttributeValue saveAttributeValue(AttributeValue recAttr);
+	
+	/**
+	 * 
+	 * @param recAttr
+	 * @return
+	 * @deprecated Use {@link AttributeValueDAO#update(AttributeValue) instead.
+	 */
 	@Deprecated
 	AttributeValue updateAttributeValue(AttributeValue recAttr);
 
@@ -261,6 +275,7 @@ public interface RecordDAO extends TransactionDAO {
 	 *            retrieved.
 	 * @return the <code>AttributeValue</code> with the provided primary key or
 	 *         null if one does not exist.
+	 * @deprecated Use {@link AttributeValueDAO#get(int)} instead.
 	 */
 	@Deprecated
 	AttributeValue getAttributeValue(int recordAttributePk);
@@ -285,6 +300,12 @@ public interface RecordDAO extends TransactionDAO {
     List<IndicatorSpecies> getLastSpecies(int userPk, int limit);
 
     void delete(Record record);
+
+    /**
+     * 
+     * @param recAttr
+     * @deprecated Use {@link AttributeValueDAO#delete(AttributeValue)} instead
+     */
     @Deprecated
     void delete(AttributeValue recAttr);
     

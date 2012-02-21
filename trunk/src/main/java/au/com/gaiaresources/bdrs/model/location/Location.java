@@ -17,6 +17,7 @@ import org.hibernate.annotations.Type;
 import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
 import au.com.gaiaresources.bdrs.model.attribute.Attributable;
+import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.region.Region;
 import au.com.gaiaresources.bdrs.model.user.User;
 
@@ -40,6 +41,8 @@ public class Location extends PortalPersistentImpl implements Attributable<Attri
     private Set<Region> regions = new HashSet<Region>();
     private Set<AttributeValue> attributes = new HashSet<AttributeValue>();
     private String description;
+    
+    private Set<Metadata> metadata = new HashSet<Metadata>();
     
     /**
      * Get the coordinate of the <code>Location</code>.
@@ -89,6 +92,7 @@ public class Location extends PortalPersistentImpl implements Attributable<Attri
      */
     @CompactAttribute
     @Column(name = "DESCRIPTION", nullable = true)
+    @Lob  // makes a 'text' type in the database
     public String getDescription() {
         return description;
     }
@@ -180,5 +184,58 @@ public class Location extends PortalPersistentImpl implements Attributable<Attri
     @Transient
     public AttributeValue createAttribute() {
         return new AttributeValue();
+    }
+    
+    // Many to many is a work around (read hack) to prevent a unique
+    // constraint being applied on the metadata id.
+    /**
+     * Returns all metadata stored against this {@link Location}
+     * @return all metdata stored against this {@link Location}
+     */
+    @ManyToMany
+    public Set<Metadata> getMetadata() {
+        return metadata;
+    }
+
+    /**
+     * Updates all metadata stored against this {@link Location}
+     * @param metadata the updated set of metadata about this {@link Location}
+     */
+    public void setMetadata(Set<Metadata> metadata) {
+        this.metadata = metadata;
+    }
+    
+    /**
+     * Returns the value of the metadata with the specified key or null if a
+     * matching metadata item cannot be found. 
+     * 
+     * @param key the key of the metadata item value to be returned.
+     * @return the value of the metadata item with the specified key.
+     */
+    @Transient
+    public String getMetadataValue(String key) {
+        Metadata md = getMetadataForKey(key);
+        return md == null ? null : md.getValue();
+    }
+    
+    /**
+     * Returns the metadata with the specified key or null if a
+     * matching metadata item cannot be found. 
+     * 
+     * @param key the key of the metadata item to be returned.
+     * @return the metadata item with the specified key.
+     */
+    @Transient
+    public Metadata getMetadataForKey(String key) {
+        if(key == null) {
+            throw new NullPointerException();
+        }
+
+        for(Metadata md : this.getMetadata()) {
+            if(md.getKey().equals(key)) {
+                return md;
+            }
+        }
+     return null;
     }
 }

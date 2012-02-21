@@ -1,15 +1,11 @@
 package au.com.gaiaresources.bdrs.controller.report;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
 
 import junit.framework.Assert;
-import au.com.gaiaresources.bdrs.json.JSONObject;
 
 import org.apache.commons.io.FilenameUtils;
 import org.junit.Test;
@@ -22,11 +18,11 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
 import au.com.gaiaresources.bdrs.controller.AbstractGridControllerTest;
+import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.report.Report;
 import au.com.gaiaresources.bdrs.model.report.ReportDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.util.ZipUtils;
 
 /**
  * Tests all aspects of the <code>ReportController</code>.
@@ -85,7 +81,7 @@ public class ReportControllerTest extends AbstractGridControllerTest {
 
         JSONObject config = getConfigFile(testReportName);
         String reportName = config.getString(ReportController.JSON_CONFIG_NAME);
-        Report report = getReportByName(reportName);
+        Report report = ReportTestUtil.getReportByName(reportDAO, reportName);
         
         Assert.assertEquals(config.getString(ReportController.JSON_CONFIG_NAME), report.getName());
         Assert.assertEquals(config.getString(ReportController.JSON_CONFIG_DESCRIPTION), report.getDescription());
@@ -266,7 +262,7 @@ public class ReportControllerTest extends AbstractGridControllerTest {
 
         JSONObject config = getConfigFile(testReportName);
         String reportName = config.getString(ReportController.JSON_CONFIG_NAME);
-        Report report = getReportByName(reportName);
+        Report report = ReportTestUtil.getReportByName(reportDAO, reportName);
         
         request.setMethod("POST");
         request.setRequestURI(ReportController.REPORT_DELETE_URL);
@@ -293,17 +289,17 @@ public class ReportControllerTest extends AbstractGridControllerTest {
 
         MockMultipartHttpServletRequest req = (MockMultipartHttpServletRequest) request;
         File reportDir = new File(SITE_SPECIES_MATRIX_REPORT_DIR);
-        req.addFile(getTestReport(reportDir, testReportName));
+        req.addFile(ReportTestUtil.getTestReport(reportDir, testReportName));
 
         handle(request, response);
         Assert.assertFalse(reportDAO.getReports().isEmpty());
         Assert.assertEquals(1, getRequestContext().getMessageContents().size());
         
-        JSONObject config = getConfigFile(reportDir);
+        JSONObject config = ReportTestUtil.getConfigFile(reportDir);
         String reportName = config.getString(ReportController.JSON_CONFIG_NAME);
-        Report report = getReportByName(reportName);
+        Report report = ReportTestUtil.getReportByName(reportDAO, reportName);
         
-        String renderURL = getReportRenderURL(report);
+        String renderURL = ReportTestUtil.getReportRenderURL(report);
         
         // Render the report start page
         request.setMethod("GET");
@@ -348,17 +344,17 @@ public class ReportControllerTest extends AbstractGridControllerTest {
 
         MockMultipartHttpServletRequest req = (MockMultipartHttpServletRequest) request;
         File reportDir = new File(SPECIES_LIST_REPORT_DIR);
-        req.addFile(getTestReport(reportDir, testReportName));
+        req.addFile(ReportTestUtil.getTestReport(reportDir, testReportName));
 
         handle(request, response);
         Assert.assertFalse(reportDAO.getReports().isEmpty());
         Assert.assertEquals(1, getRequestContext().getMessageContents().size());
         
-        JSONObject config = getConfigFile(reportDir);
+        JSONObject config = ReportTestUtil.getConfigFile(reportDir);
         String reportName = config.getString(ReportController.JSON_CONFIG_NAME);
-        Report report = getReportByName(reportName);
+        Report report = ReportTestUtil.getReportByName(reportDAO, reportName);
         
-        String renderURL = getReportRenderURL(report);
+        String renderURL = ReportTestUtil.getReportRenderURL(report);
         
         // Render the report start page
         request.setMethod("GET");
@@ -386,58 +382,14 @@ public class ReportControllerTest extends AbstractGridControllerTest {
         Assert.assertTrue(getRequestContext().getMessageContents().isEmpty());
     }
     
-    private String getReportRenderURL(Report report) {
-        return ReportController.REPORT_RENDER_URL.replace("{reportId}", String.valueOf(report.getId()));
-    }
-
-    private Report getReportByName(String reportName) {
-        for(Report report : reportDAO.getReports()) {
-            if(report.getName().equals(reportName)) {
-                return report;
-            }
-        }
-        return null;
-    }
-    
     private MockMultipartFile getTestReport(String reportName) throws URISyntaxException, IOException {
         File dir = new File(getClass().getResource(reportName).toURI());
-        return this.getTestReport(dir, reportName);
-    }
-    
-    private MockMultipartFile getTestReport(File dir, String reportName) throws URISyntaxException, IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ZipUtils.compressToStream(dir.listFiles(), baos);
-        
-        return new MockMultipartFile(ReportController.POST_KEY_ADD_REPORT_FILE, 
-                                     String.format("%s.zip", reportName), 
-                                     "application/zip", 
-                                     baos.toByteArray());
+        return ReportTestUtil.getTestReport(dir, reportName);
     }
     
     private JSONObject getConfigFile(String reportName) throws IOException, URISyntaxException {
         File dir = new File(getClass().getResource(reportName).toURI());
-        return this.getConfigFile(dir);
-    }
-    
-    private JSONObject getConfigFile(File reportDir) throws IOException, URISyntaxException {
-        File config = new File(reportDir, ReportController.REPORT_CONFIG_FILENAME);
-        return JSONObject.fromStringToJSONObject(readFileAsString(config.getAbsolutePath()));
-    }
-    
-    private String readFileAsString(String filePath) throws java.io.IOException {
-        byte[] buffer = new byte[(int) new File(filePath).length()];
-        BufferedInputStream f = null;
-        try {
-            f = new BufferedInputStream(new FileInputStream(filePath));
-            f.read(buffer);
-        } finally {
-            if (f != null)
-                try {
-                    f.close();
-                } catch (IOException ignored) {
-                }
-        }
-        return new String(buffer);
+        return ReportTestUtil.getConfigFile(dir);
     }
     
     @Override
