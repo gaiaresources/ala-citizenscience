@@ -118,9 +118,13 @@ public class TaxonomyManagementController extends AbstractController {
     @RolesAllowed( { Role.ADMIN })
     @RequestMapping(value = "/bdrs/admin/taxonomy/listing.htm", method = RequestMethod.GET)
     public ModelAndView setup(HttpServletRequest request,
-            HttpServletResponse response) {
+            HttpServletResponse response,
+            @RequestParam(required=false, value="taxonPk", defaultValue="0") int taxonPk) {
         
         ModelAndView mv = new ModelAndView("taxonomyList");
+        if (taxonPk > 0) {
+            mv.addObject("taxonPk", taxonPk);
+        }
         return mv;
     }
     
@@ -421,7 +425,7 @@ public class TaxonomyManagementController extends AbstractController {
         }
         
         getRequestContext().addMessage("taxonomy.save.success", new Object[]{ taxon.getScientificName() });
-        return new ModelAndView(new RedirectView("/bdrs/admin/taxonomy/listing.htm", true));
+        return new ModelAndView(new RedirectView("/bdrs/admin/taxonomy/listing.htm?taxonPk="+taxon.getId(), true));
     }
     
     @RolesAllowed( { Role.ADMIN })
