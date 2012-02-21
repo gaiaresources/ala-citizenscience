@@ -511,10 +511,10 @@ public class TaxonomyManagementControllerTest extends AbstractControllerTest {
         ModelAndView mv = handle(request, response);
         Assert.assertTrue(mv.getView() instanceof RedirectView);
         RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals("/bdrs/admin/taxonomy/listing.htm", redirect.getUrl());
         
         IndicatorSpecies taxon = taxaDAO.getIndicatorSpecies(speciesA.getId());
-
+        Assert.assertEquals("/bdrs/admin/taxonomy/listing.htm?taxonPk="+taxon.getId(), redirect.getUrl());
+        
         Assert.assertEquals(request.getParameter("scientificName"), taxon.getScientificName());
         Assert.assertEquals(request.getParameter("commonName"), taxon.getCommonName());
         Assert.assertEquals(request.getParameter("taxonRank"), taxon.getTaxonRank().toString());
@@ -741,11 +741,11 @@ public class TaxonomyManagementControllerTest extends AbstractControllerTest {
         ModelAndView mv = handle(request, response);
         Assert.assertTrue(mv.getView() instanceof RedirectView);
         RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals("/bdrs/admin/taxonomy/listing.htm", redirect.getUrl());
         
         IndicatorSpecies taxon = taxaDAO.getIndicatorSpeciesByScientificName(sessionFactory.getCurrentSession(),
                                                                              request.getParameter("scientificName"));
 
+        Assert.assertEquals("/bdrs/admin/taxonomy/listing.htm?taxonPk="+taxon.getId(), redirect.getUrl());
         Assert.assertEquals(request.getParameter("scientificName"), taxon.getScientificName());
         Assert.assertEquals(request.getParameter("commonName"), taxon.getCommonName());
         Assert.assertEquals(request.getParameter("taxonRank"), taxon.getTaxonRank().toString());
