@@ -382,7 +382,7 @@ public class ApplicationService extends AbstractController {
         if(survey != null) {
             if(!survey.getLocations().contains(loc)) {
                 survey.getLocations().add(loc);
-                survey = surveyDAO.save(survey);
+                surveyDAO.save(survey);
             }
         }
         
