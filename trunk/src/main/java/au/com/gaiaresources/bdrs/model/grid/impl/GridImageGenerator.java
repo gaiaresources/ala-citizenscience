@@ -59,82 +59,69 @@ public class GridImageGenerator {
 	}
 
 	void generateKML(Grid grid, IndicatorSpecies s) throws Exception {
-		try {
-			logger.info("Generating grid image for: " + grid);
-
-			// regenerate grid for all species.
-			File targetFile = fileService.createTargetFile(Grid.class, grid
-					.getId(), "gridkml.kml");
-			logger.info("Target file is: " + targetFile.getAbsolutePath());
-
-			KMLWriter writer = new KMLWriter();
-			writer.createFolder("Squares");
-
-			List<? extends GridEntry> entries = gridService.getGridEntries(
-					grid, null);
-			int[] values = new int[entries.size()];
-			for (int i = 0; i < entries.size(); i++) {
-				values[i] = entries.get(i).getNumberOfRecords();
-			}
-
-			ColourClassifier classifier = new ColourClassifier(values, 10,
-					new Color(255, 0, 0), 50, 230);
-			for (Color c : classifier.colours) {
-				writer.createStylePoly(convertColourToID(c), c);
-			}
-
-			for (GridEntry entry : entries) {
-				writer.createPlacemark("Squares", "L" + entry.getId(), entry
-						.getBoundary(), convertColourToID(classifier
-						.getColour(entry.getNumberOfRecords())));
-			}
-
-			FileOutputStream fo = new FileOutputStream(targetFile);
-			try {
-				writer.write(false, fo);
-			} finally {
-				fo.close();
-			}
-			logger.info("Finished writing : " + targetFile.getAbsolutePath());
-
-			// Now need to generate species specific one.
-			targetFile = fileService.createTargetFile(Grid.class, grid.getId(),
-					s.getCommonName() + "-gridkml.kml");
-			logger.info("Target file is: " + targetFile.getAbsolutePath());
-
-			writer = new KMLWriter();
-			writer.createFolder("Squares");
-
-			entries = gridService.getGridEntries(grid, s);
-			values = new int[entries.size()];
-			for (int i = 0; i < entries.size(); i++) {
-				values[i] = entries.get(i).getNumberOfRecords();
-			}
-
-			classifier = new ColourClassifier(values, 10, new Color(255, 0, 0),
-					50, 230);
-			for (Color c : classifier.colours) {
-				writer.createStylePoly(convertColourToID(c), c);
-			}
-
-			for (GridEntry entry : entries) {
-				writer.createPlacemark("Squares", "L" + entry.getId(), entry
-						.getBoundary(), convertColourToID(classifier
-						.getColour(entry.getNumberOfRecords())));
-			}
-
-			fo = new FileOutputStream(targetFile);
-			try {
-				writer.write(false, fo);
-			} finally {
-				fo.close();
-			}
-
-		} catch (Exception e) {
-			logger.error("Encountered exception whilst writing KML", e);
-			//rethrow
-			throw e;
-		}
+            logger.info("Generating grid image for: " + grid);
+    
+            // regenerate grid for all species.
+            File targetFile = fileService.createTargetFile(Grid.class, grid.getId(), "gridkml.kml");
+            logger.info("Target file is: " + targetFile.getAbsolutePath());
+    
+            KMLWriter writer = new KMLWriter();
+            writer.createFolder("Squares");
+    
+            List<? extends GridEntry> entries = gridService.getGridEntries(grid, null);
+            int[] values = new int[entries.size()];
+            for (int i = 0; i < entries.size(); i++) {
+                values[i] = entries.get(i).getNumberOfRecords();
+            }
+    
+            ColourClassifier classifier = new ColourClassifier(values, 10,
+                    new Color(255, 0, 0), 50, 230);
+            for (Color c : classifier.colours) {
+                writer.createStylePoly(convertColourToID(c), c);
+            }
+    
+            for (GridEntry entry : entries) {
+                writer.createPlacemark("Squares", "L" + entry.getId(), entry.getBoundary(), convertColourToID(classifier.getColour(entry.getNumberOfRecords())));
+            }
+    
+            FileOutputStream fo = new FileOutputStream(targetFile);
+            try {
+                writer.write(false, fo);
+            } finally {
+                fo.close();
+            }
+            logger.info("Finished writing : " + targetFile.getAbsolutePath());
+    
+            // Now need to generate species specific one.
+            targetFile = fileService.createTargetFile(Grid.class, grid.getId(), s.getCommonName()
+                    + "-gridkml.kml");
+            logger.info("Target file is: " + targetFile.getAbsolutePath());
+    
+            writer = new KMLWriter();
+            writer.createFolder("Squares");
+    
+            entries = gridService.getGridEntries(grid, s);
+            values = new int[entries.size()];
+            for (int i = 0; i < entries.size(); i++) {
+                values[i] = entries.get(i).getNumberOfRecords();
+            }
+    
+            classifier = new ColourClassifier(values, 10, new Color(255, 0, 0), 50,
+                    230);
+            for (Color c : classifier.colours) {
+                writer.createStylePoly(convertColourToID(c), c);
+            }
+    
+            for (GridEntry entry : entries) {
+                writer.createPlacemark("Squares", "L" + entry.getId(), entry.getBoundary(), convertColourToID(classifier.getColour(entry.getNumberOfRecords())));
+            }
+    
+            fo = new FileOutputStream(targetFile);
+            try {
+                writer.write(false, fo);
+            } finally {
+                fo.close();
+            }
 	}
 
 	private String convertColourToID(Color c) {
@@ -529,7 +516,7 @@ public class GridImageGenerator {
 	}
 
 	public Stroke createStroke(Color color, double width) {
-		double opacity = color.getAlpha() / 255;
+		double opacity = ((double)color.getAlpha() / 255d);
 		return styleFactory.createStroke(colorExpression(color),
 				literalExpression(width), literalExpression(opacity));
 	}
@@ -579,7 +566,7 @@ public class GridImageGenerator {
 		return styleFactory.createFill(fillColor);
 	}
 
-	public class EqualClasses {
+	private class EqualClasses {
 		int numberClasses;
 		double[] breaks;
 		double[] collection;
@@ -655,7 +642,7 @@ public class GridImageGenerator {
 		 * 
 		 */
 		public double[] getBreaks() {
-			return this.breaks;
+		    return Arrays.copyOf(this.breaks, this.breaks.length);
 		}
 
 		/**
@@ -666,7 +653,7 @@ public class GridImageGenerator {
 		 * 
 		 */
 		public void setCollection(double[] collection) {
-			this.collection = collection;
+		    this.collection = Arrays.copyOf(collection, this.collection.length);;
 		}
 
 	}

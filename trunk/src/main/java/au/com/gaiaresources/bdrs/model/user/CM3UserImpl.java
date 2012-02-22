@@ -1,5 +1,6 @@
 package au.com.gaiaresources.bdrs.model.user;
 
+import java.util.Arrays;
 import java.util.Date;
 
 
@@ -51,10 +52,10 @@ public class CM3UserImpl extends User {
 		this.name = name;
 	}
 	public String[] getRoles() {
-	    return roles;
+	    return Arrays.copyOf(this.roles, this.roles.length);
 	}
 	public void setRoles(String[] roles) {
-		this.roles = roles;
+		this.roles = Arrays.copyOf(roles, roles.length);
 	}
 	public Boolean isActive() {
 		return active;
