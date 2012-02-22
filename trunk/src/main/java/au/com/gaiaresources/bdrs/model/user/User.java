@@ -1,6 +1,5 @@
 package au.com.gaiaresources.bdrs.model.user;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -181,11 +180,13 @@ public class User extends PortalPersistentImpl implements Comparable<User> {
     @IndexColumn(name = "ROLE_ORDER")
     @Fetch(FetchMode.SUBSELECT)
     public String[] getRoles() {
-        return Arrays.copyOf(this.roles, this.roles.length);
+        //return Arrays.copyOf(this.roles, this.roles.length);
+        return this.roles;
     }
 
     public void setRoles(String[] roles) {
-        this.roles = Arrays.copyOf(roles, roles.length);
+        //this.roles = Arrays.copyOf(roles, roles.length);
+        this.roles = roles;
     }
 
     // Many to many is a work around (read hack) to prevent a unique
