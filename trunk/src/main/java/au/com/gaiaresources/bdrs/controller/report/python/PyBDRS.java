@@ -76,7 +76,7 @@ public class PyBDRS {
         this.pyTaxaDAO = new PyTaxaDAO(user, surveyDAO, taxaDAO);
         this.pyRecordDAO = new PyRecordDAO(user, recordDAO);
         this.pyCensusMethodDAO = new PyCensusMethodDAO(censusMethodDAO);
-        this.pyLocationDAO = new PyLocationDAO(user, locationDAO, surveyDAO);
+        this.pyLocationDAO = new PyLocationDAO(surveyDAO);
     }
     
     /**
