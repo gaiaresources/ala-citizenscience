@@ -1,6 +1,7 @@
 package au.com.gaiaresources.bdrs.model.theme;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.persistence.AttributeOverride;
@@ -101,10 +102,10 @@ public class Theme extends PortalPersistentImpl {
     @IndexColumn(name = "ARRAY_INDEX")
     @Fetch(FetchMode.SUBSELECT)
     public String[] getCssFiles() {
-        return cssFiles;
+        return Arrays.copyOf(this.cssFiles, this.cssFiles.length);
     }
     public void setCssFiles(String[] cssFiles) {
-        this.cssFiles = cssFiles;
+        this.cssFiles = Arrays.copyOf(cssFiles, cssFiles.length);
     }
     
     @CollectionOfElements
@@ -113,9 +114,9 @@ public class Theme extends PortalPersistentImpl {
     @IndexColumn(name = "ARRAY_INDEX")
     @Fetch(FetchMode.SUBSELECT)
     public String[] getJsFiles() {
-        return jsFiles;
+        return Arrays.copyOf(this.jsFiles, this.jsFiles.length);
     }
     public void setJsFiles(String[] jsFiles) {
-        this.jsFiles = jsFiles;
+        this.jsFiles = Arrays.copyOf(jsFiles, jsFiles.length);
     }
 }

@@ -21,8 +21,12 @@ import au.com.gaiaresources.bdrs.model.user.User;
  */
 public class PyLocationDAO {
 
+    @SuppressWarnings("unused")
     private User user;
+    
+    @SuppressWarnings("unused")
     private LocationDAO locDAO;
+    
     private SurveyDAO surveyDAO;
 
     /**
