@@ -296,24 +296,27 @@ public class Interceptor implements HandlerInterceptor {
     }
 
     @SuppressWarnings("unchecked")
-    protected JSONObject parseJSON(Map modelMap) {
+    protected JSONObject parseJSON(Map<?,?> modelMap) {
     	JSONObject json = new JSONObject();
+        for (Map.Entry<?, ?> entry : modelMap.entrySet()) {
+            Object key = entry.getKey();
+            Object value = entry.getValue();
+            
+            if (value instanceof PersistentImpl) {
+                PersistentImpl ob = (PersistentImpl) value;
+                json.put(key.toString(), ob.flatten());
+            } else if (value instanceof Map) {
+                Map<?,?> ob = (Map<?,?>) value;
+                json.put(key.toString(), parseJSON(ob));
+            } else if (value instanceof Set) {
+                json.put(key.toString(), parseJSON((Set<?>) value));
+            } else if (value instanceof List) {
+                json.put(key.toString(), parseJSON((List<?>) value));
+            } else {
+                json.put(key.toString(), String.valueOf(value));
+            }
+        }
     	
-    	for (Object key : modelMap.keySet()) {
-    		if (modelMap.get(key) instanceof PersistentImpl) {
-    			PersistentImpl ob = (PersistentImpl)modelMap.get(key);
-    			json.put(key.toString(), ob.flatten());
-    		} else if (modelMap.get(key) instanceof Map) {
-    			Map ob = (Map)modelMap.get(key);
-    			json.put(key.toString(), parseJSON(ob));
-    		} else if (modelMap.get(key) instanceof Set) {
-    			json.put(key.toString(), parseJSON((Set)modelMap.get(key)));
-    		} else if (modelMap.get(key) instanceof List) {
-    			json.put(key.toString(), parseJSON((List)modelMap.get(key)));    			
-    		} else {
-    			json.put(key.toString(), String.valueOf(modelMap.get(key)));
-    		}
-    	}
     	return json;
     }
     

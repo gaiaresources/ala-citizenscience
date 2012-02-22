@@ -1,6 +1,7 @@
 package au.com.gaiaresources.bdrs.servlet;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -200,7 +201,7 @@ public class RequestContext {
     }
 
     public String[] getRoles() {
-        return this.roles;
+        return Arrays.copyOf(this.roles, this.roles.length);
     }
 
     public void setPortal(Portal portal) {

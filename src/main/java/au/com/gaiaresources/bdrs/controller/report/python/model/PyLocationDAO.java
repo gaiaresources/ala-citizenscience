@@ -13,7 +13,6 @@ import au.com.gaiaresources.bdrs.model.location.LocationDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
-import au.com.gaiaresources.bdrs.model.user.User;
 
 /**
  * Represents a facade over the {@link LocationDAO} ensuring that any data
@@ -21,23 +20,13 @@ import au.com.gaiaresources.bdrs.model.user.User;
  */
 public class PyLocationDAO {
 
-    @SuppressWarnings("unused")
-    private User user;
-    
-    @SuppressWarnings("unused")
-    private LocationDAO locDAO;
-    
     private SurveyDAO surveyDAO;
 
     /**
      * Creates a new instance. 
-     * @param user the user accessing data.
-     * @param locDAO retrieves location related data.
      * @param surveyDAO retrieves survey related data.
      */
-    public PyLocationDAO(User user, LocationDAO locDAO, SurveyDAO surveyDAO) {
-        this.user = user;
-        this.locDAO = locDAO;
+    public PyLocationDAO(SurveyDAO surveyDAO) {
         this.surveyDAO = surveyDAO;
     }
     

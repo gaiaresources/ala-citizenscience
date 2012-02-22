@@ -185,7 +185,7 @@ public class User extends PortalPersistentImpl implements Comparable<User> {
     }
 
     public void setRoles(String[] roles) {
-        this.roles = Arrays.copyOf(roles, roles.length);;
+        this.roles = Arrays.copyOf(roles, roles.length);
     }
 
     // Many to many is a work around (read hack) to prevent a unique

@@ -102,10 +102,18 @@ public class Theme extends PortalPersistentImpl {
     @IndexColumn(name = "ARRAY_INDEX")
     @Fetch(FetchMode.SUBSELECT)
     public String[] getCssFiles() {
-        return Arrays.copyOf(this.cssFiles, this.cssFiles.length);
+        // Hibernate is doing some magic behind the scenes that means that the
+        // line below will cause errors.         
+        //return Arrays.copyOf(this.cssFiles, this.cssFiles.length);
+        
+        return this.cssFiles;
     }
     public void setCssFiles(String[] cssFiles) {
-        this.cssFiles = Arrays.copyOf(cssFiles, cssFiles.length);
+        // Hibernate is doing some magic behind the scenes that means that the
+        // line below will cause errors.    
+        //this.cssFiles = Arrays.copyOf(cssFiles, cssFiles.length);
+        
+        this.cssFiles = cssFiles;
     }
     
     @CollectionOfElements
@@ -114,9 +122,17 @@ public class Theme extends PortalPersistentImpl {
     @IndexColumn(name = "ARRAY_INDEX")
     @Fetch(FetchMode.SUBSELECT)
     public String[] getJsFiles() {
-        return Arrays.copyOf(this.jsFiles, this.jsFiles.length);
+        // Hibernate is doing some magic behind the scenes that means that the
+        // line below will cause errors.    
+        //return Arrays.copyOf(this.jsFiles, this.jsFiles.length);
+        
+        return jsFiles;
     }
     public void setJsFiles(String[] jsFiles) {
-        this.jsFiles = Arrays.copyOf(jsFiles, jsFiles.length);
+        // Hibernate is doing some magic behind the scenes that means that the
+        // line below will cause errors.    
+        //this.jsFiles = Arrays.copyOf(jsFiles, jsFiles.length);
+        
+        this.jsFiles = jsFiles;
     }
 }
