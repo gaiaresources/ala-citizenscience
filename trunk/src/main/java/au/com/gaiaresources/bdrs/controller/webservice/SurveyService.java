@@ -325,8 +325,8 @@ public class SurveyService extends AbstractController {
         JSONArray array = new JSONArray();
         List<Location> survey_locations = surveyDAO.getSurvey(surveyId).getLocations();
         for (Location location : survey_locations) {
-            Double latitude = location.getLocation().getCentroid().getX();
-            Double longitude = location.getLocation().getCentroid().getY();
+            Double longitude = location.getLocation().getCentroid().getX();
+            Double latitude = location.getLocation().getCentroid().getY();
             Map<String, Object> locationFlat = location.flatten();
             locationFlat.put("latitude", latitude);
             locationFlat.put("longitude", longitude);
