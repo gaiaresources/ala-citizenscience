@@ -49,6 +49,7 @@
         var layerArray = new Array();
         <c:forEach items="${assignedLayers}" var="assignedLayer">
         {
+            var layer;
 			<c:choose>
             <c:when test="${assignedLayer.layer.layerSource == \"SHAPEFILE\" || assignedLayer.layer.layerSource == \"SURVEY_MAPSERVER\"}">
 			    var layerOptions = {
@@ -62,6 +63,7 @@
 					upperZoomLimit: ${assignedLayer.upperZoomLimit != null ? assignedLayer.upperZoomLimit : 'null'},
 					lowerZoomLimit: ${assignedLayer.lowerZoomLimit != null ? assignedLayer.lowerZoomLimit: 'null'}
 				};
+				// intentionally don't add this one as mapserver layers use transparent tiles not kml features
 				bdrs.map.addMapServerLayer(bdrs.map.baseMap, "${assignedLayer.layer.name}", bdrs.map.getBdrsMapServerUrl(), layerOptions);
             </c:when>
 			<c:when test="${assignedLayer.layer.layerSource == \"SURVEY_KML\"}">
@@ -72,8 +74,7 @@
                     upperZoomLimit: ${assignedLayer.upperZoomLimit != null ? assignedLayer.upperZoomLimit : 'null'},
                     lowerZoomLimit: ${assignedLayer.lowerZoomLimit != null ? assignedLayer.lowerZoomLimit: 'null'}
                 };
-                var layer = bdrs.map.addKmlLayer(bdrs.map.baseMap, "${assignedLayer.layer.name}", "${pageContext.request.contextPath}/bdrs/map/getLayer.htm?layerPk=${assignedLayer.layer.id}", layerOptions);
-                layerArray.push(layer);
+                layer = bdrs.map.addKmlLayer(bdrs.map.baseMap, "${assignedLayer.layer.name}", "${pageContext.request.contextPath}/bdrs/map/getLayer.htm?layerPk=${assignedLayer.layer.id}", layerOptions);
 			</c:when>
 			<c:when test="${assignedLayer.layer.layerSource == \"KML\"}">
                 var layerOptions = {
@@ -83,10 +84,15 @@
                     upperZoomLimit: ${assignedLayer.upperZoomLimit != null ? assignedLayer.upperZoomLimit : 'null'},
                     lowerZoomLimit: ${assignedLayer.lowerZoomLimit != null ? assignedLayer.lowerZoomLimit: 'null'}
                 };
-				var layer = bdrs.map.addKmlLayer(bdrs.map.baseMap, "${assignedLayer.layer.name}", "${pageContext.request.contextPath}/bdrs/map/getLayer.htm?layerPk=${assignedLayer.layer.id}", layerOptions);
-				layerArray.push(layer);
+				layer = bdrs.map.addKmlLayer(bdrs.map.baseMap, "${assignedLayer.layer.name}", "${pageContext.request.contextPath}/bdrs/map/getLayer.htm?layerPk=${assignedLayer.layer.id}", layerOptions);
             </c:when>
             </c:choose>
+            if (layer) {
+                layerArray.push(layer);
+                layer.events.register('loadend', layer, function(event) {
+        	        bdrs.map.centerMapToLayerExtent(bdrs.map.baseMap, layerArray);
+        	    });
+            }
         }
         </c:forEach>
 
@@ -95,7 +101,6 @@
 		
 		// In order to force correct map centering in IE7
 	    jQuery("#view_base_map").removeClass("defaultmap");
-		bdrs.map.centerMap(bdrs.map.baseMap);
 		jQuery("#view_base_map").addClass("defaultmap");
     });
 

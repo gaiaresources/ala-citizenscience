@@ -101,7 +101,7 @@ bdrs.location.initLocationMapAndTable = function(locationArray, tbodySelector) {
             'index': index
         };
 		
-		var lonLat = feature.geometry.bounds.getCenterLonLat().clone();
+		var lonLat = feature.geometry.getBounds().getCenterLonLat().clone();
         lonLat.transform(bdrs.map.GOOGLE_PROJECTION,
              bdrs.map.WGS84_PROJECTION);
         

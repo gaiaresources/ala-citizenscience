@@ -2127,8 +2127,23 @@ bdrs.map.latLonToName = function(latitude, longitude, callback){
 };
 
 bdrs.map.centerMapToLayerExtent = function(map, layer){
-    if (layer.getDataExtent() !== null) {
-        bdrs.map.baseMap.zoomToExtent(layer.getDataExtent(), false);
+    var extent = null;
+    if (layer instanceof Array) {
+    	// get the extent from all of the layers
+    	for (var i = 0; i < layer.length; i++) {
+            var thislayer = layer[i];
+            if (extent !== null && thislayer && thislayer.getDataExtent() !== null) {
+                extent.extend(thislayer.getDataExtent());
+            } else if (thislayer) {
+                extent = thislayer.getDataExtent();
+            }
+        }
+    } else {
+        extent = layer.getDataExtent();
+    }
+    
+    if (extent && extent !== null) {
+        bdrs.map.baseMap.zoomToExtent(extent, false);
     }
     else {
         bdrs.map.setDefaultCenter(bdrs.map.baseMap);
