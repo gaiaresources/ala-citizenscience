@@ -31,6 +31,8 @@ public class Preference extends PortalPersistentImpl {
     
     public static final String TAXON_PROFILE_TEMPLATE = "taxon.profile.template";
     public static final String GOOGLE_MAP_KEY_PREFIX = "google.map.key.";
+    /** identifies the preference that configures how search results are displayed by default */
+    public static final String DEFAULT_TO_MAP_VIEW_KEY = "searchResults.defaultToMapView";
 
     @SuppressWarnings("unused")
     private Logger log = Logger.getLogger(getClass());

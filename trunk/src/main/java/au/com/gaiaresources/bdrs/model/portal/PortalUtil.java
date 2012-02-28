@@ -201,6 +201,7 @@ public class PortalUtil {
         String description = jsonObject.getString("description");
         String prefCatName = jsonObject.getString("preferenceCategoryName");
         boolean isRequired = jsonObject.getBoolean("isRequired");
+        int weight = jsonObject.optInt("weight");   // Defaults to 0 if not present.
         
         if (lazyInit) {
             Preference existingPref = prefDAO.getPreferenceByKey(sesh, key, portal);
@@ -224,6 +225,7 @@ public class PortalUtil {
         pref.setValue(value);
         pref.setDescription(description);
         pref.setIsRequired(isRequired);
+        pref.setWeight(weight);
         return prefDAO.save(sesh, pref);
     }
     

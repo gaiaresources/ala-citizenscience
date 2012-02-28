@@ -73,7 +73,7 @@ public class AttributeFacet extends AbstractFacet {
             // later it should retrieve attribute objects vs count
             // and determine which type of attribute options to add 
             // based on the type of the attribute
-            for(Pair<String, Long> pair : recordDAO.getDistinctAttributeValues(null, user, this.attributeName, userParams.optInt("optionCount"))) {
+            for(Pair<String, Long> pair : recordDAO.getDistinctAttributeValues(null, this.attributeName, userParams.optInt("optionCount"))) {
                 super.addFacetOption(new StringAttributeFacetOption(pair.getFirst(), pair.getSecond(), selectedOptions, facetIndex));
             }
         } else {

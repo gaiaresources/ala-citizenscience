@@ -45,7 +45,7 @@ public class LocationFacet extends AbstractFacet {
         }
         Arrays.sort(selectedOptions);
         
-        for(Pair<Location, Long> pair : recordDAO.getDistinctLocations(null, user, OPTIONS_LIMIT)) {
+        for(Pair<Location, Long> pair : recordDAO.getDistinctLocations(null, OPTIONS_LIMIT)) {
             super.addFacetOption(new LocationFacetOption(pair.getFirst(), pair.getSecond(), selectedOptions));
         }
     }

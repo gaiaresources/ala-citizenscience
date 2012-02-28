@@ -44,7 +44,7 @@ public class CensusMethodTypeFacet extends AbstractFacet {
         super.addFacetOption(new CensusMethodTypeFacetOption(count, selectedOptions));
         
         // All other situations
-        for(Pair<String, Long> pair : recordDAO.getDistinctCensusMethodTypes(null, user)) {
+        for(Pair<String, Long> pair : recordDAO.getDistinctCensusMethodTypes(null)) {
             super.addFacetOption(new CensusMethodTypeFacetOption(pair.getFirst(), pair.getSecond(), selectedOptions));
         }
     }

@@ -578,7 +578,7 @@ bdrs.taxonomy.importALAProfile = function(guidListSelector, taxonGroupNameSelect
     var guidString = jQuery(guidListSelector).val(); 
     var guidArray = guidString ? guidString.split(",") : [];
     var taxonGroupName = jQuery(taxonGroupNameSelector).val();
-    var shortProfile = jQuery(shortProfileSelector).val();
+    var shortProfile = jQuery(shortProfileSelector).is(':checked') ? 'true' : '';
     
     jQuery.blockUI({ message: '<h1 id="blockerMessage">' + BLOCKER_TEXT + '0 / '+ guidArray.length +'</h1>' });
     

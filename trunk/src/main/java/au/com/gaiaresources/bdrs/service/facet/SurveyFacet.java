@@ -53,7 +53,7 @@ public class SurveyFacet extends AbstractFacet {
             }
             Arrays.sort(selectedOptions);
             
-            for(Pair<Survey, Long> pair : recordDAO.getDistinctSurveys(null, user)) {
+            for(Pair<Survey, Long> pair : recordDAO.getDistinctSurveys(null)) {
                 super.addFacetOption(new SurveyFacetOption(pair.getFirst(), pair.getSecond(), selectedOptions));
             }
         }

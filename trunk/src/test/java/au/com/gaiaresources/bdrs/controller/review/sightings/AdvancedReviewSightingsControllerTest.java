@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import au.com.gaiaresources.bdrs.service.facet.VisibilityFacet;
 import junit.framework.Assert;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
@@ -326,7 +327,7 @@ public class AdvancedReviewSightingsControllerTest extends
                     }
                 }
             }
-            surveyIndex += 1;
+           surveyIndex += 1;
         }
 
         getRequestContext().getHibernate().flush();
@@ -425,9 +426,14 @@ public class AdvancedReviewSightingsControllerTest extends
         loc = locationDAO.save(loc);
         return loc;
     }
+    
+    private Record createRecord(Survey survey, CensusMethod cm, Location loc,
+                                IndicatorSpecies species, User user) throws ParseException {
+        return createRecord(survey, cm, loc, species, user, RecordVisibility.PUBLIC);
+    }
 
     private Record createRecord(Survey survey, CensusMethod cm, Location loc,
-            IndicatorSpecies species, User user) throws ParseException {
+            IndicatorSpecies species, User user, RecordVisibility visibility) throws ParseException {
         //        if(cm == null) {
         //            System.err.println("Null Census Method Record in "+survey.getName()+" for "+species.getScientificName()+" by "+user.getFullName());
         //        } else {
@@ -458,8 +464,7 @@ public class AdvancedReviewSightingsControllerTest extends
         record.setBehaviour("Behaviour notes");
         record.setHabitat("Habitat Notes");
         record.setNumber(1);
-        // records need to be public for the tests to work as written
-        record.setRecordVisibility(RecordVisibility.PUBLIC);
+        record.setRecordVisibility(visibility);
 
         DateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy");
         dateFormat.setLenient(false);
@@ -633,6 +638,12 @@ public class AdvancedReviewSightingsControllerTest extends
     private void resetRequest() {
         request.removeAllParameters();
         response = new MockHttpServletResponse();
+        getRequestContext().getHibernate().flush();
+        getRequestContext().getHibernate().clear();
+        getRequestContext().getHibernate().disableFilter(Record.USER_ACCESS_FILTER);
+        getRequestContext().getHibernate().disableFilter(Record.MODERATOR_ACCESS_FILTER);
+        getRequestContext().getHibernate().disableFilter(Record.ANONYMOUS_RECORD_ACCESS_FILTER);
+
     }
     
     @Test
@@ -642,16 +653,16 @@ public class AdvancedReviewSightingsControllerTest extends
 
         testAdvancedReviewDownload();
         resetRequest();
-        
+
         testAllPublicRecordsUserFacetSelection();
         resetRequest();
-        
+
         testAnonymousView();
         resetRequest();
-        
+
         testCensusMethodObservationType();
         resetRequest();
-        
+
         testCensusMethodOneType();
         resetRequest();
 
@@ -704,6 +715,13 @@ public class AdvancedReviewSightingsControllerTest extends
         resetRequest();
 
         testUserViewUserFacet();
+        resetRequest();
+
+        // These next two tests add OWNER_ONLY records
+        testPublicRecordAccess();
+        resetRequest();
+
+        testPrivateRecordAccess();
         resetRequest();
 
         // Saves a preference so do this test last
@@ -1286,6 +1304,82 @@ public class AdvancedReviewSightingsControllerTest extends
             cal.setTime(rec.getWhen());
             Integer monthInt = cal.get(Calendar.MONTH);
             Assert.assertTrue(monthSet.contains(Integer.valueOf(monthInt + 1)));
+        }
+    }
+
+    //@Test
+    public void testPublicRecord() throws Exception {
+        List<Long> dateList = new ArrayList<Long>();
+        Calendar cal = new GregorianCalendar();
+        for (Date d : new Date[] { dateA }) {
+            cal.setTime(d);
+            dateList.add(Integer.valueOf(cal.get(Calendar.MONTH)).longValue() + 1);
+        }
+
+        testMonthFacetSelection(dateList, recordCount / 2);
+    }
+
+
+    /**
+     * Inserts an OWNER_ONLY record and ensures it and only it is returned when the VisibilityFacet is configured
+     * to return OWNER_ONLY records.
+     * @throws Exception if there is an error running the test.
+     */
+    public void testPrivateRecordAccess() throws Exception {
+
+        Survey survey = surveyDAO.getSurveyByName("Survey 1");
+        Record record = createRecord(survey, methodA, survey.getLocations().get(0), speciesA, admin, RecordVisibility.OWNER_ONLY);
+
+        getRequestContext().getHibernate().flush();
+
+        // The reason there are 2 owner_only records is the testPublicRecordAccess test also inserts one.
+        testVisibilityFacetSelection(RecordVisibility.OWNER_ONLY, 2);
+    }
+
+    /**
+     * Inserts an OWNER_ONLY record and ensures it is not returned when the VisibilityFacet is configured
+     * to return OWNER_ONLY records.
+     * @throws Exception if there is an error running the test.
+     */
+    public void testPublicRecordAccess() throws Exception {
+
+        Survey survey = surveyDAO.getSurveyByName("Survey 1");
+        Record record = createRecord(survey, methodA, survey.getLocations().get(0), speciesA, admin, RecordVisibility.OWNER_ONLY);
+
+        getRequestContext().getHibernate().flush();
+
+        testVisibilityFacetSelection(RecordVisibility.PUBLIC, recordCount);
+    }
+    
+    private void testVisibilityFacetSelection(RecordVisibility visibility, int expectedCount) throws Exception {
+        login("admin", "password", new String[] { Role.ADMIN });
+
+        request.setMethod("GET");
+        request.setRequestURI("/review/sightings/advancedReview.htm");
+
+        Facet facet = getFacetInstancesByType(VisibilityFacet.class).get(0);
+        request.addParameter(facet.getInputName(), Integer.toString(visibility.ordinal()));
+
+        deselectMyRecordsOnly();
+
+        ModelAndView mv = handle(request, response);
+        getRequestContext().getHibernate().flush();
+        getRequestContext().getHibernate().setFlushMode(FlushMode.AUTO);
+        ModelAndViewAssert.assertViewName(mv, "advancedReview");
+
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, "surveyId");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortBy");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortOrder");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, "searchText");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, "facetList");
+
+        List<Facet> facetList = (List<Facet>) mv.getModel().get("facetList");
+        List<Record> recordList = controller.getMatchingRecordsAsList(facetList, null, null, null, null, null, null);
+
+        Assert.assertEquals(expectedCount, recordList.size());
+        for (Record rec : recordList) {
+            Assert.assertEquals(visibility, rec.getRecordVisibility());
         }
     }
 

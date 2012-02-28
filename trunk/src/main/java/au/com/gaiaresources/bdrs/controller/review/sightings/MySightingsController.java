@@ -17,6 +17,10 @@ import javax.servlet.http.HttpServletResponse;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 
+import au.com.gaiaresources.bdrs.model.preference.Preference;
+import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
+import au.com.gaiaresources.bdrs.model.preference.PreferenceUtil;
+import au.com.gaiaresources.bdrs.util.StringUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,6 +112,8 @@ public class MySightingsController extends SightingsController {
     private SurveyDAO surveyDAO;
     @Autowired
     private TaxaDAO taxaDAO;
+    @Autowired
+    private PreferenceDAO preferenceDAO;
     
     /**
      * Displays a tabbed view of a selected set of records.
@@ -149,7 +155,7 @@ public class MySightingsController extends SightingsController {
                                         @RequestParam(required = false, value = QUERY_PARAM_START_DATE) Date startDate,
                                         @RequestParam(required = false, value = QUERY_PARAM_END_DATE) Date endDate,
                                         @RequestParam(defaultValue = DEFAULT_LIMIT, required = false, value = QUERY_PARAM_LIMIT) int limit,
-                                        @RequestParam(defaultValue = DEFAULT_TAB, required = false, value = QUERY_PARAM_SELECTED_TAB) String selectedTab,
+                                        @RequestParam(required = false, value = QUERY_PARAM_SELECTED_TAB) String selectedTab,
                                         @RequestParam(defaultValue = DEFAULT_RECORD_ID, required = false, value = QUERY_PARAM_RECORD_ID) int recordId,
                                         @RequestParam(defaultValue = DEFAULT_GROUP_ID, value = QUERY_PARAM_TAXON_GROUP_ID, required = true) int taxonGroupId,
                                         @RequestParam(defaultValue = DEFAULT_TAXON_SEARCH, value = QUERY_PARAM_TAXON_SEARCH, required = true) String taxonSearch,
@@ -162,7 +168,10 @@ public class MySightingsController extends SightingsController {
         User user = getRequestContext().getUser();
         List<Survey> surveyList = surveyDAO.getActiveSurveysForUser(user);
         Survey selectedSurvey = surveyDAO.getSurvey(selectedSurveyId);
-        
+
+        if (StringUtils.nullOrEmpty(selectedTab)) {
+            selectedTab = defaultTab();
+        }
         List<? extends TaxonGroup> groupList;
         if(selectedSurvey == null) {
             groupList = taxaDAO.getTaxonGroups();
@@ -504,5 +513,16 @@ public class MySightingsController extends SightingsController {
         dateFormat.setLenient(false);
         binder.registerCustomEditor(Date.class, new CustomDateEditor(
                 dateFormat, true));
+    }
+
+    /**
+     * Returns the default tab (map or table) to display if it has not been specified in the request.
+     * The default is determined by the value of the Preference.DEFAULT_TO_MAP_VIEW_KEY preference.
+     * @return the default tab to display (MAP_TAB or TABLE_TAB).
+     */
+    private String defaultTab() {
+        PreferenceUtil preferenceUtil = new PreferenceUtil(preferenceDAO);
+        boolean useMap = preferenceUtil.getBooleanPreference(Preference.DEFAULT_TO_MAP_VIEW_KEY);
+        return useMap ? MAP_TAB : TABLE_TAB;
     }
 }
