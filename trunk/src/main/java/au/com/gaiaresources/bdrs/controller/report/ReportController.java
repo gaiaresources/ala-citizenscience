@@ -356,7 +356,7 @@ public class ReportController extends AbstractController {
             File reportDir = fileService.getTargetDirectory(report, Report.REPORT_DIR, true);
             
             // Setup the parameters to send to the Python report.
-            PyBDRS bdrs = new PyBDRS(request, 
+            PyBDRS bdrs = new PyBDRS(request,
                                      fileService, report, getRequestContext().getUser(), 
                                      surveyDAO, censusMethodDAO, 
                                      taxaDAO, recordDAO, 

@@ -86,7 +86,6 @@ public class PyBDRS {
      * context of the request.
      */
     public String getContextPath() {
-        
         return this.request.getContextPath();
     }
     

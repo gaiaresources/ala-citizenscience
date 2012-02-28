@@ -26,7 +26,6 @@ public class PyScrollableRecords implements Enumeration<String>{
     private ScrollableRecords scrollableRecords;
     
     private int count = 0;
-    
 
     /**
      * Creates a new instance.
@@ -37,7 +36,6 @@ public class PyScrollableRecords implements Enumeration<String>{
      */
     public PyScrollableRecords(ScrollableRecords scrollableRecords,
             boolean includeTaxon, boolean includeLocation) {
-        
         this(scrollableRecords, includeTaxon, includeLocation, false);
     }
     
@@ -73,6 +71,7 @@ public class PyScrollableRecords implements Enumeration<String>{
     @Override
     public String nextElement() {
         Record rec = scrollableRecords.nextElement();
+        
         Map<String, Object> recFlatten = rec.flatten();
         
         if(includeTaxon) {
@@ -98,7 +97,7 @@ public class PyScrollableRecords implements Enumeration<String>{
         }
         
         String jsonStr = JSONObject.fromMapToString(recFlatten);
-        
+
         // evict to ensure garbage collection
         if (++count % ScrollableRecords.RECORD_BATCH_SIZE == 0) {
             RequestContextHolder.getContext().getHibernate().clear();

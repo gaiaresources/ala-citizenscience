@@ -1,5 +1,11 @@
 package au.com.gaiaresources.bdrs.test;
 
+import au.com.gaiaresources.bdrs.controller.BdrsMockHttpServletRequest;
+import au.com.gaiaresources.bdrs.db.FilterManager;
+import au.com.gaiaresources.bdrs.model.portal.Portal;
+import au.com.gaiaresources.bdrs.model.portal.impl.PortalInitialiser;
+import au.com.gaiaresources.bdrs.servlet.RequestContext;
+import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 import org.apache.log4j.Logger;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
@@ -14,18 +20,17 @@ import org.springframework.test.context.transaction.AfterTransaction;
 import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
-import au.com.gaiaresources.bdrs.controller.BdrsMockHttpServletRequest;
-import au.com.gaiaresources.bdrs.db.FilterManager;
-import au.com.gaiaresources.bdrs.model.portal.Portal;
-import au.com.gaiaresources.bdrs.model.portal.impl.PortalInitialiser;
-import au.com.gaiaresources.bdrs.servlet.RequestContext;
-import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
-
 
 @Transactional
 public abstract class AbstractTransactionalTest extends AbstractSpringContextTest {
 
     private Logger log = Logger.getLogger(getClass());
+
+    protected static final String REQUEST_SCHEME = "http";
+    protected static final String REQUEST_SERVER_NAME = "www.mybdrs.com.au";
+    protected static final int REQUEST_SERVER_PORT = 8080;
+    protected static final int REQUEST_LOCAL_PORT = 8080;
+    protected static final String REQUEST_CONTEXT_PATH = "/CONTEXTPATH";
     
     // unfortunately we need the request in this class (instead of AbstractControllerTest)
     // because our database read and writes rely on the RequestContext, which requires
@@ -40,7 +45,7 @@ public abstract class AbstractTransactionalTest extends AbstractSpringContextTes
     protected Portal defaultPortal;
     
     private boolean dropDatabase = false;
-    
+
     @Before
     public void primeDatabase() {
         dropDatabase = false;
@@ -69,18 +74,16 @@ public abstract class AbstractTransactionalTest extends AbstractSpringContextTes
     @AfterTransaction
     public final void rollbackTransaction() throws Exception {
         if (dropDatabase) {
-            // do this instead of the rollback...
-            Transaction tx = sessionFactory.getCurrentSession().getTransaction();
-            if (!tx.isActive()) {
-                tx = sessionFactory.getCurrentSession().beginTransaction();
-            } else {
-                tx.rollback();
-                tx = sessionFactory.getCurrentSession().beginTransaction();
+            if(sessionFactory.getCurrentSession().getTransaction().isActive()) {
+                sessionFactory.getCurrentSession().getTransaction().rollback();
             }
-            // clean up our database and commit the change...
-            SQLQuery q = sessionFactory.getCurrentSession().createSQLQuery("truncate table portal cascade;");
+
+            org.hibernate.classic.Session sesh = sessionFactory.openSession();
+            SQLQuery q = sesh.createSQLQuery("truncate table portal cascade;");
+            Transaction tx = sesh.beginTransaction();
             q.executeUpdate();
             tx.commit();
+            sesh.close();
         } else {
             // do normal rollback...
             sessionFactory.getCurrentSession().getTransaction().rollback();
@@ -92,16 +95,13 @@ public abstract class AbstractTransactionalTest extends AbstractSpringContextTes
     }
     
     protected void commit() {
+        
         sessionFactory.getCurrentSession().getTransaction().commit();
+        
         sessionFactory.getCurrentSession().beginTransaction();
+        RequestContextHolder.getContext().setHibernate(sessionFactory.getCurrentSession());
     }
 
-    
-    protected static final String REQUEST_SCHEME = "http";
-    protected static final String REQUEST_SERVER_NAME = "www.mybdrs.com.au";
-    protected static final int REQUEST_SERVER_PORT = 8080;
-    protected static final String REQUEST_CONTEXT_PATH = "CONTEXTPATH";
-    
     /**
      * This function should be overriden by tests that require a multipart
      * request.
@@ -119,6 +119,7 @@ public abstract class AbstractTransactionalTest extends AbstractSpringContextTes
         request.setServerName(REQUEST_SERVER_NAME);
         request.setContextPath(REQUEST_CONTEXT_PATH);
         request.setServerPort(REQUEST_SERVER_PORT);
+        request.setLocalPort(REQUEST_LOCAL_PORT);
         MockHttpSession session = new MockHttpSession(); 
         request.setSession(session);
         return request;
@@ -126,6 +127,12 @@ public abstract class AbstractTransactionalTest extends AbstractSpringContextTes
     
     protected MockHttpServletRequest createUploadRequest() {
         MockHttpServletRequest request = new MockMultipartHttpServletRequest();
+        request.setScheme(REQUEST_SCHEME);
+        request.setServerName(REQUEST_SERVER_NAME);
+        request.setContextPath(REQUEST_CONTEXT_PATH);
+        request.setServerPort(REQUEST_SERVER_PORT);
+        request.setLocalPort(REQUEST_LOCAL_PORT);
+        
         MockHttpSession session = new MockHttpSession(); 
         request.setSession(session);
         return request;

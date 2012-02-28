@@ -1,16 +1,29 @@
 package au.com.gaiaresources.bdrs.controller;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import au.com.gaiaresources.bdrs.message.Message;
+import au.com.gaiaresources.bdrs.model.portal.PortalDAO;
+import au.com.gaiaresources.bdrs.model.user.UserDAO;
+import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.Interceptor;
+import au.com.gaiaresources.bdrs.servlet.RecaptchaInterceptor;
+import au.com.gaiaresources.bdrs.servlet.RequestContext;
+import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
+import au.com.gaiaresources.bdrs.test.AbstractTransactionalTest;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
+import org.simpleframework.http.Form;
+import org.simpleframework.http.Part;
+import org.simpleframework.http.Request;
+import org.simpleframework.http.Response;
+import org.simpleframework.http.core.Container;
+import org.simpleframework.transport.connect.Connection;
+import org.simpleframework.transport.connect.SocketConnection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.mock.web.MockMultipartHttpServletRequest;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.TestingAuthenticationProvider;
 import org.springframework.security.authentication.TestingAuthenticationToken;
@@ -24,28 +37,20 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.transaction.AfterTransaction;
 import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.HandlerAdapter;
-import org.springframework.web.servlet.HandlerExecutionChain;
-import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.HandlerMapping;
-import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.*;
 import org.springframework.web.servlet.view.RedirectView;
 
-import au.com.gaiaresources.bdrs.message.Message;
-import au.com.gaiaresources.bdrs.model.portal.PortalDAO;
-import au.com.gaiaresources.bdrs.model.user.UserDAO;
-import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.servlet.Interceptor;
-import au.com.gaiaresources.bdrs.servlet.RecaptchaInterceptor;
-import au.com.gaiaresources.bdrs.servlet.RequestContext;
-import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
-import au.com.gaiaresources.bdrs.test.AbstractTransactionalTest;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Transactional
-public abstract class AbstractControllerTest extends
-    AbstractTransactionalTest {
-
+public abstract class AbstractControllerTest extends AbstractTransactionalTest {
+    @SuppressWarnings("unused")
     private Logger log = Logger.getLogger(getClass());
 
     @Autowired
@@ -63,7 +68,6 @@ public abstract class AbstractControllerTest extends
     private ModelAndView mv;
     private Object controller;
     private HandlerInterceptor[] interceptors;
-    
 
     @BeforeTransaction
     public final void beforeTx() throws Exception {
@@ -244,5 +248,106 @@ public abstract class AbstractControllerTest extends
             }
         }
         return false;
+    }
+    
+    /**
+     * To be used by any request that will create an actual http connection 
+     * to the server (eg report uploads), this function will create a 
+     * temporary webserver that captures these requests, and delegates them 
+     * back into the test framework. When a result is received from the test
+     * framework, the response will be sent back to the original request.
+     * 
+     * @param request the client request
+     * @param response the server response
+     * @throws Exception thrown if an error occurs.
+     */
+    protected void handleProxyRequest(MockHttpServletRequest request,
+            MockHttpServletResponse response) throws Exception {
+        SimpleServerProxy container = new SimpleServerProxy();
+        Connection connection = new SocketConnection(container);
+        SocketAddress address = new InetSocketAddress(request.getServerPort());
+        connection.connect(address);
+
+        handle(request, response);
+
+        connection.close();
+        commit();
+    }
+    
+    private class SimpleServerProxy implements Container {
+        @Override
+        public void handle(Request simpleRequest, Response simpleResponse) {
+            try {
+                // Need to re-create the request object before sending the 
+                // request back into the test framework.
+                if (sessionFactory.getCurrentSession().getTransaction().isActive()) {
+                    sessionFactory.getCurrentSession().getTransaction().commit();
+                }
+                beginTransaction();
+                // ---------------------------------
+                // SimpleRequest -> BDRS Request
+                // ---------------------------------
+                MockMultipartHttpServletRequest req = (MockMultipartHttpServletRequest) request;
+                req.setMethod(simpleRequest.getMethod());
+                req.setRequestURI(simpleRequest.getPath().getPath());
+
+                Form form = simpleRequest.getForm();
+                for (String key : form.keySet()) {
+                    req.addParameter(key, form.getAll(key).toArray(new String[] {}));
+                }
+
+                for (Part part : form.getParts()) {
+                    MockMultipartFile mockMultipartFile = new MockMultipartFile(
+                            part.getName(), part.getFileName(),
+                            part.getContentType().toString(),
+                            part.getInputStream());
+                    req.addFile(mockMultipartFile);
+                }
+
+                boolean completed = false;
+                while (!completed) {
+                    String path = req.getRequestURI();
+                    // Need to set up the servlet path otherwise the restful URL 
+                    // will not get interpreted correctly and you will be sent to 
+                    // the 404 page.
+
+                    // simpleRequest.getPath().getPath() = <contextpath>/<portal>/<portal_id>/blah.htm
+                    // servletPath = /<portal>/<portal_id>/blah.htm
+                    String servletPath = path;
+                    if (servletPath.startsWith(REQUEST_CONTEXT_PATH)) {
+                        servletPath = servletPath.substring(REQUEST_CONTEXT_PATH.length());
+                    }
+                    req.setServletPath(servletPath);
+
+                    response = new MockHttpServletResponse();
+                    
+                    
+                    AbstractControllerTest.this.handle(req, response);
+                    
+                    if (response.getRedirectedUrl() != null) {
+                        req.setRequestURI(response.getRedirectedUrl());
+                    } else if (response.getForwardedUrl() != null) {
+                        req.setRequestURI(response.getForwardedUrl());
+                    } else {
+                        completed = true;
+                    }
+                }
+                if (sessionFactory.getCurrentSession().getTransaction().isActive()) {
+                    sessionFactory.getCurrentSession().getTransaction().commit();
+                }
+
+                // ---------------------------------
+                // BDRS Reponse -> Simple Response
+                // ---------------------------------
+                simpleResponse.set("Content-Type", response.getContentType());
+                simpleResponse.setCode(response.getStatus());
+                simpleResponse.getOutputStream().write(response.getContentAsByteArray());
+                simpleResponse.commit();
+                simpleResponse.close();
+
+            } catch (Exception e) {
+                throw new Error(e);
+            }
+        }
     }
 }

@@ -51,7 +51,6 @@ public class DarwinCoreArchiveServiceTest extends AbstractDwcaTest {
     public void testDownloadArchive() throws Exception {
         request.setRequestURI(DarwinCoreArchiveService.DOWNLOAD_ARCHIVE_URL);
         request.setMethod("GET");
-        
         handle(request, response);
         
         File zipFile = File.createTempFile("archivefile", "zip");        

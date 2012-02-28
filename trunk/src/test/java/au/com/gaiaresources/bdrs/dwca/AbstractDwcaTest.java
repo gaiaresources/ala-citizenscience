@@ -30,7 +30,7 @@ public abstract class AbstractDwcaTest extends AbstractGridControllerTest {
        
     protected final DateFormat ISO8601Local = new SimpleDateFormat(RecordDwcaWriter.ISO_DATE_FORMAT);
     
-    protected static final String APPLICATION_URL = REQUEST_SCHEME + "://" + REQUEST_SERVER_NAME + ":" + REQUEST_SERVER_PORT + "/" + REQUEST_CONTEXT_PATH;
+    protected static final String APPLICATION_URL = REQUEST_SCHEME + "://" + REQUEST_SERVER_NAME + ":" + REQUEST_SERVER_PORT + REQUEST_CONTEXT_PATH;
     
     protected RedirectionService rdService = new RedirectionService(APPLICATION_URL);
     
@@ -112,7 +112,6 @@ public abstract class AbstractDwcaTest extends AbstractGridControllerTest {
                 remarkBuilder.append(rec.getCensusMethod().getName());
             }
             Assert.assertEquals("remarks must match", remarkBuilder.toString(), starRecItem.value(DwcTerm.measurementRemarks));
-
             Assert.assertEquals("values must match", getExpectedValue(av), starRecItem.value(DwcTerm.measurementValue));
         }
     }

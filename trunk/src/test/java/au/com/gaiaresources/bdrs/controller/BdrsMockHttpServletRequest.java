@@ -16,7 +16,7 @@ public class BdrsMockHttpServletRequest extends MockHttpServletRequest {
     @Override
     public StringBuffer getRequestURL() {
         StringBuffer url = new StringBuffer(getScheme());
-        url.append("://").append(getServerName()).append(':').append(getServerPort()).append('/').append(getContextPath());
+        url.append("://").append(getServerName()).append(':').append(getServerPort()).append(getContextPath());
         url.append(getRequestURI());
         return url;
     }
