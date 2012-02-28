@@ -1808,3 +1808,19 @@ div.blockUI.blockMsg.blockPage h1 {
     vertical-align:text-top;
     white-space:normal;
 }
+
+/***********************************************/
+/* Styling for the jquery ui accordion widget  */
+/***********************************************/
+.ui-accordion .ui-accordion-header.ui-state-default {
+    background:#484848;
+}
+.ui-accordion .ui-accordion-header.ui-state-default a {
+    color:#ffffff;
+    font-size:1.1em;
+    font-weight:bold;
+}
+.ui-accordion .ui-accordion-header.ui-state-active a {
+    font-size:1.1em;
+    font-weight: bold;
+}

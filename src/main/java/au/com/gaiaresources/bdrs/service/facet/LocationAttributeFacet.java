@@ -72,7 +72,7 @@ public class LocationAttributeFacet extends AbstractFacet {
             // later it should retrieve attribute objects vs count
             // and determine which type of attribute options to add 
             // based on the type of the attribute
-            for(Pair<String, Long> pair : recordDAO.getDistinctLocationAttributeValues(null, user, this.attributeName, userParams.optInt("optionCount"))) {
+            for(Pair<String, Long> pair : recordDAO.getDistinctLocationAttributeValues(null, this.attributeName, userParams.optInt("optionCount"))) {
                 super.addFacetOption(new LocationAttributeFacetOption(pair.getFirst(), pair.getSecond(), selectedOptions, facetIndex));
             }
         } else {

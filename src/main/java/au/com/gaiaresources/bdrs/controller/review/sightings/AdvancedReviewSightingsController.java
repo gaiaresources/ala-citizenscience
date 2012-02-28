@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBException;
 
+import au.com.gaiaresources.bdrs.db.FilterManager;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 
 import org.apache.log4j.Logger;
@@ -33,7 +34,6 @@ import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
 import au.com.gaiaresources.bdrs.model.record.impl.ScrollableRecordsImpl;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.facet.Facet;
 import au.com.gaiaresources.bdrs.service.facet.FacetOption;
 import au.com.gaiaresources.bdrs.service.facet.FacetService;
@@ -101,19 +101,10 @@ public class AdvancedReviewSightingsController extends SightingsController{
                                        @RequestParam(value=SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME, required=false) Integer surveyId,
                                        @RequestParam(value=RESULTS_PER_PAGE_QUERY_PARAM_NAME, required=false, defaultValue=DEFAULT_RESULTS_PER_PAGE) Integer resultsPerPage,
                                        @RequestParam(value=PAGE_NUMBER_QUERY_PARAM_NAME, required=false, defaultValue=DEFAULT_PAGE_NUMBER) Integer pageNumber) {
-        // We are changing the flush mode here to prevent checking for dirty
-        // objects in the session cache. Normally this is desireable so that
-        // you will not receive stale objects however in this situation
-        // the controller will only be performing reads and the objects cannot
-        // be stale. We are explicitly setting the flush mode here because
-        // we are potentially loading a lot of objects into the session cache
-        // and continually checking if it is dirty is prohibitively expensive.
-        // https://forum.hibernate.org/viewtopic.php?f=1&t=936174&view=next
-        RequestContext requestContext = getRequestContext();
-        requestContext.getHibernate().setFlushMode(FlushMode.MANUAL);
-        User user = requestContext.getUser();
-        
-        List<Facet> facetList = facetService.getFacetList(user, (Map<String, String[]>)request.getParameterMap());
+
+        configureHibernateSession();
+
+        List<Facet> facetList = facetService.getFacetList(currentUser(), (Map<String, String[]>)request.getParameterMap());
         Long recordCount = countMatchingRecords(facetList,
                                                 surveyId,
                                                 request.getParameter(SEARCH_QUERY_PARAM_NAME));
@@ -166,24 +157,14 @@ public class AdvancedReviewSightingsController extends SightingsController{
      */
     @RequestMapping(value = "/review/sightings/advancedReviewKMLSightings.htm", method = RequestMethod.GET)
     public void advancedReviewKMLSightings(HttpServletRequest request, HttpServletResponse response) throws IOException, JAXBException {
-        
-        // We are changing the flush mode here to prevent checking for dirty
-        // objects in the session cache. Normally this is desireable so that
-        // you will not receive stale objects however in this situation
-        // the controller will only be performing reads and the objects cannot
-        // be stale. We are explicitly setting the flush mode here because
-        // we are potentially loading a lot of objects into the session cache
-        // and continually checking if it is dirty is prohibitively expensive.
-        // https://forum.hibernate.org/viewtopic.php?f=1&t=936174&view=next
-        RequestContext requestContext = getRequestContext();
-        requestContext.getHibernate().setFlushMode(FlushMode.MANUAL);
-        User user = requestContext.getUser();
-        
+
+        configureHibernateSession();
+
         Integer surveyId = null;
         if(request.getParameter(SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME) != null) {
             surveyId = Integer.parseInt(request.getParameter(SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME));
         }
-        List<Facet> facetList = facetService.getFacetList(user, (Map<String, String[]>)request.getParameterMap());
+        List<Facet> facetList = facetService.getFacetList(currentUser(), (Map<String, String[]>)request.getParameterMap());
         
         KMLWriter writer = KMLUtils.createKMLWriter(request.getContextPath(), null);
         User currentUser = getRequestContext().getUser();
@@ -220,25 +201,13 @@ public class AdvancedReviewSightingsController extends SightingsController{
                                             HttpServletResponse response,
                                             @RequestParam(value=RESULTS_PER_PAGE_QUERY_PARAM_NAME, required=false, defaultValue=DEFAULT_RESULTS_PER_PAGE) Integer resultsPerPage,
                                             @RequestParam(value=PAGE_NUMBER_QUERY_PARAM_NAME, required=false, defaultValue=DEFAULT_PAGE_NUMBER) Integer pageNumber) throws IOException {
-        
-        // We are changing the flush mode here to prevent checking for dirty
-        // objects in the session cache. Normally this is desireable so that
-        // you will not receive stale objects however in this situation
-        // the controller will only be performing reads and the objects cannot
-        // be stale. We are explicitly setting the flush mode here because
-        // we are potentially loading a lot of objects into the session cache
-        // and continually checking if it is dirty is prohibitively expensive.
-        // https://forum.hibernate.org/viewtopic.php?f=1&t=936174&view=next
-        RequestContext requestContext = getRequestContext();
-        Session sesh = requestContext.getHibernate(); 
-        sesh.setFlushMode(FlushMode.MANUAL);
-        User user = requestContext.getUser();
+       configureHibernateSession();
         
         Integer surveyId = null;
         if(request.getParameter(SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME) != null) {
             surveyId = Integer.parseInt(request.getParameter(SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME));
         }
-        List<Facet> facetList = facetService.getFacetList(user, (Map<String, String[]>)request.getParameterMap());
+        List<Facet> facetList = facetService.getFacetList(currentUser(), (Map<String, String[]>)request.getParameterMap());
         ScrollableRecords sc = getMatchingRecordsAsScrollableRecords(facetList,
                                                                      surveyId,
                                                                      request.getParameter(SORT_BY_QUERY_PARAM_NAME), 
@@ -253,7 +222,7 @@ public class AdvancedReviewSightingsController extends SightingsController{
             r = sc.nextElement();
             array.add(r.flatten(2));
             if (++recordCount % ScrollableRecords.RECORD_BATCH_SIZE == 0) {
-                sesh.clear();
+                getRequestContext().getHibernate().clear();
             }
         }
         
@@ -273,11 +242,10 @@ public class AdvancedReviewSightingsController extends SightingsController{
                                        HttpServletResponse response,
                                        @RequestParam(value=SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME, required=false) Integer surveyId,
                                        @RequestParam(value=QUERY_PARAM_DOWNLOAD_FORMAT, required=true) String[] downloadFormat) throws Exception {
-        RequestContext requestContext = getRequestContext();
-        requestContext.getHibernate().setFlushMode(FlushMode.MANUAL);
-        User user = requestContext.getUser();
+        configureHibernateSession();
         
-        List<Facet> facetList = facetService.getFacetList(user, (Map<String, String[]>)request.getParameterMap());
+        User currentUser = currentUser();
+        List<Facet> facetList = facetService.getFacetList(currentUser, (Map<String, String[]>)request.getParameterMap());
         
         SurveyFacet surveyFacet = facetService.getFacetByType(facetList, SurveyFacet.class);
         
@@ -287,7 +255,7 @@ public class AdvancedReviewSightingsController extends SightingsController{
         // In the case that no surveys are selected to filter by - we will use
         // all the surveys available for the accessing user
         if (surveyList.isEmpty()) {
-            surveyList = surveyDAO.getActiveSurveysForUser(user);
+            surveyList = surveyDAO.getActiveSurveysForUser(currentUser);
         }
         
         // I think 'surveyId' is not used for AdvancedReview but is used for MySightings
@@ -469,5 +437,33 @@ public class AdvancedReviewSightingsController extends SightingsController{
             query.setParameter(i, parameterValues[i]);
         }
         return query;
+    }
+
+    /**
+     * Configures the flush mode and installs an appropriate Record filter on the current hibernate session.
+     */
+    private void configureHibernateSession() {
+        // We are changing the flush mode here to prevent checking for dirty
+        // objects in the session cache. Normally this is desireable so that
+        // you will not receive stale objects however in this situation
+        // the controller will only be performing reads and the objects cannot
+        // be stale. We are explicitly setting the flush mode here because
+        // we are potentially loading a lot of objects into the session cache
+        // and continually checking if it is dirty is prohibitively expensive.
+        // https://forum.hibernate.org/viewtopic.php?f=1&t=936174&view=next
+        RequestContext requestContext = getRequestContext();
+        requestContext.getHibernate().setFlushMode(FlushMode.MANUAL);
+        User user = requestContext.getUser();
+
+        // Enabling this filter users from seeing records not allowed by their current role.
+        FilterManager.enableRecordFilter(requestContext.getHibernate(), user);
+    }
+
+    /**
+     * @return the authenticated user from the request context, or null if the request originated from an
+     * anonymous user.
+     */
+    private User currentUser() {
+        return getRequestContext().getUser();
     }
 }

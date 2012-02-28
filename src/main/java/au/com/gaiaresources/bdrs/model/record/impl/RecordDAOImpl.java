@@ -767,18 +767,11 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
     }
     
     @Override
-    public List<Pair<TaxonGroup, Long>> getDistinctTaxonGroups(Session sesh, User user) {
+    public List<Pair<TaxonGroup, Long>> getDistinctTaxonGroups(Session sesh) {
         StringBuilder b = new StringBuilder();
         b.append(" select g, count(r)");
         b.append(" from Record as r join r.species as s join s.taxonGroup as g");
-        // add user visibility parameters here
-        if (user != null) {
-            if (!user.isAdmin()) {
-                b.append(" where r.user.id = "+user.getId());
-            }
-        } else {
-            b.append(" where r.recordVisibility = :vis and r.held = :held");
-        }
+
         b.append(" group by g.id");
         for(PropertyDescriptor pd : BeanUtils.getPropertyDescriptors(TaxonGroup.class)) {
             if(!"class".equals(pd.getName()) && 
@@ -794,10 +787,7 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
             sesh = super.getSessionFactory().getCurrentSession();
         }
         Query q = sesh.createQuery(b.toString());
-        if (user == null) {
-            q.setParameter("vis", RecordVisibility.PUBLIC);
-            q.setParameter("held", false);
-        }
+
         // Should get back a list of Object[]
         // Each Object[] has 2 items. Object[0] == taxon group, Object[1] == record count
         List<Pair<TaxonGroup, Long>> results = 
@@ -810,18 +800,10 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
     }
 
     @Override
-    public List<Pair<Location, Long>> getDistinctLocations(Session sesh, User user, int limit) {
+    public List<Pair<Location, Long>> getDistinctLocations(Session sesh, int limit) {
         StringBuilder b = new StringBuilder();
         b.append(" select l, count(r)");
         b.append(" from Record as r join r.location as l");
-        // add user visibility parameters here
-        if (user != null) {
-            if (!user.isAdmin()) {
-                b.append(" where r.user.id = "+user.getId());
-            }
-        } else {
-            b.append(" where r.recordVisibility = :vis and r.held = :held");
-        }
         b.append(" group by l.id");
         for(PropertyDescriptor pd : BeanUtils.getPropertyDescriptors(Location.class)) {
             if(!"class".equals(pd.getName()) && 
@@ -838,10 +820,7 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
             sesh = super.getSessionFactory().getCurrentSession();
         }
         Query q = sesh.createQuery(b.toString());
-        if (user == null) {
-            q.setParameter("vis", RecordVisibility.PUBLIC);
-            q.setParameter("held", false);
-        }
+
         if(limit > 0) {
             q.setMaxResults(limit);
         }
@@ -858,18 +837,10 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
     }
     
     @Override
-    public List<Pair<User, Long>> getDistinctUsers(Session sesh, User user) {
+    public List<Pair<User, Long>> getDistinctUsers(Session sesh) {
         StringBuilder b = new StringBuilder();
         b.append(" select u, count(r)");
         b.append(" from Record as r join r.user as u");
-        // add user visibility parameters here
-        if (user != null) {
-            if (!user.isAdmin()) {
-                b.append(" where r.user.id = "+user.getId()+" or (r.recordVisibility = :vis and r.held = :held)");
-            }
-        } else {
-            b.append(" where r.recordVisibility = :vis and r.held = :held");
-        }
         b.append(" group by u.id");
         for(PropertyDescriptor pd : BeanUtils.getPropertyDescriptors(User.class)) {
             if(!"class".equals(pd.getName()) && 
@@ -889,10 +860,7 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
             sesh = super.getSessionFactory().getCurrentSession();
         }
         Query q = sesh.createQuery(b.toString());
-        if (user == null || !user.isAdmin()) {
-            q.setParameter("vis", RecordVisibility.PUBLIC);
-            q.setParameter("held", false);
-        }
+
         // Should get back a list of Object[]
         // Each Object[] has 2 items. Object[0] == location, Object[1] == record count
         List<Pair<User, Long>> results = 
@@ -905,18 +873,11 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
     }
     
     @Override
-    public List<Pair<Survey, Long>> getDistinctSurveys(Session sesh, User user) {
+    public List<Pair<Survey, Long>> getDistinctSurveys(Session sesh) {
         StringBuilder b = new StringBuilder();
         b.append(" select s, count(r)");
         b.append(" from Record as r join r.survey as s");
-        // add user visibility parameters here
-        if (user != null) {
-            if (!user.isAdmin()) {
-                b.append(" where r.user.id = "+user.getId());
-            }
-        } else {
-            b.append(" where r.recordVisibility = :vis and r.held = :held");
-        }
+
         b.append(" group by s.id");
         for(PropertyDescriptor pd : BeanUtils.getPropertyDescriptors(Survey.class)) {
             if(!"class".equals(pd.getName()) && 
@@ -932,10 +893,7 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
             sesh = super.getSessionFactory().getCurrentSession();
         }
         Query q = sesh.createQuery(b.toString());
-        if (user == null) {
-            q.setParameter("vis", RecordVisibility.PUBLIC);
-            q.setParameter("held", false);
-        }
+
         // Should get back a list of Object[]
         // Each Object[] has 2 items. Object[0] == taxon group, Object[1] == record count
         List<Pair<Survey, Long>> results = 
@@ -948,28 +906,17 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
     }
     
     @Override
-    public List<Pair<Long, Long>> getDistinctMonths(Session sesh, User user) {
+    public List<Pair<Long, Long>> getDistinctMonths(Session sesh) {
         StringBuilder b = new StringBuilder();
         b.append(" select distinct month(r.when), count(r)");
         b.append(" from Record as r");
-        // add user visibility parameters here
-        if (user != null) {
-            if (!user.isAdmin()) {
-                b.append(" where r.user.id = "+user.getId());
-            }
-        } else {
-            b.append(" where r.recordVisibility = :vis and r.held = :held");
-        }
+
         b.append(" group by month(r.when)");
         b.append(" order by month(r.when) asc");
         if(sesh == null) {
             sesh = super.getSessionFactory().getCurrentSession();
         }
         Query q = sesh.createQuery(b.toString());
-        if (user == null) {
-            q.setParameter("vis", RecordVisibility.PUBLIC);
-            q.setParameter("held", false);
-        }
         
         // Should get back a list of Object[]
         List<Pair<Long, Long>> results = 
@@ -986,18 +933,11 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
     
     
     @Override
-    public List<Pair<Long, Long>> getDistinctYears(Session sesh, User user) {
+    public List<Pair<Long, Long>> getDistinctYears(Session sesh) {
         StringBuilder b = new StringBuilder();
         b.append(" select distinct year(r.when), count(r)");
         b.append(" from Record as r");
-        // add user visibility parameters here
-        if (user != null) {
-            if (!user.isAdmin()) {
-                b.append(" where r.user.id = "+user.getId());
-            }
-        } else {
-            b.append(" where r.recordVisibility = :vis and r.held = :held");
-        }
+
         b.append(" group by year(r.when)");
         b.append(" order by year(r.when) asc");
         
@@ -1005,10 +945,6 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
             sesh = super.getSessionFactory().getCurrentSession();
         }
         Query q = sesh.createQuery(b.toString());
-        if (user == null) {
-            q.setParameter("vis", RecordVisibility.PUBLIC);
-            q.setParameter("held", false);
-        }
         
         // Should get back a list of Object[]
         List<Pair<Long, Long>> results = 
@@ -1024,18 +960,11 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
     }
 
     @Override
-    public List<Pair<String, Long>> getDistinctCensusMethodTypes(Session sesh, User user) {
+    public List<Pair<String, Long>> getDistinctCensusMethodTypes(Session sesh) {
         StringBuilder b = new StringBuilder();
         b.append(" select distinct r.censusMethod.type, count(r)");
         b.append(" from Record as r");
-        // add user visibility parameters here
-        if (user != null) {
-            if (!user.isAdmin()) {
-                b.append(" where r.user.id = "+user.getId());
-            }
-        } else {
-            b.append(" where r.recordVisibility = :vis and r.held = :held");
-        }
+
         b.append(" group by r.censusMethod.type");
         b.append(" order by r.censusMethod.type asc");
         
@@ -1043,10 +972,6 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
             sesh = super.getSessionFactory().getCurrentSession();
         }
         Query q = sesh.createQuery(b.toString());
-        if (user == null) {
-            q.setParameter("vis", RecordVisibility.PUBLIC);
-            q.setParameter("held", false);
-        }
 
         // Should get back a list of Object[]
         List<Pair<String, Long>> results =  new ArrayList<Pair<String, Long>>();
@@ -1058,8 +983,7 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
     }
 
     @Override
-    public List<Pair<String, Long>> getDistinctAttributeTypes(Session sesh, User user,
-            AttributeType[] attributeTypes) {
+    public List<Pair<String, Long>> getDistinctAttributeTypes(Session sesh, AttributeType[] attributeTypes) {
         
         StringBuilder b = new StringBuilder();
         b.append(" select distinct a.typeCode, count(distinct r)");
@@ -1069,14 +993,7 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
             b.append(String.format(" or a.typeCode = '%s'", type.getCode()));
         }
         b.append(" )");
-        // add user visibility parameters here
-        if (user != null) {
-            if (!user.isAdmin()) {
-                b.append(" and r.user.id = "+user.getId());
-            }
-        } else {
-            b.append(" and r.recordVisibility = :vis and r.held = :held");
-        }
+
         b.append(" group by a.typeCode");
         b.append(" order by a.typeCode asc");
         
@@ -1085,10 +1002,6 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         }
         
         Query q = sesh.createQuery(b.toString());
-        if (user == null) {
-            q.setParameter("vis", RecordVisibility.PUBLIC);
-            q.setParameter("held", false);
-        }
 
         // Should get back a list of Object[]
         List<Pair<String, Long>> results =  new ArrayList<Pair<String, Long>>();
@@ -1100,8 +1013,7 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
     }
 
     @Override
-    public List<Pair<String, Long>> getDistinctAttributeValues(Session sesh, User user,
-            String attributeName, int limit) {
+    public List<Pair<String, Long>> getDistinctAttributeValues(Session sesh, String attributeName, int limit) {
         
         StringBuilder b = new StringBuilder();
         b.append(" select distinct ra.stringValue, count(distinct r)");
@@ -1110,15 +1022,6 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         b.append(String.format(" a.description = '%s'", attributeName));
         // ignore empty string values
         b.append(" and ra.stringValue is not null and ra.stringValue != ''");
-        
-        // add user visibility parameters here
-        if (user != null) {
-            if (!user.isAdmin()) {
-                b.append(" and r.user.id = "+user.getId());
-            }
-        } else {
-            b.append(" and r.recordVisibility = :vis and r.held = :held");
-        }
         b.append(" group by ra.stringValue");
         b.append(" order by 2 desc");
         
@@ -1127,10 +1030,7 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         }
         
         Query q = sesh.createQuery(b.toString());
-        if (user == null) {
-            q.setParameter("vis", RecordVisibility.PUBLIC);
-            q.setParameter("held", false);
-        }
+
         if (limit > 0) {
             q.setMaxResults(limit);
         }
@@ -1144,8 +1044,7 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
     }
     
     @Override
-    public List<Pair<String, Long>> getDistinctLocationAttributeValues(Session sesh, User user,
-            String attributeName, int limit) {
+    public List<Pair<String, Long>> getDistinctLocationAttributeValues(Session sesh, String attributeName, int limit) {
         
         StringBuilder b = new StringBuilder();
         
@@ -1155,15 +1054,6 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         b.append(String.format(" attr.description = '%s'", attributeName));
         // ignore empty string values
         b.append(" and locAttrVal.stringValue is not null and locAttrVal.stringValue != ''");
-        
-        // add user visibility parameters here
-        if (user != null) {
-            if (!user.isAdmin()) {
-                b.append(" and rec.user.id = "+user.getId());
-            }
-        } else {
-            b.append(" and rec.recordVisibility = :vis and rec.held = :held");
-        }
         b.append(" group by locAttrVal.stringValue");
         b.append(" order by 2 desc");
         
@@ -1172,10 +1062,7 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         }
         
         Query q = sesh.createQuery(b.toString());
-        if (user == null) {
-            q.setParameter("vis", RecordVisibility.PUBLIC);
-            q.setParameter("held", false);
-        }
+
         if (limit > 0) {
             q.setMaxResults(limit);
         }
@@ -1185,6 +1072,26 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
             Object[] row = (Object[])rowObj;
             
             results.add(new Pair<String, Long>(row[0].toString(), (Long)row[1]));
+        }
+        return results;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Pair<RecordVisibility, Long>> getDistinctRecordVisibilities() {
+
+        StringBuilder hql = new StringBuilder();
+        hql.append("select distinct recordVisibility, count(r) from Record r group by recordVisibility order by recordVisibility");
+        Session session = getSession();
+        Query query = session.createQuery(hql.toString());
+        
+        List<Pair<RecordVisibility, Long>> results = new ArrayList<Pair<RecordVisibility, Long>>();
+        for (Object rowObj : query.list()) {
+            Object[] row = (Object[])rowObj;
+            
+            results.add(new Pair<RecordVisibility, Long>((RecordVisibility)row[0], (Long)row[1]));
         }
         return results;
     }

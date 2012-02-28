@@ -21,12 +21,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import org.apache.log4j.Logger;
-import org.hibernate.annotations.Filter;
-import org.hibernate.annotations.FilterDef;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
-import org.hibernate.annotations.ParamDef;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.*;
 
 import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
@@ -48,11 +43,27 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
 
 @Entity
-@FilterDef(name=PortalPersistentImpl.PORTAL_FILTER_NAME, parameters=@ParamDef( name="portalId", type="integer" ) )
-@Filter(name=PortalPersistentImpl.PORTAL_FILTER_NAME, condition=":portalId = PORTAL_ID")
+@FilterDefs({
+        @FilterDef(name=PortalPersistentImpl.PORTAL_FILTER_NAME, parameters=@ParamDef( name="portalId", type="integer" )),
+        // The following filters define the visibility of Records based on the users role.
+        @FilterDef(name=Record.ANONYMOUS_RECORD_ACCESS_FILTER),
+        @FilterDef(name=Record.USER_ACCESS_FILTER, parameters= @ParamDef(name="userId", type="integer")),
+        @FilterDef(name=Record.MODERATOR_ACCESS_FILTER, parameters= @ParamDef(name="userId", type="integer"))
+})
+@Filters({
+        @Filter(name=PortalPersistentImpl.PORTAL_FILTER_NAME, condition=":portalId = PORTAL_ID"),
+        @Filter(name=Record.ANONYMOUS_RECORD_ACCESS_FILTER, condition="RECORD_VISIBILITY = 'PUBLIC' and not HELD"),
+        @Filter(name=Record.USER_ACCESS_FILTER, condition="INDICATOR_USER_ID = :userId or (RECORD_VISIBILITY = 'PUBLIC' and not HELD)"),
+        @Filter(name=Record.MODERATOR_ACCESS_FILTER, condition="INDICATOR_USER_ID = :userId or RECORD_VISIBILITY = 'PUBLIC'")
+})
 @Table(name = "RECORD")
 @AttributeOverride(name = "id", column = @Column(name = "RECORD_ID"))
 public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attributable<AttributeValue> {
+    
+    public static final String ANONYMOUS_RECORD_ACCESS_FILTER = "anonymousRecordAccessFilter";
+    public static final String USER_ACCESS_FILTER = "userRecordAccessFilter";
+    public static final String MODERATOR_ACCESS_FILTER = "moderatorRecordAccessFilter";
+    public static final String FILTER_PARAMETER_USER = "userId";
     
     // no species and number seen
     public static final RecordPropertyType[] NON_TAXONOMIC_RECORD_PROPERTY_NAMES = new RecordPropertyType[] {

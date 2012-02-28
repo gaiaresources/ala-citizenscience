@@ -85,18 +85,23 @@ public abstract class AbstractFacetBuilder<T extends Facet> implements FacetBuil
     
     private String getDefaultPreferenceValue() {
         try {
-            JSONObject prefValue = new JSONObject();
-            prefValue.put(Facet.JSON_ACTIVE_KEY, Facet.DEFAULT_ACTIVE_CONFIG);
-            prefValue.put(Facet.JSON_WEIGHT_KEY, Facet.DEFAULT_WEIGHT_CONFIG);
-            prefValue.put(Facet.JSON_NAME_KEY, getDefaultDisplayName());
-
-            JSONArray configArray = new JSONArray();
-            configArray.add(prefValue);
-
+            JSONArray configArray = createDefaultPreferenceObject();
             return configArray.toString();
         } catch (JSONException je) {
             // This is not possible;
             throw new IllegalArgumentException(je);
         }
+    }
+
+    protected JSONArray createDefaultPreferenceObject() {
+        JSONObject prefValue = new JSONObject();
+        prefValue.put(Facet.JSON_ACTIVE_KEY, Facet.DEFAULT_ACTIVE_CONFIG);
+        prefValue.put(Facet.JSON_WEIGHT_KEY, Facet.DEFAULT_WEIGHT_CONFIG);
+        prefValue.put(Facet.JSON_NAME_KEY, getDefaultDisplayName());
+
+        JSONArray configArray = new JSONArray();
+        configArray.add(prefValue);   
+        
+        return configArray;
     }
 }

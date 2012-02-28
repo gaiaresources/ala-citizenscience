@@ -325,56 +325,41 @@ public interface RecordDAO extends TransactionDAO {
      * Queries all records for a list of distinct taxon groups and the number of
      * records associated with that taxon group filtered by user.
      * @param sesh the session to use for this query.
-     * @param user the user who is trying to access the taxon groups 
-     *             (for record visibility filtering)
-     *             this should be set to null for anonymous access
      * @return the list of distinct taxon groups and record counts.
      */
-    List<Pair<TaxonGroup, Long>> getDistinctTaxonGroups(Session sesh, User user);
+    List<Pair<TaxonGroup, Long>> getDistinctTaxonGroups(Session sesh);
 
     /**
      * Queries all records for a list of distinct surveys and the number of
      * records associated with that survey filtered by user.
      * @param sesh the session to use for this query.
-     * @param user the user who is trying to access the surveys 
-     *             (for record visibility filtering)
-     *             this should be set to null for anonymous access
      * @return the list of distinct surveys and record counts.
      */
-    List<Pair<Survey, Long>> getDistinctSurveys(Session sesh, User user);
+    List<Pair<Survey, Long>> getDistinctSurveys(Session sesh);
 
     /**
      * Queries all records for a list of distinct months and the count of records
      * for that month filtered by user.
      * @param sesh the session to use for this query.
-     * @param user the user who is trying to access the months 
-     *             (for record visibility filtering)
-     *             this should be set to null for anonymous access
      * @return the list of distinct months and the count of records that match.
      */
-    List<Pair<Long, Long>> getDistinctMonths(Session sesh, User user);
+    List<Pair<Long, Long>> getDistinctMonths(Session sesh);
 
     /**
      * Queries all records for a list of distinct years and the count of records
      * for that month filtered by user.
      * @param sesh the session to use for this query.
-     * @param user the user who is trying to access the years 
-     *             (for record visibility filtering)
-     *             this should be set to null for anonymous access
      * @return the list of distinct months and the count of records that match.
      */
-    List<Pair<Long, Long>> getDistinctYears(Session sesh, User user);
+    List<Pair<Long, Long>> getDistinctYears(Session sesh);
     
     /**
      * Queries all records for a list of distinct census method types
      * and the count of records for each type filtered by user
      * @param sesh the session to use for this query.
-     * @param user the user who is trying to access the census method types 
-     *             (for record visibility filtering)
-     *             this should be set to null for anonymous access
      * @return the list of distinct census methods and count of records that match.
      */
-    List<Pair<String, Long>> getDistinctCensusMethodTypes(Session sesh, User user);
+    List<Pair<String, Long>> getDistinctCensusMethodTypes(Session sesh);
 
     /**
      * Counts all Records which do not have a Census Method.
@@ -386,13 +371,9 @@ public interface RecordDAO extends TransactionDAO {
      * Queries all records for a list of distinct attribute types
      * and the count of records for each type
      * @param sesh the session to use for this query.
-     * @param user the user who is trying to access the attributes 
-     *             (for record visibility filtering)
-     *             this should be set to null for anonymous access
      * @return the list of distinct attribute types and count of records that match.
      */
-    List<Pair<String, Long>> getDistinctAttributeTypes(Session sesh, User user,
-            AttributeType[] attributeTypes);
+    List<Pair<String, Long>> getDistinctAttributeTypes(Session sesh, AttributeType[] attributeTypes);
             
 
     /**
@@ -434,53 +415,49 @@ public interface RecordDAO extends TransactionDAO {
     /**
      * Queries all records for a list of distinct locations and the count of records
      * for each location filtered by user.
-     * @param sesh the session to use for this query.
-     * @param user the user who is trying to access the locations 
-     *             (for record visibility filtering)
-     *             this should be set to null for anonymous access
+     * @param sesh the session to use for this query.    
      * @param limit an optional limit to the number of results that are returned,
      *              ignored if it is less than 0
      * @return the list of distinct months and the count of records that match.
      */
-    public List<Pair<Location, Long>> getDistinctLocations(Session sesh, User user,
-            int limit);
+    public List<Pair<Location, Long>> getDistinctLocations(Session sesh, int limit);
 
     /**
      * Queries all records for a list of distinct users and the count of records
      * for each user.
      * @param sesh the session to use for this query.
-     * @param user the user who is trying to access the user records 
-     *             (for record visibility filtering)
-     *             this should be set to null for anonymous access
      * @return the list of distinct users and the count of records that match.
      */
-    public List<Pair<User, Long>> getDistinctUsers(Session sesh, User user);
+    public List<Pair<User, Long>> getDistinctUsers(Session sesh);
 
     /**
      * Queries all records for an attribute with the given attributeName.
      * @param sesh the session to use for this query.
-     * @param user the user who is trying to access the records
-     *             (for record visibility filtering)
-     *             this should be set to null for anonymous access
      * @param attributeName the name of the attribute for the query
      * @param limit the number of results to return
      * @return a list of distinct attribute value names and the count of records that match each one.
      */
-    public List<Pair<String, Long>> getDistinctAttributeValues(Session sesh,
-            User user, String attributeName, int limit);
+    public List<Pair<String, Long>> getDistinctAttributeValues(Session sesh, String attributeName, int limit);
 
     /**
      * Queries all locations for an attribute with the given attributeName.
      * @param sesh the session to use for this query.
-     * @param user the user who is trying to access the records
-     *             (for record visibility filtering)
-     *             this should be set to null for anonymous access
      * @param attributeName the name of the attribute for the query
      * @param limit the number of results to return
      * @return a list of distinct attribute value names and the count of records that match each one.
      */
-    List<Pair<String, Long>> getDistinctLocationAttributeValues(Session sesh,
-            User user, String attributeName, int limit);
+    List<Pair<String, Long>> getDistinctLocationAttributeValues(Session sesh, String attributeName, int limit);
+
+    /**
+     * Queries all records to determine how many records exist with each of the valid RecordVisibility values.
+     * <em>This method relies on an appropriate Record filter to enforce access control rules such as
+     * record visibility and held status.</em>
+     *
+     * @return a list of distinct RecordVisibilities and the count of records that have that visibility.
+     *
+     */
+    List<Pair<RecordVisibility, Long>> getDistinctRecordVisibilities();
+
     /**
      * Returns a list of public records that intersect the specified geometry.
      * @param intersectGeom the polygon that records must intersect
@@ -497,4 +474,6 @@ public interface RecordDAO extends TransactionDAO {
      */
     List<Record> getRecordIntersect(Geometry intersectGeom,
             RecordVisibility visibility, boolean held);
+
+
 }

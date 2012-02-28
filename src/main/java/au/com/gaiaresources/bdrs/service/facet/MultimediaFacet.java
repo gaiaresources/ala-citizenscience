@@ -39,7 +39,7 @@ public class MultimediaFacet extends AbstractFacet {
         }
         Arrays.sort(selectedOptions);
         
-        for(Pair<String, Long> pair : recordDAO.getDistinctAttributeTypes(null, user, new AttributeType[]{AttributeType.FILE, AttributeType.IMAGE})) {
+        for(Pair<String, Long> pair : recordDAO.getDistinctAttributeTypes(null, new AttributeType[]{AttributeType.FILE, AttributeType.IMAGE})) {
             super.addFacetOption(new MultimediaFacetOption(AttributeType.find(pair.getFirst(), AttributeType.values()), pair.getSecond(), selectedOptions));
         }
     }

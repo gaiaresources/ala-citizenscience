@@ -36,7 +36,7 @@ public class YearFacet extends AbstractFacet {
           }
           Arrays.sort(selectedOptions);
           
-          for(Pair<Long, Long> pair : recordDAO.getDistinctYears(null, user)) {
+          for(Pair<Long, Long> pair : recordDAO.getDistinctYears(null)) {
               super.addFacetOption(new YearFacetOption(pair.getFirst(), pair.getSecond(), selectedOptions));
           }
     }

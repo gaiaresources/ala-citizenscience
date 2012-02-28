@@ -1,18 +1,8 @@
 package au.com.gaiaresources.bdrs.service.facet;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONException;
 import au.com.gaiaresources.bdrs.json.JSONObject;
-
-import org.apache.log4j.Logger;
-import org.hibernate.Session;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import au.com.gaiaresources.bdrs.model.portal.Portal;
 import au.com.gaiaresources.bdrs.model.preference.Preference;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceCategory;
@@ -30,8 +20,17 @@ import au.com.gaiaresources.bdrs.service.facet.builder.MultimediaFacetBuilder;
 import au.com.gaiaresources.bdrs.service.facet.builder.SurveyFacetBuilder;
 import au.com.gaiaresources.bdrs.service.facet.builder.TaxonGroupFacetBuilder;
 import au.com.gaiaresources.bdrs.service.facet.builder.UserFacetBuilder;
+import au.com.gaiaresources.bdrs.service.facet.builder.VisibilityFacetBuilder;
 import au.com.gaiaresources.bdrs.service.facet.builder.YearFacetBuilder;
 import edu.emory.mathcs.backport.java.util.Collections;
+import org.apache.log4j.Logger;
+import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * The Facet Service is the one stop shop for retrieving Facets. The FacetService
@@ -66,6 +65,7 @@ public class FacetService {
         temp.add(new AttributeFacetBuilder());
         temp.add(new ModerationFacetBuilder());
         temp.add(new LocationAttributeFacetBuilder());
+        temp.add(new VisibilityFacetBuilder());
         
         FACET_BUILDER_REGISTRY = Collections.unmodifiableList(temp);
     }

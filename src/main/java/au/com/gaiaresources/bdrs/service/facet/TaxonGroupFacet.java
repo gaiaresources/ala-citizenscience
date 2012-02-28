@@ -39,7 +39,7 @@ public class TaxonGroupFacet extends AbstractFacet {
         }
         Arrays.sort(selectedOptions);
         
-        List<Pair<TaxonGroup, Long>> pairs = recordDAO.getDistinctTaxonGroups(null, user);
+        List<Pair<TaxonGroup, Long>> pairs = recordDAO.getDistinctTaxonGroups(null);
         for(Pair<TaxonGroup, Long> pair : pairs) {
             super.addFacetOption(new TaxonGroupFacetOption(pair.getFirst(), pair.getSecond(), selectedOptions));
         }

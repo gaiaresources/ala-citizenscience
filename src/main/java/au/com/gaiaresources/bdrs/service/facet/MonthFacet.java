@@ -37,7 +37,7 @@ public class MonthFacet extends AbstractFacet {
         }
         Arrays.sort(selectedOptions);
         
-        for(Pair<Long, Long> pair : recordDAO.getDistinctMonths(null, user)) {
+        for(Pair<Long, Long> pair : recordDAO.getDistinctMonths(null)) {
             super.addFacetOption(new MonthFacetOption(pair.getFirst(), pair.getSecond(), selectedOptions));
         }
     }

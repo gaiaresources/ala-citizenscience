@@ -228,7 +228,7 @@ public class PreferenceDAOImpl extends AbstractDAOImpl implements PreferenceDAO 
             sesh = getSessionFactory().getCurrentSession();
         }
 
-        return find(sesh, "from Preference pref left join fetch pref.portal ");
+        return find(sesh, "from Preference pref left join fetch pref.portal order by weight asc");
     }
 
     @Override
