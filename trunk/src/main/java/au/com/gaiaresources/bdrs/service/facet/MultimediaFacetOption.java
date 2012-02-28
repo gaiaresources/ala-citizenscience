@@ -32,7 +32,7 @@ public class MultimediaFacetOption extends FacetOption {
      * query.
      */
     public Predicate getPredicate() {
-        return Predicate.eq("attribute.typeCode", attributeType.getCode()).and(
-               new Predicate("(length(trim(recordAttribute.stringValue)) > 0)"));
+        return Predicate.eq("recordAttribute.typeCode", attributeType.getCode()).and(
+               new Predicate("(length(trim(recordAttributeVal.stringValue)) > 0)"));
     }
 }
