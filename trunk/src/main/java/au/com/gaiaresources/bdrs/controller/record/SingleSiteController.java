@@ -5,18 +5,16 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
-import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -137,8 +135,6 @@ public abstract class SingleSiteController extends AbstractController {
     @Autowired
     private RecordDAO recordDAO;
     @Autowired
-    private AttributeDAO attributeDAO;
-    @Autowired
     private SurveyDAO surveyDAO;
     @Autowired
     private TaxaDAO taxaDAO;
@@ -151,9 +147,6 @@ public abstract class SingleSiteController extends AbstractController {
 
     @Autowired
     private LocationService locationService;
-    @Autowired
-    private FileService fileService;
-
     private FormFieldFactory formFieldFactory = new FormFieldFactory();
 
     private Logger log = Logger.getLogger(getClass());

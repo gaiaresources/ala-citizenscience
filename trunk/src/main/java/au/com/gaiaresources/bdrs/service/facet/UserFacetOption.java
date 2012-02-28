@@ -46,7 +46,7 @@ public class UserFacetOption extends FacetOption {
             p.and(Predicate.eq("record.recordVisibility", RecordVisibility.PUBLIC));
             // if the accessor is a moderator, they can also see held records
             // so they can moderate them
-            if (!accessor.isModerator()) {
+            if (accessor == null || !accessor.isModerator()) {
                 p.and(Predicate.eq("record.held", false));
             }
         }
