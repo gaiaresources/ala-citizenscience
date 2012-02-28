@@ -44,7 +44,11 @@ public class UserFacetOption extends FacetOption {
         User accessor = RequestContextHolder.getContext().getUser();
         if (accessor == null || (!accessor.isAdmin() && !user.equals(accessor))) {
             p.and(Predicate.eq("record.recordVisibility", RecordVisibility.PUBLIC));
-            p.and(Predicate.eq("record.held", false));
+            // if the accessor is a moderator, they can also see held records
+            // so they can moderate them
+            if (!accessor.isModerator()) {
+                p.and(Predicate.eq("record.held", false));
+            }
         }
         return p;
     }

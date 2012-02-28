@@ -4,11 +4,15 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="/WEB-INF/cw.tld" prefix="cw" %>
 
+
+<%@page import="au.com.gaiaresources.bdrs.model.taxa.AttributeScope"%>
+<%@page import="au.com.gaiaresources.bdrs.servlet.RequestContextHolder"%>
 <tiles:useAttribute name="formField" classname="au.com.gaiaresources.bdrs.controller.attribute.formfield.TypedAttributeValueFormField"/>
 <tiles:useAttribute name="errorMap" classname="java.util.Map" ignore="true"/>
 <tiles:useAttribute name="valueMap" classname="java.util.Map" ignore="true"/>
 <tiles:useAttribute name="formPrefix" ignore="true"/>
 <tiles:useAttribute name="editEnabled" ignore="true"/>
+<tiles:useAttribute name="isModerationOnly" ignore="true" />
 
 <%@page import="java.lang.Boolean"%>
 <%@page import="au.com.gaiaresources.bdrs.model.taxa.AttributeValue"%>

@@ -14,13 +14,26 @@ public class RecordEntry {
     
     Geometry geometry = null;
     String description = "";
-
+    /**
+     * A prefix to append when requesting values for SingleSite forms.
+     */
+    String prefix = "";
     /**
      * 
      * @param dataMap - cannot be null
      * @param fileMap - can be null
      */
     public RecordEntry(Map<String, String[]> dataMap, Map<String, MultipartFile> fileMap) {
+        this(dataMap, fileMap, null);
+    }
+    
+    /**
+     * 
+     * @param dataMap - cannot be null
+     * @param fileMap - can be null
+     * @param prefix  - can be null, the prefix to append to the keys when looking up
+     */
+    public RecordEntry(Map<String, String[]> dataMap, Map<String, MultipartFile> fileMap, String prefix) {
         if (dataMap == null) {
             throw new IllegalArgumentException("dataMap cannot be null");
         }
@@ -29,6 +42,11 @@ public class RecordEntry {
         }
         this.dataMap = dataMap;
         this.fileMap = fileMap;
+        if (prefix != null) {
+            this.prefix = prefix;
+        } else {
+            this.prefix = "";
+        }
     }
     
     public RecordEntry(Map<String, String[]> dataMap) {

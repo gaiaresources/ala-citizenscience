@@ -8,21 +8,31 @@
 <tiles:useAttribute name="errorMap" classname="java.util.Map" ignore="true"/>
 <tiles:useAttribute name="valueMap" classname="java.util.Map" ignore="true"/>
 <tiles:useAttribute name="editEnabled" ignore="true"/>
+<tiles:useAttribute name="isModerationOnly" ignore="true"/>
+
+     <c:choose>
+         <c:when test="<%= formField.isModerationFormField() %>">
+             <c:if test="${editEnabled}">
+                 <c:set var="editEnabled" value="<%= RequestContextHolder.getContext().getUser().isModerator() %>"></c:set>
+             </c:if>
+         </c:when>
+         <c:otherwise>
+             <c:if test="${editEnabled}">
+                 <c:set var="editEnabled" value="${not isModerationOnly}"></c:set>
+             </c:if>
+         </c:otherwise>
+     </c:choose>
 
 <c:choose>
   <c:when test="<%= formField.isDisplayFormField() %>">
      <%-- Fields for display only, such as, comments, horizontal rules, HTML, etc --%>
      <c:set var="isVisible" value="true"></c:set>
-     <c:if test="<%= formField.isModerationFormField() %>">
-         <c:if test="${editEnabled}">
-             <c:set var="editEnabled" value="<%= RequestContextHolder.getContext().getUser().isModerator() %>"></c:set>
-         </c:if>
-     </c:if>
+
      <tr>
          <td colspan="2">
              <tiles:insertDefinition name="attributeRenderer">
                  <tiles:putAttribute name="formField" value="${formField}"/>
-				 <tiles:putAttribute name="editEnabled" value="${ editEnabled }"/>
+                 <tiles:putAttribute name="editEnabled" value="${ editEnabled }"/>
              </tiles:insertDefinition>
          </td>
      </tr>
@@ -44,7 +54,7 @@
                            <tiles:putAttribute name="isLatitude" value="true"/>
                            <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
                            <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
-						   <tiles:putAttribute name="editEnabled" value="${ editEnabled }"/>
+                           <tiles:putAttribute name="editEnabled" value="${ editEnabled }"/>
                        </tiles:insertDefinition>
                   </td>
               </tr>
@@ -60,7 +70,7 @@
                            <tiles:putAttribute name="isLongitude" value="true"/>
                            <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
                            <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
-						   <tiles:putAttribute name="editEnabled" value="${ editEnabled }"/>
+                           <tiles:putAttribute name="editEnabled" value="${ editEnabled }"/>
                        </tiles:insertDefinition>
                   </td>
               </tr>
@@ -79,7 +89,7 @@
                               <tiles:putAttribute name="locations" value="${ locations }"/>
                               <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
                               <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
-							  <tiles:putAttribute name="editEnabled" value="${ editEnabled }"/>
+                              <tiles:putAttribute name="editEnabled" value="${ editEnabled }"/>
                           </tiles:insertDefinition>
                       </td>
                   </tr>
@@ -87,10 +97,10 @@
              </c:if>
           </c:when>
           <c:otherwise>
-			<c:if test="${not formField.hidden}">
+            <c:if test="${not formField.hidden}">
               <tr>
                   <th>
-					<cw:validateHtml html="${ formField.description }"/>
+                    <cw:validateHtml html="${ formField.description }"/>
                    </th>
                    <td>
                        <tiles:insertDefinition name="propertyRenderer">
@@ -105,11 +115,6 @@
     </c:when>
     <c:when test="<%= formField.isAttributeFormField() %>">
         <c:set var="isVisible" value="true"></c:set>
-        <c:if test="<%= formField.isModerationFormField() %>">
-            <c:if test="${editEnabled}">
-                <c:set var="editEnabled" value="<%= RequestContextHolder.getContext().getUser().isModerator() %>"></c:set>
-            </c:if>
-        </c:if>
         <tr>
             <th>
                 <label for="${ formPrefix }attribute_${formField.attribute.id}">

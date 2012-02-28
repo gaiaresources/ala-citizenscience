@@ -458,7 +458,9 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
             
             // don't add certain items to the post map depending on input args...
             if (useLocation && rp.getRecordPropertyType().equals(RecordPropertyType.POINT)) {
-                continue;
+                // point coordinates should be the center x,y of the location
+                
+                //continue;
             } else if (!useLocation && rp.getRecordPropertyType().equals(RecordPropertyType.LOCATION)) {
                 // signal that the location field on record should be null
                 recPropMap.put(RecordPropertyType.LOCATION, null);
@@ -497,8 +499,8 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
             String[] latLonSplit = value.split(",");
             req.addParameter(prefix+SingleSiteController.PARAM_LATITUDE, latLonSplit[0]);
             req.addParameter(prefix+SingleSiteController.PARAM_LONGITUDE, latLonSplit[1]);
-        }
             break;
+        }
         case ACCURACY:
             req.addParameter(prefix+SingleSiteController.PARAM_ACCURACY,  value);
             break;
@@ -510,6 +512,7 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
             String[] timeSplit = value.split(":");
             req.addParameter(prefix+SingleSiteController.PARAM_TIME_HOUR, timeSplit[0]);
             req.addParameter(prefix+SingleSiteController.PARAM_TIME_MINUTE, timeSplit[1]);
+            req.addParameter(prefix+"time", value);
             break;
         }
         case NOTES:

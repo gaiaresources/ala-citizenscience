@@ -891,19 +891,6 @@ ul.ui-menu li.ui-menu-item {
 }
 
 /************************************/
-/* Attribute input styling          */                               
-/************************************/
-
-/* For lining up the ketchup popup to the input */
-input[type=text].speciesIdInput {
-    visibility:hidden;
-    width:0px;
-    padding:0px 0 0 0;
-    margin:0 0 0 -9px;
-    border-width:0;
-}
-
-/************************************/
 /* Yearly Sightings                 */
 /************************************/
 .yearlysightings {
@@ -1010,6 +997,20 @@ table.yearlysightings {
 #sightingTable textarea {
     height: 7em;
     width: 20em;
+}
+
+/************************************/
+/* Attribute input styling          */
+/************************************/
+
+/* For lining up the ketchup popup to the input */
+#sightingTable input[type=text].speciesIdInput, 
+input[type=text].speciesIdInput {
+    visibility: hidden;
+    width:0px;
+    padding:0px 0 0 0;
+    margin:0 0 0 -9px;
+    border-width:0;
 }
 
 /************************************/

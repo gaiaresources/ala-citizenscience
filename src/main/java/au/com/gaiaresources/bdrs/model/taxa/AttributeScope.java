@@ -31,8 +31,31 @@ public enum AttributeScope implements JSONEnum {
         return name;
     }
     
+    /**
+     * Returns true if the scope is one of SURVEY_MODERATION or RECORD_MODERATION.
+     * @param scope the scope to check
+     * @return true if the scope is one of SURVEY_MODERATION or RECORD_MODERATION, false otherwise
+     */
     public static boolean isModerationScope(AttributeScope scope) {
         return scope == SURVEY_MODERATION || scope == RECORD_MODERATION;
+    }
+    
+    /**
+     * Returns true if the scope is one of RECORD or RECORD_MODERATION.
+     * @param scope the scope to check
+     * @return true if the scope is one of RECORD or RECORD_MODERATION, false otherwise
+     */
+    public static boolean isRecordScope(AttributeScope scope) {
+        return scope == RECORD || scope == RECORD_MODERATION;
+    }
+    
+    /**
+     * Returns true if the scope is one of SURVEY or SURVEY_MODERATION.
+     * @param scope the scope to check
+     * @return true if the scope is one of SURVEY or SURVEY_MODERATION, false otherwise
+     */
+    public static boolean isSurveyScope(AttributeScope scope) {
+        return scope == SURVEY || scope == SURVEY_MODERATION;
     }
     
     @Override

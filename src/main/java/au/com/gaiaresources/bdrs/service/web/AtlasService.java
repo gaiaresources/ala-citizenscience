@@ -455,7 +455,7 @@ public class AtlasService {
             // find the common name with a guid or preferred value true
             while (synoIter.hasNext()) {
                 JSONObject synonym = (JSONObject) synoIter.next();
-                String syn = synonym.getString("nameString");
+                String syn = synonym.optString("nameString");
                 String source = synonym.optString("author", null);
                 if (StringUtils.nullOrEmpty(source)) {
                     // get the source from the synonym name
@@ -482,17 +482,17 @@ public class AtlasService {
             // find the common name with a guid or preferred value true
             while (csIter.hasNext()) {
                 JSONObject conservStatus = (JSONObject) csIter.next();
-                String id = conservStatus.getString("infoSourceId");
+                String id = conservStatus.optString("infoSourceId");
                 addProfileInfoItem(infoItems, SpeciesProfile.SPECIES_PROFILE_STATUS, 
                                            SPECIES_PROFILE_CONSERVATION_STATUS, 
                                            SPECIES_PROFILE_CONSERVATION_STATUS, 
-                                           (!StringUtils.nullOrEmpty(conservStatus.getString("status")) && 
-                                                   !"null".equalsIgnoreCase(conservStatus.getString("status")) ? 
-                                                   conservStatus.getString("status") : "") + 
-                                           (!StringUtils.nullOrEmpty(conservStatus.getString("region")) && 
-                                                   !"null".equalsIgnoreCase(conservStatus.getString("region")) ? 
-                                                   " in " + conservStatus.getString("region") : ""),
-                                           conservStatus.getString("infoSourceName"));
+                                           (!StringUtils.nullOrEmpty(conservStatus.optString("status")) && 
+                                                   !"null".equalsIgnoreCase(conservStatus.optString("status")) ? 
+                                                   conservStatus.optString("status") : "") + 
+                                           (!StringUtils.nullOrEmpty(conservStatus.optString("region")) && 
+                                                   !"null".equalsIgnoreCase(conservStatus.optString("region")) ? 
+                                                   " in " + conservStatus.optString("region") : ""),
+                                           conservStatus.optString("infoSourceName"));
             }
         }
         
@@ -506,8 +506,8 @@ public class AtlasService {
                 addProfileInfoItem(infoItems, SpeciesProfile.SPECIES_PROFILE_TEXT, 
                                            SPECIES_PROFILE_HABITAT, 
                                            SPECIES_PROFILE_HABITAT, 
-                                           habitat.getString("statusAsString"),
-                                           habitat.getString("infoSourceName"));
+                                           habitat.optString("statusAsString"),
+                                           habitat.optString("infoSourceName"));
             }
         }
         

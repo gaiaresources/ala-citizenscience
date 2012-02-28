@@ -95,7 +95,7 @@ public class SingleSiteMultiTaxaControllerTest extends RecordFormTest {
         for (AttributeType attrType : AttributeType.values()) {
             for (AttributeScope scope : new AttributeScope[] {
                     AttributeScope.RECORD, AttributeScope.SURVEY,
-                    AttributeScope.RECORD_MODERATION, AttributeScope.SURVEY_MODERATION, null }) {
+                    AttributeScope.RECORD_MODERATION, AttributeScope.SURVEY_MODERATION}) {
 
                 attr = new Attribute();
                 attr.setRequired(true);
@@ -291,8 +291,11 @@ public class SingleSiteMultiTaxaControllerTest extends RecordFormTest {
         DateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy");
         dateFormat.setLenient(false);
 
+        DateFormat timeFormat = new SimpleDateFormat("HH:mm");
+        timeFormat.setLenient(false);
+        
         GregorianCalendar cal = new GregorianCalendar();
-        cal.set(2010, 10, 12, 15, 30);
+        cal.setTime(new Date());
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
         Date sightingDate = cal.getTime();
@@ -302,6 +305,7 @@ public class SingleSiteMultiTaxaControllerTest extends RecordFormTest {
         params.put("latitude", "-36.879620605027");
         params.put("longitude", "126.650390625");
         params.put("date", dateFormat.format(sightingDate));
+        params.put("time", timeFormat.format(sightingDate));
         params.put("time_hour", new Integer(cal.get(Calendar.HOUR_OF_DAY)).toString());
         params.put("time_minute", new Integer(cal.get(Calendar.MINUTE)).toString());
         params.put("notes", "This is a test record");
@@ -331,12 +335,12 @@ public class SingleSiteMultiTaxaControllerTest extends RecordFormTest {
             recordScopeAttributeValueMapping.put(taxon, attributeValueMapping);
             for (Attribute attr : survey.getAttributes()) {
                 if(!AttributeScope.LOCATION.equals(attr.getScope())) {
-                    if (AttributeScope.SURVEY.equals(attr.getScope()) || AttributeScope.SURVEY_MODERATION.equals(attr.getScope())) {
-                        prefix = surveyPrefix;
-                        valueMap = surveyScopeAttributeValueMapping;
-                    } else {
+                    if (AttributeScope.isRecordScope(attr.getScope())) {
                         prefix = recordPrefix;
                         valueMap = attributeValueMapping;
+                    } else {
+                        prefix = surveyPrefix;
+                        valueMap = surveyScopeAttributeValueMapping;
                     }
 
                     key = String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, prefix, attr.getId());
@@ -349,7 +353,8 @@ public class SingleSiteMultiTaxaControllerTest extends RecordFormTest {
                         valueMap.put(attr, val);
                         break;
                     case INTEGER_WITH_RANGE:
-                        valueMap.put(attr, intWithRangeValue);
+                        value = intWithRangeValue;
+                        valueMap.put(attr, Integer.valueOf(value));
                         break;
                     case DECIMAL:
                         value = String.format("50.%d", sightingIndex);
@@ -361,11 +366,14 @@ public class SingleSiteMultiTaxaControllerTest extends RecordFormTest {
                         // Reparsing the date strips out the hours, minutes and seconds
                         valueMap.put(attr, dateFormat.parse(value));
                         break;
+                    case TIME:
+                        value = timeFormat.format(new Date());
+                        valueMap.put(attr, value);
+                        break;
                     case REGEX:
                     case STRING_AUTOCOMPLETE:
                     case STRING:
                     case BARCODE:
-                    case TIME:
                     case HTML:
                     case HTML_NO_VALIDATION:
                     case HTML_COMMENT:
@@ -399,6 +407,7 @@ public class SingleSiteMultiTaxaControllerTest extends RecordFormTest {
                                 file_filename.getBytes());
                         ((MockMultipartHttpServletRequest) request).addFile(mockFileFile);
                         valueMap.put(attr, mockFileFile);
+                        value = file_filename;
                         break;
                     case IMAGE:
                         String image_filename = String.format("attribute_%d", attr.getId());
@@ -407,6 +416,7 @@ public class SingleSiteMultiTaxaControllerTest extends RecordFormTest {
                                 image_filename.getBytes());
                         ((MockMultipartHttpServletRequest) request).addFile(mockImageFile);
                         valueMap.put(attr, mockImageFile);
+                        value = image_filename;
                         break;
                     default:
                         Assert.assertTrue("Unknown Attribute Type: "
@@ -415,6 +425,8 @@ public class SingleSiteMultiTaxaControllerTest extends RecordFormTest {
                     }
                     if(value != null) {
                         params.put(key, value);
+                        logger.debug("***SingleSiteMultiTaxaControllerTest:423: adding parameter "+key+"="+value);
+                        logger.debug("***SingleSiteMultiTaxaControllerTest:424: for attribute "+attr.getName()+" of type "+attr.getType().getName()+" with scope: "+attr.getScope());
                     }
                 }
             }
