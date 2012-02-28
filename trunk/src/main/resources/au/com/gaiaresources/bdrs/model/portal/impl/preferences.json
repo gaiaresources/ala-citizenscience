@@ -30,12 +30,6 @@
         "description": "Preferences related to surveys." 
     },
     {
-        "classname": "au.com.gaiaresources.bdrs.model.preference.PreferenceCategory",
-        "name": "category.searchResults",
-        "displayName": "Search Results",
-        "description": "Preferences related to the Advanced Review and My Sightings pages."
-    },
-    {
         "classname": "au.com.gaiaresources.bdrs.model.preference.Preference",
         "key": "lsid.authority",
         "value": "dev.gaiaresources.com.au",
@@ -90,16 +84,5 @@
         "preferenceCategoryName": "category.taxonomy",
         "portalName": null,
         "isRequired": true
-	},
-    {
-        "classname": "au.com.gaiaresources.bdrs.model.preference.Preference",
-        "key": "searchResults.defaultToMapView",
-        "value": "false",
-        "locked": true,
-        "description": "When 'true', records displayed on the Advanced Review and My Sightings page will be displayed on a map by default.  Otherwise they will be presented as a list by default.",
-        "preferenceCategoryName": "category.searchResults",
-        "portalName": null,
-        "isRequired": true,
-        "weight":100
-    }
+	}
 ]
