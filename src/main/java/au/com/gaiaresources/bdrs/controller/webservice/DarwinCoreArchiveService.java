@@ -47,7 +47,6 @@ public class DarwinCoreArchiveService extends AbstractDownloadFileController {
      */
     @RequestMapping(value = DOWNLOAD_ARCHIVE_URL, method = RequestMethod.GET)
     public void downloadArchive(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        
         RedirectionService redirService = new RedirectionService(ContentService.getRequestURL(request));
         RecordFilter recFilter = new AdvancedRecordFilter();
         recFilter.setRecordVisibility(RecordVisibility.PUBLIC);

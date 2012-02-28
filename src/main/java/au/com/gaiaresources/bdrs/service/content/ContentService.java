@@ -45,7 +45,15 @@ public class ContentService {
     // keys for the default moderation email content
     public static final String MODERATION_REQUIRED_EMAIL_KEY = "email/ModerationRequired";
     public static final String MODERATION_PERFORMED_EMAIL_KEY = "email/ModerationPerformed";
-    
+
+    private static final Pattern requestUrlPattern = Pattern.compile("(http://[^/]*/*[^/]+?)/.*");
+
+    private static final Pattern contextPathPattern = Pattern.compile("http://[^/]*(/*[^/]+?)/.*");
+
+    public static final String BDRS_APPLICATION_URL = "bdrsApplicationUrl",
+            BDRS_CONTEXT_PATH = "bdrsContextPath",
+            BDRS_CURRENT_USER_FIRST_NAME = "current";
+
     public static final Map<String, String> CONTENT;
     static {
         Map<String, String> tmp = new HashMap<String, String>();
@@ -247,8 +255,6 @@ public class ContentService {
         String url = request.getRequestURL().toString();
         return getRequestURL(url);
     }
-    
-    private static final Pattern requestUrlPattern = Pattern.compile("(http://[^/]*/[^/]+?)/.*");
 
     /**
      * Returns the request URL up to the context path.
@@ -270,9 +276,7 @@ public class ContentService {
         }
         throw new IllegalArgumentException("No request url detected : " + url);
     }
-    
-    private static final Pattern contextPathPattern = Pattern.compile("http://[^/]*(/[^/]+?)/.*");
-    
+
     /**
      * Returns the context path of the URL.
      * For example, for http://localhost:8080/BDRS/home.htm, returns /BDRS
@@ -341,10 +345,6 @@ public class ContentService {
             }
         }
     }
-    
-    public static final String BDRS_APPLICATION_URL = "bdrsApplicationUrl",
-                               BDRS_CONTEXT_PATH = "bdrsContextPath",
-                               BDRS_CURRENT_USER_FIRST_NAME = "current";
 
     /**
      * Add the required content substitution parameters to the given map

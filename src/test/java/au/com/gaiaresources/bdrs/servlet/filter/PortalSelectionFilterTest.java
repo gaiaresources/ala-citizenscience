@@ -304,7 +304,6 @@ public class PortalSelectionFilterTest extends AbstractControllerTest {
         
         Portal defaultPortal = portalDAO.getDefaultPortal();
         if(defaultPortal == null || (defaultPortal != null && !defaultPortal.isActive())) {
-            System.err.println("grabbing first active portal");
             defaultPortal = portalDAO.getActivePortals().get(0);
         }
         

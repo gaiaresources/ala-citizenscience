@@ -522,6 +522,13 @@
             <version>2.4</version>
             <scope>provided</scope>
         </dependency>
+        <!-- Simple is a high performance asynchronous HTTP server for Java -->
+        <dependency>
+            <groupId>org.simpleframework</groupId>
+            <artifactId>simple</artifactId>
+            <version>4.1.21</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <finalName>bdrs-core</finalName>
@@ -921,7 +928,7 @@
                 <!-- Site properties -->
                <bdrs.site.name>BDRS Core Portal</bdrs.site.name>
                 <!-- Mail properties -->
-                <bdrs.default.mail.server>localhost</bdrs.default.mail.server>
+                <bdrs.default.mail.server>gaia</bdrs.default.mail.server>
                 <bdrs.default.mail.port>25</bdrs.default.mail.port>
                 <bdrs.default.mail.from>bdrs-core@gaiaresources.com.au</bdrs.default.mail.from>
                 <bdrs.error.mail.to></bdrs.error.mail.to>
