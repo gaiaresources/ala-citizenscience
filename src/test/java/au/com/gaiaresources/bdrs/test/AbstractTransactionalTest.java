@@ -28,8 +28,8 @@ public abstract class AbstractTransactionalTest extends AbstractSpringContextTes
 
     protected static final String REQUEST_SCHEME = "http";
     protected static final String REQUEST_SERVER_NAME = "www.mybdrs.com.au";
-    protected static final int REQUEST_SERVER_PORT = 8080;
-    protected static final int REQUEST_LOCAL_PORT = 8080;
+    protected static final int REQUEST_SERVER_PORT = 9096;
+    protected static final int REQUEST_LOCAL_PORT = 9096;
     protected static final String REQUEST_CONTEXT_PATH = "/CONTEXTPATH";
     
     // unfortunately we need the request in this class (instead of AbstractControllerTest)
