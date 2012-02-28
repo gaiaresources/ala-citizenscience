@@ -37,11 +37,12 @@ import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
+import au.com.gaiaresources.bdrs.model.taxa.Attribute;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValueUtil;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.security.Role;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
@@ -55,12 +56,12 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     
     // no species and number seen
     public static final RecordPropertyType[] NON_TAXONOMIC_RECORD_PROPERTY_NAMES = new RecordPropertyType[] {
-    	RecordPropertyType.LOCATION,
-    	RecordPropertyType.POINT,
-    	RecordPropertyType.ACCURACY,
-    	RecordPropertyType.WHEN,
-    	RecordPropertyType.TIME,
-    	RecordPropertyType.NOTES};
+        RecordPropertyType.LOCATION,
+        RecordPropertyType.POINT,
+        RecordPropertyType.ACCURACY,
+        RecordPropertyType.WHEN,
+        RecordPropertyType.TIME,
+        RecordPropertyType.NOTES};
 
     private Logger log = Logger.getLogger(getClass());
     
@@ -288,9 +289,9 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     public void setWhen(Date when) {
         this.when = when != null ? new Date(when.getTime()) : null;
         if (when == null) {
-        	this.time = null;
+            this.time = null;
         } else {
-        	this.time = when.getTime();
+            this.time = when.getTime();
         }
     }
 
@@ -309,9 +310,9 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     public void setTime(Long time) {
         this.time = time;
         if (time == null) {
-        	this.when = null;
+            this.when = null;
         } else {
-        	this.when = new Date(time);
+            this.when = new Date(time);
         }
     }
 
@@ -331,9 +332,9 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     public void setLastDate(Date when) {
         this.lastDate = when != null ? new Date(when.getTime()) : null;
         if (when == null) {
-        	this.lastTime = null;
+            this.lastTime = null;
         } else {
-        	this.lastTime = when.getTime();
+            this.lastTime = when.getTime();
         }
     }
 
@@ -352,9 +353,9 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     public void setLastTime(Long time) {
         this.lastTime = time;
         if  (time == null) {
-        	this.lastDate = null;
+            this.lastDate = null;
         } else {
-        	this.lastDate = new Date(time);
+            this.lastDate = new Date(time);
         }
         
     }
@@ -548,7 +549,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     }
     @Transient
     public Double getLatitude() {
-    	Location loc = this.getLocation();
+        Location loc = this.getLocation();
         if(this.getPoint() != null) {
             return this.getPoint().getY();
         }
@@ -562,7 +563,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
 
     @Transient
     public Double getLongitude() {
-    	Location loc = this.getLocation();
+        Location loc = this.getLocation();
         if(this.getPoint() != null) {
             return this.getPoint().getX();
         }
@@ -637,6 +638,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     public boolean canWrite(User writer) {
         
         if (writer == null) {
+            log.warn("Attempting to write to record with a null user. This _probably should not happen");
             // we can't write a record with no writer!
             return false;
         }
@@ -657,9 +659,25 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
             return false;
         }
         boolean isOwner = writer.getId().intValue() == this.getUser().getId().intValue();
-        return isOwner || Role.isRoleHigherThanOrEqualTo(Role.getHighestRole(writer.getRoles()), Role.SUPERVISOR);
+        // only the owner, admins, and moderators can write a record
+        return isOwner || writer.isAdmin() || (writer.isModerator() && isAtLeastOneModerationAttribute());
     }
     
+    /**
+     * Checks all of the {@link Attribute Attributes} for one with a moderation scope.
+     * @return true if the record has at least one moderation attribute, false otherwise
+     */
+    @Transient
+    public boolean isAtLeastOneModerationAttribute() {
+        // check the survey attributes when available
+        for (Attribute att : survey.getAttributes()) {
+            if (AttributeScope.isModerationScope(att.getScope())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Contains the logic for if a user can view (not edit) this record
      * 
@@ -681,7 +699,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
             throw new IllegalStateException("The owner of the record is invalid");
         }
         
-        boolean hasPrivilege = viewer != null ? Role.isRoleHigherThanOrEqualTo(Role.getHighestRole(viewer.getRoles()), Role.SUPERVISOR) : false;
+        boolean hasPrivilege = viewer != null ? viewer.isAdmin() || (viewer.isModerator() && isAtLeastOneModerationAttribute()) : false;
         boolean isOwner = viewer != null ? viewer.getId().equals(this.getUser().getId()) : false;
         
         switch (this.recordVisibility) {

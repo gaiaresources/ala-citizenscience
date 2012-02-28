@@ -1,7 +1,4 @@
 package au.com.gaiaresources.bdrs.deserialization.record;
-
-
-
 /**
  * A lookup for the *keys* that when used in an appropriate Map will
  * return the following values.

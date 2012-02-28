@@ -812,7 +812,7 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
             Integer upper = Integer.parseInt(a.getOptions().get(1).getValue());
             Integer value = (seed%(upper-lower)) + lower;
             av.setNumericValue(new BigDecimal(value));
-            return Integer.toString(seed);
+            return Integer.toString(value);
         }
         
         case DATE:
@@ -821,9 +821,15 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
             av.setDateValue(d);
             return DateFormatter.format(d, DateFormatter.DAY_MONTH_YEAR);
         }
+        case TIME:
+        {
+            Date d = getDate(2010, 10, seed%30, seed%24, seed%60);
+            String time = DateFormatter.format(d, DateFormatter.TIME);
+            av.setStringValue(time);
+            return time;
+        }
         case REGEX:
         case BARCODE:
-        case TIME:
         case STRING:
         case STRING_AUTOCOMPLETE:
         case TEXT:

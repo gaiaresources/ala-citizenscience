@@ -89,10 +89,11 @@ public class SingleSiteMultiTaxaMsgAndRedirectTest extends
         DateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy");
         dateFormat.setLenient(false);
 
+        DateFormat timeFormat = new SimpleDateFormat("HH:mm");
+        timeFormat.setLenient(false);
+        
         Calendar cal = Calendar.getInstance();
-        cal.set(2010, 10, 12, 15, 30);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
+        cal.setTime(new Date());
         Date sightingDate = cal.getTime();
 
         Map<String, String> params = new HashMap<String, String>();
@@ -100,6 +101,7 @@ public class SingleSiteMultiTaxaMsgAndRedirectTest extends
         params.put("latitude", "-36.879620605027");
         params.put("longitude", "126.650390625");
         params.put("date", dateFormat.format(sightingDate));
+        params.put("time", timeFormat.format(sightingDate));
         params.put("time_hour", new Integer(cal.get(Calendar.HOUR_OF_DAY)).toString());
         params.put("time_minute", new Integer(cal.get(Calendar.MINUTE)).toString());
         params.put("notes", "This is a test record");

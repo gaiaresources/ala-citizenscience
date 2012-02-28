@@ -43,7 +43,7 @@ public class RecordWebFormContextTest {
         
         admin = new User();
         admin.setId(3);
-        admin.setRoles(new String[] { Role.SUPERVISOR });
+        admin.setRoles(new String[] { Role.ADMIN });
         
         record = new Record();
         record.setId(1);

@@ -101,8 +101,7 @@ public class SingleSiteMultiTaxaController extends SingleSiteController {
                                     @RequestParam(value=SingleSiteController.PARAM_TIME_HOUR, required=false) String time_hour,
                                     @RequestParam(value=SingleSiteController.PARAM_TIME_MINUTE, required=false) String time_minute,
                                     @RequestParam(value=SingleSiteController.PARAM_NOTES, required=false) String notes,
-                                    @RequestParam(value=SingleSiteController.PARAM_SIGHTING_INDEX, required=true) int sightingIndex,
                                     @RequestParam(value=SingleSiteController.PARAM_ROW_PREFIX, required=true, defaultValue="") String[] rowIds) throws ParseException, IOException {
-        return saveRecordHelper(request, response, surveyId, latitude, longitude, date, time_hour, time_minute, notes, sightingIndex, rowIds);
+        return saveRecordHelper(request, response, surveyId, latitude, longitude, date, time_hour, time_minute, notes, rowIds);
     }
 }

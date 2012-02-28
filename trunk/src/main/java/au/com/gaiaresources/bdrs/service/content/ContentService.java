@@ -250,6 +250,13 @@ public class ContentService {
     
     private static final Pattern requestUrlPattern = Pattern.compile("(http://[^/]*/[^/]+?)/.*");
 
+    /**
+     * Returns the request URL up to the context path.
+     * For example, for http://localhost:8080/BDRS/home.htm, returns http://localhost:8080/BDRS
+     * @param url the url of the request
+     * @return The request URL up to the context path
+     * @throws IllegalArgumentException if the url is null
+     */
     public static String getRequestURL(String url) {
         if (url == null) {
             throw new IllegalArgumentException("String, url, cannot be null");
@@ -266,6 +273,13 @@ public class ContentService {
     
     private static final Pattern contextPathPattern = Pattern.compile("http://[^/]*(/[^/]+?)/.*");
     
+    /**
+     * Returns the context path of the URL.
+     * For example, for http://localhost:8080/BDRS/home.htm, returns /BDRS
+     * @param url the url of the request
+     * @return the context path of the URL
+     * @throws IllegalArgumentException if the url is null
+     */
     public static String getContextPath(String url) {
         if (url == null) {
             throw new IllegalArgumentException("String, url, cannot be null");

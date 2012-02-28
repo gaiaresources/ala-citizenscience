@@ -10,8 +10,10 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
@@ -22,11 +24,12 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
 
 import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField;
@@ -35,6 +38,10 @@ import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordFormFieldC
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
 import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
+import au.com.gaiaresources.bdrs.deserialization.record.RecordDeserializer;
+import au.com.gaiaresources.bdrs.deserialization.record.RecordDeserializerResult;
+import au.com.gaiaresources.bdrs.deserialization.record.RecordEntry;
+import au.com.gaiaresources.bdrs.deserialization.record.RecordKeyLookup;
 import au.com.gaiaresources.bdrs.file.FileService;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
@@ -53,12 +60,12 @@ import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeUtil;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValueUtil;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.service.content.ContentService;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 
 import com.vividsolutions.jts.geom.Geometry;
@@ -184,215 +191,108 @@ public abstract class SingleSiteController extends AbstractController {
     protected ModelAndView saveRecordHelper(
             MultipartHttpServletRequest request, HttpServletResponse response,
             int surveyId, Double latitude, Double longitude, Date date,
-            String time_hour, String time_minute, String notes,
-            Integer sightingIndex, String[] rowIds) throws ParseException, IOException {
+            String time_hour, String time_minute, String notes, String[] rowIds) throws ParseException, IOException {
 
         Map<String, String[]> paramMap = this.getModifiableParameterMap(request);
 
-        User user = getRequestContext().getUser();
-
         Survey survey = surveyDAO.getSurvey(surveyId);
-
-        // Dates
-        Date dateTemplate = null;
-        Calendar cal = new GregorianCalendar();
-        if (date != null) {
-            cal.setTime(date);
-        }
-        Integer hour, minute;
-        if (StringUtils.nullOrEmpty(time_minute)) {
-            minute = null;
-        } else {
-            //minute = Integer.parseInt(request.getParameter("time_minute"));
-            minute = Integer.parseInt(time_minute);
-            cal.set(Calendar.MINUTE, minute);
-        }
-        if (StringUtils.nullOrEmpty(time_hour)) {
-            hour = null;
-        } else {
-            //hour = Integer.parseInt(request.getParameter("time_hour"));
-            hour = Integer.parseInt(time_hour);
-            cal.set(Calendar.HOUR_OF_DAY, hour);
-        }
-        cal.clear(Calendar.MILLISECOND);
-        if (date != null || hour != null || minute != null) {
-            dateTemplate = cal.getTime();
-        }
+        User user = getRequestContext().getUser();
         
-        Double accuracy = null;
-        String accuracyString = request.getParameter(PARAM_ACCURACY);
-        if (!StringUtils.nullOrEmpty(accuracyString)) {
-            try {
-                accuracy = Double.parseDouble(accuracyString);    
-            } catch (NumberFormatException nfe) {
-                accuracy = null;
+        RecordKeyLookup lookup = new TrackerFormRecordKeyLookup();
+        SingleSiteFormToRecordEntryTransformer transformer = new SingleSiteFormToRecordEntryTransformer(locationService);
+        SingleSiteFormAttributeDictionaryFactory adf = new SingleSiteFormAttributeDictionaryFactory(rowIds);
+        AttributeParser parser = new WebFormAttributeParser();
+
+        RecordDeserializer rds = new RecordDeserializer(lookup, adf, parser);
+        List<RecordEntry> entries = transformer.httpRequestParamToRecordMap(paramMap, request.getFileMap(), rowIds);
+        List<RecordDeserializerResult> results = rds.deserialize(getRequestContext().getUser(), entries);
+        
+        // there should be at least one result
+        if (results.size() != rowIds.length) {
+            log.warn("Expecting "+rowIds.length+" deserialization results but got: " + results.size());
+            return getErrorRedirect(survey, user, null, request, results);
+        }
+        for (RecordDeserializerResult res : results) {
+            if (!res.isAuthorizedAccess()) {
+                // Required since there will be an auto commit otherwise at the end of controller handling.
+                requestRollback(request);
+                throw new AccessDeniedException(RecordWebFormContext.MSG_CODE_EDIT_AUTHFAIL);
+            }
+            
+            if (!res.getErrorMap().isEmpty()) {
+                return getErrorRedirect(survey, user, res.getRecord(), request, results);
             }
         }
         
-        Location loc = null;
-        String locIdString = request.getParameter(PARAM_LOCATION);
-        if (!StringUtils.nullOrEmpty(locIdString)) {
-            try {
-                loc = locationDAO.getLocation(Integer.parseInt(locIdString));
-            } catch (NumberFormatException nfe) {
-                loc = null;
-            }
-        }
-
-        Record record = null;
-
-        String surveyPrefix = AttributeParser.DEFAULT_PREFIX;
-        WebFormAttributeParser attributeParser = new WebFormAttributeParser();
-        List<Record> records = new ArrayList<Record>();
-
-        for (String recordPrefix : rowIds) {
-        	
-            if (StringUtils.notEmpty(recordPrefix)) {
-                // Attempt to retrieve a record
-                try {
-                    String recIdString = request.getParameter(recordPrefix + PARAM_RECORD_ID);
-                    if (StringUtils.notEmpty(recIdString)) {
-                        Integer recId = Integer.parseInt(recIdString);
-                        record = recordDAO.getRecord(recId);
-                        // the rec id we attempted to retrieve does not exist, new record
-                        if (record == null) {
-                            record = new Record();
-                        }    
-                    } else {
-                        // rec id string is null or empty, make a new record
-                        record = new Record();
-                    }
-                    
-                } catch (NumberFormatException nfe) {
-                    // fall back to a new record
-                    record = new Record();
-                }
-
-                // Set record visibility to survey default. Setting via web form not supported.
-                // Survey's default record visibility can be set in the 'admin -> projects' interface
-                // This will also set an existing record's visibility back to the survey default.
-                record.setRecordVisibility(survey.getDefaultRecordVisibility());
-
-                // Preserve the original owner of the record if this is a record edit.
-                if (record.getUser() == null) {
-                    record.setUser(user);
-                }
-                
-                record.setSurvey(survey);
-                record.setAccuracyInMeters(accuracy);
-                if (notes != null) {
-                    record.setNotes(notes);
-                }
-                if (loc != null) {
-                    record.setLocation(loc);
-                    record.setPoint(loc.getPoint());
-                } else {
-                    // clear the location item...
-                    record.setLocation(null);
-                    if (latitude != null && longitude != null) {
-                        record.setPoint(locationService.createPoint(latitude, longitude));
-                    }
-                }
-
-                // Avoiding (for no reason) using the same instance of the date
-                if (dateTemplate != null) {
-                    Date recordDate = new Date(dateTemplate.getTime());
-                    record.setWhen(recordDate);
-                    record.setTime(recordDate.getTime());
-                    record.setLastDate(recordDate);
-                    record.setLastTime(recordDate.getTime());
-                }
-
-                // Constants
-                record.setFirstAppearance(false);
-                record.setLastAppearance(false);
-
-                // Taxonomy
-                String speciesPkStr = request.getParameter(String.format("%s" + PARAM_SPECIES, recordPrefix));
-                if (speciesPkStr != null && !speciesPkStr.trim().isEmpty()) {
-                    int speciesPk = Integer.parseInt(speciesPkStr);
-                    IndicatorSpecies species = taxaDAO.getIndicatorSpecies(speciesPk);
-                    record.setSpecies(species);
-                }
-                // Number
-                // this can happen in the singleSiteAllTaxa page
-                String count = request.getParameter(String.format("%s" + PARAM_NUMBER, recordPrefix));
-                Integer number = null;
-                if (!StringUtils.nullOrEmpty(count)) {
-                    try {
-                        number = Integer.parseInt(count);
-                    } catch (NumberFormatException e) {
-                        log.error("Value should be an integer: " + e.getMessage());
-                    }
-                }
-                record.setNumber(number);
-                // check that we can save the record at this point based on the count
-                boolean canSave = canSaveRecord(number);
-                // Record Attributes
-                AttributeValue recAttr;
-                String prefix;
-                Map<AttributeValue, MultipartFile> attsToSave = new HashMap<AttributeValue, MultipartFile>();
-                List<AttributeValue> attsToDelete = new ArrayList<AttributeValue>();
-                for (Attribute attribute : survey.getAttributes()) {
-                    if (!AttributeScope.LOCATION.equals(attribute.getScope())) {
-                        if (AttributeUtil.isModifiableByScopeAndUser(attribute, user)) {
-                            prefix = AttributeScope.SURVEY.equals(attribute.getScope()) || 
-                                 AttributeScope.SURVEY_MODERATION.equals(attribute.getScope()) ? surveyPrefix
-                                : recordPrefix;
-                            recAttr = attributeParser.parse(prefix, attribute, record, paramMap, request.getFileMap());
-                            if (attributeParser.isAddOrUpdateAttribute()) {
-                                attsToSave.put(recAttr, attributeParser.getAttrFile());
-                            } else {
-                                attsToDelete.add(recAttr);
-                            }
-                            if (!canSave) {
-                                canSave = AttributeScope.RECORD.equals(attribute.getScope()) && 
-                                          recAttr != null && recAttr.isPopulated();
-                            }
-                        }
-                    }
-                }
-                
-                // always save records that are being edited
-                canSave = canSave || record.getId() != null;
-                if (canSave) {
-                    records.add(recordDAO.saveRecord(record));
-                    
-                    for (Entry<AttributeValue, MultipartFile> entry : attsToSave.entrySet()) {
-                        recAttr = entry.getKey();
-                        recAttr = attributeDAO.save(recAttr);
-                        if (entry.getValue() != null) {
-                            fileService.createFile(recAttr, entry.getValue());
-                        }
-                        record.getAttributes().add(recAttr);
-                    }
-                    
-                    for (AttributeValue attributeValue : attsToDelete) {
-                        record.getAttributes().remove(attributeValue);
-                        attributeDAO.delete(attributeValue);
-                    }
-                }
-            }
-
-        }
-
-        ModelAndView mv = RecordWebFormContext.getSubmitRedirect(request, record);
+        // if we get to this point, clear the last errors out of the session attributes
+        // because this is successful and the errors/values might still be present in the maps
+        getRequestContext().removeSessionAttribute(TrackerController.MV_ERROR_MAP);
+        getRequestContext().removeSessionAttribute("valueMap");
+        getRequestContext().removeSessionAttribute(TrackerController.MV_WKT);
+        
+        ModelAndView mv = RecordWebFormContext.getSubmitRedirect(request, results.get(0).getRecord());
 
         if (request.getParameter(RecordWebFormContext.PARAM_SUBMIT_AND_ADD_ANOTHER) != null) {
             mv.addObject("surveyId", survey.getId());
-            getRequestContext().addMessage(MSG_CODE_SUCCESS_ADD_ANOTHER, new Object[] { records.size() });
+            getRequestContext().addMessage(MSG_CODE_SUCCESS_ADD_ANOTHER, new Object[] { results.size() });
         } else {
             switch (survey.getFormSubmitAction()) {
             case MY_SIGHTINGS:
-                getRequestContext().addMessage(MSG_CODE_SUCCESS_MY_SIGHTINGS, new Object[] { records.size() });
+                getRequestContext().addMessage(MSG_CODE_SUCCESS_MY_SIGHTINGS, new Object[] { results.size() });
                 break;
             case STAY_ON_FORM:
-                getRequestContext().addMessage(MSG_CODE_SUCCESS_STAY_ON_FORM, new Object[] { records.size() });
+                getRequestContext().addMessage(MSG_CODE_SUCCESS_STAY_ON_FORM, new Object[] { results.size() });
                 break;
             default:
                 throw new IllegalStateException("Submit form action not handled : " + survey.getFormSubmitAction());
             }
         }
+        return mv;
+    }
+
+    private ModelAndView getErrorRedirect(Survey survey, User accessor, Record record, MultipartHttpServletRequest request, List<RecordDeserializerResult> results) {
+     // an error has occured
+        requestRollback(request);
+        // create valueMap to repopulate the form...
+        Map<String, String[]> params = request.getParameterMap();
+        Map<String, String> valueMap = new HashMap<String, String>();
+        for(Map.Entry<String, String[]> paramEntry : params.entrySet()) {
+            if(paramEntry.getValue() != null && paramEntry.getValue().length > 0) {
+                if(paramEntry.getValue().length == 1) {
+                        valueMap.put(paramEntry.getKey(), paramEntry.getValue()[0]);
+                } else {
+                        // Not bothering with a csv writer here because the
+                        // jsp template does a simple String.contains to check
+                        // if the the multi select or multi combo should be picked.
+                        StringBuilder b = new StringBuilder();
+                        for(int q = 0; q<paramEntry.getValue().length; q++) {
+                                b.append(paramEntry.getValue()[q]);
+                                b.append(',');
+                        }
+                        valueMap.put(paramEntry.getKey(), b.toString());
+                }
+            }
+        }
+        // strip the context path out of the URL
+        String redirectURL = request.getRequestURI().replace(ContentService.getContextPath(request.getRequestURL().toString()), "");
+        ModelAndView mv = new ModelAndView(new RedirectView(redirectURL, true));
+        Map<String, String> errorMap = new HashMap<String, String>();
+        for (RecordDeserializerResult result : results) {
+            errorMap.putAll(result.getErrorMap());
+        }
+        
+        getRequestContext().setSessionAttribute(TrackerController.MV_ERROR_MAP, errorMap);
+        getRequestContext().setSessionAttribute("valueMap", valueMap);
+        getRequestContext().setSessionAttribute(TrackerController.MV_WKT, request.getParameter(TrackerController.PARAM_WKT));
+        
+        mv.addObject("surveyId", request.getParameter("surveyId"));
+        mv.addObject("censusMethodId", request.getParameter("censusMethodId"));
+        
+        String recordId = request.getParameter(PARAM_RECORD_ID);
+        if(recordId != null && !recordId.isEmpty()) {
+            mv.addObject(PARAM_RECORD_ID, Integer.parseInt(recordId));
+        }
+        getRequestContext().addMessage("form.validation");
         return mv;
     }
 
@@ -424,7 +324,7 @@ public abstract class SingleSiteController extends AbstractController {
         List<FormField> formFieldList = new ArrayList<FormField>();
         for (Attribute attribute : survey.getAttributes()) {
             // Only record scoped attributes should be in the sightings table.
-            if (AttributeScope.RECORD.equals(attribute.getScope())
+            if (AttributeScope.isRecordScope(attribute.getScope()) 
                     && !attribute.isTag()) {
                 formFieldList.add(formFieldFactory.createRecordFormField(survey, record, attribute, null, prefix));
             }
@@ -496,54 +396,17 @@ public abstract class SingleSiteController extends AbstractController {
         
         // save a list of the record scoped attributes for construction of form fields for each
         // record (aka sighting table row) later...
-        List<Attribute> recordScopedAttributeList = new ArrayList<Attribute>();
+        Map<String, Attribute> recordScopedAttributeList = new TreeMap<String, Attribute>();
+        int sightingIndex = STARTING_SIGHTING_INDEX;
         
-        for (Attribute attribute : survey.getAttributes()) {
-            if (!attribute.isTag()
-                    && !AttributeScope.LOCATION.equals(attribute.getScope())) {
-                AttributeValue attrVal = AttributeValueUtil.getAttributeValue(attribute, record);
-                if (AttributeScope.SURVEY.equals(attribute.getScope()) || 
-                        (AttributeScope.SURVEY_MODERATION.equals(attribute.getScope()) && 
-                                ((accessor != null && accessor.isModerator()) || (attrVal != null && attrVal.isPopulated())))) {
-                    // only add moderation attributes if the accessor is a moderator or the value is populated
-                    formFieldList.add(formFieldFactory.createRecordFormField(survey, record, attribute, attrVal));
-                } else if (AttributeScope.RECORD.equals(attribute.getScope()) || 
-                        (AttributeScope.RECORD_MODERATION.equals(attribute.getScope()) && 
-                                ((accessor != null && accessor.isModerator()) || (attrVal != null && attrVal.isPopulated())))) {
-                    recordScopedAttributeList.add(attribute);
-                    sightingRowFormFieldList.add(formFieldFactory.createRecordFormField(survey, record, attribute));
-                }
-            }
-        }
+        // the final list of populated form field collections that we will use to render the web form.
+        List<RecordFormFieldCollection> recFormFieldCollectionList = new ArrayList<RecordFormFieldCollection>();
         
         // Add all property form fields.
         // save a list of the record scoped record properties for construction of form fields
         // for each record (aka sighting table row) later...
-        List<RecordProperty> recordScopedRecordPropertyList = new ArrayList<RecordProperty>();
-        boolean showMap = false;
-        for (RecordPropertyType type : RecordPropertyType.values()) {
-        	
-            RecordProperty recordProperty = new RecordProperty(survey, type,
-                    metadataDAO);
-            
-            //showMap if location or point fields are hidden.
-            if(!showMap && (type.equals(RecordPropertyType.LOCATION) || type.equals(RecordPropertyType.POINT))){
-            	showMap = !recordProperty.isHidden();
-            }
-            
-            if (!recordProperty.isHidden()) {
-                if (recordProperty.getScope().equals(AttributeScope.SURVEY) || 
-                        AttributeScope.SURVEY_MODERATION.equals(recordProperty.getScope())) {
-                    formFieldList.add(formFieldFactory.createRecordFormField(record, recordProperty));
-                } else {
-                    recordScopedRecordPropertyList.add(recordProperty);
-                    sightingRowFormFieldList.add(formFieldFactory.createRecordFormField(record, recordProperty));
-                }
-            }
-        }
-
-        Collections.sort(formFieldList);
-        Collections.sort(sightingRowFormFieldList);
+        Map<String, RecordProperty> recordScopedRecordPropertyList = new TreeMap<String, RecordProperty>();
+        boolean showMap = createAttributeLists(survey, accessor, record, sightingRowFormFieldList, formFieldList, recordScopedAttributeList, recordScopedRecordPropertyList);
 
         Metadata predefinedLocationsMD = survey.getMetadataByKey(Metadata.PREDEFINED_LOCATIONS_ONLY);
         boolean predefinedLocationsOnly = predefinedLocationsMD != null
@@ -557,10 +420,6 @@ public abstract class SingleSiteController extends AbstractController {
         }
         ModelAndView mv = new ModelAndView(viewName);
         
-        int sightingIndex = STARTING_SIGHTING_INDEX;
-        
-        // the final list of populated form field collections that we will use to render the web form.
-        List<RecordFormFieldCollection> recFormFieldCollectionList = new ArrayList<RecordFormFieldCollection>();
         
         // modify the list
         // note we need to reassign as it is a new list instance...
@@ -573,12 +432,86 @@ public abstract class SingleSiteController extends AbstractController {
             RecordFormFieldCollection rffc = new RecordFormFieldCollection(prefix, 
                                                                            rec, 
                                                                            highlight, 
-                                                                           recordScopedRecordPropertyList,
-                                                                           recordScopedAttributeList);
+                                                                           recordScopedRecordPropertyList.values(),
+                                                                           recordScopedAttributeList.values());
             
             recFormFieldCollectionList.add(rffc);
         }
 
+        Map<String, String> valueMap = (Map<String, String>) getRequestContext().getSessionAttribute("valueMap");
+        if (valueMap != null) {
+            // convert the valueMap into a set of records
+            Map<String, Record> recordMap = new HashMap<String, Record>();
+            // keep track of all the values we are creating records from
+            // these values will become record form fields and the form values will
+            // be retrieved from those objects instead of the form field to keep 
+            // the rows intact
+            Set<String> valsToRemove = new HashSet<String>();
+            for (Entry<String,String> valueEntry : valueMap.entrySet()) {
+                // only store indexed values here
+                String key = valueEntry.getKey();
+                int underIndex = key.indexOf("_");
+                if (underIndex > 0) {
+                    // get the prefix of the value (the sighting index)
+                    String index = key.substring(0, underIndex);
+                    if (recordMap.containsKey(index)) {
+                        record = recordMap.get(index);
+                    } else {
+                        record = new Record();
+                        recordMap.put(index, record);
+                    }
+                    // set the survey for the record for other lookups
+                    record.setSurvey(survey);
+                    
+                    // set the attribute/property value for the record for this value
+                    String attrName = key.substring(underIndex+1);
+                    if (recordScopedAttributeList.containsKey(attrName)) {
+                        AttributeValue value = new AttributeValue();
+                        value.setAttribute(recordScopedAttributeList.get(attrName));
+                        value.setStringValue(valueEntry.getValue());
+                        try {
+                            value.populateFromStringValue();
+                        } catch (Exception e) {
+                            log.warn("Unable to populate attribute value from string value.", e);
+                        }
+                        record.getAttributes().add(value);
+                        // remove the attribute from the value map
+                        valsToRemove.add(key);
+                    } else if (recordScopedRecordPropertyList.containsKey(attrName)) {
+                        RecordProperty prop = recordScopedRecordPropertyList.get(attrName);
+                        if (prop.getRecordPropertyType().equals(RecordPropertyType.NUMBER)) {
+                            record.setNumber(Integer.valueOf(valueEntry.getValue()));
+                        } else if (prop.getRecordPropertyType().equals(RecordPropertyType.SPECIES)) {
+                            // get the indicator species from the value
+                            IndicatorSpecies species = taxaDAO.getIndicatorSpecies(Integer.valueOf(valueEntry.getValue()));
+                            record.setSpecies(species);
+                        }
+                        // remove the attribute from the value map
+                        valsToRemove.add(key);
+                    } else if (attrName.equals("recordId")) {
+                        if (!StringUtils.nullOrEmpty(valueEntry.getValue())) {
+                            record.setId(Integer.valueOf(valueEntry.getValue()));
+                        }
+                        // remove the attribute from the value map
+                        valsToRemove.add(key);
+                    }
+                }
+            }
+            
+            for (String string : valsToRemove) {
+                valueMap.remove(string);
+            }
+            
+            for (Record record2 : recordMap.values()) {
+                    String prefix = getSightingPrefix(sightingIndex++);
+                    RecordFormFieldCollection rffc = new RecordFormFieldCollection(prefix, 
+                                                                               record2, 
+                                                                               false, 
+                                                                               recordScopedRecordPropertyList.values(),
+                                                                               recordScopedAttributeList.values());
+                    recFormFieldCollectionList.add(rffc);
+            }
+        }
         // form field list is the survey scoped attributes.
         // contains the form field and the data (optional).
         // note: NON record scoped attributes only!
@@ -607,6 +540,67 @@ public abstract class SingleSiteController extends AbstractController {
         mv.addObject("displayMap", showMap);
         
         return mv;
+    }
+
+    /**
+     * Populates the sightingRowFormFieldList with form fields to build the headers of the table,
+     * the formFieldList with form fields for each row of the table, 
+     * the recordScopedAttributeList with record scoped attributes to show in the table,
+     * and the recordScopedRecordPropertyList with record properties to show in the table.
+     * Returns whether or not to show the map on the form based on if location or point are present.
+     * @param survey the survey for the form
+     * @param accessor the user saving the form
+     * @param record the record we are creating the lists from
+     * @param sightingRowFormFieldList the list of form fields to show in a row on the table
+     * @param formFieldList the list of form fields to show on the form
+     * @param recordScopedAttributeList the record attributes to show in the table
+     * @param recordScopedRecordPropertyList the record properties to show in the table
+     * @return true if the map should show on the form and false otherwise
+     */
+    private boolean createAttributeLists(Survey survey, User accessor, Record record, 
+            List<FormField> sightingRowFormFieldList,
+            List<FormField> formFieldList,
+            Map<String, Attribute> recordScopedAttributeList,
+            Map<String, RecordProperty> recordScopedRecordPropertyList) {
+        for (Attribute attribute : survey.getAttributes()) {
+            if (!attribute.isTag()
+                    && !AttributeScope.LOCATION.equals(attribute.getScope())) {
+                AttributeValue attrVal = record == null ? null : AttributeValueUtil.getAttributeValue(attribute, record);
+                if (AttributeScope.isSurveyScope(attribute.getScope())) {
+                    formFieldList.add(formFieldFactory.createRecordFormField(survey, record, attribute, attrVal));
+                } else if (AttributeScope.isRecordScope(attribute.getScope())) {
+                    recordScopedAttributeList.put(String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, "", attribute.getId()), attribute);
+                    sightingRowFormFieldList.add(formFieldFactory.createRecordFormField(survey, record, attribute));
+                }
+            }
+        }
+        
+        boolean showMap = false;
+        for (RecordPropertyType type : RecordPropertyType.values()) {
+            
+            RecordProperty recordProperty = new RecordProperty(survey, type,
+                    metadataDAO);
+            
+            //showMap if location or point fields are hidden.
+            if(!showMap && (type.equals(RecordPropertyType.LOCATION) || type.equals(RecordPropertyType.POINT))){
+                showMap = !recordProperty.isHidden();
+            }
+            
+            if (!recordProperty.isHidden()) {
+                if (recordProperty.getScope().equals(AttributeScope.SURVEY) || 
+                        AttributeScope.SURVEY_MODERATION.equals(recordProperty.getScope())) {
+                    formFieldList.add(formFieldFactory.createRecordFormField(record, recordProperty));
+                } else {
+                    recordScopedRecordPropertyList.put(recordProperty.getName().toLowerCase(), recordProperty);
+                    sightingRowFormFieldList.add(formFieldFactory.createRecordFormField(record, recordProperty));
+                }
+            }
+        }
+
+        Collections.sort(formFieldList);
+        Collections.sort(sightingRowFormFieldList);
+        
+        return showMap;
     }
 
     private List<Record> getRecordsForFormInstance(Record rec, User accessor) {

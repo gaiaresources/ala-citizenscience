@@ -371,7 +371,9 @@ public class TrackerController extends AbstractController {
             // displayed above group form fields.
             if(surveyAttributeList.remove(attr)) {
                 // only add moderation attributes if the user is a moderator
+                // or if the loggedInUser is the owner of the record
                 if (AttributeUtil.isVisibleByScopeAndUser(attr, loggedInUser, recAttr) ||
+                        (loggedInUser != null && loggedInUser.equals(record.getUser())) ||
                         !AttributeScope.isModerationScope(attr.getScope())) {
                     formField = formFieldFactory.createRecordFormField(survey, record, attr, recAttr);
                     surveyFormFieldList.add(formField);
@@ -389,8 +391,9 @@ public class TrackerController extends AbstractController {
         for (Attribute surveyAttr : surveyAttributeList) {
             if(!AttributeScope.LOCATION.equals(surveyAttr.getScope())) {
                 AttributeValue attrVal = AttributeValueUtil.getAttributeValue(surveyAttr, record);
-                // only add moderation attributes if the user is a moderator
+                // only add moderation attributes if the user is a moderator or if it is the owner of the record
                 if (AttributeUtil.isVisibleByScopeAndUser(surveyAttr, loggedInUser, attrVal) ||
+                        (loggedInUser != null && loggedInUser.equals(record.getUser())) ||
                         !AttributeScope.isModerationScope(surveyAttr.getScope())) {
                     surveyFormFieldList.add(formFieldFactory.createRecordFormField(survey, record, surveyAttr));
                 }

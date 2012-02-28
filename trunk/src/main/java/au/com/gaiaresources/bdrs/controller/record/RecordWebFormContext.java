@@ -83,6 +83,7 @@ public class RecordWebFormContext {
     private boolean preview;
     private Integer recordId;
     private Integer surveyId;
+    private boolean moderateOnly;
     
     /**
      * Create a new web form context for use with the form GET handler
@@ -102,7 +103,11 @@ public class RecordWebFormContext {
         } else {
             // otherwise, check whether an edit has been requested.
             String reqString = request.getParameter(PARAM_EDIT);
-            editable = reqString != null ? Boolean.parseBoolean(reqString) : false;   
+            editable = reqString != null ? Boolean.parseBoolean(reqString) : false;
+            // set if the edit is moderation fields only
+            // this is only true if the form is editable, it is not an anonymous user
+            // the user is not the owner and the user is a moderator but not admin
+            moderateOnly = editable && accessingUser != null && !accessingUser.equals(recordToLoad.getUser()) && accessingUser.isModerator() && !accessingUser.isAdmin();
         }
         
         // check whether the form is in preview mode...
@@ -162,6 +167,14 @@ public class RecordWebFormContext {
      */
     public boolean isEditable() {
         return this.editable;
+    }
+    
+    /**
+     * Is the web form editable for moderation only (i.e. only moderation fields are editable)
+     * @return true if only moderation fields are editable, false if all fields are editable
+     */
+    public boolean isModerateOnly() {
+        return this.moderateOnly;
     }
     
     /**

@@ -7,6 +7,7 @@
 <%@page import="au.com.gaiaresources.bdrs.servlet.RequestContextHolder"%>
 <tiles:useAttribute name="recordFormFieldCollection" classname="au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordFormFieldCollection" ignore="true" />
 <tiles:useAttribute name="editEnabled" ignore="true" />
+<tiles:useAttribute name="isModerationOnly" ignore="true" />
 
 <%-- when there is a record form field collection use it, it's filled with data. Otherwise use the formFieldList object to create the empty row --%>
 
@@ -25,41 +26,54 @@
 
     <input name="${recordFormFieldCollection.prefix}${sightingIndex}recordId" type="hidden" value="${recordFormFieldCollection.recordId}" class="recordRow" />
     <input name="rowPrefix" type="hidden" value="${recordFormFieldCollection.prefix}${sightingIndex}" />
+    <c:set var="fieldEditable" value="${editEnabled}"></c:set>
     <c:forEach items="${ffList}" var="formField">
         <jsp:useBean id="formField" type="au.com.gaiaresources.bdrs.controller.attribute.formfield.AbstractRecordFormField" />
-           <c:choose>
-               <c:when test="<%= formField.isPropertyFormField() %>">
-                   <c:if test="${ not formField.hidden }">
-                       <td>
-                           <tiles:insertDefinition name="propertyRenderer">
-                              <tiles:putAttribute name="formField" value="${ formField }"/>
-                           <tiles:putAttribute name="editEnabled" value="${ editEnabled }" />
-                          </tiles:insertDefinition>
-                      </td>
-                   </c:if>
-               </c:when>
-               <c:when test="<%= formField.isAttributeFormField() %>">
-                   <c:if test="<%= formField.isModerationFormField() %>">
-                       <c:if test="${editEnabled}">
-                           <c:set var="editEnabled" value="<%= RequestContextHolder.getContext().getUser().isModerator() %>"></c:set>
-                       </c:if>
-                   </c:if>
+           
+        <c:choose>
+           <c:when test="<%= formField.isModerationFormField() %>">
+               <c:if test="${editEnabled}">
+                   <c:set var="fieldEditable" value="<%= RequestContextHolder.getContext().getUser().isModerator() %>"></c:set>
+               </c:if>
+           </c:when>
+           <c:otherwise>
+               <c:if test="${editEnabled}">
+                   <c:set var="fieldEditable" value="${not isModerationOnly}"></c:set>
+               </c:if>
+           </c:otherwise>
+       </c:choose>
+       <c:choose>
+           <c:when test="<%= formField.isPropertyFormField() %>">
+               <c:if test="${ not formField.hidden }">
                    <td>
-                       <tiles:insertDefinition name="attributeRenderer">
+                       <tiles:insertDefinition name="propertyRenderer">
                            <tiles:putAttribute name="formField" value="${ formField }"/>
-                           <tiles:putAttribute name="editEnabled" value="${ editEnabled }" />
+                           <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
+                           <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
+                           <tiles:putAttribute name="editEnabled" value="${ fieldEditable }" />
                        </tiles:insertDefinition>
-                   </td>
-            </c:when>
-        </c:choose>
+                  </td>
+               </c:if>
+           </c:when>
+           <c:when test="<%= formField.isAttributeFormField() %>">
+               <td>
+                   <tiles:insertDefinition name="attributeRenderer">
+                       <tiles:putAttribute name="formField" value="${ formField }"/>
+                       <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
+                       <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
+                       <tiles:putAttribute name="editEnabled" value="${ fieldEditable }" />
+                   </tiles:insertDefinition>
+               </td>
+        </c:when>
+    </c:choose>
     </c:forEach>
-     <c:if test="${ editEnabled and not preview}">
-	    <td class="delete_col">
-	     	<a href="javascript: void(0);" onclick="bdrs.survey.deleteAjaxRecord('${ident}', '${recordFormFieldCollection.recordId}', jQuery(this).parents('tr'), '.messages');">
-	           <img src="${pageContext.request.contextPath}/images/icons/delete.png" alt="Delete" class="vertmiddle"/>
-			</a>
-	    </td>
-	</c:if>
+     <c:if test="${ editEnabled and not preview and not isModerationOnly}">
+        <td class="delete_col">
+             <a href="javascript: void(0);" onclick="bdrs.survey.deleteAjaxRecord('${ident}', '${recordFormFieldCollection.recordId}', jQuery(this).parents('tr'), '.messages');">
+               <img src="${pageContext.request.contextPath}/images/icons/delete.png" alt="Delete" class="vertmiddle"/>
+            </a>
+        </td>
+    </c:if>
 </tr>
 
 

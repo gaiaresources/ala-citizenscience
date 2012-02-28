@@ -1,16 +1,15 @@
 package au.com.gaiaresources.bdrs.controller.attribute.formfield;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.method.Taxonomic;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValueUtil;
 
@@ -35,8 +34,8 @@ public class RecordFormFieldCollection {
      * @param recPropList - the RecordProperty fields to render...
      * @param attrList - the Attributes to render
      */
-    public RecordFormFieldCollection(String prefix, Record record, boolean highlight, List<RecordProperty> recPropList,
-            List<Attribute> attrList) {
+    public RecordFormFieldCollection(String prefix, Record record, boolean highlight, Collection<RecordProperty> recPropList,
+            Collection<Attribute> attrList) {
         
         this.prefix = prefix;
         this.highlight = highlight;
@@ -57,7 +56,7 @@ public class RecordFormFieldCollection {
             if (av != null) {
                 formFields.add(formFieldFactory.createRecordFormField(survey, record, av.getAttribute(), av, prefix));
             } else {
-                formFields.add(formFieldFactory.createRecordFormField(survey, record, a, null, prefix));        
+                formFields.add(formFieldFactory.createRecordFormField(survey, record, a, null, prefix));
             }
         }
         

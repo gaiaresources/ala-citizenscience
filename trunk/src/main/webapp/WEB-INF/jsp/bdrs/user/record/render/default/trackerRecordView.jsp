@@ -82,6 +82,7 @@
                         <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
                         <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
                         <tiles:putAttribute name="editEnabled" value="${ recordWebFormContext.editable }"/>
+                        <tiles:putAttribute name="isModerationOnly" value="${ recordWebFormContext.moderateOnly }"/>
                     </tiles:insertDefinition>
                 </c:forEach>
                 
@@ -92,6 +93,7 @@
                         <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
                         <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
                         <tiles:putAttribute name="editEnabled" value="${ recordWebFormContext.editable }"/>
+                        <tiles:putAttribute name="isModerationOnly" value="${ recordWebFormContext.moderateOnly }"/>
                     </tiles:insertDefinition>
                 </c:forEach>
                 
@@ -102,6 +104,7 @@
                         <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
                         <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
                         <tiles:putAttribute name="editEnabled" value="${ recordWebFormContext.editable }"/>
+                        <tiles:putAttribute name="isModerationOnly" value="${ recordWebFormContext.moderateOnly }"/>
                     </tiles:insertDefinition>
                 </c:forEach>
             </tbody>
