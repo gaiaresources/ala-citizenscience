@@ -378,7 +378,7 @@ $.fn.ketchup.validation('attrOptionIntWithRange', function(element, value) {
 	}
 });
 
-var attrOptionCommaSeparatedRegex = /^([\w\s;:'"]+)(,[\w\s;:'"]+)+$/;
+var attrOptionCommaSeparatedRegex = /^([^,]+)(,[^,]+)+$/;
 $.fn.ketchup.validation('attrOptionCommaSeparated', function(element, value) {
     if (element.val().length === 0) {
         return true;
