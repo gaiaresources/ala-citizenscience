@@ -53,8 +53,8 @@ import com.vividsolutions.jts.geom.Point;
 @Filters({
         @Filter(name=PortalPersistentImpl.PORTAL_FILTER_NAME, condition=":portalId = PORTAL_ID"),
         @Filter(name=Record.ANONYMOUS_RECORD_ACCESS_FILTER, condition="RECORD_VISIBILITY = 'PUBLIC' and not HELD"),
-        @Filter(name=Record.USER_ACCESS_FILTER, condition="INDICATOR_USER_ID = :userId or (RECORD_VISIBILITY = 'PUBLIC' and not HELD)"),
-        @Filter(name=Record.MODERATOR_ACCESS_FILTER, condition="INDICATOR_USER_ID = :userId or RECORD_VISIBILITY = 'PUBLIC'")
+        @Filter(name=Record.USER_ACCESS_FILTER, condition="(INDICATOR_USER_ID = :userId or (RECORD_VISIBILITY = 'PUBLIC' and not HELD))"),
+        @Filter(name=Record.MODERATOR_ACCESS_FILTER, condition="(INDICATOR_USER_ID = :userId or RECORD_VISIBILITY = 'PUBLIC')")
 })
 @Table(name = "RECORD")
 @AttributeOverride(name = "id", column = @Column(name = "RECORD_ID"))
