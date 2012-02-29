@@ -14,6 +14,9 @@ import javax.xml.bind.JAXBException;
 import au.com.gaiaresources.bdrs.db.FilterManager;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 
+import au.com.gaiaresources.bdrs.model.preference.Preference;
+import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
+import au.com.gaiaresources.bdrs.model.preference.PreferenceUtil;
 import org.apache.log4j.Logger;
 import org.hibernate.FlushMode;
 import org.hibernate.Query;
@@ -89,7 +92,11 @@ public class AdvancedReviewSightingsController extends SightingsController{
     
     @Autowired
     private FacetService facetService;
-    
+
+    /** Used to retrieve the default search results view (map or list) */
+    @Autowired
+    private PreferenceDAO preferenceDAO;
+
     /**
      * Provides a view of the facet listing and a skeleton of the map or list
      * view. The map or list view will populate itself via asynchronous 
@@ -115,15 +122,8 @@ public class AdvancedReviewSightingsController extends SightingsController{
         
         ModelAndView mv = new ModelAndView("advancedReview");
         
-        // map view is the default
-        if (VIEW_TYPE_DOWNLOAD.equals(request.getParameter(PARAM_VIEW_TYPE))) {
-            mv.addObject("downloadViewSelected", true);    
-        } else if (VIEW_TYPE_TABLE.equals(request.getParameter(PARAM_VIEW_TYPE))) {
-            mv.addObject("tableViewSelected", true);    
-        } else {
-            mv.addObject("mapViewSelected", true);    
-        }
-        
+        mv.addObject(getViewType(request.getParameter(PARAM_VIEW_TYPE)), true);
+
         String sortBy = request.getParameter(SORT_BY_QUERY_PARAM_NAME);
         String sortOrder = request.getParameter(SORT_ORDER_QUERY_PARAM_NAME);
 
@@ -465,5 +465,35 @@ public class AdvancedReviewSightingsController extends SightingsController{
      */
     private User currentUser() {
         return getRequestContext().getUser();
+    }
+
+    /**
+     * Returns the default view model to use if a view type has not been specified in the request.
+     * The default is determined by the value of the Preference.DEFAULT_TO_MAP_VIEW_KEY preference.
+     * @return the default view model name to use.
+     */
+    private String defaultView() {
+        PreferenceUtil preferenceUtil = new PreferenceUtil(preferenceDAO);
+        boolean useMap = preferenceUtil.getBooleanPreference(Preference.ADVANCED_REVIEW_DEFAULT_VIEW_KEY);
+        return useMap ? MODEL_MAP_VIEW_SELECTED : MODEL_TABLE_VIEW_SELECTED;
+    }
+
+    /**
+     * Returns the model object that represents the view to display based on the supplied request parameter.
+     * @param viewTypeParameter the value of the request parameter used to request a particular view type.  May be null,
+     *                          in which case the default is determined by the Preference.DEFAULT_TO_MAP_VIEW_KEY preference.
+     * @return the name of the view model object used by the page to select the correct view.
+     */
+    private String getViewType(String viewTypeParameter) {
+        if (VIEW_TYPE_DOWNLOAD.equals(viewTypeParameter)) {
+           return MODEL_DOWNLOAD_VIEW_SELECTED;
+        } else if (VIEW_TYPE_TABLE.equals(viewTypeParameter)) {
+            return MODEL_TABLE_VIEW_SELECTED;
+        } else if (VIEW_TYPE_MAP.equals(viewTypeParameter)) {
+            return MODEL_MAP_VIEW_SELECTED;
+        }
+        else {
+            return defaultView();
+        }
     }
 }
