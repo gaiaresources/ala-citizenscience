@@ -127,6 +127,10 @@ public class AdvancedReviewSightingsControllerTest extends
      */
     private int taxonRecordCount;
 
+    /** Used to change the default view returned by the controller */
+    @Autowired
+    private PreferenceDAO preferenceDAO;
+
     @Before
     public void setUp() throws Exception {
         dateA = dateFormat.parse("27 Jun 2004");
@@ -331,6 +335,7 @@ public class AdvancedReviewSightingsControllerTest extends
         }
 
         getRequestContext().getHibernate().flush();
+        updateDefaultViewPreference(true);
     }
 
     private List<Location> createLocations(Survey survey) {
@@ -727,7 +732,13 @@ public class AdvancedReviewSightingsControllerTest extends
         // Saves a preference so do this test last
         testOneLocationAttributeFacet();
         resetRequest();
+    
+        // This also saves a preference..
+        testDefaultView();
+        resetRequest();
     }
+    
+    
 
     //@Test
     public void testSurveyFacetNoneSelected() throws Exception {
@@ -1350,6 +1361,22 @@ public class AdvancedReviewSightingsControllerTest extends
 
         testVisibilityFacetSelection(RecordVisibility.PUBLIC, recordCount);
     }
+
+    /**
+     * Tests that the Preference that sets the default view is honoured by the controller.
+     * The map view as default is tested in the other unit tests.
+     */
+    public void testDefaultView() throws Exception {
+
+        login("admin", "password", new String[] { Role.ADMIN });
+        updateDefaultViewPreference(false);
+
+        request.setMethod("GET");
+        request.setRequestURI("/review/sightings/advancedReview.htm");
+        ModelAndView mv = handle(request, response);
+
+        ModelAndViewAssert.assertModelAttributeValue(mv, AdvancedReviewSightingsController.MODEL_TABLE_VIEW_SELECTED,  true);
+    }
     
     private void testVisibilityFacetSelection(RecordVisibility visibility, int expectedCount) throws Exception {
         login("admin", "password", new String[] { Role.ADMIN });
@@ -1447,5 +1474,10 @@ public class AdvancedReviewSightingsControllerTest extends
         List<Facet> facetList = (List<Facet>) mv.getModel().get("facetList");
         List<Record> recordList = controller.getMatchingRecordsAsList(facetList, null, null, null, null, null, null);
         Assert.assertEquals(recordCount, recordList.size());
+    }
+
+    private void updateDefaultViewPreference(boolean useMap) {
+        Preference mapViewDefault = preferenceDAO.getPreferenceByKey(Preference.ADVANCED_REVIEW_DEFAULT_VIEW_KEY);
+        mapViewDefault.setValue(Boolean.toString(useMap));
     }
 }

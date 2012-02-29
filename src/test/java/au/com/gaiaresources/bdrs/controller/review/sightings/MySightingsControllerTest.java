@@ -8,11 +8,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import au.com.gaiaresources.bdrs.model.preference.Preference;
+import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
 import junit.framework.Assert;
 
 import org.json.JSONArray;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.ModelAndViewAssert;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.servlet.ModelAndView;
@@ -60,7 +63,11 @@ public class MySightingsControllerTest extends AbstractGridControllerTest {
     
     // limit = 0, record_count > 0
     private Map<String, String[]> limitZeroRecordCountPositiveParamMap;
-    
+
+    /** Used to change the default view returned by the controller */
+    @Autowired
+    private PreferenceDAO preferenceDAO;
+
     @Before
     public void setup() {
 
@@ -139,6 +146,8 @@ public class MySightingsControllerTest extends AbstractGridControllerTest {
         limitZeroRecordCountPositiveParamMap = new HashMap<String, String[]>(temp);
         limitZeroRecordCountPositiveParamMap.put(MySightingsController.QUERY_PARAM_SURVEY_ID, new String[] { survey1.getId().toString() });
         limitZeroRecordCountPositiveParamMap.put(MySightingsController.QUERY_PARAM_LIMIT, new String[] { "0" });
+
+        updateDefaultViewPreference(true);
     }
     
     @Test
@@ -678,6 +687,24 @@ public class MySightingsControllerTest extends AbstractGridControllerTest {
         JSONArray array = new JSONArray(response.getContentAsString());
         Assert.assertEquals(survey1RecordsList.size(), array.length());
     }
+
+    /**
+     * Tests that the Preference that sets the default view is honoured by the controller.
+     * The map view as default is tested in the other unit tests.
+     */
+    @Test
+    public void testDefaultView() throws Exception {
+
+        login("admin", "password", new String[] { Role.ADMIN });
+        updateDefaultViewPreference(false);
+
+        request.setMethod("GET");
+        request.setRequestURI(MySightingsController.MY_SIGHTINGS_URL);
+        request.setParameters(limitZeroRecordCountPositiveParamMap);
+        ModelAndView mv = handle(request, response);
+
+        ModelAndViewAssert.assertModelAttributeValue(mv, "selected_tab", MySightingsController.TABLE_TAB);
+    }
     
     private void testMySightings(Map<String, String[]> queryParams, ModelAndView mv) throws Exception {
         ModelAndViewAssert.assertViewName(mv, "mySightings");
@@ -900,5 +927,10 @@ public class MySightingsControllerTest extends AbstractGridControllerTest {
         {
             Assert.assertEquals(1, ((Integer)modelMap.get("page_number")).intValue());
         }
+    }
+
+    private void updateDefaultViewPreference(boolean useMap) {
+        Preference mapViewDefault = preferenceDAO.getPreferenceByKey(Preference.MY_SIGHTINGS_DEFAULT_VIEW_KEY);
+        mapViewDefault.setValue(Boolean.toString(useMap));
     }
 }
