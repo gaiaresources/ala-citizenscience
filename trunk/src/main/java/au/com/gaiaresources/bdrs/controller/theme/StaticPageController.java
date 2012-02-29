@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,11 +19,16 @@ import org.springframework.web.servlet.ModelAndView;
 
 import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.file.FileService;
+import au.com.gaiaresources.bdrs.model.portal.Portal;
 import au.com.gaiaresources.bdrs.model.theme.Theme;
 import au.com.gaiaresources.bdrs.model.theme.ThemeDAO;
+import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.content.ContentService;
 import au.com.gaiaresources.bdrs.service.template.TemplateService;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
+import au.com.gaiaresources.bdrs.servlet.BdrsPluginFacade;
+import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 
 @Controller
 public class StaticPageController extends AbstractController {
@@ -54,7 +60,7 @@ public class StaticPageController extends AbstractController {
      * 
      * 1. Create your theme.
      * 2. Make a directory in the base dir of the theme called... 
-     *    - static_public
+     *    - static/public
      * 3. Add a .vm file to this dir. e.g. PAGE_NAME.vm
      * 4. Upload your theme as normal
      * 5. Now browse to the url mapping: /bdrs/public/static/PAGE_NAME.htm   
@@ -76,11 +82,11 @@ public class StaticPageController extends AbstractController {
             String contextPath = request.getContextPath();
             String requestUri = request.getRequestURI();
             String filename = requestUri.substring(contextPath.length() + staticUrlPrefix.length(), requestUri.length() - 3) + "vm";
-
             Theme theme = themeDAO.getActiveTheme(getRequestContext().getPortal());
             
             if (theme == null) {
                 getRequestContext().addMessage(NO_THEME_ERROR);
+                log.warn("No theme found, redirecting to home!");
                 return redirect(redirectionService.getHomeUrl());
             }
             
@@ -91,6 +97,7 @@ public class StaticPageController extends AbstractController {
             
             if (!staticFile.exists()) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                log.warn("File not found: "+staticFile.getAbsolutePath());
                 return null;
             }
             
@@ -104,17 +111,22 @@ public class StaticPageController extends AbstractController {
 
             // We may need to replace some attributes.... add to this map if that's the case
             Map<String, Object> attributeMap = new HashMap<String, Object>();
-            
+            // add the content parameters, bdrspluginfacade and request parameters to the model
+            ContentService.putContentParams(attributeMap);
+            attributeMap.putAll(request.getParameterMap());
+            attributeMap.put(BdrsPluginFacade.BDRS_PLUGIN_FACADE_KEY, new BdrsPluginFacade());
             templateService.mergeTemplate(theme, pathBuilder.toString(), attributeMap, writer);
+            
             ModelAndView mv = new ModelAndView("static_public");
             
             mv.addObject("renderedPage", writer.toString());
             
-            return mv;    
+            return mv;
         } catch (Exception e) {
-            log.debug("Context path: " + request.getContextPath());
-            log.debug("Request URI: " + request.getRequestURI());
-            log.debug("Request URL: " + request.getRequestURL().toString());
+            log.error("Error occurred creating static page: ");
+            log.error("    Context path: " + request.getContextPath());
+            log.error("    Request URI: " + request.getRequestURI());
+            log.error("    Request URL: " + request.getRequestURL().toString());
             throw e;
         }
     }

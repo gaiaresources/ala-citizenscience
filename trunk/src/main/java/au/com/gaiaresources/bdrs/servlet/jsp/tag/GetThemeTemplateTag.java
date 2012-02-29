@@ -73,12 +73,8 @@ public class GetThemeTemplateTag extends TagSupport {
             }
             templateParams.putAll(getAttributes(theme));
             
-            Portal portal = RequestContextHolder.getContext().getPortal();
-            User currentUser = RequestContextHolder.getContext().getUser();
-            String requestUrl = RequestContextHolder.getContext().getRequestPath();
-            Session session = RequestContextHolder.getContext().getHibernate();
             // Access the bdrs api through 'bdrs' in velocity
-            templateParams.put("bdrs", new BdrsPluginFacade(session, portal, requestUrl, currentUser));
+            templateParams.put(BdrsPluginFacade.BDRS_PLUGIN_FACADE_KEY, new BdrsPluginFacade());
             
             File templateFile = new File(ThemeService.getThemeDirectory(theme), themeElemVal);
             String path = templateFile.getPath();

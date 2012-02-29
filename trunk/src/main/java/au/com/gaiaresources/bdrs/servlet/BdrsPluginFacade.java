@@ -26,6 +26,12 @@ import au.com.gaiaresources.bdrs.service.template.TemplateService;
  */
 public class BdrsPluginFacade {
 
+    /**
+     * A constant for the key this uses for storage in a map and for reference 
+     * in the 3rd party engines.
+     */
+    public static final String BDRS_PLUGIN_FACADE_KEY = "bdrs";
+    
     private ContentService contentService;
     private Portal portal;
     private TemplateService templateService;
@@ -36,6 +42,18 @@ public class BdrsPluginFacade {
     Map<String, Object> contentParams;
     
     private Logger log = Logger.getLogger(getClass());
+    
+    /**
+     * Create a BdrsPluginFacade with portal, requestUrl, and currentUser 
+     * from the {@link RequestContextHolder}.
+     */
+    public BdrsPluginFacade() {
+        // the most common parameters for the facade
+        this(RequestContextHolder.getContext().getHibernate(), 
+             RequestContextHolder.getContext().getPortal(), 
+             RequestContextHolder.getContext().getRequestPath(), 
+             RequestContextHolder.getContext().getUser());
+    }
     
     /**
      * Create a BdrsPluginFacade

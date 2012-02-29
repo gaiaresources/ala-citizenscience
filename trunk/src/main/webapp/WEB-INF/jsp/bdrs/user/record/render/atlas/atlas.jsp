@@ -125,7 +125,7 @@
                             </c:when>
                             <c:otherwise>
                                 <c:if test="${ record != null && record.location != null }">
-                                    <span><c:out value="${ record.location.name }"/></span>
+                                    <span><pre><c:out value="${ record.location.name }"/></pre></span>
                                 </c:if>
                                 
                             </c:otherwise>
@@ -139,7 +139,7 @@
                     <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
                     <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
                     <tiles:putAttribute name="editEnabled" value="${ recordWebFormContext.editable }"/>
-                        <tiles:putAttribute name="isModerationOnly" value="${ recordWebFormContext.moderateOnly }"/>
+                    <tiles:putAttribute name="isModerationOnly" value="${ recordWebFormContext.moderateOnly }"/>
                 </tiles:insertDefinition>
 
                 <c:set var="formField" value="<%= formFieldMap.get(RecordPropertyType.ACCURACY) %>"/>
@@ -149,7 +149,7 @@
                     <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
                     <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
                     <tiles:putAttribute name="editEnabled" value="${ recordWebFormContext.editable }"/>
-                        <tiles:putAttribute name="isModerationOnly" value="${ recordWebFormContext.moderateOnly }"/>
+                    <tiles:putAttribute name="isModerationOnly" value="${ recordWebFormContext.moderateOnly }"/>
                 </tiles:insertDefinition>
 
                 <c:set var="formField" value="<%= formFieldMap.get(RecordPropertyType.NOTES) %>"/>
@@ -159,7 +159,7 @@
                     <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
                     <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
                     <tiles:putAttribute name="editEnabled" value="${ recordWebFormContext.editable }"/>
-                        <tiles:putAttribute name="isModerationOnly" value="${ recordWebFormContext.moderateOnly }"/>
+                    <tiles:putAttribute name="isModerationOnly" value="${ recordWebFormContext.moderateOnly }"/>
                 </tiles:insertDefinition>
                 
             <c:if test="${ fileFormField != null }">
@@ -168,7 +168,7 @@
                     <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
                     <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
                     <tiles:putAttribute name="editEnabled" value="${ recordWebFormContext.editable }"/>
-                        <tiles:putAttribute name="isModerationOnly" value="${ recordWebFormContext.moderateOnly }"/>
+                    <tiles:putAttribute name="isModerationOnly" value="${ recordWebFormContext.moderateOnly }"/>
                 </tiles:insertDefinition>
             </c:if>
                 
@@ -178,7 +178,7 @@
                     <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
                     <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
                     <tiles:putAttribute name="editEnabled" value="${ recordWebFormContext.editable }"/>
-                        <tiles:putAttribute name="isModerationOnly" value="${ recordWebFormContext.moderateOnly }"/>
+                    <tiles:putAttribute name="isModerationOnly" value="${ recordWebFormContext.moderateOnly }"/>
                 </tiles:insertDefinition>
             </c:forEach>
             </tbody>

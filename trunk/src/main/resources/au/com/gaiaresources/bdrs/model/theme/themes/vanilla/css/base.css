@@ -10,14 +10,17 @@
 /* Default Page Element Styling            */
 /*******************************************/
 body {
-    font-size: ${style.content.font.size};
-    font-family: ${style.content.font};
-    line-height: ${style.content.line-height};
-    color: ${style.content.text.color};
     background-color: ${style.body.background.color};
     margin: 0px;
     padding: 0px;
     display: block;
+}
+
+body, pre {
+    font-size: ${style.content.font.size};
+    font-family: ${style.content.font};
+    line-height: ${style.content.line-height};
+    color: ${style.content.text.color};
 }
 
 .wrapper {
