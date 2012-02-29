@@ -915,6 +915,7 @@ table.yearlysightings {
     border: 1px solid #C0C0C0;
     margin: 0;
     padding: 0;
+    width: 8.3%
 }
 
 .yearlysightings .today {
@@ -963,7 +964,15 @@ table.yearlysightings {
     resize: none;
     margin: 0;
     padding: 0;
+}
+
+#sightingTable input[type=text], 
+#sightingTable input[type=password] {
     text-align: center;
+}
+
+#sightingTable textarea {
+    text-align: left;
 }
 
 #sightingsContainer {
