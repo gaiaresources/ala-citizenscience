@@ -42,8 +42,6 @@ public class UserFacet extends AbstractFacet {
         }
         Arrays.sort(selectedOptions);
         
-        Long count = Long.valueOf(recordDAO.countAllRecords(user));
-        
         int userCount = 0;
         List<Pair<User, Long>> userCounts = recordDAO.getDistinctUsers(null);
         for(Pair<User, Long> pair : userCounts) {
