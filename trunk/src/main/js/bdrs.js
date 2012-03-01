@@ -2064,26 +2064,34 @@ bdrs.map.geocode = function(options, address, doAfter){
         address = address + ', Australia';
         var geocoder = new GClientGeocoder();
         if (geocoder) {
-            geocoder.getLatLng(address, function(point){
-                if (!point) {
+
+            geocoder.getLocations(address, function(placemark) {
+                if (placemark && placemark.Placemark[0]) {
+                    if (placemark.Placemark[0].ExtendedData) {
+                        var extents = placemark.Placemark[0].ExtendedData.LatLonBox;
+                        var bounds = new OpenLayers.Bounds(extents.west, extents.south, extents.east, extents.north);
+                        bdrs.map.baseMap.zoomToExtent(bounds.transform(bdrs.map.WGS84_PROJECTION, bdrs.map.GOOGLE_PROJECTION), true);
+                    }
+                    else {
+                        var zoom;
+                        if(options.zoom < 0) {
+                            zoom = bdrs.map.baseMap.baseLayer.maxZoomLevel;
+                        } else {
+                            zoom = options.zoom;
+                        }
+                        var centre = placemark.Placemark[0].Point.coordinates;
+                        var lonLat = new OpenLayers.LonLat(centre[0], centre[1]);
+                        bdrs.map.baseMap.setCenter(lonLat.transform(bdrs.map.WGS84_PROJECTION, bdrs.map.GOOGLE_PROJECTION), zoom);
+                    }
+                }
+                else {
+
                     //Set to Australia wide view
                     bdrs.map.baseMap.setCenter(new OpenLayers.LonLat(130, -27).transform(bdrs.map.WGS84_PROJECTION, bdrs.map.GOOGLE_PROJECTION), 4);
                 }
-                else {
-                    var zoom;
-                    if(options.zoom < 0) {
-                        zoom = bdrs.map.baseMap.baseLayer.maxZoomLevel;
-                    } else {
-                        zoom = options.zoom;
-                    }
-                    // Jump to entered location and update lat/long
-                    var lonLat = new OpenLayers.LonLat(point.x, point.y);
-                    bdrs.map.baseMap.setCenter(lonLat.transform(bdrs.map.WGS84_PROJECTION, bdrs.map.GOOGLE_PROJECTION), zoom);
-                    if (doAfter) {
-                        doAfter(lonLat);
-                    }
-                }
+
             });
+
         }
     }
 };
