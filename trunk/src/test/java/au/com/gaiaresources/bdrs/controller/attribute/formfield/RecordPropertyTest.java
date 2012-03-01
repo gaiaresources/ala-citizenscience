@@ -82,7 +82,7 @@ public class RecordPropertyTest extends AbstractControllerTest{
 				} else if (setting == RecordPropertySetting.HIDDEN) {
 					Assert.assertEquals("false", value);
 				} else if (setting == RecordPropertySetting.REQUIRED) {
-					if(type.equals(RecordPropertyType.ACCURACY)) {
+					if(type.equals(RecordPropertyType.ACCURACY) || type.equals(RecordPropertyType.CREATED) || type.equals(RecordPropertyType.UPDATED)) {
 						Assert.assertEquals("false", value);
 					} else {
 						Assert.assertEquals("true", value);

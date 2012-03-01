@@ -194,7 +194,7 @@ public class RecordProperty extends PersistentImpl {
              } else if (propertySetting == RecordPropertySetting.DESCRIPTION) {
              	value = recordPropertyType.getDefaultDescription();
              } else if (propertySetting == RecordPropertySetting.REQUIRED) {
-            	 if (this.recordPropertyType == RecordPropertyType.ACCURACY) {
+            	 if (this.recordPropertyType == RecordPropertyType.ACCURACY || this.recordPropertyType.isReadOnly()) {
             		 value = "false";
             	 } else {
             		 value = "true"; 

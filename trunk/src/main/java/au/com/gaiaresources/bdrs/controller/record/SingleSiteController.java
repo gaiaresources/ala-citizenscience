@@ -19,6 +19,8 @@ import java.util.Map.Entry;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import au.com.gaiaresources.bdrs.model.record.RecordService;
+import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
@@ -144,6 +146,8 @@ public abstract class SingleSiteController extends AbstractController {
     private CensusMethodDAO cmDAO;
     @Autowired
     private MetadataDAO metadataDAO;
+    @Autowired
+    private RecordService recordService;
 
     @Autowired
     private LocationService locationService;
@@ -505,6 +509,9 @@ public abstract class SingleSiteController extends AbstractController {
                     recFormFieldCollectionList.add(rffc);
             }
         }
+
+        User updatedByUser = recordService.getUpdatedByUser(record);
+        mv.addObject("updatedBy", updatedByUser);
         // form field list is the survey scoped attributes.
         // contains the form field and the data (optional).
         // note: NON record scoped attributes only!

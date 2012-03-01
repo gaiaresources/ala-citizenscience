@@ -98,4 +98,12 @@ public interface RecordService {
     void updateRecord(Record r);
 
     TypedAttributeValue updateAttribute(Integer id, BigDecimal numeric, String value, Date date);
+
+    /**
+     * Returns the User that last updated the supplied Record, or null if the updatedBy property is null.
+     *
+     * @param record the Record of interest.
+     * @return the User that last updated the supplied Record.
+     */
+    public User getUpdatedByUser(Record record);
 }

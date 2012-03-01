@@ -213,10 +213,10 @@
                     <input type="text" name="RECORD.${formField.propertyName}.NAME" value="<c:out value="${formField.propertyName}"/>" disabled="disabled" />
                 </span>
             </td>
-            <td>DwC</td>
+            <td><c:if test="${formField.propertyName != 'Created' && formField.propertyName != 'Updated'}">DwC</c:if></td>
             <td class="textcenter"> 
                 <span class="table_input_container">
-                    <input id="RECORD.${formField.propertyName}.REQUIRED" type="checkbox" name="RECORD.${formField.propertyName}.REQUIRED"  value="true" <c:if test="${formField.required}"> checked="checked"</c:if><c:if test="${formField.propertyName == 'when'}">
+                    <input id="RECORD.${formField.propertyName}.REQUIRED" type="checkbox" name="RECORD.${formField.propertyName}.REQUIRED"  value="true" <c:if test="${formField.required}"> checked="checked"</c:if><c:if test="${formField.propertyName == 'when' || formField.displayFormField}">
                     disabled="disabled"
                     </c:if> />
                 </span>

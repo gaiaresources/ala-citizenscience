@@ -162,4 +162,12 @@ public class RecordPropertyAttributeFormField extends
     public String getWeightName() {
     	return null;
     }
+
+    /**
+     * The RecordProperties of type RecordProperty.UPDATED/CREATED are display only.
+     * @return true if this form field is display only.
+     */
+    public boolean isDisplayFormField() {
+        return this.recordProperty.getRecordPropertyType().isReadOnly();
+    }
 }
