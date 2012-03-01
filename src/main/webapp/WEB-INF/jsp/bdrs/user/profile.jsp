@@ -1,87 +1,28 @@
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%@ taglib uri="http://tiles.apache.org/tags-tiles" prefix="tiles" %>
-<%@ taglib uri="/WEB-INF/cw.tld" prefix="cw" %>
+<h1>Profile</h1>
 
-<jsp:useBean id="metaList" type="java.util.List" scope="request"/>
+<p>
+This is the interface from where you can edit your account information or your locations.
+</p>
 
-<c:if test="${editAs == 'user'}">
-    <h1>My Profile</h1>
-    <cw:getContent key="user/profile/editProfile" />
-</c:if>
-<c:if test="${editAs == 'admin'}">
-    <h1>Edit Details of <c:out value="${FIRST_NAME} ${LAST_NAME}" /> </h1>
-    <cw:getContent key="admin/editUser" />
-</c:if>
-
-<form method="POST">
-    <input value="${USER_ID}" type="hidden" />
-    <div class="input_container">
-        <c:if test="${editAs == 'admin'}">
-            <jsp:useBean id="assignedRoles" type="java.util.ArrayList" scope="request"/>
-            <div>
-                <label>Assigned Roles:</label>
-            </div>
-            <table>
-                <tr>
-                <c:forEach items="${allowedRoles}" var="aRole">
-                <jsp:useBean id="aRole" type="java.lang.String"/>
-                <td><input type="checkbox" value="on" <c:if test="<%= assignedRoles.contains(aRole) %>">CHECKED</c:if> name="${aRole}"
-                 <c:if test="${aRole=='ROLE_USER'}"> DISABLED </c:if>
-                 /><label>${aRole}</label></td>
-                </c:forEach>
-                </tr>
-            </table>
-        </c:if>
-          
-        <table id="userEditForm">
-            <tr>
-                <td class="formlabel">First name:</td>
-                <td><input name="FIRST_NAME" type="text" value="<c:out value="${FIRST_NAME}"/>" style="width:25em" size="40"  autocomplete="off" class="validate(required, maxlength(30))"/></td>
-            </tr>
-            <tr>
-                <td class="formlabel">Last name:</td>
-                <td><input name="LAST_NAME" type="text" value="<c:out value="${LAST_NAME}" />" style="width:25em" size="40"  autocomplete="off" class="validate(required, maxlength(30))"/></td>
-            </tr>
-
-            <tr>
-                <td class="formlabel">E-mail address:</td>
-                <td><input name="EMAIL_ADDR" type="text" value="<c:out value="${EMAIL_ADDR}" />" style="width:25em" size="40"  autocomplete="off" class="validate(email)"/></td>
-            </tr>
-            <c:if test="${editAs == 'admin'}">
-             <tr>
-                <td class="formlabel">Active:</td>
-                <td>
-                    <c:choose>
-                        <c:when test="${USER_ACTIVE}">
-                            <input name="USER_ACTIVE" type="checkbox" value="active" checked="checked"/>
-                        </c:when>
-                        <c:otherwise>    
-                            <input name="USER_ACTIVE" type="checkbox" value="active" />
-                        </c:otherwise>
-                    </c:choose>
-                </td>
-            </tr>
-            </c:if>
-            <tr>
-                <td class="formlabel">User Name:</td>
-                <td><input value="<c:out value="${USER_NAME}" />" type="text" size="40"  disabled="true"/></td>
-            </tr>
-            <tr>
-                <td class="formlabel">New password:</td>
-                <td><input type="password" id="password" name="PASSWORD" size="40"  autocomplete="off"  class="validate(rangelengthOrBlank(6, 12))"/></td>
-            </tr>
-            <tr>
-                <td class="formlabel">Confirm new password:</td>
-                <td><input type="password"  name="CONFIRM_PASSWORD" size="40"   autocomplete="off" class="validate(match(#password))"/></td>
-            </tr>
-            <!-- insert meta data fields -->
-                <tiles:insertDefinition name="userMetaDataFormFields">
-                        <tiles:putAttribute name="metaList" value="${ metaList }"/>
-                </tiles:insertDefinition>
-        </table>
-
-        <div class="buttonpanel textright">
-            <input name="submit" type="submit" value="Submit" class="form_action" />
-        </div>
-    </div>
-</form>
+<div class="left" style="width: 48%; padding: 5px;">
+    <a href="${pageContext.request.contextPath}/user/editProfile.htm">
+        <h2>Edit My Profile</h2>
+    </a>
+    <p>On this page you can edit your account information, such as your email address or password.
+    <a href="${pageContext.request.contextPath}/user/editProfile.htm">Click here</a>
+    </p>
+    <a href="${pageContext.request.contextPath}/user/editProfile.htm">
+        <img style="width: 100%;" src="${pageContext.request.contextPath}/images/bdrs/profile/my_profile.png">
+    </a>
+</div>
+<div class="left" style="width: 48%; padding: 5px;">
+    <a href="${pageContext.request.contextPath}/bdrs/location/editUserLocations.htm">
+        <h2>Edit My Locations</h2>
+    </a>
+    <p>This page allows you to set up Locations you visit frequently - these will then appear in your Location lists for the Projects you participate in.
+    <a href="${pageContext.request.contextPath}/bdrs/location/editUserLocations.htm">Click here</a>
+    </p>
+    <a href="${pageContext.request.contextPath}/bdrs/location/editUserLocations.htm">
+        <img style="width: 100%;" src="${pageContext.request.contextPath}/images/bdrs/profile/my_locations.png">
+    </a>
+</div>

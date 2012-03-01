@@ -14,22 +14,14 @@
 <jsp:useBean id="context" scope="request" type="au.com.gaiaresources.bdrs.servlet.RequestContext"></jsp:useBean>
 
 <h1>Email Users</h1>
-
+<cw:getContent key="admin/emailUsers" />
 <div class="input_container">
-    <div>
-	    <cw:getContent key="admin/emailUsers" />
-	</div>
 	<div id="emailHeader">
         <table>
            <tr>
                <td><input type="button" class="right form_action" id="selectUsers" value="To:" onclick="showPopupDialog()"></input></td>
                <td><input id="toUsers"></input></td>
-               <td></td>
-           </tr>
-           <tr>
-              <td><label class="right" for="subject">Subject: </label></td>
-                    <td><input id="subject"></input></td>
-              <td>
+               <td rowspan="2">
                 <div class="right">
                     <label>Select email template: </label>
                     <select id="selectContentToEdit" onchange="changeTemplate()">
@@ -40,6 +32,10 @@
                     </select>
                 </div>
               </td> 
+           </tr>
+           <tr>
+              <td><label class="right" for="subject">Subject: </label></td>
+              <td><input id="subject"></input></td>
             </tr>
         </table>
 	</div>

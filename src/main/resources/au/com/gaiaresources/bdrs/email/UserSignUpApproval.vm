@@ -6,7 +6,7 @@
         
         <p>Please click on the following link (or copy and paste it into your browser) to review the new user.</p>
         
-        <p><a href="${bdrsApplicationUrl}/admin/profile.htm?USER_ID=${newUser.id}">${bdrsApplicationUrl}/admin/profile.htm?USER_ID= ${newUser.id}</a></p>
+        <p><a href="${bdrsApplicationUrl}/admin/editProfile.htm?USER_ID=${newUser.id}">${bdrsApplicationUrl}/admin/editProfile.htm?USER_ID= ${newUser.id}</a></p>
         
         <p>You may view all users awaiting approval by clicking the following link (or copy and paste it into your browser).</p>
         

@@ -323,7 +323,7 @@
             ><c:out value="${ fieldValue }"/></textarea>
             </c:when>
             <c:otherwise>
-                <span class="textleft"><pre><c:out value="${ fieldValue }"/></pre></span>
+                <span style="white-space: pre;" class="textleft"><c:out value="${ fieldValue }"/></span>
             </c:otherwise>
         </c:choose>
     </c:when>

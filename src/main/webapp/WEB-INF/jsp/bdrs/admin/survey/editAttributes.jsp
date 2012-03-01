@@ -86,7 +86,7 @@
 	<cw:getContent key="admin/editProject/chooseCensusMethods" />
 	
 	<div class="right">
-	    <a id="censusMethodToggle" href="javascript: void(0);">Click here to add a Census Method to your Project</a>
+	    <a id="censusMethodToggle" href="javascript: void(0);">Click here to edit the Census Methods for this Project</a>
 	</div>
 	<div class="clear"></div>
 	<div class="input_container" id="censusMethodWrapper" style="display:none">
@@ -331,7 +331,7 @@
         // Census method expand/collapse
         jQuery("#censusMethodToggle").click(function() {
             var canSee = jQuery("#censusMethodWrapper").css('display') === 'none';
-            jQuery("#censusMethodToggle").text(canSee ? "Click here to hide Census Method selection" : "Click here to add a Census Method to your Project");
+            jQuery("#censusMethodToggle").text(canSee ? "Click here to hide Census Method selection" : "Click here to edit the Census Methods for this Project");
             jQuery("#censusMethodWrapper").slideToggle();
         });
 		

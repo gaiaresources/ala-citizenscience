@@ -58,7 +58,8 @@ public class MenuService {
         // create the map items
         List<GeoMap> maps = mapService.getAvailableMaps(user);
         List<MenuItem> mapMenu = createMapMenu(maps);
-        List<Survey> surveys = user != null ? surveyDAO.getActiveSurveysForUser(user) : null;
+        List<Survey> surveys = user != null ? surveyDAO.getActiveSurveysForUser(user) : 
+                               surveyDAO.getActivePublicSurveys(false);
         List<MenuItem> surveyMenu = createSurveyMenu(surveys);
         
         for (MenuItem menuItem : menu) {

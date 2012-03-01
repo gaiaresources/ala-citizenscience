@@ -110,20 +110,78 @@ public enum SurveyFormRendererType implements JSONEnum {
     public Date getStartDateForSightings(Survey survey) {
         Date surveyStartDate = survey.getStartDate();
         Date startDate = surveyStartDate != null ? surveyStartDate : new Date(0);
+        Date surveyEndDate = survey.getEndDate();
         
         switch(this) {
             case YEARLY_SIGHTINGS:
             {
-                Calendar cal = Calendar.getInstance();
-                // survey start date cannot be null.
-                cal.setTime(startDate);
-                cal.set(Calendar.HOUR_OF_DAY, 0);
-                cal.set(Calendar.MINUTE, 0);
-                cal.set(Calendar.SECOND, 0);
-                cal.set(Calendar.MILLISECOND, 0);
-                cal.set(Calendar.DAY_OF_MONTH, 0);
-                cal.add(Calendar.MONTH, -6);
-                return cal.getTime();
+                // the yearly sightings start date should be either:
+                // - 1 year before the current date or
+                // - 1 year before the end date if the end date is before today or
+                // - the start date of the project if it is after either of the above
+                
+                // create a calendar marking today
+                Calendar today = Calendar.getInstance();
+                today.setTime(new Date());
+                today.set(Calendar.HOUR_OF_DAY, 0);
+                today.set(Calendar.MINUTE, 0);
+                today.set(Calendar.SECOND, 0);
+                today.set(Calendar.MILLISECOND, 0);
+                
+                // create a Calendar marking one year ago today
+                Calendar oneYearAgoToday = Calendar.getInstance();
+                oneYearAgoToday.setTime(today.getTime());
+                oneYearAgoToday.set(Calendar.DAY_OF_MONTH, 1);
+                // set one year ago today to the next month to keep today on the screen
+                // for example if one year ago today is 1 Feb 2011 and the start date
+                // is 1 Feb 2011, you will see Feb 2011 - Jan 2012 on the screen
+                // when what you actually want is Mar 2011 - Feb 2012
+                oneYearAgoToday.add(Calendar.MONTH, 1);
+                oneYearAgoToday.add(Calendar.YEAR, -1);
+                
+                // set the start time to either the start date of the project 
+                // or today if none was specified
+                Calendar start = Calendar.getInstance();
+                start.setTime(surveyStartDate == null ? today.getTime() : surveyStartDate);
+                start.set(Calendar.HOUR_OF_DAY, 0);
+                start.set(Calendar.MINUTE, 0);
+                start.set(Calendar.SECOND, 0);
+                start.set(Calendar.MILLISECOND, 0);
+                start.set(Calendar.DAY_OF_MONTH, 1);
+                
+                // set the end date to the end date of the project or today if 
+                // the end date was not specified
+                Calendar endDate = Calendar.getInstance();
+                endDate.setTime(surveyEndDate == null ? today.getTime() : surveyEndDate);
+                endDate.set(Calendar.HOUR_OF_DAY, 0);
+                endDate.set(Calendar.MINUTE, 0);
+                endDate.set(Calendar.SECOND, 0);
+                endDate.set(Calendar.MILLISECOND, 0);
+                
+                // if the survey ends before today, use the endDate as the end
+                // and the start date as 12 months before the endDate as long as 
+                // the start date is also before one year before the end date, 
+                // otherwise, use the start date
+                if (endDate.before(today)) {
+                    endDate.add(Calendar.YEAR, -1);
+                    // set to the next month to keep end date on the screen
+                    // for example if end date is 1 Feb 2011 and the start date
+                    // is one year before that (1 Feb 2010), you will see 
+                    // Feb 2010 - Jan 2011 on the screen when what you actually 
+                    // want is Mar 2010 - Feb 2011
+                    endDate.add(Calendar.MONTH, 1);
+                    endDate.set(Calendar.DAY_OF_MONTH, 1);
+                    // only set the start date if it is before one year before the end date
+                    if (start.before(endDate)) {
+                        start.setTime(endDate.getTime());
+                    }
+                } else if (surveyStartDate == null || start.before(oneYearAgoToday)) {
+                    // if no start date was specified or if the survey start date 
+                    // is before one year ago today, use one year ago today 
+                    // in order to show the entire year on the calendar
+                    start.setTime(oneYearAgoToday.getTime());
+                }
+                return start.getTime();
             }
             case DEFAULT:
             case ATLAS:

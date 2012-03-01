@@ -152,7 +152,7 @@ public class YearlySightingsController extends AbstractController {
 
         start.setTime(SurveyFormRendererType.YEARLY_SIGHTINGS.getStartDateForSightings(survey));
         end.setTime(SurveyFormRendererType.YEARLY_SIGHTINGS.getEndDateForSightings(survey));
-
+        
         Calendar today = Calendar.getInstance();
         today.setTime(new Date());
         today.set(Calendar.HOUR_OF_DAY, 0);
@@ -160,15 +160,26 @@ public class YearlySightingsController extends AbstractController {
         today.set(Calendar.SECOND, 0);
         today.set(Calendar.MILLISECOND, 0);
 
+        if (end.after(today)) {
+            // set the end to today to prevent entries in the future
+            end.setTime(today.getTime());
+        }
+        
         // Enter the Matrix
         Date[][] dateMatrix = new Date[31][12];
         for(Date[] dateArray: dateMatrix) {
             Arrays.fill(dateArray, null);
         }
 
-        while(start.before(end)) {
-            start.add(Calendar.DAY_OF_MONTH, 1);
-            dateMatrix[start.get(Calendar.DAY_OF_MONTH)-1][start.get(Calendar.MONTH)] = start.getTime();
+        int lastMonth = start.get(Calendar.MONTH);
+        for (int month = 0; month < 12; month++) {
+            // the day should be less than 31
+            // or if the month changes, that is the max number of days for the month
+            for(int day = 0; day < 31 && lastMonth == start.get(Calendar.MONTH); day++) {
+                dateMatrix[day][month] = start.getTime();
+                start.add(Calendar.DAY_OF_MONTH, 1);
+            }
+            lastMonth = start.get(Calendar.MONTH);
         }
         
         // location may be null

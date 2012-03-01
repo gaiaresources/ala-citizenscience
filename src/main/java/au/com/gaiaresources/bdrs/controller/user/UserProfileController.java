@@ -59,8 +59,8 @@ public class UserProfileController extends AbstractController {
     public final static String ERROR_EDIT_PROMOTE = "You cannot increase the roles of another user above your own level";
     public final static String ERROR_EDIT_HIGHER = "You cannot edit a user of a higher role than your own level";
     
-    public final static String EDIT_AS_USER_URL = "/user/profile.htm";
-    public final static String EDIT_AS_ADMIN_URL = "/admin/profile.htm";
+    public final static String EDIT_AS_USER_URL = "/user/editProfile.htm";
+    public final static String EDIT_AS_ADMIN_URL = "/admin/editProfile.htm";
     
     public final static String USER_PROFILE_VIEW = "userProfile";
 
