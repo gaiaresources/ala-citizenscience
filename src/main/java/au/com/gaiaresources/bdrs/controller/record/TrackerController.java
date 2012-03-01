@@ -14,6 +14,8 @@ import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import au.com.gaiaresources.bdrs.model.record.RecordService;
+import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -270,6 +272,10 @@ public class TrackerController extends AbstractController {
     @Autowired
     private MetadataDAO metadataDAO;
 
+    /** Required to get the user who last updated the Record */
+    @Autowired
+    private RecordService recordService;
+
     private FormFieldFactory formFieldFactory = new FormFieldFactory();
 
     /**
@@ -453,6 +459,8 @@ public class TrackerController extends AbstractController {
         if(!predefinedLocationsOnly) {
             locations.addAll(locationDAO.getUserLocations(getRequestContext().getUser()));
         }
+
+        User updatedByUser = recordService.getUpdatedByUser(record);
         
         ModelAndView mv = new ModelAndView(TRACKER_VIEW_NAME);
         mv.addObject("censusMethod", censusMethod);
@@ -467,6 +475,7 @@ public class TrackerController extends AbstractController {
         mv.addObject("taxonomic", taxonomic);
         mv.addObject(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT, context);
         mv.addObject("parentRecordId", parentRecordId);
+        mv.addObject("updatedBy", updatedByUser);
         // default to the record tab
         mv.addObject("selectedTab", StringUtils.hasLength(selectedTab) ? selectedTab : SELECT_TAB_RECORD);
         

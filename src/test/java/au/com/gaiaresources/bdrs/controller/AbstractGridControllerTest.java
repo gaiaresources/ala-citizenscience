@@ -1057,7 +1057,12 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
             }
             return notes;
         }
-            default:
+        case CREATED:
+        case UPDATED:
+        {
+             return "I don't get used";
+        }
+        default:
                 Assert.fail("Record property type : " + type + " not handled, fix it!");
                 return null;
         }
@@ -1176,6 +1181,11 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
                 }
                 break;
             }
+            case CREATED:
+            case UPDATED:
+                // These are read only values.
+                break;
+
                 default:
                     Assert.fail("Record property type : " + type + " not handled, fix it!");
                     break;

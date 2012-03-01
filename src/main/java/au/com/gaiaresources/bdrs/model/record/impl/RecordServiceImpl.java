@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +34,8 @@ public class RecordServiceImpl implements RecordService {
     private GeometryBuilder geometryBuilder;
     @Autowired
     private EventPublisher eventPublisher;
+    @Autowired
+    private UserDAO userDAO;
 
     @Override
     public Record createRecord(Location userLocation, IndicatorSpecies species, Date when, Long time,
@@ -115,5 +118,16 @@ public class RecordServiceImpl implements RecordService {
 	public TypedAttributeValue updateAttribute(Integer id, BigDecimal numeric, String value, Date date) {
 		return recordDAO.updateAttribute(id, numeric, value, date);
 	}
+
+    /** {@inheritDoc} */
+    @Override
+    public User getUpdatedByUser(Record record) {
+        User updatedByUser = null;
+        Integer updatedByUserId = record.getUpdatedBy();
+        if (updatedByUserId != null) {
+            updatedByUser = userDAO.getUser(record.getUpdatedBy());
+        }
+        return updatedByUser;
+    }
 
 }

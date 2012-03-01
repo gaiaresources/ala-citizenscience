@@ -393,7 +393,7 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
                 expectedAttributes.remove(tavff.getAttribute());
                 
                 ++attrCount;
-            } else if (ff.isDisplayFormField()) {
+            } else if (ff.isDisplayFormField() && !ff.isPropertyFormField()) {
                 // do nothing
             } else if (ff.isPropertyFormField()) {
                 Assert.assertTrue("assert before upcast", ff instanceof RecordPropertyFormField);
@@ -518,6 +518,11 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
         case NOTES:
             req.addParameter(prefix+SingleSiteController.PARAM_NOTES, value);
             break;
+        case CREATED:
+        case UPDATED:
+            // These are read only properties.
+            break;
+
             default:
                 throw new IllegalStateException("property type not handled : " + prop);
         }

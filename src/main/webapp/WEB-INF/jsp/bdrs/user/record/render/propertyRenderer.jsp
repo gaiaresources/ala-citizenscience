@@ -416,4 +416,14 @@
         </c:choose>
           
     </c:when>
+    <c:when test="<%= RecordPropertyType.CREATED.getName().equals(formField.getPropertyName()) %>">
+        <c:if test="${not empty record.createdAt}">
+            <fmt:formatDate dateStyle="MEDIUM" type="date" value="${record.createdAt}"/> <fmt:formatDate pattern="HH:mm" value="${record.createdAt}"/> by <c:out value="${record.user.fullName}"/>
+        </c:if>
+    </c:when>
+    <c:when test="<%= RecordPropertyType.UPDATED.getName().equals(formField.getPropertyName()) %>">
+        <c:if test="${not empty record.updatedAt && not empty updatedBy}">
+            <fmt:formatDate dateStyle="MEDIUM" type="date" value="${record.updatedAt}"/> <fmt:formatDate pattern="HH:mm" value="${record.updatedAt}"/> by <c:out value="${updatedBy.fullName}"/>
+        </c:if>
+    </c:when>
 </c:choose>

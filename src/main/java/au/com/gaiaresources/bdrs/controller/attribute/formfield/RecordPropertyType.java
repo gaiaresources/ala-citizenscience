@@ -12,43 +12,55 @@ import au.com.gaiaresources.bdrs.json.JSONEnumUtil;
  *
  */
 public enum RecordPropertyType implements JSONEnum {
-     SPECIES("Species"),
-     NUMBER("Number", "Individual Count"),
-     LOCATION("Location"),
-     POINT("Point"),
-     ACCURACY("AccuracyInMeters","Accuracy (meters)"),
-     WHEN("When","Date"),
-     TIME("Time"),
-     NOTES("Notes");
+    SPECIES("Species"),
+    NUMBER("Number", "Individual Count"),
+    LOCATION("Location"),
+    POINT("Point"),
+    ACCURACY("AccuracyInMeters","Accuracy (meters)"),
+    WHEN("When","Date"),
+    TIME("Time"),
+    NOTES("Notes"),
+    CREATED("Created", "Creation Date and User", true),
+    UPDATED("Updated", "Last Updated Date and User", true);
      
-     String name;
-     String defaultDescription;
-     
-     private RecordPropertyType(String name, String description) {
-            this.name = name;
-            this.defaultDescription = description;
-        }
-     
-     private RecordPropertyType(String name) {
-            this.name = name;
-            this.defaultDescription = name;
-        }
-     
-     public String getName(){
-         return this.name;
-     }
-     
-     public String getDefaultDescription(){
-         return this.defaultDescription;
-     }
-     
-     @Override
-     public void writeJSONString(Writer out) throws IOException {
-         JSONEnumUtil.writeJSONString(out, this);
-     }
+    String name;
+    String defaultDescription;
 
-     @Override
-     public String toJSONString() {
-         return JSONEnumUtil.toJSONString(this);
-     }
+    boolean readOnly;
+     
+    private RecordPropertyType(String name, String description) {
+        this(name, description, false);
+    }
+    
+    private RecordPropertyType(String name, String description, boolean readOnly) {
+        this.name = name;
+        this.defaultDescription = description;
+        this.readOnly = readOnly;
+    }
+     
+    private RecordPropertyType(String name) {
+        this(name, name);
+    }
+     
+    public String getName(){
+        return this.name;
+    }
+     
+    public String getDefaultDescription(){
+        return this.defaultDescription;
+    }
+
+    public boolean isReadOnly() {
+        return readOnly;
+    }
+     
+    @Override
+    public void writeJSONString(Writer out) throws IOException {
+        JSONEnumUtil.writeJSONString(out, this);
+    }
+
+    @Override
+    public String toJSONString() {
+        return JSONEnumUtil.toJSONString(this);
+    }
 }

@@ -10,6 +10,7 @@ import java.util.TreeSet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import au.com.gaiaresources.bdrs.model.record.RecordService;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -77,6 +78,8 @@ public class AtlasController extends AbstractController {
     private AtlasService atlasService;
     @Autowired
     private MetadataDAO metadataDAO;
+    @Autowired
+    private RecordService recordService;
 
     private FormFieldFactory formFieldFactory = new FormFieldFactory();
 
@@ -217,7 +220,9 @@ public class AtlasController extends AbstractController {
                 int defaultLocPk = Integer.parseInt(defaultLocId.getValue());
                 defaultLocation = locationDAO.getLocation(defaultLocPk);
             }
-            
+
+            User updatedByUser = recordService.getUpdatedByUser(record);
+
             mv = new ModelAndView(ATLAS_FORM_VIEW_NAME);
             mv.addObject("record", record);
             mv.addObject("taxon", species);
@@ -228,7 +233,7 @@ public class AtlasController extends AbstractController {
             mv.addObject("moderationFormFields", moderationFormFields);
             mv.addObject("preview", request.getParameter("preview") != null);
             mv.addObject("defaultLocation", defaultLocation);
-            
+            mv.addObject("updatedBy", updatedByUser);
             mv.addObject("errorMap", errorMap);
             mv.addObject("valueMap", valueMap);
             

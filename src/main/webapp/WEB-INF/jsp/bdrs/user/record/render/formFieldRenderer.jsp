@@ -24,7 +24,7 @@
      </c:choose>
 
 <c:choose>
-  <c:when test="<%= formField.isDisplayFormField() %>">
+  <c:when test="<%= formField.isDisplayFormField() && !formField.isPropertyFormField() %>">
      <%-- Fields for display only, such as, comments, horizontal rules, HTML, etc --%>
      <c:set var="isVisible" value="true"></c:set>
 

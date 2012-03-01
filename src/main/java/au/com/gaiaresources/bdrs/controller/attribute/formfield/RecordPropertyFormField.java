@@ -131,4 +131,13 @@ public class RecordPropertyFormField extends AbstractRecordFormField {
     public boolean isModerationFormField() {
         return AttributeScope.isModerationScope(recordProperty.getScope());
     }
+
+    /**
+     * The RecordProperties of type RecordProperty.UPDATED/CREATED are display only.
+     * @return true if this form field is display only.
+     */
+    @Override
+    public boolean isDisplayFormField() {
+        return this.recordProperty.getRecordPropertyType().isReadOnly();
+    }
 }
