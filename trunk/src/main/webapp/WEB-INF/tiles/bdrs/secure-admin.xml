@@ -394,6 +394,12 @@
         <put-attribute name="maps" value="false"/>      
     </definition>
 
+     <!-- Admin landing page -->
+    <definition name="adminMenu" extends="admin-template">
+        <put-attribute name="title" value="Admin Menu" />
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/admin/adminMenu.jsp" />
+    </definition>
+
      <!-- Manage People landing page -->
     <definition name="managePeople" extends="admin-template">
         <put-attribute name="title" value="Manage People" />

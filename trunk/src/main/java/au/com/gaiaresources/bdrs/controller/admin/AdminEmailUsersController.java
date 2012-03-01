@@ -83,10 +83,20 @@ public class AdminEmailUsersController extends AbstractController {
             String address = string.trim();
             User toUser = userDAO.getUserByEmailAddress(address);
             Map<String, Object> subParams = createSubstitutionParams(toUser, fromUser, content);
-            emailService.sendMessage(address, from, subject, content, subParams);
+            emailService.sendMessage(address, from, subject, formatContents(content), subParams);
         }
     }
     
+    /**
+     * Provides special formatting for email contents.
+     * 1. Surrounds contents in <div style="whitespace: pre;"> tag to preserve whitespace formatting.
+     * @param content the contents of the email to format
+     * @return The original contents with the formatting applied
+     */
+    private String formatContents(String content) {
+        return "<div style=\"white-space: pre;\">"+content+"</div>";
+    }
+
     /**
      * Creates a map of subsitution key-value pairs to be used when rendering the velocity template message.
      * @param toUser The recipient of the message

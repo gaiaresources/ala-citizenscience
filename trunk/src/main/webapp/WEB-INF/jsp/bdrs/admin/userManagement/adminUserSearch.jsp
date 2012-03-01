@@ -41,7 +41,7 @@
     jQuery(function() {
 		var actionLinkFormatter = function(cellvalue, options, rowObject) {
 	        var links = new Array();
-			links.push('<a title="Edit account details" class="fixedLink" href="${pageContext.request.contextPath}/admin/profile.htm?USER_ID=' + rowObject.id + '">Edit</a>');
+			links.push('<a title="Edit account details" class="fixedLink" href="${pageContext.request.contextPath}/admin/editProfile.htm?USER_ID=' + rowObject.id + '">Edit</a>');
 			<c:if test="${approveUsers}">
 			     links.push('<a title="Approve account" class="fixedLink" href="javascript:approveUser(' + rowObject.id + ')">Approve</a>');
 			</c:if>

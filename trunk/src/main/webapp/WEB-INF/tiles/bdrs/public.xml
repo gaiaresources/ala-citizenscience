@@ -131,4 +131,11 @@
 	<definition name="unlockRecordWidget" template="/WEB-INF/jsp/bdrs/user/record/render/unlockRecordWidget.jsp">
     </definition>
 	
+	    
+    <!-- Review landing page -->
+    <definition name="review" extends="template">
+        <put-attribute name="title" value="Review Sightings"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/public/review.jsp"/>
+    </definition>
+	
 </tiles-definitions>

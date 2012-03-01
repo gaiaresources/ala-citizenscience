@@ -2,6 +2,7 @@ package au.com.gaiaresources.bdrs.controller.insecure;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -15,9 +16,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
 import au.com.gaiaresources.bdrs.controller.AbstractController;
+import au.com.gaiaresources.bdrs.model.map.GeoMap;
 import au.com.gaiaresources.bdrs.model.portal.PortalDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.service.template.TemplateService;
+import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 
 @Controller
 public class PublicController extends AbstractController {
@@ -26,7 +30,9 @@ public class PublicController extends AbstractController {
     private TaxaDAO taxaDAO;
     @Autowired
     private PortalDAO portalDAO;
-    
+
+    @Autowired
+    private GeoMapService mapService;
     @Autowired
     private TemplateService templateService;
     
@@ -86,6 +92,20 @@ public class PublicController extends AbstractController {
     public ModelAndView index(HttpServletRequest request, HttpServletResponse response) {
         ModelAndView view = new ModelAndView("index");
         view.addObject("portalList", portalDAO.getActivePortals());
+        return view;
+    }
+    
+    /**
+     * Landing page for the topmost Review menu item.
+     * @param request
+     * @param response
+     * @return the landing page for the Review menu item
+     */
+    @RequestMapping(value="/review.htm", method = RequestMethod.GET)
+    public ModelAndView review(HttpServletRequest request, HttpServletResponse response) {
+        ModelAndView view = new ModelAndView("review");
+        List<GeoMap> maps = mapService.getAvailableMaps(RequestContextHolder.getContext().getUser());
+        view.addObject("maps", maps);
         return view;
     }
 }

@@ -74,4 +74,14 @@ public class AdminHomePageController extends AbstractController {
     public ModelAndView renderManageProjects() {
         return new ModelAndView("manageProjects");
     }
+    
+    /**
+     * Landing page for topmost Admin menu item.
+     * @return the landing page for the Admin menu.
+     */
+    @RolesAllowed({Role.ROOT, Role.ADMIN,Role.SUPERVISOR,Role.POWERUSER})
+    @RequestMapping(value="/bdrs/admin/adminMenu.htm", method=RequestMethod.GET) 
+    public ModelAndView renderAdminMenu() {
+        return new ModelAndView("adminMenu");
+    }
 }
