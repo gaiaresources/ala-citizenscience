@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import au.com.gaiaresources.bdrs.util.TransactionHelper;
 import org.springframework.stereotype.Repository;
 
 import au.com.gaiaresources.bdrs.db.impl.AbstractDAOImpl;
@@ -69,7 +70,7 @@ public class GridDAOImpl extends AbstractDAOImpl implements GridDAO {
         g.setPrecision(precision);
         getSession().beginTransaction();
         Grid r = save(g);
-        getSession().getTransaction().commit();
+        TransactionHelper.commit(getSession());
         return r;
     }
 }

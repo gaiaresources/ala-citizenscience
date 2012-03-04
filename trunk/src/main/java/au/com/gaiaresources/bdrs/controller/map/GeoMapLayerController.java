@@ -17,6 +17,7 @@ import javax.xml.bind.JAXBException;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 
+import au.com.gaiaresources.bdrs.util.TransactionHelper;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.FlushMode;
@@ -302,7 +303,7 @@ public class GeoMapLayerController extends AbstractController {
                 if (sesh.isOpen()) {
                     sesh.flush();
                     sesh.clear();
-                    sesh.getTransaction().commit();
+                    TransactionHelper.commit(sesh);
                     
                     sesh.close();
                 }
@@ -318,7 +319,7 @@ public class GeoMapLayerController extends AbstractController {
             sesh.flush();
             sesh.clear();
             
-            sesh.getTransaction().commit();
+            TransactionHelper.commit(sesh);
             sesh.beginTransaction();
         }
         return count+1;

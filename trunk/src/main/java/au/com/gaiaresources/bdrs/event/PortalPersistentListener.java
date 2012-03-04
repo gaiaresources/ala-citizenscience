@@ -1,5 +1,6 @@
 package au.com.gaiaresources.bdrs.event;
 
+import au.com.gaiaresources.bdrs.util.TransactionHelper;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -49,7 +50,7 @@ public class PortalPersistentListener implements PreInsertEventListener {
                     ppi.setPortal(portal);
                     
                     if(commitRequired) {
-                        tx.commit();
+                        TransactionHelper.commit(tx, sesh);
                         sesh.close();
                     }
                 }

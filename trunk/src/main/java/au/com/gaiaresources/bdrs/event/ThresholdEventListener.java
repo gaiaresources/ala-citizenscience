@@ -2,6 +2,7 @@ package au.com.gaiaresources.bdrs.event;
 
 import java.util.List;
 
+import au.com.gaiaresources.bdrs.util.TransactionHelper;
 import org.apache.log4j.Logger;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -144,7 +145,7 @@ public class ThresholdEventListener implements PostUpdateEventListener,
                 // persistent is deregistered. Any events that get triggered
                 // via action will be fired on commit. Only after that point
                 // can the object be deregistered.
-                tx.commit();
+                TransactionHelper.commit(tx, sesh);
                 sesh.close();
                 
                 // Removing an object that possibly was not registered

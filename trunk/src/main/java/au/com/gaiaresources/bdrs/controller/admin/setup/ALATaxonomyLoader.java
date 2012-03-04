@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import au.com.gaiaresources.bdrs.util.TransactionHelper;
 import org.apache.commons.collections.map.ReferenceMap;
 import org.apache.log4j.Logger;
 import org.hibernate.FlushMode;
@@ -164,7 +165,7 @@ public class ALATaxonomyLoader {
             if (taxaCount > 49) {
                 sesh.flush();
                 sesh.clear();
-                tx.commit();
+                TransactionHelper.commit(tx, sesh);
 
                 taxaTotal = taxaTotal + taxaCount;
                 log.debug("Commited " + taxaCount
@@ -240,7 +241,7 @@ public class ALATaxonomyLoader {
 
         sesh.flush();
         sesh.clear();
-        tx.commit();
+        TransactionHelper.commit(tx, sesh);
         sesh.setFlushMode(FlushMode.AUTO);
     }
 
@@ -308,7 +309,7 @@ public class ALATaxonomyLoader {
                 sesh.flush();
                 clearSessionCache();
                 sesh.clear();
-                tx.commit();
+                TransactionHelper.commit(tx, sesh);
 
                 taxaTotal = taxaTotal + taxaCount;
                 log.debug("Commited " + taxaCount + " taxa. Time Delta "
@@ -435,7 +436,7 @@ public class ALATaxonomyLoader {
         sesh.flush();
         clearSessionCache();
         sesh.clear();
-        tx.commit();
+        TransactionHelper.commit(tx, sesh);
         sesh.setFlushMode(FlushMode.AUTO);
     }
 

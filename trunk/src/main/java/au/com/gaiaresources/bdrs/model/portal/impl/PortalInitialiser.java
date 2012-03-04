@@ -11,6 +11,7 @@ import javax.servlet.ServletContextListener;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 
+import au.com.gaiaresources.bdrs.util.TransactionHelper;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -106,7 +107,7 @@ public class PortalInitialiser implements ServletContextListener {
                 }
             }
             
-            tx.commit();
+            TransactionHelper.commit(tx, sesh);
         } catch (Exception e) {
             log.error("Failed to initialise ROOT portal", e);
         }
