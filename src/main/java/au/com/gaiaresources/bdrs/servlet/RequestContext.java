@@ -7,7 +7,9 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import au.com.gaiaresources.bdrs.util.TransactionHelper;
 import org.apache.log4j.Logger;
+import org.hibernate.AssertionFailure;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.context.ApplicationContext;
@@ -254,7 +256,7 @@ public class RequestContext {
     public void newTx() {
         SessionFactory factory = hibernate.getSessionFactory();
         if (hibernate.isOpen() && hibernate.getTransaction().isActive()) {
-            hibernate.getTransaction().commit();
+            TransactionHelper.commit(hibernate);
         }
         hibernate = factory.openSession();
         hibernate.beginTransaction();
