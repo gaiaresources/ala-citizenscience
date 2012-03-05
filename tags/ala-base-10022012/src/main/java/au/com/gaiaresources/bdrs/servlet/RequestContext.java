@@ -1,11 +1,14 @@
 package au.com.gaiaresources.bdrs.servlet;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-
+import au.com.gaiaresources.bdrs.config.AppContext;
+import au.com.gaiaresources.bdrs.message.Message;
+import au.com.gaiaresources.bdrs.message.Messages;
+import au.com.gaiaresources.bdrs.model.menu.MenuItem;
+import au.com.gaiaresources.bdrs.model.portal.Portal;
+import au.com.gaiaresources.bdrs.model.theme.Theme;
+import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.service.property.PropertyService;
+import au.com.gaiaresources.bdrs.util.TransactionHelper;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -15,14 +18,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.ObjectError;
 
-import au.com.gaiaresources.bdrs.config.AppContext;
-import au.com.gaiaresources.bdrs.message.Message;
-import au.com.gaiaresources.bdrs.message.Messages;
-import au.com.gaiaresources.bdrs.model.menu.MenuItem;
-import au.com.gaiaresources.bdrs.model.portal.Portal;
-import au.com.gaiaresources.bdrs.model.theme.Theme;
-import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.service.property.PropertyService;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class RequestContext {
 
@@ -96,7 +96,7 @@ public class RequestContext {
      * Add a message to the request context.
      * 
      * @param error
-     *            {@link ObjectError}.
+     *            {@link org.springframework.validation.ObjectError}.
      */
     public void addMessage(ObjectError error) {
         if (this.session != null) {
@@ -112,7 +112,7 @@ public class RequestContext {
      * messages are constructed with the {@link java.util.Locale} of the
      * request. The messages are then cleared.
      * 
-     * @return {@link List} of {@link String}
+     * @return {@link java.util.List} of {@link String}
      */
     public List<String> getMessageContents() {
         // Property service should* be non null whenever we are attempting to process
@@ -200,7 +200,7 @@ public class RequestContext {
     }
 
     public String[] getRoles() {
-        return this.roles;
+        return Arrays.copyOf(this.roles, this.roles.length);
     }
 
     public void setPortal(Portal portal) {
@@ -253,7 +253,7 @@ public class RequestContext {
     public void newTx() {
         SessionFactory factory = hibernate.getSessionFactory();
         if (hibernate.isOpen() && hibernate.getTransaction().isActive()) {
-            hibernate.getTransaction().commit();
+            TransactionHelper.commit(hibernate);
         }
         hibernate = factory.openSession();
         hibernate.beginTransaction();
