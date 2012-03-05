@@ -1,33 +1,5 @@
 package au.com.gaiaresources.bdrs.servlet;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-
-import org.apache.log4j.Logger;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import org.jasig.cas.client.authentication.AttributePrincipal;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.GrantedAuthorityImpl;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
-
 import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.model.menu.MenuItem;
 import au.com.gaiaresources.bdrs.model.portal.Portal;
@@ -44,6 +16,32 @@ import au.com.gaiaresources.bdrs.service.property.PropertyService;
 import au.com.gaiaresources.bdrs.service.web.GoogleKeyService;
 import au.com.gaiaresources.bdrs.servlet.view.FileView;
 import au.com.gaiaresources.bdrs.util.StringUtils;
+import au.com.gaiaresources.bdrs.util.TransactionHelper;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.apache.log4j.Logger;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.jasig.cas.client.authentication.AttributePrincipal;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.GrantedAuthorityImpl;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class Interceptor implements HandlerInterceptor {
     @SuppressWarnings("unused")
@@ -272,14 +270,14 @@ public class Interceptor implements HandlerInterceptor {
     	if (RequestContextHolder.getContext().getHibernate() != null && 
     	        (RequestContextHolder.getContext().getHibernate().isOpen()) &&
     			(RequestContextHolder.getContext().getHibernate().getTransaction().isActive())) {
-    	    Transaction tx = RequestContextHolder.getContext().getHibernate().getTransaction();
+    	    Session session = RequestContextHolder.getContext().getHibernate();
     	    
     	    Object requestRollback = request.getAttribute(REQUEST_ROLLBACK); 
     	    if (requestRollback != null && requestRollback instanceof Boolean && ((Boolean)requestRollback) == true) {
     	        log.info("roll back requested");
-    	        tx.rollback();
+    	        TransactionHelper.rollback(session);
     	    } else {
-                tx.commit();
+                TransactionHelper.commit(session);
     	    }
     	}
     	RequestContextHolder.clear();
