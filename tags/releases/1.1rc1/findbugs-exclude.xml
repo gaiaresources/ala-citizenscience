@@ -1,0 +1,32 @@
+<FindBugsFilter>
+     <Match>
+        <!-- Exclude unused loggers -->
+       <Field type="org.apache.log4j.Logger"/>
+       <Bug code="UrF"/>
+     </Match>
+     
+     <!-- 
+        The shadowing of the superclass name is intentional to provide a seamless wrapper for
+        enhanced JSON handling.
+      -->
+     <Match>
+       <Class name="au.com.gaiaresources.bdrs.json.JSONArray"/>
+       <Bug pattern="NM_SAME_SIMPLE_NAME_AS_SUPERCLASS" />
+     </Match>
+     <Match>
+       <Class name="au.com.gaiaresources.bdrs.json.JSONObject"/>
+       <Bug pattern="NM_SAME_SIMPLE_NAME_AS_SUPERCLASS" />
+     </Match>
+     <Match>
+       <Class name="au.com.gaiaresources.bdrs.servlet.HandlerExceptionResolver"/>
+       <Bug pattern="NM_SAME_SIMPLE_NAME_AS_INTERFACE" />
+     </Match>
+     <Match>
+       <Class name="au.com.gaiaresources.bdrs.model.theme.Theme"/>
+       <Bug pattern="EI_EXPOSE_REP2" />
+     </Match>
+     <Match>
+       <Class name="au.com.gaiaresources.bdrs.model.user.User"/>
+       <Bug pattern="EI_EXPOSE_REP, EI_EXPOSE_REP2" />
+     </Match>
+</FindBugsFilter>
