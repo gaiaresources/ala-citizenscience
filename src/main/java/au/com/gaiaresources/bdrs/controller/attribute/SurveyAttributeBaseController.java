@@ -50,6 +50,7 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.content.ContentService;
 import au.com.gaiaresources.bdrs.service.property.PropertyService;
+import au.com.gaiaresources.bdrs.service.threshold.ThresholdService;
 
 @RolesAllowed( {Role.POWERUSER,Role.SUPERVISOR,Role.ADMIN} )
 @Controller
@@ -72,6 +73,9 @@ public class SurveyAttributeBaseController extends AbstractController {
     
     @Autowired
     private CensusMethodDAO cmDAO;
+    
+    @Autowired 
+    private ThresholdService thresholdService;
     
     /**
      * Content access for moderation email settings.
@@ -112,24 +116,33 @@ public class SurveyAttributeBaseController extends AbstractController {
         getAndSaveAttributes(request, attributeList, failAttributeList);
         
         List<AttributeFormField> formFieldList = new ArrayList<AttributeFormField>();
+        AttributeFormField field = null;
         for(Attribute attr : survey.getAttributes()) {
             int index = -1;
             if ((index = failAttributeList.indexOf(attr)) != -1) {
                 // use the failed attribute instead as it has unsaved changes.
-                formFieldList.add(formFieldFactory.createAttributeFormField(attributeDAO, failAttributeList.remove(index)));
+                field = formFieldFactory.createAttributeFormField(attributeDAO, failAttributeList.remove(index));
             } else {
-                formFieldList.add(formFieldFactory.createAttributeFormField(attributeDAO, attr));
+                field = formFieldFactory.createAttributeFormField(attributeDAO, attr);
             }
+            boolean isActiveThold = thresholdService.isActiveThresholdForAttribute(survey, attr);
+            field.setHasThreshold(isActiveThold);
+            formFieldList.add(field);
         }
         
         // add the remaining new unsaved attributes
         for(Attribute attr : failAttributeList) {
-            formFieldList.add(formFieldFactory.createAttributeFormField(attributeDAO, attr));
+            field = formFieldFactory.createAttributeFormField(attributeDAO, attr);
+            boolean isActiveThold = thresholdService.isActiveThresholdForAttribute(survey, attr);
+            field.setHasThreshold(isActiveThold);
         }
         
         for(RecordPropertyType type : RecordPropertyType.values()) {
-        	RecordProperty recordProperty = new RecordProperty(survey, type, metadataDAO);
-        	formFieldList.add(formFieldFactory.createAttributeFormField(recordProperty));
+            RecordProperty recordProperty = new RecordProperty(survey, type, metadataDAO);
+            field = formFieldFactory.createAttributeFormField(recordProperty);
+            boolean isActiveThold = thresholdService.isActiveThresholdForRecordProperty(recordProperty);
+            field.setHasThreshold(isActiveThold);
+            formFieldList.add(field);
         }
         
         Collections.sort(formFieldList);
@@ -165,14 +178,14 @@ public class SurveyAttributeBaseController extends AbstractController {
         
         Survey survey = getSurvey(request.getParameter("surveyId"));
 
-	if (survey == null) {
+        if (survey == null) {
             return SurveyBaseController.nullSurveyRedirect(getRequestContext());
         }
-		
-	Map<String, String[]> parameterMap = request.getParameterMap();
+        
+        Map<String, String[]> parameterMap = request.getParameterMap();
         for (RecordPropertyType type : RecordPropertyType.values()) {
-        	RecordProperty recordProperty = new RecordProperty(survey, type, metadataDAO);
-		formFieldFactory.createAttributeFormField(recordProperty, parameterMap);
+            RecordProperty recordProperty = new RecordProperty(survey, type, metadataDAO);
+            formFieldFactory.createAttributeFormField(recordProperty, parameterMap);
         }
         
         survey.setDefaultCensusMethodProvided(defaultCensusMethodProvided, metadataDAO);

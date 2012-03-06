@@ -540,6 +540,7 @@ a.ui-dialog-titlebar-close.ui-corner-all {
 }
 
 /* row highlight styling */
+.highlight, 
 tr.ui-state-highlight.ui-widget-content {
 	background: ${style.table.highlight.color};
 	border: ${style.table.border.width} ${style.table.border.style} ${style.table.border.color};

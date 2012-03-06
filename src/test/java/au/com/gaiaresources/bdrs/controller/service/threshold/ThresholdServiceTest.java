@@ -13,21 +13,16 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
-import org.springframework.security.authentication.encoding.PasswordEncoder;
 
-import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
-import au.com.gaiaresources.bdrs.email.EmailService;
+import au.com.gaiaresources.bdrs.controller.AbstractGridControllerTest;
+import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
+import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
 import au.com.gaiaresources.bdrs.email.impl.MockEmail;
 import au.com.gaiaresources.bdrs.email.impl.MockEmailService;
 import au.com.gaiaresources.bdrs.model.location.Location;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
-import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.record.Record;
-import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
@@ -35,7 +30,6 @@ import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.threshold.Action;
 import au.com.gaiaresources.bdrs.model.threshold.ActionType;
@@ -43,7 +37,6 @@ import au.com.gaiaresources.bdrs.model.threshold.Condition;
 import au.com.gaiaresources.bdrs.model.threshold.Operator;
 import au.com.gaiaresources.bdrs.model.threshold.Threshold;
 import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.content.ContentService;
 import au.com.gaiaresources.bdrs.service.property.PropertyService;
@@ -54,29 +47,11 @@ import au.com.gaiaresources.bdrs.service.threshold.actionhandler.EmailActionHand
 import au.com.gaiaresources.bdrs.service.threshold.actionhandler.HoldRecordHandler;
 import au.com.gaiaresources.bdrs.service.threshold.actionhandler.ModerationEmailActionHandler;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
+import au.com.gaiaresources.bdrs.util.ModerationUtil;
 
-public class ThresholdServiceTest extends AbstractControllerTest {
-
-    @Autowired
-    private RecordDAO recordDAO;
-
-    @Autowired
-    private TaxaDAO taxaDAO;
-
-    @Autowired
-    private UserDAO userDAO;
-
-    @Autowired
-    private SurveyDAO surveyDAO;
-    
-    @Autowired
-    private MetadataDAO metadataDAO;
-    
+public class ThresholdServiceTest extends AbstractGridControllerTest {
     @Autowired
     private ThresholdService thresholdService;
-
-    @Autowired
-    private LocationService locationService;
 
     @Autowired
     private PropertyService propertyService;
@@ -415,13 +390,13 @@ public class ThresholdServiceTest extends AbstractControllerTest {
         Location locationA = new Location();
         locationA.setName("Location A");
         locationA.setUser(admin);
-        locationA.setLocation(locationService.createPoint(-40.58, 153.1));
+        locationA.setLocation(locService.createPoint(-40.58, 153.1));
         //locationDAO.save(locationA);
 
         Location locationB = new Location();
         locationB.setName("Location B");
         locationB.setUser(admin);
-        locationB.setLocation(locationService.createPoint(-32.58, 154.2));
+        locationB.setLocation(locService.createPoint(-32.58, 154.2));
         //locationDAO.save(locationB);
 
         // ----------------------------------------
@@ -540,7 +515,7 @@ public class ThresholdServiceTest extends AbstractControllerTest {
         record.setHeld(false);
         record.setSpecies(speciesA);
         record.setUser(admin);
-        record.setPoint(locationService.createPoint(-32.58, 154.2));
+        record.setPoint(locService.createPoint(-32.58, 154.2));
         record = recordDAO.saveRecord(record);
         int recordPk = record.getId();
 
@@ -586,7 +561,7 @@ public class ThresholdServiceTest extends AbstractControllerTest {
         record.setHeld(false);
         record.setSpecies(speciesA);
         record.setUser(admin);
-        record.setPoint(locationService.createPoint(-32.58, 154.2));
+        record.setPoint(locService.createPoint(-32.58, 154.2));
 
         record = recordDAO.saveRecord(record);
 
@@ -611,12 +586,6 @@ public class ThresholdServiceTest extends AbstractControllerTest {
 
     @Test
     public void testModerationEmailActionHandler() throws Exception {
-        String email = "user@gaiabdrs.com";
-        PasswordEncoder passwordEncoder = new Md5PasswordEncoder();
-        String encodedPassword = passwordEncoder.encodePassword("password", null);
-        String registrationKey = passwordEncoder.encodePassword(au.com.gaiaresources.bdrs.util.StringUtils.generateRandomString(10, 50), email);
-
-        User user = userDAO.createUser("user", "Abigail", "Ambrose", email, encodedPassword, registrationKey, new String[] { Role.USER });
         login("user", "password", new String[]{Role.USER});
         
         TaxonGroup taxonGroup = new TaxonGroup();
@@ -637,7 +606,7 @@ public class ThresholdServiceTest extends AbstractControllerTest {
         survey.setStartDate(new Date());
         survey.setDescription("Single Site Multi Taxa Survey Description");
         Metadata md = survey.setFormRendererType(SurveyFormRendererType.DEFAULT);
-        metadataDAO.save(md);
+        metaDAO.save(md);
         
         List<Attribute> attributeList = new ArrayList<Attribute>();
         Attribute a = new Attribute();
@@ -658,7 +627,7 @@ public class ThresholdServiceTest extends AbstractControllerTest {
         record.setHeld(false);
         record.setSpecies(speciesA);
         record.setUser(user);
-        record.setPoint(locationService.createPoint(-32.58, 154.2));
+        record.setPoint(locService.createPoint(-32.58, 154.2));
         record.setSurvey(survey);
         record = recordDAO.saveRecord(record);
 
@@ -695,6 +664,53 @@ public class ThresholdServiceTest extends AbstractControllerTest {
         for (MockEmail message : messageQueue) {
             Assert.assertEquals(admin.getEmailAddress(), message.getFrom());
             Assert.assertEquals(user.getEmailAddress(), message.getTo());
+        }
+    }
+    
+    @Test
+    public void testIsActiveThresholdForAttribute() {
+        // disable the moderation threshold for this test or we will have to exclude moderation scopes
+        // from the assertions
+        List<Threshold> thresholds = thresholdDAO.getThresholdsByName(ModerationUtil.MODERATION_THRESHOLD_NAME, getRequestContext().getPortal());
+        for (Threshold threshold : thresholds) {
+            threshold.setEnabled(false);
+            thresholdDAO.save(threshold);
+        }
+        // create a threshold for record scoped attributes
+        createThreshold(Record.class.getCanonicalName(), 1, 
+                        "survey.attributes.scope",
+                        Operator.CONTAINS, 
+                        new String[]{
+                                AttributeScope.RECORD_MODERATION.toString(),
+                                AttributeScope.RECORD.toString()
+                        });
+        // test with recordScopeSurvey and surveyScopeSurvey
+        for (Attribute att : surveyScopedSurvey.getAttributes()) {
+            Assert.assertEquals("Testing attribute "+att.getName()+" against record scoped threshold", 
+                                AttributeScope.isRecordScope(att.getScope()), 
+                                thresholdService.isActiveThresholdForAttribute(surveyScopedSurvey, att));
+        }
+        
+        for (Attribute att : recordScopedSurvey.getAttributes()) {
+            Assert.assertEquals("Testing attribute "+att.getName()+" against record scoped threshold", 
+                                AttributeScope.isRecordScope(att.getScope()), 
+                                thresholdService.isActiveThresholdForAttribute(recordScopedSurvey, att));
+        }
+    }
+    
+    @Test 
+    public void testIsActiveThresholdForRecordProperty() {
+        // create a threshold for a record property
+        createThreshold(Record.class.getCanonicalName(), 1, 
+                        "number",
+                        Operator.EQUALS, 
+                        new String[]{"1"});
+        // test that it returns true for that property only
+        for (RecordPropertyType rpType : RecordPropertyType.values()) {
+            RecordProperty recordProperty = new RecordProperty(survey1, rpType, metaDAO);
+            Assert.assertEquals("Testing recordProperty "+recordProperty.getName(), 
+                                rpType.equals(RecordPropertyType.NUMBER), 
+                                thresholdService.isActiveThresholdForRecordProperty(recordProperty));
         }
     }
 }

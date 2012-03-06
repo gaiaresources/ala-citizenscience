@@ -1,9 +1,11 @@
 package au.com.gaiaresources.bdrs.service.threshold;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -23,10 +25,15 @@ import au.com.gaiaresources.bdrs.service.threshold.operatorhandler.ContainsHandl
 import au.com.gaiaresources.bdrs.service.threshold.operatorhandler.EqualsHandler;
 import au.com.gaiaresources.bdrs.service.threshold.operatorhandler.RecordAttributeHandler;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
+import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
+import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
+import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyFormField;
+import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
 import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.email.EmailService;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
+import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
@@ -34,7 +41,9 @@ import au.com.gaiaresources.bdrs.model.threshold.Action;
 import au.com.gaiaresources.bdrs.model.threshold.ActionType;
 import au.com.gaiaresources.bdrs.model.threshold.Condition;
 import au.com.gaiaresources.bdrs.model.threshold.Operator;
+import au.com.gaiaresources.bdrs.model.threshold.PathDescriptor;
 import au.com.gaiaresources.bdrs.model.threshold.Threshold;
+import au.com.gaiaresources.bdrs.model.threshold.ThresholdDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 
@@ -55,6 +64,10 @@ import au.com.gaiaresources.bdrs.model.user.UserDAO;
  * are mapped to datatypes.</p>
  */
 public class ThresholdService implements ConditionOperatorHandler {
+    
+    @Autowired
+    private ThresholdDAO thresholdDAO;
+    
     /**
      * The list of classes where theresholding may be applied.
      */
@@ -295,5 +308,107 @@ public class ThresholdService implements ConditionOperatorHandler {
      */
     public boolean isRegisteredReference(PersistentImpl entity) {
         return entity != null && referenceCountSet.contains(getReferenceKey(entity));
+    }
+    
+    /**
+     * Checks the active {@link Threshold Thresholds} to determine if there is one
+     * with a {@link Condition} matching on this {@link Attribute}.
+     * @param attribute the {@link Attribute} to search for thresholds on
+     * @return true if there is an active {@linkThreshold Thresholds} with a 
+     * {@link Condition} on this {@link Attribute}, false otherwise
+     */
+    public boolean isActiveThresholdForAttribute(Survey survey, Attribute attribute) {
+        Session sesh = RequestContextHolder.getContext().getHibernate();
+        // get the attributes here so there isn't a problem with lazy loading after the survey has been evicted
+        survey.getAttributes();
+        sesh.evict(survey);
+        
+        // get all the active thresholds
+        List<Threshold> thresholds = thresholdDAO.getEnabledThresholdByClassName(Record.class.getCanonicalName());
+        thresholds.addAll(thresholdDAO.getEnabledThresholdByClassName(Survey.class.getCanonicalName()));
+        for (Threshold threshold : thresholds) {
+            List<Condition> conditions = threshold.getConditions();
+            for (Condition condition : conditions) {
+                String[] propertyPath = condition.getPropertyPath().split("\\.");
+                if (propertyPath.length >= 1) {
+                    String attrPath = propertyPath[0];
+                    if (attrPath.equals("survey") && propertyPath.length >= 2) {
+                        if (propertyPath[1].equals("attributes")) {
+                            // create a dummy record for testing this condition
+                            Record rec = new Record();
+                            // must remove all other attributes from the survey so that the 
+                            // thresholds only match on the current attribute not all survey attributes
+                            List<Attribute> attributes = new ArrayList<Attribute>(1);
+                            attributes.add(attribute);
+                            survey.setAttributes(attributes);
+                            rec.setSurvey(survey);
+                            AttributeValue val = new AttributeValue();
+                            val.setAttribute(attribute);
+                            rec.getAttributes().add(val);
+                            sesh.evict(rec);
+                            boolean isThold = condition.applyCondition(sesh, rec, this);
+                            // only return if it is true so that we check all conditions until a match is found
+                            if (isThold) {
+                                return isThold;
+                            }
+                        }
+                    } else if (threshold.getClassName().equals(Survey.class.getCanonicalName())) {
+                        // must remove all other attributes from the survey so that the 
+                        // thresholds only match on the current attribute not all survey attributes
+                        List<Attribute> attributes = new ArrayList<Attribute>(1);
+                        attributes.add(attribute);
+                        survey.setAttributes(attributes);
+                        boolean isThold = condition.applyCondition(sesh, survey, this);
+                        // only return if it is true so that we check all conditions until a match is found
+                        if (isThold) {
+                            return isThold;
+                        }
+                    } else {
+                        if (attrPath.equals("location") && propertyPath.length >= 2) {
+                            attrPath = propertyPath[1];
+                        }
+                        if (attrPath.equals("attributes")) {
+                            boolean isThold = false;
+                            if (condition.getKeyOperator().equals(Operator.EQUALS)) {
+                                isThold = attribute.getName().equals(condition.getKey());
+                            } else if (condition.getKeyOperator().equals(Operator.CONTAINS)) {
+                                isThold = attribute.getName().contains(condition.getKey());
+                            }
+                            // only return if it is true so that we check all conditions until a match is found
+                            if (isThold) {
+                                return isThold;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Checks the active {@link Threshold Thresholds} to determine if there is one
+     * with a {@link Condition} matching on this {@link RecordProperty}.
+     * @param prop the {@link RecordProperty} to search for thresholds on
+     * @return true if there is an active {@linkThreshold Thresholds} with a 
+     * {@link Condition} on this {@link RecordProperty}, false otherwise
+     */
+    public boolean isActiveThresholdForRecordProperty(RecordProperty prop) {
+        // get all the active thresholds
+        List<Threshold> thresholds = thresholdDAO.getEnabledThresholdByClassName(Record.class.getCanonicalName());
+        for (Threshold threshold : thresholds) {
+            List<Condition> conditions = threshold.getConditions();
+            for (Condition condition : conditions) {
+                String[] propertyPath = condition.getPropertyPath().split("\\.");
+                if (propertyPath.length >= 1) {
+                    if (propertyPath[0].equals(prop.getRecordPropertyType().getName().toLowerCase())) {
+                        // the first element in the property path matches this property type,
+                        // therefore the condition will match on this property
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 }

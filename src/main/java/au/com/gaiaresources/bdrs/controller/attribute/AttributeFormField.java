@@ -70,4 +70,20 @@ public interface AttributeFormField extends Comparable<AttributeFormField> {
      * @param weightName the name of the input name.
      */
     public void setWeightName(String weightName);
+
+    /**
+     * Sets boolean flag for determining if there is an active {@link Threshold} 
+     * with a {@link Condition} matching this {@link Attribute}.  Used for displaying
+     * an indicator of the {@link Threshold} on the attribute editing page.
+     * @param isActiveThresholdForAttribute boolean indicating if there is an 
+     * active {@link Threshold} with a {@link Condition} matching this {@link Attribute}
+     */
+    public void setHasThreshold(boolean isActiveThresholdForAttribute);
+    
+    /**
+     * Gets boolean flag for determining if there is an active {@link Threshold} 
+     * with a {@link Condition} matching this {@link Attribute}.  Used for displaying
+     * an indicator of the {@link Threshold} on the attribute editing page.
+     */
+    public boolean hasThreshold();
 }

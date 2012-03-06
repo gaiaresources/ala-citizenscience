@@ -298,3 +298,32 @@ bdrs.attribute.createAttributeDisplayDiv = function(attributes, attributeSelecto
         attDiv.append(attElem);
     }
 };
+
+bdrs.attribute.getRowOptions = function(row) {
+	return {
+		'description': jQuery(row).find(".attrDesc").val(),
+	    'name': row.find(".attrName").val(),
+	    'typeCode': row.find(".attrTypeSelect option:selected").val(),
+	    'scopeCode': row.find(".attrScopeSelect option:selected").val(),
+	    'options': row.find(".attrOpt").val()
+    };
+};
+
+bdrs.attribute.checkForThreshold = function(row, surveyId) {
+	var options = bdrs.attribute.getRowOptions(row);
+	jQuery.extend(options, {"surveyId": surveyId});
+	jQuery.get(bdrs.contextPath+'/bdrs/admin/attribute/ajaxCheckThresholdForAttribute.htm',
+            options, 
+            function(data) {
+		        if (data === 'true') {
+		            // highlight the row
+		        	row.addClass("ui-state-highlight");
+		        	row.addClass("ui-widget-content");
+		        } else {
+		            // un-highlight the row if it is highlighted
+		        	row.removeClass("ui-state-highlight");
+		        	row.removeClass("ui-widget-content");
+		        }
+		    }
+	);
+};

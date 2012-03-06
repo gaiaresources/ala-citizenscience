@@ -14,6 +14,8 @@ public abstract class AbstractAttributeFormField implements AttributeFormField {
 
     private Logger log = Logger.getLogger(getClass());
 
+    private boolean hasThreshold = false;
+    
     /**
      * Compares the weight of this <code>AttributeFormField</code> to the other.
      */
@@ -63,5 +65,15 @@ public abstract class AbstractAttributeFormField implements AttributeFormField {
             log.warn(String.format("There are multiple parameters for the key \"%s\". Returning the first.", key));
             return value[0];
         }
+    }
+    
+    @Override
+    public void setHasThreshold(boolean isActiveThresholdForAttribute) {
+        this.hasThreshold = isActiveThresholdForAttribute;
+    }
+    
+    @Override
+    public boolean hasThreshold() {
+        return this.hasThreshold;
     }
 }

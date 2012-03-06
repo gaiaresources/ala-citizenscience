@@ -3,14 +3,23 @@ package au.com.gaiaresources.bdrs.controller.attribute;
 import junit.framework.Assert;
 
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.ModelAndViewAssert;
 import org.springframework.web.servlet.ModelAndView;
 
-import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
+import au.com.gaiaresources.bdrs.controller.AbstractGridControllerTest;
+import au.com.gaiaresources.bdrs.model.record.Record;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
+import au.com.gaiaresources.bdrs.model.threshold.Operator;
+import au.com.gaiaresources.bdrs.model.threshold.ThresholdDAO;
 import au.com.gaiaresources.bdrs.security.Role;
 
-public class AttributeControllerTest extends AbstractControllerTest {
+public class AttributeControllerTest extends AbstractGridControllerTest {
 
+    @Autowired
+    private ThresholdDAO thresholdDAO;
+    
     @Test
     public void testAjaxAddAttribute() throws Exception {
         login("admin", "password", new String[] { Role.ADMIN });
@@ -45,5 +54,51 @@ public class AttributeControllerTest extends AbstractControllerTest {
                 }
             }
         }
+    }
+    
+    /**
+     * Test that controller returns true when a threshold exists for the attribute 
+     * specifications given by the page and false otherwise.
+     * @throws Exception 
+     */
+    @Test
+    public void testAjaxCheckAttribute() throws Exception {
+        login("admin", "password", new String[]{Role.ADMIN});
+        // create a threshold to match on
+        createThreshold(Record.class.getCanonicalName(), 1, 
+                        "survey.attributes.scope",
+                        Operator.CONTAINS, 
+                        new String[]{
+                                AttributeScope.RECORD_MODERATION.toString(),
+                                AttributeScope.SURVEY_MODERATION.toString()
+                        });
+        
+        // create an attribute that matches
+        request.setMethod("GET");
+        request.setRequestURI("/bdrs/admin/attribute/ajaxCheckThresholdForAttribute.htm");
+        request.setParameter("description", "Test Attribute");
+        request.setParameter("name", "test_attr");
+        request.setParameter("typeCode", AttributeType.TEXT.getCode());
+        request.setParameter("scopeCode", AttributeScope.SURVEY_MODERATION.toString());
+        request.setParameter("surveyId", survey1.getId().toString());
+
+        handle(request, response);
+        String resContent = response.getContentAsString();
+        System.out.println(resContent);
+        Assert.assertTrue(Boolean.valueOf(resContent));
+        
+        // create an attribute that doesn't match
+        request.setMethod("GET");
+        request.setRequestURI("/bdrs/admin/attribute/ajaxCheckThresholdForAttribute.htm");
+        request.setParameter("description", "Test Attribute");
+        request.setParameter("name", "test_attr");
+        request.setParameter("typeCode", AttributeType.TEXT.getCode());
+        request.setParameter("scopeCode", AttributeScope.SURVEY.toString());
+        request.setParameter("surveyId", survey1.getId().toString());
+
+        handle(request, response);
+        resContent = response.getContentAsString();
+        System.out.println(resContent);
+        Assert.assertFalse(Boolean.valueOf(resContent));
     }
 }

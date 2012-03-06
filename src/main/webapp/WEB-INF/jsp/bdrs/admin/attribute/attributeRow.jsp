@@ -13,7 +13,9 @@
 <tiles:useAttribute name="isTag" ignore="true"/>
 <tiles:useAttribute name="index" ignore="true"/>
 
-<tr>
+<tr
+<c:if test="<%= formField.hasThreshold() %>">class="ui-state-highlight ui-widget-content"</c:if>
+>
     <c:choose>
         <c:when test="<%= formField.isAttributeField() %>">
             <c:choose>
@@ -23,14 +25,14 @@
                     </td>
                     <td>
                         <span class="table_input_container">
-                            <input type="text" name="add_description_${index}" id="add_description_${index}"/>
+                            <input type="text" class="attrDesc" name="add_description_${index}" id="add_description_${index}"/>
                         </span>
                     </td>
                     <td>
                         <span class="table_input_container">
                             <input type="hidden" value="${index}" name="add_attribute"/>
                             <input type="hidden" value="<c:choose><c:when test="${ isTag == true }">true</c:when><c:otherwise>false</c:otherwise></c:choose>" name="add_tag_${index}"/>
-                            <input type="text" name="add_name_${index}" id="add_name_${index}" class="uniqueName validate(uniqueAndRequired(.uniqueName))"/>
+                            <input type="text" name="add_name_${index}" id="add_name_${index}" class="attrName uniqueName validate(uniqueAndRequired(.uniqueName))"/>
                         </span>
                     </td>
                     <td>
@@ -66,7 +68,7 @@
                     </c:if>
                     <td>
                         <span class="table_input_container">
-                            <input type="text" name="add_option_${index}" disabled="disabled"/>
+                            <input type="text" name="add_option_${index}" class="attrOpt" disabled="disabled"/>
                         </span>
                     </td>
                     <td class="textcenter">
@@ -90,7 +92,7 @@
                     </td>
                     <td>
                         <span class="table_input_container">
-                            <input type="text" name="description_${formField.attribute.id}"
+                            <input type="text" class="attrDesc" name="description_${formField.attribute.id}"
                                 value="<c:out value="${formField.attribute.description}"/>"
                                 <c:if test="<%= ((AttributeInstanceFormField)formField).getAttribute() != null && AttributeType.HTML_HORIZONTAL_RULE.getCode().equals(((AttributeInstanceFormField)formField).getAttribute().getTypeCode()) %>">
                                     disabled="disabled"
@@ -105,7 +107,7 @@
                         <span class="table_input_container">
                             <input type="hidden" value="${formField.attribute.id}" name="attribute"/>
                             <input type="hidden" value="${formField.attribute.tag}" name="tag_${formField.attribute.id}"/>
-                            <input type="text" name="name_${formField.attribute.id}" class="uniqueName validate(uniqueAndRequired(.uniqueName))"
+                            <input type="text" name="name_${formField.attribute.id}" class="attrName uniqueName validate(uniqueAndRequired(.uniqueName))"
                                 value="<c:out value="${formField.attribute.name}"/>"
                             />
                         </span>
@@ -162,7 +164,7 @@
                     </c:if>
                     <td>
                         <span class="table_input_container">
-                            <input type="text" name="option_${formField.attribute.id}"
+                            <input type="text" name="option_${formField.attribute.id}" class="attrOpt"
                                 value="<c:out value="${formField.attribute.optionString}"/>"
                                 <c:if test="<%= !(AttributeType.STRING_WITH_VALID_VALUES.getCode().equals(((AttributeInstanceFormField)formField).getAttribute().getTypeCode()) 
                                     || AttributeType.INTEGER_WITH_RANGE.getCode().equals(((AttributeInstanceFormField)formField).getAttribute().getTypeCode())
