@@ -1,1 +1,0 @@
-<link id="style" rel="stylesheet" href="${pageContext.request.contextPath}/css/bdrs/mobile/iemobile.css" type="text/css"/>
