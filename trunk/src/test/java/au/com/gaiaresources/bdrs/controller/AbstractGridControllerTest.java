@@ -12,8 +12,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 import org.junit.Assert;
@@ -33,6 +33,7 @@ import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
 import au.com.gaiaresources.bdrs.model.method.Taxonomic;
+import au.com.gaiaresources.bdrs.model.portal.Portal;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
@@ -47,6 +48,10 @@ import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
+import au.com.gaiaresources.bdrs.model.threshold.Condition;
+import au.com.gaiaresources.bdrs.model.threshold.Operator;
+import au.com.gaiaresources.bdrs.model.threshold.Threshold;
+import au.com.gaiaresources.bdrs.model.threshold.ThresholdDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.security.Role;
@@ -78,7 +83,8 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
     protected LocationService locService;
     @Autowired
     protected LocationDAO locationDAO;
-
+    @Autowired
+    protected ThresholdDAO thresholdDAO;
     /**
      * username = 'admin'
      */
@@ -562,7 +568,7 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
         int suffix = 1;
         
         for (AttributeScope scope : scopeArray) {
-            attrList.addAll(createAttrList(String.format("myattr%d", suffix++), attrRequired, scope));
+            attrList.addAll(createAttrList(String.format(scope.toString()+"_attribute_%d", suffix++), attrRequired, scope));
         }
         
         surv.setAttributes(attrList);
@@ -1251,5 +1257,44 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
             }
         }
         return result;
+    }
+    
+    /**
+     * Helper method to create {@link Threshold} for tests.
+     * @param className Record, Survey, Taxa, or CensusMethod
+     * @param index Number to apply to the end of the name string for differentiation of {@link Threshold}
+     * @param propertyPath the property path for the {@link Threshold}
+     * @param operator the {@link Operator} for the {@link Threshold}
+     * @param values the values to assign to the {@link Threshold}
+     * @return a newly created {@link Threshold}
+     */
+    public Threshold createThreshold(String className, int index, String propertyPath, Operator operator, String[] values) {
+        Threshold threshold = new Threshold();
+        Portal portal = getRequestContext().getPortal();
+        threshold.setClassName(className);
+        threshold.setEnabled(true);
+        threshold.setName("Test Threshold "+index);
+        threshold.setDescription("Threshold for testing.");
+        threshold.setPortal(portal);
+        
+        List<Condition> conditionList = new ArrayList<Condition>();
+        // set the conditions
+        Condition condition = new Condition();
+        condition.setClassName(className);
+        condition.setPropertyPath(propertyPath);
+        condition.setKeyOperator(null);
+        condition.setValueOperator(operator);
+        condition.setKey(null);
+        condition.setValue(values);
+        condition.setPortal(portal);
+        
+        condition = thresholdDAO.save(sesh, condition);
+        conditionList.add(condition);
+        threshold.setConditions(conditionList);
+        
+        // don't need to set threshold actions as only conditions are used 
+        // for testing if a threshold is present on an attribute
+        
+        return thresholdDAO.save(sesh, threshold);
     }
 }

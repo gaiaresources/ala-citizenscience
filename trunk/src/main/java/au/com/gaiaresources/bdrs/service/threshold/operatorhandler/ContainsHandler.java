@@ -1,6 +1,7 @@
 package au.com.gaiaresources.bdrs.service.threshold.operatorhandler;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -36,7 +37,7 @@ public class ContainsHandler implements SimpleOperatorHandler {
             Object expectedValue = null;
             if (property.getClass().isEnum()) {
                 actualValue = property.toString();
-                expectedValue = condition.stringArrayValue();
+                expectedValue = Arrays.asList(condition.stringArrayValue());
             } else {
                 expectedValue = condition.stringValue();
             }
@@ -50,6 +51,7 @@ public class ContainsHandler implements SimpleOperatorHandler {
     /**
      * {@inheritDoc}
      */
+    @SuppressWarnings("unchecked")
     @Override
     public boolean match(Object objA, Object objB) {
         if(objA == null || objB == null) {
@@ -64,6 +66,13 @@ public class ContainsHandler implements SimpleOperatorHandler {
             boolean isContained = true;
             isContained = isContained && Arrays.binarySearch((Object[])objB, objA) > -1;
             return isContained;
+        } else if(Collection.class.isAssignableFrom(objA.getClass())) {
+            return ((Collection) objA).contains(objB);
+        } else if(Collection.class.isAssignableFrom(objB.getClass())) {
+            for (Object o : ((Collection)objB)) {
+                log.debug(o);
+            }
+            return ((Collection) objB).contains(objA);
         } else {
             return objA.toString().contains(objB.toString());
         }

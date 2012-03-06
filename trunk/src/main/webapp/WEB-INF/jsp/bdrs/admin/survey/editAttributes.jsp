@@ -12,6 +12,9 @@
         The table below allows you to define all the attributes that you want to
         see on the data entry form for your project.
     </p>
+    <p>
+        <span class="highlight">Highlighted</span> rows indicate fields for which thresholds exist. Click <a href="${pageContext.request.contextPath}/bdrs/admin/threshold/listing.htm">here</a> to add/edit thresholds.
+    </p>
      
     <div id="attributeContainer" class="input_container">
 	    <div class="textright buttonpanel">
@@ -334,9 +337,16 @@
             jQuery("#censusMethodToggle").text(canSee ? "Click here to hide Census Method selection" : "Click here to edit the Census Methods for this Project");
             jQuery("#censusMethodWrapper").slideToggle();
         });
-		
+
 		// trigger the onchange events on all of the type fields to initialise tooltips and validation.
 		jQuery(".attrTypeSelect").change();
 		jQuery(".attrScopeSelect").change();
+
+		// add threshold checking events to the change events of name, description, type, and scope
+		jQuery(".attrName").live("change", function() {bdrs.attribute.checkForThreshold(jQuery(this).parents("tr"), ${survey.id})});
+		jQuery(".attrDesc").live("change", function() {bdrs.attribute.checkForThreshold(jQuery(this).parents("tr"), ${survey.id})});
+        jQuery(".attrTypeSelect").live("change", function(){bdrs.attribute.checkForThreshold(jQuery(this).parents("tr"), ${survey.id})});
+        jQuery(".attrScopeSelect").live("change", function(){bdrs.attribute.checkForThreshold(jQuery(this).parents("tr"), ${survey.id})});
+		
     });
 </script>
