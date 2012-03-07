@@ -2,6 +2,9 @@ package au.com.gaiaresources.bdrs.model.report.impl;
 
 import java.util.List;
 
+import au.com.gaiaresources.bdrs.model.report.ReportCapability;
+import org.hibernate.Query;
+import org.hibernate.classic.Session;
 import org.springframework.stereotype.Repository;
 
 import au.com.gaiaresources.bdrs.db.impl.AbstractDAOImpl;
@@ -35,9 +38,33 @@ public class ReportDAOImpl extends AbstractDAOImpl implements ReportDAO {
         return super.find("from Report order by name");
     }
 
+    @Override
+    public List<Report> getReports(ReportCapability capability, ReportView view) {
+        StringBuilder q = new StringBuilder();
+        q.append("select distinct r");
+        q.append(" from Report r");
+        q.append(" left join fetch r.views view");
+        q.append(" left join fetch r.capabilities capability");
+        q.append(" where view = :view");
+        if(capability != null) {
+            q.append(" and capability = :capability");
+        }
+        q.append(" order by r.name");
+        
+        Session session = getSessionFactory().getCurrentSession();
+        Query query = session.createQuery(q.toString());
+        query.setParameter("view", view);
+
+        if(capability != null) {
+            query.setParameter("capability", capability);
+        }
+
+        return query.list();
+    }
+
     /* (non-Javadoc)
-     * @see au.com.gaiaresources.bdrs.model.report.ReportDAO#save(au.com.gaiaresources.bdrs.model.report.Report)
-     */
+    * @see au.com.gaiaresources.bdrs.model.report.ReportDAO#save(au.com.gaiaresources.bdrs.model.report.Report)
+    */
     @Override
     public Report save(Report report) {
         return super.save(report);

@@ -39,7 +39,7 @@ public class FileView extends AbstractView {
     protected void renderMergedOutputModel(@SuppressWarnings("unchecked") Map model, HttpServletRequest request, HttpServletResponse response) 
                                            throws IOException 
     {
-        logger.info("Streaming file: " + f.getAbsolutePath() + ", Content type: " + getContentType());
+        logger.debug("Streaming file: " + f.getAbsolutePath() + ", Content type: " + getContentType());
         
         response.setContentType(getContentType());
         

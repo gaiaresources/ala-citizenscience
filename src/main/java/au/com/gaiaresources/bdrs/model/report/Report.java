@@ -1,18 +1,14 @@
 package au.com.gaiaresources.bdrs.model.report;
 
-import javax.persistence.AttributeOverride;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Lob;
-import javax.persistence.Table;
-
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.Filter;
-import org.hibernate.annotations.FilterDef;
-import org.hibernate.annotations.ParamDef;
-
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
+import au.com.gaiaresources.bdrs.model.report.impl.ReportView;
+import org.hibernate.annotations.*;
+
+import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Describes a readonly view of the data in the system.
@@ -28,30 +24,31 @@ public class Report extends PortalPersistentImpl {
      * The target directory that will contain the report after extraction.
      */
     public static final String REPORT_DIR = "report";
-    
+
     private String name;
     private String description;
     private String iconFilename;
     private boolean active = true;
-    
-//    private Set<ReportCapability> capabilities = new HashSet<ReportCapability>();
-    
+
+    private Set<ReportCapability> capabilities = new HashSet<ReportCapability>();
+    private Set<ReportView> views = new HashSet<ReportView>();
+
     /**
      * Creates a new blank (and invalid) report.
      */
     public Report() {
     }
-    
+
     /**
      * Creates a new report.
-     * 
-     * @param name the name of the new report.
-     * @param description a short description of the report.
+     *
+     * @param name         the name of the new report.
+     * @param description  a short description of the report.
      * @param iconFilename the relative path to the report icon.
-     * @param active true if this report is active, false otherwise.
+     * @param active       true if this report is active, false otherwise.
      */
     public Report(String name, String description, String iconFilename,
-            boolean active) {
+                  boolean active) {
         super();
         this.name = name;
         this.description = description;
@@ -68,8 +65,7 @@ public class Report extends PortalPersistentImpl {
     }
 
     /**
-     * @param name
-     *            the name to set
+     * @param name the name to set
      */
     public void setName(String name) {
         this.name = name;
@@ -85,8 +81,7 @@ public class Report extends PortalPersistentImpl {
     }
 
     /**
-     * @param description
-     *            the description to set
+     * @param description the description to set
      */
     public void setDescription(String description) {
         this.description = description;
@@ -101,8 +96,7 @@ public class Report extends PortalPersistentImpl {
     }
 
     /**
-     * @param active
-     *            the active to set
+     * @param active the active to set
      */
     public void setActive(boolean active) {
         this.active = active;
@@ -123,21 +117,47 @@ public class Report extends PortalPersistentImpl {
         this.iconFilename = iconFilename;
     }
 
-//    /**
-//     * @return the capabilities
-//     */
-//    @CollectionOfElements(targetElement = ReportCapability.class)
-//    @JoinTable(name = "REPORT_REPORT_CAPABILITY", joinColumns = @JoinColumn(name = "REPORT_ID"))
-//    @Column(name = "CAPABILITY", nullable = false)
-//    @Enumerated(EnumType.STRING)
-//    public Set<ReportCapability> getCapabilities() {
-//        return capabilities;
-//    }
-//
-//    /**
-//     * @param capabilities the capabilities to set
-//     */
-//    public void setCapabilities(Set<ReportCapability> capabilities) {
-//        this.capabilities = capabilities;
-//    }
+    /**
+     * Returns the ability of this report to consume data passed to it via the content function.
+     *
+     * @return the capabilities
+     */
+    @CollectionOfElements(targetElement = ReportCapability.class)
+    @JoinTable(name = "REPORT_REPORT_CAPABILITY", joinColumns = @JoinColumn(name = "REPORT_ID"))
+    @Column(name = "CAPABILITY", nullable = false)
+    @Enumerated(EnumType.STRING)
+    public Set<ReportCapability> getCapabilities() {
+        return capabilities;
+    }
+
+    /**
+     * Sets the ability of this report to consume data passed to it via the content function.
+     *
+     * @param capabilities the capabilities to set
+     */
+    public void setCapabilities(Set<ReportCapability> capabilities) {
+        this.capabilities = capabilities;
+    }
+
+    /**
+     * Returns the views where this report shall be displayed.
+     *
+     * @return the locations where this report shall be displayed.
+     */
+    @CollectionOfElements(targetElement = ReportView.class)
+    @JoinTable(name = "REPORT_REPORT_VIEW", joinColumns = @JoinColumn(name = "REPORT_ID"))
+    @Column(name = "VIEW", nullable = false)
+    @Enumerated(EnumType.STRING)
+    public Set<ReportView> getViews() {
+        return this.views;
+    }
+
+    /**
+     * Sets the views where this report shall be available.
+     *
+     * @param views the pages where this report shall be available.
+     */
+    public void setViews(Set<ReportView> views) {
+        this.views = views;
+    }
 }

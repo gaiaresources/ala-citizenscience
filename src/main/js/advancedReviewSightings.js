@@ -393,7 +393,19 @@ bdrs.advancedReview.initFacets = function(formSelector, facetSelector) {
         select_all_elem.parents(facetSelector).find('.facetOptions input[type="checkbox"]').prop("checked", select_all);
         form.submit();        
     });
+};
 
+/**
+ * Click handler for reporting links. This function will perform a GET request to the advanced review
+ * report request handler method with all inputs in the specified form as well as the specified report id.
+ * @param {Object} formSelector - selector for the facet form.
+ * @param {Object} reportId - the primary key of the report to run.
+ */
+bdrs.advancedReview.renderReport = function(formSelector, reportId) {
+    var query_params = jQuery(formSelector).serialize();
+    query_params += "&reportId="+reportId;
+    var url = bdrs.contextPath + "/review/sightings/advancedReviewReport.htm?"+query_params;
+    document.location = url;
 };
 
 /**

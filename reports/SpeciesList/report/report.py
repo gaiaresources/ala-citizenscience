@@ -10,7 +10,7 @@ class Report:
     """The Species List report provides a tabular view of all taxa that have
     been recorded in a survey.
     """
-    def content(self, json_params):
+    def content(self, json_params, *args, **kwargs):
         params = json.loads(json_params)
         tmpl_params = {}
 
