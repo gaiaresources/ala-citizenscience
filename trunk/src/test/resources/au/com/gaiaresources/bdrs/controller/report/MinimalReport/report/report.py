@@ -2,7 +2,7 @@ import json
 from Cheetah.Template import Template
 
 class Report:
-    def content(self, json_params):
+    def content(self, json_params, *args, **kwargs):
         params = json.loads(json_params)
         tmpl = Template(file=bdrs.toAbsolutePath('template/report.tmpl'), searchList={'tmpl_text': 'nyan nyan nyan'})
         response = bdrs.getResponse()

@@ -263,15 +263,18 @@ public abstract class AbstractControllerTest extends AbstractTransactionalTest {
      */
     protected void handleProxyRequest(MockHttpServletRequest request,
             MockHttpServletResponse response) throws Exception {
+
         SimpleServerProxy container = new SimpleServerProxy();
         Connection connection = new SocketConnection(container);
         SocketAddress address = new InetSocketAddress(request.getServerPort());
-        connection.connect(address);
 
-        handle(request, response);
-
-        connection.close();
-        commit();
+        try {
+            connection.connect(address);
+            handle(request, response);
+        } finally {
+            connection.close();
+            commit();
+        }
     }
     
     private class SimpleServerProxy implements Container {
@@ -320,8 +323,7 @@ public abstract class AbstractControllerTest extends AbstractTransactionalTest {
                     req.setServletPath(servletPath);
 
                     response = new MockHttpServletResponse();
-                    
-                    
+
                     AbstractControllerTest.this.handle(req, response);
                     
                     if (response.getRedirectedUrl() != null) {
@@ -337,7 +339,7 @@ public abstract class AbstractControllerTest extends AbstractTransactionalTest {
                 }
 
                 // ---------------------------------
-                // BDRS Reponse -> Simple Response
+                // BDRS Response -> Simple Response
                 // ---------------------------------
                 simpleResponse.set("Content-Type", response.getContentType());
                 simpleResponse.setCode(response.getStatus());

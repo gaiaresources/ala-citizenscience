@@ -25,81 +25,82 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 
 /**
- *  Represents the bridge between the Java Virtual Machine and the 
- *  Python Virtual Machine. It is the responsibility of the bridge to ensure
- *  that the Python Report only has read-access to application data. This is
- *  generally achieved by ensuring that only JSON encoded strings are passed
- *  from the bridge back to the Python report.
+ * Represents the bridge between the Java Virtual Machine and the
+ * Python Virtual Machine. It is the responsibility of the bridge to ensure
+ * that the Python Report only has read-access to application data. This is
+ * generally achieved by ensuring that only JSON encoded strings are passed
+ * from the bridge back to the Python report.
  */
 public class PyBDRS {
     private Logger log = Logger.getLogger(getClass());
-    
+
     private HttpServletRequest request;
-    
-    private Report report;      
+
+    private Report report;
     private User user;
     private PyResponse response;
-    
+
     private PySurveyDAO pySurveyDAO;
     private PyTaxaDAO pyTaxaDAO;
     private PyRecordDAO pyRecordDAO;
     private PyCensusMethodDAO pyCensusMethodDAO;
     private PyLocationDAO pyLocationDAO;
-    
+
     private FileService fileService;
-    
+
     /**
      * Creates a new instance.
-     * 
-     * @param request the request from the client.
+     *
+     * @param request     the request from the client.
      * @param fileService retrieves files from the files store.
-     * @param report the report that will be using this bridge.
-     * @param user the user accessing data. 
-     * @param surveyDAO retrieves survey related data.
-     * @param taxaDAO retrieves taxon and taxon group related data.
-     * @param recordDAO retrieves record related data.
+     * @param report      the report that will be using this bridge.
+     * @param user        the user accessing data.
+     * @param surveyDAO   retrieves survey related data.
+     * @param taxaDAO     retrieves taxon and taxon group related data.
+     * @param recordDAO   retrieves record related data.
      */
-    public PyBDRS(HttpServletRequest request, 
-            FileService fileService, Report report, User user, 
-            SurveyDAO surveyDAO, CensusMethodDAO censusMethodDAO, 
-            TaxaDAO taxaDAO, RecordDAO recordDAO, 
-            LocationDAO locationDAO) {
+    public PyBDRS(HttpServletRequest request,
+                  FileService fileService, Report report, User user,
+                  SurveyDAO surveyDAO, CensusMethodDAO censusMethodDAO,
+                  TaxaDAO taxaDAO, RecordDAO recordDAO,
+                  LocationDAO locationDAO) {
         this.request = request;
         this.fileService = fileService;
         this.report = report;
-        
+
         this.user = user;
-        
-        this.response  = new PyResponse();
-        
+
+        this.response = new PyResponse();
+
         this.pySurveyDAO = new PySurveyDAO(user, surveyDAO);
         this.pyTaxaDAO = new PyTaxaDAO(user, surveyDAO, taxaDAO);
         this.pyRecordDAO = new PyRecordDAO(user, recordDAO);
         this.pyCensusMethodDAO = new PyCensusMethodDAO(censusMethodDAO);
         this.pyLocationDAO = new PyLocationDAO(surveyDAO);
     }
-    
+
     /**
-     * Returns the portion of the request URI that indicates the 
+     * Returns the portion of the request URI that indicates the
      * context of the request.
-     * @return the portion of the request URI that indicates the 
-     * context of the request.
+     *
+     * @return the portion of the request URI that indicates the
+     *         context of the request.
      */
     public String getContextPath() {
         return this.request.getContextPath();
     }
-    
+
     /**
      * Returns the host name of the Internet Protocol (IP) interface on which
      * the request was received.
-     * 
+     *
      * @return a <code>String</code> containing the IP address on which the
      *         request was received.
      */
     public String getLocalName() {
         return this.request.getLocalName();
     }
-    
+
     /**
      * Returns the Internet Protocol (IP) port number of the interface
      * on which the request was received.
@@ -109,9 +110,10 @@ public class PyBDRS {
     public int getLocalPort() {
         return this.request.getLocalPort();
     }
-    
+
     /**
      * Returns the python wrapped for the {@link SurveyDAO}
+     *
      * @return the pySurveyDAO the python wrapped {@link SurveyDAO}
      */
     public PySurveyDAO getSurveyDAO() {
@@ -120,63 +122,73 @@ public class PyBDRS {
 
     /**
      * Returns the python wrapped {@link TaxaDAO}
+     *
      * @return the pyTaxaDAO the python wrapped {@link TaxaDAO}
      */
     public PyTaxaDAO getTaxaDAO() {
         return pyTaxaDAO;
     }
-    
+
     /**
      * Returns the python wrapped {@link RecordDAO}
+     *
      * @return the pyRecordDAO the python wrapped {@link RecordDAO}
      */
     public PyRecordDAO getRecordDAO() {
         return pyRecordDAO;
     }
-    
+
     /**
      * Returns the python wrapped {@link CensusMethodDAO}
+     *
      * @return the user the python wrapped {@link CensusMethodDAO}
      */
     public PyCensusMethodDAO getCensusMethodDAO() {
         return pyCensusMethodDAO;
     }
-    
+
     /**
      * Returns the python wrapped {@link LocationDAO}
+     *
      * @return the user the python wrapped {@link LocationDAO}
      */
     public PyLocationDAO getLocationDAO() {
         return pyLocationDAO;
     }
-    
+
     /**
      * Returns a json serialized representation of the logged in {@link User}
+     *
      * @return the user a json serialized representation of the logged in {@link User}
      */
     public String getUser() {
+        if (user == null) {
+            return null;
+        }
+
         Map<String, Object> flat = user.flatten();
         flat.put("registrationKey", user.getRegistrationKey());
         return JSONObject.fromMapToString(flat);
     }
-    
+
     /**
-     * Returns a representation of the server response to the client. 
+     * Returns a representation of the server response to the client.
+     *
      * @return the response a representation of the server response to the browser.
      */
     public PyResponse getResponse() {
         return response;
     }
-    
+
     /**
      * Returns an absolute path to a file specified by the relative path assuming
-     * that the path was relative to the base report directory. 
-     * 
+     * that the path was relative to the base report directory.
+     * <p/>
      * Intended to be used by reports that need to retrieve files from the
      * report directory such as templates.
-     * 
+     *
      * @param relativePath the relative path to the desired file from the report
-     * directory.
+     *                     directory.
      * @return an absolute path to the file specified by the relative path.
      */
     public String toAbsolutePath(String relativePath) {
@@ -189,10 +201,10 @@ public class PyBDRS {
             throw new IllegalStateException(ioe);
         }
     }
-    
+
     /**
      * Exposes the logger to the python report
-     * 
+     *
      * @return
      */
     public Logger getLogger() {

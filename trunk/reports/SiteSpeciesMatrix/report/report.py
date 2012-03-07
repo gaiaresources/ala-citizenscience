@@ -19,7 +19,7 @@ class Report:
     contain a coordinate but not a location will be grouped into a special
     location called 'Other'.
     """
-    def content(self, json_params):
+    def content(self, json_params, *args, **kwargs):
         params = json.loads(json_params)
         tmpl_params = {}
         survey_array = json.loads(bdrs.getSurveyDAO().getActiveSurveys())

@@ -1,22 +1,32 @@
 package au.com.gaiaresources.bdrs.controller.review.sightings;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.JAXBException;
-
 import au.com.gaiaresources.bdrs.db.FilterManager;
+import au.com.gaiaresources.bdrs.db.impl.HqlQuery;
+import au.com.gaiaresources.bdrs.db.impl.HqlQuery.SortOrder;
+import au.com.gaiaresources.bdrs.db.impl.Predicate;
 import au.com.gaiaresources.bdrs.json.JSONArray;
-
+import au.com.gaiaresources.bdrs.kml.KMLWriter;
 import au.com.gaiaresources.bdrs.model.preference.Preference;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceUtil;
+import au.com.gaiaresources.bdrs.model.record.Record;
+import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
+import au.com.gaiaresources.bdrs.model.record.impl.ScrollableRecordsImpl;
+import au.com.gaiaresources.bdrs.model.report.Report;
+import au.com.gaiaresources.bdrs.model.report.ReportCapability;
+import au.com.gaiaresources.bdrs.model.report.ReportDAO;
+import au.com.gaiaresources.bdrs.model.report.impl.ReportView;
+import au.com.gaiaresources.bdrs.model.survey.Survey;
+import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.service.facet.Facet;
+import au.com.gaiaresources.bdrs.service.facet.FacetOption;
+import au.com.gaiaresources.bdrs.service.facet.FacetService;
+import au.com.gaiaresources.bdrs.service.facet.SurveyFacet;
+import au.com.gaiaresources.bdrs.service.report.ReportService;
+import au.com.gaiaresources.bdrs.servlet.RequestContext;
+import au.com.gaiaresources.bdrs.util.KMLUtils;
+import au.com.gaiaresources.bdrs.util.StringUtils;
+import edu.emory.mathcs.backport.java.util.Collections;
 import org.apache.log4j.Logger;
 import org.hibernate.FlushMode;
 import org.hibernate.Query;
@@ -28,31 +38,21 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
-import au.com.gaiaresources.bdrs.db.impl.HqlQuery;
-import au.com.gaiaresources.bdrs.db.impl.HqlQuery.SortOrder;
-import au.com.gaiaresources.bdrs.db.impl.Predicate;
-import au.com.gaiaresources.bdrs.kml.KMLWriter;
-import au.com.gaiaresources.bdrs.model.record.Record;
-import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
-import au.com.gaiaresources.bdrs.model.record.impl.ScrollableRecordsImpl;
-import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.service.facet.Facet;
-import au.com.gaiaresources.bdrs.service.facet.FacetOption;
-import au.com.gaiaresources.bdrs.service.facet.FacetService;
-import au.com.gaiaresources.bdrs.service.facet.SurveyFacet;
-import au.com.gaiaresources.bdrs.servlet.RequestContext;
-import au.com.gaiaresources.bdrs.util.KMLUtils;
-import au.com.gaiaresources.bdrs.util.StringUtils;
-import edu.emory.mathcs.backport.java.util.Collections;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.JAXBException;
+import java.io.IOException;
+import java.util.*;
 
 /**
- * Provides view controllers for the Facet, Map and List view of the ALA 
+ * Provides view controllers for the Facet, Map and List view of the ALA
  * 'My Sightings' Page. 
  */
 @SuppressWarnings("unchecked")
 @Controller
-public class AdvancedReviewSightingsController extends SightingsController{
+public class AdvancedReviewSightingsController extends SightingsController {
+    
+    public static final String  ADVANCED_REVIEW_REPORT_URL = "/review/sightings/advancedReviewReport.htm";
     
     public static final String VIEW_TYPE_TABLE = "table";
     public static final String VIEW_TYPE_MAP = "map";
@@ -76,6 +76,8 @@ public class AdvancedReviewSightingsController extends SightingsController{
     public static final String MODEL_DOWNLOAD_VIEW_SELECTED = "downloadViewSelected";
     public static final String MODEL_TABLE_VIEW_SELECTED = "tableViewSelected";
     public static final String MODEL_MAP_VIEW_SELECTED = "mapViewSelected";
+
+    public static final String QUERY_PARAM_REPORT_ID = "reportId";
     
     static {
         Set<String> temp = new HashSet<String>();
@@ -96,6 +98,13 @@ public class AdvancedReviewSightingsController extends SightingsController{
     /** Used to retrieve the default search results view (map or list) */
     @Autowired
     private PreferenceDAO preferenceDAO;
+
+    /** Used to retrieve the reports eligible for the advanced review page. */
+    @Autowired
+    private ReportDAO reportDAO;
+    
+    @Autowired
+    private ReportService reportService;
 
     /**
      * Provides a view of the facet listing and a skeleton of the map or list
@@ -139,6 +148,7 @@ public class AdvancedReviewSightingsController extends SightingsController{
         mv.addObject("recordCount", recordCount);
         mv.addObject("resultsPerPage", resultsPerPage);
         mv.addObject("pageCount", pageCount);
+        mv.addObject("reportList", reportDAO.getReports(ReportCapability.SCROLLABLE_RECORDS, ReportView.ADVANCED_REVIEW));
         
         // Avoid the situation where the number of results per page is increased
         // thereby leaving a page number higher than the total page count.
@@ -268,7 +278,37 @@ public class AdvancedReviewSightingsController extends SightingsController{
         downloadSightings(request, response, downloadFormat, sc, surveyList);
     }
 
-    long countMatchingRecords(List<Facet> facetList, Integer surveyId, String searchText) {
+    /**
+     * Creates a scrollable records instance from the facet selection and renders the specified report using the
+     * scrollable records.
+     *
+     * @param request  the client request.
+     * @param response the server response.
+     * @param reportId the primary key of the report to be run.
+     * @return the report view.
+     * @throws Exception thrown if there is an error running the report.
+     */
+    @RequestMapping(value = ADVANCED_REVIEW_REPORT_URL, method = RequestMethod.GET)
+    public ModelAndView advancedReviewReport(HttpServletRequest request,
+                                             HttpServletResponse response,
+                                             @RequestParam(value = QUERY_PARAM_REPORT_ID, required = true) int reportId) throws Exception {
+        configureHibernateSession();
+
+        User currentUser = currentUser();
+        List<Facet> facetList = facetService.getFacetList(currentUser, (Map<String, String[]>) request.getParameterMap());
+
+        Report report = reportDAO.getReport(reportId);
+
+        ScrollableRecords sc = getMatchingRecordsAsScrollableRecords(facetList,
+                null,
+                request.getParameter(SORT_BY_QUERY_PARAM_NAME),
+                request.getParameter(SORT_ORDER_QUERY_PARAM_NAME),
+                request.getParameter(SEARCH_QUERY_PARAM_NAME));
+
+        return reportService.renderReport(request, response, report, sc);
+    }
+    
+    private long countMatchingRecords(List<Facet> facetList, Integer surveyId, String searchText) {
         HqlQuery hqlQuery = new HqlQuery("select count(distinct record) from Record record");
         applyFacetsToQuery(hqlQuery, facetList, surveyId, searchText);
 
@@ -427,7 +467,7 @@ public class AdvancedReviewSightingsController extends SightingsController{
     }
 
     /**
-     * Converts the {@link HQLQuery} to a {@ Query} representation.
+     * Converts the {@link HqlQuery} to a {@ Query} representation.
      */
     private Query toHibernateQuery(HqlQuery hqlQuery) {
         Session sesh = getRequestContext().getHibernate();

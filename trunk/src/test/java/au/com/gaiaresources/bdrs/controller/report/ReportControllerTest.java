@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
 
+import au.com.gaiaresources.bdrs.json.JSONArray;
+import au.com.gaiaresources.bdrs.model.report.ReportCapability;
+import au.com.gaiaresources.bdrs.model.report.impl.ReportView;
 import junit.framework.Assert;
 
 import org.apache.commons.io.FilenameUtils;
@@ -89,6 +92,58 @@ public class ReportControllerTest extends AbstractGridControllerTest {
         String baseIconName = FilenameUtils.getBaseName(config.getString(ReportController.JSON_CONFIG_ICON));
         String expectedIconFilename = String.format("%s.%s", baseIconName, ReportController.ICON_FORMAT);
         Assert.assertEquals(expectedIconFilename, report.getIconFilename());
+    }
+
+    /**
+     * Tests a report to be displayed on the advanced review screen and handles scrollable records.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testAddAdvancedReviewScrollableReport() throws Exception {
+        login("admin", "password", new String[] { Role.ADMIN });
+
+        String testReportName = "AdvancedReviewScrollableReport";
+
+        request.setMethod("POST");
+        request.setRequestURI(ReportController.REPORT_ADD_URL);
+        MockMultipartHttpServletRequest req = (MockMultipartHttpServletRequest)request;
+        req.addFile(getTestReport(testReportName));
+
+        ModelAndView mv = handle(request, response);
+        RedirectView redirect = (RedirectView) mv.getView();
+        Assert.assertEquals(ReportController.REPORT_LISTING_URL, redirect.getUrl());
+
+        JSONObject config = getConfigFile(testReportName);
+        String reportName = config.getString(ReportController.JSON_CONFIG_NAME);
+        Report report = ReportTestUtil.getReportByName(reportDAO, reportName);
+
+        Assert.assertEquals(config.getString(ReportController.JSON_CONFIG_NAME), report.getName());
+        Assert.assertEquals(config.getString(ReportController.JSON_CONFIG_DESCRIPTION), report.getDescription());
+
+        String baseIconName = FilenameUtils.getBaseName(config.getString(ReportController.JSON_CONFIG_ICON));
+        String expectedIconFilename = String.format("%s.%s", baseIconName, ReportController.ICON_FORMAT);
+        Assert.assertEquals(expectedIconFilename, report.getIconFilename());
+        
+        // Capabilities
+        JSONArray capabilities = config.getJSONArray(ReportController.JSON_CONFIG_CAPABILITY);
+        for(int i=0; i<capabilities.size(); i++) {
+            ReportCapability reportCapability = ReportCapability.valueOf(capabilities.getString(i));
+            Assert.assertTrue(report.getCapabilities().contains(reportCapability));
+        }
+
+        // Views
+        JSONArray views = config.getJSONArray(ReportController.JSON_CONFIG_VIEWS);
+        for(int i=0; i<views.size(); i++) {
+            ReportView reportView = ReportView.valueOf(views.getString(i));
+            Assert.assertTrue(report.getViews().contains(reportView));
+        }
+        
+        List<Report> reportList = reportDAO.getReports(ReportCapability.SCROLLABLE_RECORDS, ReportView.ADVANCED_REVIEW);
+        Assert.assertEquals(1, reportList.size());
+        
+        Report actual = reportList.get(0);
+        Assert.assertEquals(reportName, actual.getName());
     }
     
     /**

@@ -1,5 +1,6 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://tiles.apache.org/tags-tiles" prefix="tiles" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 
 <h1>Advanced Review</h1>
 
@@ -78,6 +79,23 @@
                    </c:when>
 				   <c:when test="${ downloadViewSelected }">
 				   	    <tiles:insertDefinition name="downloadSightingsWidget" />
+
+				   	    <!-- Reports -->
+				   	    <sec:authorize ifAnyGranted="ROLE_USER, ROLE_POWER_USER, ROLE_SUPERVISOR, ROLE_ADMIN">
+				   	        <c:if test="${ not empty reportList }">
+                                <h3>Reports</h3>
+                                <p>Reports provide you with a way to create graphs, charts and views of the data in the system.</p>
+                                <c:forEach var="report" items="${ reportList }">
+                                    <div>
+                                        <a id="report_${ report.id }" href="javascript: bdrs.advancedReview.renderReport('#facetForm', ${ report.id })"/>
+                                            <c:out value="${ report.name }"/>
+                                            &nbsp;-&nbsp;
+                                            <c:out value="${ report.description }"/>
+                                        </a>
+                                    </div>
+                                </c:forEach>
+                            </c:if>
+                        </sec:authorize>
 				   </c:when>
                     <c:otherwise>
                         <tiles:insertDefinition name="advancedReviewMapView">

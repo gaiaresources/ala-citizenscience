@@ -1,31 +1,24 @@
 package au.com.gaiaresources.bdrs.controller.report;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.zip.ZipInputStream;
-
-import javax.annotation.security.RolesAllowed;
-import javax.imageio.ImageIO;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import jep.Jep;
-import jep.JepException;
-
+import au.com.gaiaresources.bdrs.controller.AbstractController;
+import au.com.gaiaresources.bdrs.controller.file.DownloadFileController;
+import au.com.gaiaresources.bdrs.file.FileService;
+import au.com.gaiaresources.bdrs.json.JSON;
+import au.com.gaiaresources.bdrs.json.JSONArray;
+import au.com.gaiaresources.bdrs.json.JSONException;
+import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.model.report.Report;
+import au.com.gaiaresources.bdrs.model.report.ReportCapability;
+import au.com.gaiaresources.bdrs.model.report.ReportDAO;
+import au.com.gaiaresources.bdrs.model.report.impl.ReportView;
+import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.report.ReportService;
+import au.com.gaiaresources.bdrs.util.FileUtils;
+import au.com.gaiaresources.bdrs.util.ImageUtil;
+import au.com.gaiaresources.bdrs.util.ZipUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.codec.Base64;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,25 +29,15 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
-import au.com.gaiaresources.bdrs.controller.AbstractController;
-import au.com.gaiaresources.bdrs.controller.file.DownloadFileController;
-import au.com.gaiaresources.bdrs.controller.report.python.PyBDRS;
-import au.com.gaiaresources.bdrs.controller.report.python.PyResponse;
-import au.com.gaiaresources.bdrs.file.FileService;
-import au.com.gaiaresources.bdrs.json.JSON;
-import au.com.gaiaresources.bdrs.json.JSONException;
-import au.com.gaiaresources.bdrs.json.JSONObject;
-import au.com.gaiaresources.bdrs.model.location.LocationDAO;
-import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
-import au.com.gaiaresources.bdrs.model.record.RecordDAO;
-import au.com.gaiaresources.bdrs.model.report.Report;
-import au.com.gaiaresources.bdrs.model.report.ReportDAO;
-import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
-import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.util.FileUtils;
-import au.com.gaiaresources.bdrs.util.ImageUtil;
-import au.com.gaiaresources.bdrs.util.ZipUtils;
+import javax.annotation.security.RolesAllowed;
+import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.awt.image.BufferedImage;
+import java.io.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.zip.ZipInputStream;
 
 /**
  * This controller handles all requests for adding, listing, deleting and
@@ -67,11 +50,6 @@ public class ReportController extends AbstractController {
      * Tile definition name for listing reports.
      */
     public static final String REPORT_LISTING_VIEW = "reportListing";
-    /**
-     * Tile definition name for rendering reports.
-     */
-    public static final String REPORT_RENDER_VIEW = "reportRender";
-    
     /**
      * The URL to list all active reports.
      */
@@ -99,7 +77,6 @@ public class ReportController extends AbstractController {
      * name and description.
      */
     public static final String REPORT_CONFIG_FILENAME = "config.json";  
-    
     /**
      * The JSON configuration attribute for the report name.
      */
@@ -117,6 +94,15 @@ public class ReportController extends AbstractController {
      */
     public static final String JSON_CONFIG_REPORT = "report";
     /**
+     * The JSON configuration attribute for the ability of the report to consume data.
+     */
+    public static final String JSON_CONFIG_CAPABILITY = "capabilities";
+    /**
+     * The JSON configuration attribute for the pages where the report may be accessed.
+     */
+    public static final String JSON_CONFIG_VIEWS = "views";
+    
+    /**
      * The resized width of the report icon. This is the icon that is 
      * displayed on the report listing screen.
      */
@@ -130,11 +116,6 @@ public class ReportController extends AbstractController {
      * The target image format of the resized report icon.
      */
     public static final String ICON_FORMAT = "png";
-    
-    /**
-     * The (mandatory) filename of the python report.
-     */
-    public static final String PYTHON_REPORT = "report.py";
     /**
      * The path variable name used to extract the primary key of the 
      * current report.
@@ -144,39 +125,14 @@ public class ReportController extends AbstractController {
      * The query parameter name containing the file path of a static report file.
      */
     public static final String FILENAME_QUERY_PARAM = "fileName";
-    /**
-     * A Python snippet that executes a report and catches any errors and logging
-     * them appropriately. 
-     */
-    public static final String REPORT_EXEC_TMPL;
-    
-    static {
-        StringBuilder builder = new StringBuilder();
-        builder.append("try:\n");
-        builder.append("    Report().content(\"\"\"%s\"\"\")\n");
-        builder.append("except Exception, e:\n");
-        builder.append("    import sys, traceback\n");
-        builder.append("    response = bdrs.getResponse()\n");
-        builder.append("    response.setError(True)\n");
-        builder.append("    response.setContent(traceback.format_exc())\n");
-        
-        REPORT_EXEC_TMPL = builder.toString();
-    }
+
     
     @Autowired
     private ReportDAO reportDAO;
     @Autowired
-    private SurveyDAO surveyDAO;
-    @Autowired
-    private CensusMethodDAO censusMethodDAO;
-    @Autowired
-    private TaxaDAO taxaDAO;
-    @Autowired
-    private RecordDAO recordDAO;
-    @Autowired
-    private LocationDAO locationDAO;
-    @Autowired
     private FileService fileService;
+    @Autowired
+    private ReportService reportService;
 
     private Logger log = Logger.getLogger(getClass());
 
@@ -228,19 +184,42 @@ public class ReportController extends AbstractController {
                     String reportDescription = config.optString(JSON_CONFIG_DESCRIPTION, null);
                     String iconFilename = config.optString(JSON_CONFIG_ICON);
                     String reportDirName = config.optString(JSON_CONFIG_REPORT);
+                    JSONArray capabilityArray = config.optJSONArray(JSON_CONFIG_CAPABILITY);
+                    JSONArray viewArray = config.optJSONArray(JSON_CONFIG_VIEWS);
+                    if(viewArray == null) {
+                        viewArray = new JSONArray();
+                    }
+                    if(capabilityArray == null) {
+                        capabilityArray = new JSONArray();
+                    }
                     
                     File iconFile = new File(tempReportDir, iconFilename);
                     File reportDir = new File(tempReportDir, reportDirName);
-                    File reportPy = new File(reportDir, PYTHON_REPORT);
+                    File reportPy = new File(reportDir, ReportService.PYTHON_REPORT);
                     
                     boolean isReportValid = reportName != null && !reportName.isEmpty() && 
-                                            reportDescription != null && !reportDescription.isEmpty();
+                                            reportDescription != null && !reportDescription.isEmpty() && !viewArray.isEmpty();
                     boolean isFilesValid = iconFile.exists() && reportDir.exists() && reportPy.exists(); 
                     
                     if(isReportValid && isFilesValid) {
                         
                         String targetIconFilename = String.format("%s.%s", FilenameUtils.removeExtension(iconFilename), ICON_FORMAT);
                         Report report = new Report(reportName, reportDescription, targetIconFilename, true);
+
+                        // Report capability
+                        Set<ReportCapability> capabilitySet = new HashSet<ReportCapability>();
+                        for(int i=0; i<capabilityArray.size(); i++) {
+                            capabilitySet.add(ReportCapability.valueOf(capabilityArray.getString(i)));
+                        }
+                        report.setCapabilities(capabilitySet);
+
+                        // Report views
+                        Set<ReportView> viewSet = new HashSet<ReportView>();
+                        for(int i=0; i<viewArray.size(); i++) {
+                            viewSet.add(ReportView.valueOf(viewArray.getString(i)));
+                        }
+                        report.setViews(viewSet);
+
                         report = reportDAO.save(report);
                         
                         // Scale the icon file.
@@ -349,87 +328,7 @@ public class ReportController extends AbstractController {
     public ModelAndView renderReport(HttpServletRequest request,
                                      HttpServletResponse response,
                                      @PathVariable(REPORT_ID_PATH_VAR) int reportId) {
-        
-        try {
-            // Get the report and find the Python report code.
-            Report report = reportDAO.getReport(reportId);
-            File reportDir = fileService.getTargetDirectory(report, Report.REPORT_DIR, true);
-            
-            // Setup the parameters to send to the Python report.
-            PyBDRS bdrs = new PyBDRS(request,
-                                     fileService, report, getRequestContext().getUser(), 
-                                     surveyDAO, censusMethodDAO, 
-                                     taxaDAO, recordDAO, 
-                                     locationDAO);
-            JSONObject jsonParams = toJSONParams(request);
-            
-            // Fire up a new Python interpreter
-            Jep jep = new Jep(false, reportDir.getAbsolutePath(), Thread.currentThread().getContextClassLoader());
-            // Set the Python bdrs global variable
-            jep.set("bdrs", bdrs);
-            // Load and execute the report
-            jep.runScript(new File(reportDir, PYTHON_REPORT).getAbsolutePath());
-            
-            jep.eval(String.format(REPORT_EXEC_TMPL, jsonParams.toString()));
-            // Terminate the interpreter
-            jep.close();
-            
-            // Examine the report response
-            PyResponse pyResponse = bdrs.getResponse();
-            if(pyResponse.isError()) {
-                // The report had some sort of error.
-                log.error(new String(pyResponse.getContent()));
-                // Let the user know that an error has occured.
-                getRequestContext().addMessage("bdrs.report.render.error");
-                // We can't render the page, so redirect back to the listing page.
-                return new ModelAndView(new RedirectView(REPORT_LISTING_URL, true));
-            } else {
-                // Set the header of the Python report if there is one.
-                // This allows the python report to provide file downloads if
-                // necessary.
-                updateHeader(response, pyResponse);
-                // Set the content type of the python report. This is HTML 
-                // by default
-                response.setContentType(pyResponse.getContentType());
-                
-                // If the content type is HTML then we can treat it as text,
-                // otherwise we simply treat it as raw bytes.
-                if(PyResponse.HTML_CONTENT_TYPE.equals(pyResponse.getContentType())) {
-                    // If the report is standalone, then do not render the
-                    // report with the usual header and footer.
-                    if(pyResponse.isStandalone()) {
-                        response.getWriter().write(new String(pyResponse.getContent()));
-                    } else {
-                        // Embed the report in a model and view so that it will
-                        // receive the usual header, menu and footer.
-                        ModelAndView mv = new ModelAndView(REPORT_RENDER_VIEW);
-                        mv.addObject("reportContent", new String(pyResponse.getContent()));
-                        return mv;
-                    }
-                } else {
-                    // Treat the data as a byte array and simply squirt them
-                    // down the pipe.
-                    byte[] content = pyResponse.getContent();
-                    response.setContentLength(content.length);
-                    ServletOutputStream outputStream = response.getOutputStream();
-                    outputStream.write(content);
-                    outputStream.flush();
-                }
-            }
-            return null;
-            
-        } catch(JepException je) {
-            // Jep Exceptions will occur if there has been a problem on the 
-            // Python side of the fence.
-            log.error("Unable to render report with PK: "+reportId, je);
-            getRequestContext().addMessage("bdrs.report.render.error");
-            return new ModelAndView(new RedirectView(REPORT_LISTING_URL, true));
-        } catch (IOException e) {
-            // Occurs when there has been a problem reading/writing files.
-            log.error("Unable to render report with PK: "+reportId, e);
-            getRequestContext().addMessage("bdrs.report.render.error");
-            return new ModelAndView(new RedirectView(REPORT_LISTING_URL, true));
-        }
+        return reportService.renderReport(request, response, reportDAO.getReport(reportId));
     }
     
     /**
@@ -461,56 +360,6 @@ public class ReportController extends AbstractController {
             mv.addObject(DownloadFileController.FILENAME_QUERY_PARAM, target.getPath());
         }
         return mv;
-    }
-
-    /**
-     *  Sets the header of the server response if a header was provided by the
-     *  Python report. Setting the header allows a Python report to generate
-     *  a dynamically created file download.
-     *  
-     *  @param response the server response.
-     *  @param pyResponse the resposne object that contains the header (if set)
-     *  desired by the report.
-     */    
-    private void updateHeader(HttpServletResponse response, PyResponse pyResponse) {
-        if(pyResponse.getHeaderName() != null && pyResponse.getHeaderValue() != null) {
-            response.setHeader(pyResponse.getHeaderName(), pyResponse.getHeaderValue());
-        }
-    }
-
-    /**
-     * JSON encodes all query parameters. The JSON object will take the form
-     * { string : [string, string, string, ...}  
-     * 
-     * @param request the browser request
-     * @return 
-     * @throws IOException 
-     */
-    private JSONObject toJSONParams(HttpServletRequest request) throws IOException {
-        // The documentation says the map is of the specified type.
-        @SuppressWarnings("unchecked")
-        Map<String, String[]> rawMap = request.getParameterMap();
-        
-        Map<String, List<String>> paramMap = 
-                new HashMap<String, List<String>>(rawMap.size());
-        for(Map.Entry<String, String[]> entry : rawMap.entrySet()) {
-            paramMap.put(entry.getKey(), Arrays.asList(entry.getValue()));
-        }
-        
-        JSONObject params = new JSONObject();
-        params.accumulateAll(paramMap);
-        
-        if(request instanceof MultipartHttpServletRequest) {
-            MultipartHttpServletRequest req = (MultipartHttpServletRequest) request; 
-            // Base 64 encode all uploaded file data
-            
-            for(Map.Entry<String, MultipartFile> pair : req.getFileMap().entrySet()) {
-                String data = new String(Base64.encode(pair.getValue().getBytes()));
-                params.accumulate(pair.getKey(), data);
-            }
-        }
-        
-        return params;
     }
 
     /**

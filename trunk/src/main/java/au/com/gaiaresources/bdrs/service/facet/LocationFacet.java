@@ -32,7 +32,7 @@ public class LocationFacet extends AbstractFacet {
      * @param recordDAO used for retrieving the count of matching records.
      * @param parameterMap the map of query parameters from the browser.
      * @param user the user that is accessing the records.
-     * @param userParams user configurable parameters provided in via the {@link Preference)}.
+     * @param userParams user configurable parameters provided in via the {@link au.com.gaiaresources.bdrs.model.preference.Preference )}.
      */
     public LocationFacet(String defaultDisplayName, RecordDAO recordDAO, Map<String, String[]> parameterMap, User user, JSONObject userParams) {
         super(QUERY_PARAM_NAME, defaultDisplayName, userParams);

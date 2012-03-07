@@ -15,5 +15,8 @@
         <property name="url" value="${bdrs.db.url}"/>
         <property name="username" value="${bdrs.db.user.name}"/>
         <property name="password" value="${bdrs.db.user.password}"/>
+        <property name="maxActive" value="200"/>
+        <property name="testOnBorrow" value="true"/>
+        <property name="testOnReturn" value="true"/>
     </bean>
 </beans>
