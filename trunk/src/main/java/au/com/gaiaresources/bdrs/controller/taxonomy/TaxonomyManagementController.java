@@ -236,7 +236,7 @@ public class TaxonomyManagementController extends AbstractController {
                                 JSONArray jsonProfileArray = jsonTaxonGroup.getJSONArray("profile_template");
                                 // Load each of the profile templates.
                                 int weight = 100;
-                                for(int j=0; i<jsonProfileArray.size(); j++) {
+                                for(int j=0; j<jsonProfileArray.size(); j++) {
                                     JSONObject jsonProfile = jsonProfileArray.getJSONObject(j);
                                     try {
                                         type = jsonProfile.getString("type");
