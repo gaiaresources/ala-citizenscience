@@ -575,20 +575,13 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
 
 	@Override
     public List<IndicatorSpecies> getIndicatorSpeciesByNameSearch(String name) {
-    	StringBuilder query = new StringBuilder("");
-		String[] bits = name.split(" ");
-		for (int i = 0; i < bits.length; i++) {
-			query.append("%");
-			query.append(bits[i]);
-		}
-		query.append("%");
-    	
-		String searchString = query.toString();
+        String searchString = toSQLSearchString(name);
 		
         return find("from IndicatorSpecies i where UPPER(commonName) like UPPER(?) or UPPER(scientificName) like UPPER (?)", 
                     new Object[] {searchString, searchString}, 30);
     }
-	
+
+
     @Override
     public SpeciesProfile getSpeciesProfileById(Integer id) {
         return getByID(SpeciesProfile.class, id);
@@ -870,4 +863,40 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
         q.setParameter("surveyId", surveyId);
         return q.list();
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<IndicatorSpecies> searchIndicatorSpeciesByGroupName(String groupName, String taxonName) {
+        
+        Query q = getSession().createQuery("from IndicatorSpecies i where (UPPER(i.commonName) like UPPER(:taxonName) or UPPER(i.scientificName) like UPPER (:taxonName)) and UPPER(i.taxonGroup.name) like UPPER(:groupName)");
+        q.setParameter("groupName", toSQLSearchString(groupName));
+        q.setParameter("taxonName", toSQLSearchString(taxonName));
+        
+        return q.list();
+    }
+
+    /**
+     * Helper method that turns a search term into an SQL search term such that:
+     * <ul>
+     *     <li>% is prepended and appended to the supplied string</li>
+     *     <li>spaces are replaced by % in the supplied string</li>
+     * </ul></li>
+     * @param name the search term to modify.
+     * @return a new string suitable for SQL parameter substitution.
+     */
+    private String toSQLSearchString(String name) {
+        StringBuilder query = new StringBuilder("");
+        String[] bits = name.split(" ");
+        for (int i = 0; i < bits.length; i++) {
+            query.append("%");
+            query.append(bits[i]);
+        }
+        query.append("%");
+
+        return query.toString();
+    }
+
+
 }

@@ -240,4 +240,16 @@ public interface TaxaDAO {
      */
     List<IndicatorSpecies> getDistinctRecordedTaxaForSurvey(int surveyId);
 
+    /**
+     * Returns a List of IndicatorSpecies that:
+     * <ol>
+     *     <li>are in a Taxon Group that has a name containing the string supplied in the groupName parameter.</li>
+     *     <li>have a common name or scientific name containing the sting supplied in the taxonName parameter.</li>
+     * </ol>
+     * The search is case insensitive.
+     * @param groupName the search string to match against the Taxon Group name.
+     * @param taxonName the search string to match against the Taxon scientific or common name.
+     * @return a List of IndicatorSpecies that are in a group matching the supplied <code>groupName</code>
+     */
+    List<IndicatorSpecies> searchIndicatorSpeciesByGroupName(String groupName, String taxonName);
 }
