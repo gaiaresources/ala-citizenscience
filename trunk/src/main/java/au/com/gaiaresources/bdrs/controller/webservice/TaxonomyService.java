@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 
+import au.com.gaiaresources.bdrs.util.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -143,5 +144,39 @@ public class TaxonomyService extends AbstractController {
     	
     	response.setContentType("application/json");
         response.getWriter().write(array.toString());
+    }
+
+    /**
+     * Returns JSON containing the taxa that:
+     * <ol>
+     *     <li>are in a Taxon Group that has a name containing the string supplied in the groupName parameter.</li>
+     *     <li>have a common name or scientific name containing the sting supplied in the taxonName parameter.</li>
+     * </ol>
+     * The search is case insensitive.
+     * @param groupName the search string to match against the Taxon Group name.
+     * @param taxonName the search string to match against the Taxon scientific or common name.
+     * @return taxa matching the search parameters in JSON format.
+     */
+    @RequestMapping(value = "/webservice/taxon/searchTaxaByTaxonGroupName", method = RequestMethod.GET)
+    public void searchTaxaByTaxonGroupName(
+            @RequestParam(value="groupName", required = true) String groupName,
+            @RequestParam(value="taxonName", required = true) String taxonName,
+            HttpServletRequest request, HttpServletResponse response) throws IOException {
+
+        JSONArray array = new JSONArray();
+
+        // The group name must be supplied, helps reduce the size of the query. The taxon name is allowed to be
+        // empty to assist the auto-complete use case.
+        if (StringUtils.notEmpty(groupName)) {
+            try {
+                List<IndicatorSpecies> taxa = taxaDAO.searchIndicatorSpeciesByGroupName(groupName, taxonName);
+                for (IndicatorSpecies taxon : taxa) {
+                    array.add(taxon.flatten());
+                }
+            } catch (Exception e) {
+                log.error(e);
+            }
+        }
+        writeJson(request, response, array.toString());
     }
 }

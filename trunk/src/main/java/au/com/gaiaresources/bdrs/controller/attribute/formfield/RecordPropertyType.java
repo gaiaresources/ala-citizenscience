@@ -20,8 +20,8 @@ public enum RecordPropertyType implements JSONEnum {
     WHEN("When","Date"),
     TIME("Time"),
     NOTES("Notes"),
-    CREATED("Created", "Creation Date and User", true),
-    UPDATED("Updated", "Last Updated Date and User", true);
+    CREATED("Created", "Created", true),
+    UPDATED("Updated", "Last Updated", true);
      
     String name;
     String defaultDescription;
