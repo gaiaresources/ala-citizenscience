@@ -18,5 +18,6 @@
         <property name="maxActive" value="200"/>
         <property name="testOnBorrow" value="true"/>
         <property name="testOnReturn" value="true"/>
+        <property name="validationQuery" value="select 1"/>
     </bean>
 </beans>
