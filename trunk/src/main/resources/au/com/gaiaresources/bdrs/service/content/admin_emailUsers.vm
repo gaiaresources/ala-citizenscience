@@ -5,3 +5,9 @@ interactive list to pick who you wish to send the email to.
 You can also save your email as a template and re-use it at a 
 later date.
 </p>
+<p>
+Note that the editor is an HTML editor and that your emails will be sent as HTML content.
+This means that any whitespace you type (i.e. new lines) will not appear in the email. 
+If you would like a newline character to appear in the email, write your text between a &lt;p&gt; tag 
+(you can create one using the paragraph icon on the editor toolbar) or use a &lt;br&gt; tag.
+</p>
