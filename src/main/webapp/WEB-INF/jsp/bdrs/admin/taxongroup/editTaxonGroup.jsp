@@ -17,6 +17,9 @@
 <cw:getContent key="admin/taxonomy/editTaxonomicGroups" />
 
 <form method="POST" action="${pageContext.request.contextPath}/bdrs/admin/taxongroup/edit.htm" enctype="multipart/form-data">
+    <div class="textright buttonpanel">
+        <input type="submit" class="form_action" value="Save"/>
+    </div>
     <c:if test="${ taxonGroup.id != null }">
        <input id="taxonGroupPk" type="hidden" name="taxonGroupPk" value="${ taxonGroup.id }"/>
     </c:if>

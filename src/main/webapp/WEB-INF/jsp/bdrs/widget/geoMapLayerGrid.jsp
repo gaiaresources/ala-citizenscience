@@ -9,7 +9,9 @@
 <tiles:useAttribute name="deleteUrl" ignore="true" />
 <tiles:useAttribute name="showActions" ignore="true" />
 
+
 <h4>Search Map Layers</h4>
+   <div class="input_container">
     <form class="widgetSearchForm" id="${widgetId}SearchForm">
         <table>
             <tr>
@@ -22,9 +24,10 @@
             </tr>
         </table>
     </form>
-<div class="buttonpanel buttonPanelRight textright">
+   <div class="buttonpanel buttonPanelRight textright">
     <input type="button" id="${widgetId}Filter" class="form_action" value="Search"/>
-</div>
+   </div>
+   </div>
 
 <div id="${widgetId}Wrapper">
 <table id="${widgetId}"></table>

@@ -7,7 +7,7 @@
 <h2>Edit Project: Choose Fields</h2>
 <form method="POST" action="${pageContext.request.contextPath}/bdrs/admin/survey/editAttributes.htm">
     <input type="hidden" name="surveyId" value="${survey.id}"/>
-    
+
     <p>
         The table below allows you to define all the attributes that you want to
         see on the data entry form for your project.
@@ -15,10 +15,16 @@
     <p>
         <span class="highlight">Highlighted</span> rows indicate fields for which thresholds exist. Click <a href="${pageContext.request.contextPath}/bdrs/admin/threshold/listing.htm">here</a> to add/edit thresholds.
     </p>
+
+    <div class="textright buttonpanel">
+        <input type="submit" class="form_action" value="Save"/>
+        <input type="submit" class="form_action" name="saveAndPreview" value="Save And Preview"/>
+        <input type="submit" class="form_action" name="saveAndContinue" value="Save And Continue"/>
+    </div>
      
     <div id="attributeContainer" class="input_container">
 	    <div class="textright buttonpanel">
-	        <a id="maximiseLink" class="text-left" href="javascript:bdrs.util.maximise('#maximiseLink', '#attributeContainer', 'Enlarge Table', 'Shrink Table')">Enlarge Table</a>
+	        <a id="maximiseLinkTop" class="text-left" href="javascript:bdrs.util.maximise('[id*=maximiseLink]', '#attributeContainer', 'Enlarge Table', 'Shrink Table')">Enlarge Table</a>
 	        <input type="button" class="form_action" value="Add Another Field" onclick="bdrs.attribute.addAttributeRow('#attribute_input_table', true, false)"/>
 	    </div>
 	
@@ -44,6 +50,11 @@
 		        </c:forEach>    
 	        </tbody>
 	    </table>
+
+        <div class="textright buttonpanel">
+            <a id="maximiseLinkBottom" class="text-left" href="javascript:bdrs.util.maximise('[id*=maximiseLink]', '#attributeContainer', 'Enlarge Table', 'Shrink Table')">Enlarge Table</a>
+            <input type="button" class="form_action" value="Add Another Field" onclick="bdrs.attribute.addAttributeRow('#attribute_input_table', true, false)"/>
+        </div>
     </div>
     
     <div id="moderationSettingsLink" style="display:none;margin-top:13px;" class="right">
@@ -114,7 +125,7 @@
 	    
 	    <div id="subCensusMethodContainer">
 	        <div class="textright buttonpanel">
-	            <a id="maximiseLink" class="text-left" href="javascript:bdrs.util.maximise('#maximiseLink', '#subCensusMethodContainer', 'Enlarge Table', 'Shrink Table')">Enlarge Table</a>
+	            <a id="maximiseLinkCensus" class="text-left" href="javascript:bdrs.util.maximise('#maximiseLinkCensus', '#subCensusMethodContainer', 'Enlarge Table', 'Shrink Table')">Enlarge Table</a>
 	            <input id="addCensusMethodBtn" class="form_action" type="button" value="Add Census Method" />
 	        </div>
 	        <table id="censusMethod_input_table" class="datatable attribute_input_table">
