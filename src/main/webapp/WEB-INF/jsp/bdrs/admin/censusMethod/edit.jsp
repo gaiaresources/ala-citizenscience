@@ -193,6 +193,7 @@
             width: 'auto',
             modal: true,
             autoOpen: false,
+            zIndex: bdrs.MODAL_DIALOG_Z_INDEX, 
 			resizable: false,
             buttons: {
                 Cancel: function() {

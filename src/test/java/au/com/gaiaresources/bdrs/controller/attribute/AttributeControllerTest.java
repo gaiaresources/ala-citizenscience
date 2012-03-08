@@ -84,7 +84,6 @@ public class AttributeControllerTest extends AbstractGridControllerTest {
 
         handle(request, response);
         String resContent = response.getContentAsString();
-        System.out.println(resContent);
         Assert.assertTrue(Boolean.valueOf(resContent));
         
         // create an attribute that doesn't match
@@ -98,7 +97,6 @@ public class AttributeControllerTest extends AbstractGridControllerTest {
 
         handle(request, response);
         resContent = response.getContentAsString();
-        System.out.println(resContent);
         Assert.assertFalse(Boolean.valueOf(resContent));
     }
 }

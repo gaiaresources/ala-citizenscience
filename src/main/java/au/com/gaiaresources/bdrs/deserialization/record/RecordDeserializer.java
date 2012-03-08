@@ -169,6 +169,10 @@ public class RecordDeserializer {
                 record = createNewRecord(entry, klu);
             }
 
+            // set the survey for the record here because it is used for 
+            // some of the checking mechanisms before the final save
+            record.setSurvey(survey);
+            
             // set the record here so we have a copy to use even in the event of an error
             rsResult.setRecord(record);
             
@@ -424,7 +428,6 @@ public class RecordDeserializer {
                 // Check if taxonomic record!
                 record.setSpecies(species);
                 record.setNumber(number);
-                record.setSurvey(survey);
                 recordProperty = new RecordProperty(survey, RecordPropertyType.NOTES, metadataDAO);
                 if (!recordProperty.isHidden()) {
                     record.setNotes(entry.getValue(klu.getNotesKey()));

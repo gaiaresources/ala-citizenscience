@@ -164,7 +164,8 @@
                 	bdrs.attribute.saveAndUpdateContent(jQuery("#markItUp")[0]);
                     bdrs.attribute.closeHtmlEditor(jQuery(this));
                 }
-            }
+            },
+            zIndex: bdrs.MODAL_DIALOG_Z_INDEX
         });
 
        /**
