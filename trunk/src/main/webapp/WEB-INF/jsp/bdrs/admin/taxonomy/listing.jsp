@@ -23,13 +23,21 @@
     
     <input type="hidden" name="selectedTaxonPk" id="selectedTaxonPk"/>
 
-    <div id="taxonProperties"></div>
-    
     <div class="buttonpanel textright">
-        <input id="editTaxon" disabled="disabled" class="form_action" type="button" value="Edit Taxon" 
+        <input id="editTaxon" disabled="disabled" class="form_action" type="button" value="Edit Taxon"
+               onclick="window.document.location='${pageContext.request.contextPath}/bdrs/admin/taxonomy/edit.htm?pk='+jQuery('#selectedTaxonPk').val();"/>
+        <input class="form_action" type="button" value="Add Taxon" onclick="window.document.location='${pageContext.request.contextPath}/bdrs/admin/taxonomy/edit.htm';"/>
+    </div>
+
+    <div id="taxonProperties">
+    </div>
+
+    <div id="buttonPanelBottom" class="buttonpanel textright" style="display:none">
+        <input class="form_action" type="button" value="Edit Taxon"
             onclick="window.document.location='${pageContext.request.contextPath}/bdrs/admin/taxonomy/edit.htm?pk='+jQuery('#selectedTaxonPk').val();"/>
         <input class="form_action" type="button" value="Add Taxon" onclick="window.document.location='${pageContext.request.contextPath}/bdrs/admin/taxonomy/edit.htm';"/>
     </div>
+
 
 </div>
 
@@ -40,16 +48,20 @@
                                   '#taxonProperties',
                                   '#editTaxon',
                                   '#taxonGroup',
-                                  '#taxonGroupPk');
+                                  '#taxonGroupPk',
+                                  '#buttonPanelBottom');
+
     });
     <c:if test="${not empty taxonPk}">
         jQuery.getJSON('${pageContext.request.contextPath}/webservice/taxon/getTaxonById.htm?id=${taxonPk}&depth=2', function(taxon) {
-            console.debug(taxon);
             bdrs.taxonomy.displayTaxonProperties(taxon,
                     '#taxonomySearch',
                     '#selectedTaxonPk',
                     '#taxonProperties',
-                    '#editTaxon');
+                    '#editTaxon',
+                    '#buttonPanelBottom');
         });
     </c:if>
+
+    jQuery('#taxonProperties').bind()
 </script>

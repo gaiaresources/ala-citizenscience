@@ -39,4 +39,7 @@
             </c:forEach>
         </tbody>
     </table>
+    <div class="buttonpanel textright">
+        <input class="form_action" type="button" value="Add Taxon Group" onclick="window.document.location='${pageContext.request.contextPath}/bdrs/admin/taxongroup/edit.htm';"/>
+    </div>
 </div>

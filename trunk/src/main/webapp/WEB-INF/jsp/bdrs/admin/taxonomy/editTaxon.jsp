@@ -20,6 +20,10 @@
 
 <cw:getContent key="admin/taxonomy/editTaxonomy" />
 <form id="speciesForm" method="POST" action="${pageContext.request.contextPath}/bdrs/admin/taxonomy/edit.htm" enctype="multipart/form-data">
+    <div class="textright buttonpanel">
+        <input type="submit" class="form_action" value="Save"/>
+    </div>
+
     <c:if test="${ taxon.id != null }">
        <input id="taxonPk" type="hidden" name="taxonPk" value="${ taxon.id }"/>
    </c:if>
@@ -110,6 +114,11 @@
             </tbody>
         </table>
        <input id="newProfileIndex" type="hidden" value="<%= taxonProfileList.size() + 1 %>"/>
+        <div class="textright buttonpanel">
+            <a id="maximiseLink" class="text-left" href="javascript:bdrs.util.maximise('#maximiseLink', '#editTaxonomyContainer', 'Enlarge Table', 'Shrink Table')">Enlarge Table</a>
+            <input type="button" class="form_action" value="Retrieve Profile from ALA" onclick="importALAProfile();"/>
+            <input type="button" class="form_action" value="Add Profile" onclick="bdrs.taxonomy.addNewProfile('#newProfileIndex', '#taxonProfileTable');"/>
+        </div>
     </div>
     <h3>Group Attributes</h3>
     <p>

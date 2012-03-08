@@ -20,13 +20,16 @@ bdrs.taxonomy.handlers = {};
  * the taxon group autocomplete attached
  * @param groupPkSelector the selector of the element to put the taxon group
  * primary key when one has been selected from the autocomplete.
+ * @param buttonPanelSelector the selector for the button panel that is rendered
+ * underneath the taxon profile when it becomes visible.
  */
 bdrs.taxonomy.initListing = function(taxonAutocompleteSelector,
                                      selectedTaxonPkSelector,
                                      taxonPropertiesContainerSelector,
                                      editTaxonSelector,
                                      groupAutocompleteSelector,
-                                     groupPkSelector) {
+                                     groupPkSelector,
+                                     buttonPanelSelector) {
 
     jQuery(taxonAutocompleteSelector).autocomplete({
         source: function(request, callback) {
@@ -68,7 +71,8 @@ bdrs.taxonomy.initListing = function(taxonAutocompleteSelector,
                                                  taxonAutocompleteSelector,
                                                  selectedTaxonPkSelector,
                                                  taxonPropertiesContainerSelector,
-                                                 editTaxonSelector);
+                                                 editTaxonSelector,
+                                                 buttonPanelSelector);
         },
         html: true,
         minLength: 2,
@@ -142,12 +146,15 @@ bdrs.taxonomy.initTaxonGroupAutocomplete = function(groupAutocompleteSelector, g
  * element where properties of the taxon shall be inserted.
  * @param editTaxonSelector the selector to the element to be enabled when a 
  * taxon is selected.
+ * @param buttonPanelSelector the selector for the button panel that is rendered
+ * underneath the taxon profile when it becomes visible.
  */
 bdrs.taxonomy.displayTaxonProperties = function(taxon,
                                                 taxonAutocompleteSelector,
                                                 selectedTaxonPkSelector,
                                                 taxonPropertiesContainerSelector,
-                                                editTaxonSelector) {
+                                                editTaxonSelector,
+                                                buttonPanelSelector) {
     jQuery(selectedTaxonPkSelector).val(taxon.id);
     jQuery(editTaxonSelector).removeAttr("disabled");
     
@@ -293,6 +300,7 @@ bdrs.taxonomy.displayTaxonProperties = function(taxon,
 	    groupAttrTable.addClass('datatable');
 	    propertiesElem.append('<h3>Group Attributes</h3>').append(groupAttrTable);
     }
+    jQuery(buttonPanelSelector).show();
 };
 
 /**
