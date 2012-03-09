@@ -57,9 +57,8 @@
                         class="validate(required)"
                     </c:if>
                 >
-                    <c:if test="${ not formField.attribute.required }">
-                        <option></option>
-                    </c:if>
+                    <%-- Add an empty option at the top of the list --%>
+                    <option></option>
                     <c:forEach var="attrOpt" items="${ formField.attribute.options }">
                         <jsp:useBean id="attrOpt" type="au.com.gaiaresources.bdrs.model.taxa.AttributeOption"/>
                         <option <c:if test="${attrOpt.value == fieldValue}">selected="selected"</c:if> >
