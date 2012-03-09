@@ -41,7 +41,10 @@
             <c:when test="${fieldEditable}">
                 
                 <c:choose>
-                    <c:when test="${ formField.species != null }">
+                    <%-- This is a temporary workaround to make species editable on a tracker survey without
+                         breaking the single site all taxa survey.  The side effect is that the species
+                         will not be editable on a single site multi taxa survey, which it should be. --%>
+                    <c:when test="${ formField.species != null && not empty formPrefix}">
                         <input type="hidden" name="${ formPrefix }species" value="${ formField.species.id }"/>
                         <c:choose>
                             <c:when test="${showScientificName}">
@@ -49,7 +52,7 @@
                             </c:when>
                             <c:otherwise>
                                 <span class="commonName"><c:out value="${ formField.species.commonName }"/></span>
-                            </c:otherwise>    
+                            </c:otherwise>
                         </c:choose>
                     </c:when>
                     <c:when test="<%= (formField.getSurvey().getSpecies().size() > 1) || (formField.getSurvey().getSpecies().size() == 0) %>">
