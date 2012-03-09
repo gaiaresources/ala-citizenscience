@@ -721,12 +721,12 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
             // owner only records
             case CONTROLLED:
                 return isOwner || hasPrivilege;
-            // anyone can view a public record
             case PUBLIC:
-                return true;
-                
-                default:
-                    throw new IllegalStateException("record visibility type not handled : " + this.recordVisibility);
+                // public records are only viewable publicly if they are not held
+                // owner and privileged can always view public held records too
+                return !isHeld() || isOwner || hasPrivilege;
+            default:
+                throw new IllegalStateException("record visibility type not handled : " + this.recordVisibility);
         }
     }
 

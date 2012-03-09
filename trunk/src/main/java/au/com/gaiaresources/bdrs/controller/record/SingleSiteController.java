@@ -476,12 +476,16 @@ public abstract class SingleSiteController extends AbstractController {
                         valsToRemove.add(key);
                     } else if (recordScopedRecordPropertyList.containsKey(attrName)) {
                         RecordProperty prop = recordScopedRecordPropertyList.get(attrName);
-                        if (prop.getRecordPropertyType().equals(RecordPropertyType.NUMBER)) {
-                            record.setNumber(Integer.valueOf(valueEntry.getValue()));
-                        } else if (prop.getRecordPropertyType().equals(RecordPropertyType.SPECIES)) {
-                            // get the indicator species from the value
-                            IndicatorSpecies species = taxaDAO.getIndicatorSpecies(Integer.valueOf(valueEntry.getValue()));
-                            record.setSpecies(species);
+                        // we are going to try to parse the value as an Integer
+                        // so we want to make sure it is not null or empty first
+                        if (!StringUtils.nullOrEmpty(valueEntry.getValue())) {
+                            if (prop.getRecordPropertyType().equals(RecordPropertyType.NUMBER)) {
+                                record.setNumber(Integer.valueOf(valueEntry.getValue()));
+                            } else if (prop.getRecordPropertyType().equals(RecordPropertyType.SPECIES)) {
+                                // get the indicator species from the value
+                                IndicatorSpecies species = taxaDAO.getIndicatorSpecies(Integer.valueOf(valueEntry.getValue()));
+                                record.setSpecies(species);
+                            }
                         }
                         // remove the attribute from the value map
                         valsToRemove.add(key);
