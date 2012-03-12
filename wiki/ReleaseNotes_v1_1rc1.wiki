@@ -56,6 +56,8 @@ You can now record any species from the field guide provided there is at least o
  * Added read-only access for survey forms (issue 20 & issue 63)
  * Modified locked record entry forms to display location attributes (issue 55)
  * Added last modified/created by attributes for record entry forms (issue 101)
+ * Added an blank option to select boxes to prevent unintentional selections on the form (issue 116)
+ * Removed ability to view public, held records anonymously or by other users (issue 151)
 
 ==== Atlas Form ====
  * Fixed jsp error on atlas form when no file attribute is added to the survey (issue 53)
@@ -63,9 +65,13 @@ You can now record any species from the field guide provided there is at least o
 ==== Single Site Forms ====
  * Added ability to delete rows from Single Site Multi Species and Single Site All Species Forms (issue 61)
  * Changed alignment of checkboxes and text areas on single site forms (issue 60)
+ * Fixed an error caused by leaving the count blank when non-mandatory (issue 155)
 
 ==== Yearly Sightings Form ====
  * Modified date range on yearly sightings form (issue 42)
+
+==== Default (Tracker) Form ====
+ * Made species editable on record edit (issue 117)
 
 === Locations ===
  * Removed whitespace from Location description on Location editing page (issue 72)
@@ -88,6 +94,7 @@ You can now record any species from the field guide provided there is at least o
 === Form Builder ===
  * Added row highlighting to form builder to indicate when there are thresholds on attributes/properties (issue 31)
  * Created new attribute type "HTML (Not Validated)" to allow entry of HTML without open/close tags (issue 36)
+ * Added duplicate buttons to the top and bottom of form for better usability (issue 112)
 
 === New Pages ===
  * Created landing pages for the Contribute, Review, Admin and Profile menu items (issue 48)
@@ -102,6 +109,9 @@ You can now record any species from the field guide provided there is at least o
 === ALA Species Import ===
  * Changed ALA import to allow import of full profiles (issue 73)
 
+=== Species Profile Templates ===
+ * Fixed loop termination conditions that would cause an error when the number of groups < number of items in each group (issue 115)
+
 === Libraries ===
  * Changed JSON library to http://code.google.com/p/json-simple/ to prevent loss of precision in decimal values (issue 76)
  * Modified ketchup validation regular expression for attribute options on form builder to allow punctuation (issue 82)
@@ -111,6 +121,9 @@ You can now record any species from the field guide provided there is at least o
 
 === Exceptions ===
  * Fixed exceptions thrown when transactions are committed (issue 111)
+
+=== Web Services ===
+ * Added a web service that returns taxon by taxon group name search (issue 118)
 
 == Known Issues ==
 We’ve done our best to make BDRS 1.1 as solid as possible, but as is always the case with software, there are a couple of issues that we know about in this release.
