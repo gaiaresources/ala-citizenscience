@@ -1,0 +1,8 @@
+{
+    "name" : "Advanced Review Scrollable Report",
+    "description" : "Lorem Ipsum",
+    "icon" : "icon.png",
+    "report" : "report",
+    "capabilities":  ["SCROLLABLE_RECORDS"],
+    "views": ["REPORT_LISTING", "ADVANCED_REVIEW"]
+}
