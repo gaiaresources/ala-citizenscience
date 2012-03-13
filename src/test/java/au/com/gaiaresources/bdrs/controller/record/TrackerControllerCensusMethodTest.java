@@ -168,7 +168,7 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         login("admin", "password", new String[] { Role.ADMIN });
         
         request.setMethod("GET");
-        request.setRequestURI("/bdrs/user/tracker.htm");
+        request.setRequestURI(request.getContextPath()+"/bdrs/user/tracker.htm");
         request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, m3.getId().toString());
         
@@ -186,7 +186,7 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         login("admin", "password", new String[] { Role.ADMIN });
         
         request.setMethod("GET");
-        request.setRequestURI("/bdrs/user/tracker.htm");
+        request.setRequestURI(request.getContextPath()+"/bdrs/user/tracker.htm");
         request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, m1.getId().toString());
         
@@ -204,7 +204,7 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         login("admin", "password", new String[] { Role.ADMIN });
         
         request.setMethod("GET");
-        request.setRequestURI("/bdrs/user/tracker.htm");
+        request.setRequestURI(request.getContextPath()+"/bdrs/user/tracker.htm");
         request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, m2.getId().toString());
         
@@ -222,7 +222,7 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         login("admin", "password", new String[] { Role.ADMIN });
         
         request.setMethod("GET");
-        request.setRequestURI("/bdrs/user/tracker.htm");
+        request.setRequestURI(request.getContextPath()+"/bdrs/user/tracker.htm");
         request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, "0");
         
@@ -240,7 +240,7 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         login("admin", "password", new String[] { Role.USER });
         
         request.setMethod("POST");
-        request.setRequestURI("/bdrs/user/tracker.htm");
+        request.setRequestURI(request.getContextPath()+"/bdrs/user/tracker.htm");
         request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, m1.getId().toString());
         request.setParameter(RecordWebFormContext.PARAM_SUBMIT_AND_ADD_ANOTHER, "Submit and Add Another");
@@ -273,7 +273,7 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         request.setParameters(params);
         
         request.setMethod("POST");
-        request.setRequestURI("/bdrs/user/tracker.htm");
+        request.setRequestURI(request.getContextPath()+"/bdrs/user/tracker.htm");
         request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, m1.getId().toString());
         request.setParameter(RecordWebFormContext.PARAM_SUBMIT_AND_ADD_ANOTHER, "Submit and Add Another");
@@ -314,7 +314,7 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         request.setParameters(params);
         
         request.setMethod("POST");
-        request.setRequestURI("/bdrs/user/tracker.htm");
+        request.setRequestURI(request.getContextPath()+"/bdrs/user/tracker.htm");
         request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, m3.getId().toString());
         request.setParameter(RecordWebFormContext.PARAM_SUBMIT_AND_ADD_ANOTHER, "Submit and Add Another");
@@ -355,7 +355,7 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         request.setParameters(params);
         
         request.setMethod("POST");
-        request.setRequestURI("/bdrs/user/tracker.htm");
+        request.setRequestURI(request.getContextPath()+"/bdrs/user/tracker.htm");
         request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, m3.getId().toString());
         request.setParameter(RecordWebFormContext.PARAM_SUBMIT_AND_ADD_ANOTHER, "Submit and Add Another");

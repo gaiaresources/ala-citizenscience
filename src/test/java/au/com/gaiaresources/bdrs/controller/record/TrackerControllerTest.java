@@ -289,7 +289,7 @@ public class TrackerControllerTest extends RecordFormTest {
         login("admin", "password", new String[] { Role.ADMIN });
 
         request.setMethod(requestMethod);
-        request.setRequestURI("/bdrs/user/tracker.htm");
+        request.setRequestURI(request.getContextPath()+"/bdrs/user/tracker.htm");
         request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, Integer.toString(0));
         
         ModelAndView mav = handle(request, response);
@@ -302,7 +302,7 @@ public class TrackerControllerTest extends RecordFormTest {
         login("admin", "password", new String[] { Role.ADMIN });
 
         request.setMethod("GET");
-        request.setRequestURI("/bdrs/user/tracker.htm");
+        request.setRequestURI(request.getContextPath()+"/bdrs/user/tracker.htm");
         request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
 
         ModelAndView mv = handle(request, response);
@@ -334,7 +334,7 @@ public class TrackerControllerTest extends RecordFormTest {
         login("admin", "password", new String[] { Role.ADMIN });
 
         request.setMethod("GET");
-        request.setRequestURI("/bdrs/user/tracker.htm");
+        request.setRequestURI(request.getContextPath()+"/bdrs/user/tracker.htm");
         request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         request.setParameter("taxonSearch", speciesA.getScientificName());
 
@@ -382,7 +382,7 @@ public class TrackerControllerTest extends RecordFormTest {
         login("admin", "password", new String[] { Role.ADMIN });
 
         request.setMethod("GET");
-        request.setRequestURI("/bdrs/user/tracker.htm");
+        request.setRequestURI(request.getContextPath()+"/bdrs/user/tracker.htm");
         request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         request.setParameter("taxonSearch", "Indicator Species");
 
@@ -422,7 +422,7 @@ public class TrackerControllerTest extends RecordFormTest {
     	
     	login("admin", "password", new String[] { Role.ADMIN });
         request.setMethod("POST");
-        request.setRequestURI("/bdrs/user/tracker.htm");
+        request.setRequestURI(request.getContextPath()+"/bdrs/user/tracker.htm");
         request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, mockSurvey.getId().toString());
         setDwcRequired(false, mockSurvey);
         setDwcHidden(true, mockSurvey);
@@ -654,7 +654,7 @@ public class TrackerControllerTest extends RecordFormTest {
         record = recordDAO.saveRecord(record);
 
         request.setMethod("GET");
-        request.setRequestURI("/bdrs/user/tracker.htm");
+        request.setRequestURI(request.getContextPath()+"/bdrs/user/tracker.htm");
         request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         request.setParameter(BdrsWebConstants.PARAM_RECORD_ID, record.getId().toString());
 
@@ -725,7 +725,7 @@ public class TrackerControllerTest extends RecordFormTest {
                 System.currentTimeMillis())));
 
         request.setMethod("POST");
-        request.setRequestURI("/bdrs/user/tracker.htm");
+        request.setRequestURI(request.getContextPath()+"/bdrs/user/tracker.htm");
 
         Map<String, String> params = new HashMap<String, String>();
         params.put(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
@@ -1059,7 +1059,7 @@ public class TrackerControllerTest extends RecordFormTest {
                 System.currentTimeMillis())));
  
         request.setMethod("POST");
-        request.setRequestURI("/bdrs/user/tracker.htm");
+        request.setRequestURI(request.getContextPath()+"/bdrs/user/tracker.htm");
  
         Map<String, String> params = new HashMap<String, String>();
         params.put(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
@@ -1131,7 +1131,7 @@ public class TrackerControllerTest extends RecordFormTest {
                 System.currentTimeMillis())));
  
         request.setMethod("POST");
-        request.setRequestURI("/bdrs/user/tracker.htm");
+        request.setRequestURI(request.getContextPath()+"/bdrs/user/tracker.htm");
  
         Map<String, String> params = new HashMap<String, String>();
         params.put(BdrsWebConstants.PARAM_SURVEY_ID, simpleSurvey.getId().toString());
