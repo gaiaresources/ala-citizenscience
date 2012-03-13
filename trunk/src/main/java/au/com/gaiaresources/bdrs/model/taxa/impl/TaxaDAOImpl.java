@@ -3,6 +3,7 @@ package au.com.gaiaresources.bdrs.model.taxa.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -31,13 +32,13 @@ import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
-import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpeciesAttribute;
 import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonRank;
+import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.service.db.DeleteCascadeHandler;
 import au.com.gaiaresources.bdrs.service.db.DeletionService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
@@ -494,30 +495,30 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
 		return q.list();
 	}
 
-	@Override
-	public IndicatorSpecies getIndicatorSpeciesBySourceDataID(Session sesh,
-			String sourceDataId) {
-	    
-	    String query = "select s from IndicatorSpecies s where s.sourceId = :sourceId";
-	    
-	    Query q;
-	    if (sesh == null) {
-                q = getSession().createQuery(query);
-            } else {
-                    q = sesh.createQuery(query);
-            }
-	    q.setParameter("sourceId", sourceDataId);
-	    List<IndicatorSpecies> taxonList = q.list();
-            if (taxonList.isEmpty()) {
-                return null;
-            } else {
-                if (taxonList.size() > 1) {
-                    log.warn("More than one IndicatorSpecies returned for the provided Source Data ID: "
-                            + sourceDataId + " Returning the first");
-                }
-                return taxonList.get(0);
-            }
-	}
+	 @Override
+     public IndicatorSpecies getIndicatorSpeciesBySourceDataID(Session sesh,
+                     String sourceDataId) {
+         
+         String query = "select s from IndicatorSpecies s where s.sourceId = :sourceId";
+         
+         Query q;
+         if (sesh == null) {
+             q = getSession().createQuery(query);
+         } else {
+                 q = sesh.createQuery(query);
+         }
+         q.setParameter("sourceId", sourceDataId);
+         List<IndicatorSpecies> taxonList = q.list();
+         if (taxonList.isEmpty()) {
+             return null;
+         } else {
+             if (taxonList.size() > 1) {
+                 log.warn("More than one IndicatorSpecies returned for the provided Source Data ID: "
+                         + sourceDataId + " Returning the first");
+             }
+             return taxonList.get(0);
+         }
+     }
 
 	@Override
 	public List<IndicatorSpecies> getIndicatorSpeciesBySpeciesProfileItem(
@@ -576,13 +577,12 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
 
 	@Override
     public List<IndicatorSpecies> getIndicatorSpeciesByNameSearch(String name) {
-        String searchString = toSQLSearchString(name);
+		String searchString = toSQLSearchString(name);
 		
         return find("from IndicatorSpecies i where UPPER(commonName) like UPPER(?) or UPPER(scientificName) like UPPER (?)", 
                     new Object[] {searchString, searchString}, 30);
     }
-
-
+	
     @Override
     public SpeciesProfile getSpeciesProfileById(Integer id) {
         return getByID(SpeciesProfile.class, id);
@@ -864,7 +864,7 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
         q.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, surveyId);
         return q.list();
     }
-
+    
     /**
      * {@inheritDoc}
      */
@@ -900,4 +900,39 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
     }
 
 
+    /**
+     * {@inheritDoc}
+     */
+	@Override
+	public PagedQueryResult<IndicatorSpecies> getIndicatorSpeciesByQueryString(
+			Integer groupId, String searchInGroups, String searchInResult, PaginationFilter filter) {
+		
+		HashMap<String, Object> queryMap = new HashMap<String, Object>();
+		
+		StringBuilder builder = new StringBuilder();
+		builder.append("select distinct sp from IndicatorSpecies sp ");
+		builder.append(" left outer join sp.infoItems profile");
+		
+		if(groupId != null) {
+			queryMap.put("groupId",	 groupId);
+			builder.append(" where sp.taxonGroup in (select g from TaxonGroup g where g.id in (:groupId))");
+		} else {
+			queryMap.put("searchInGroups", "%" + searchInGroups + "%");
+			queryMap.put("searchInGroupsExact", searchInGroups);
+			builder.append(" where ((UPPER(sp.commonName) like UPPER(:searchInGroups)");
+			builder.append(" or UPPER(sp.scientificName) like UPPER(:searchInGroups)");
+			//TODO: maybe in the future make querying the species profile dynamic by using Facets or google like "key:value".
+			builder.append(" or UPPER(profile.content) like UPPER(:searchInGroups)");
+			builder.append(" or sp.taxonGroup in (select g from TaxonGroup g where UPPER(g.name) in (UPPER(:searchInGroupsExact)))))");
+		}
+		
+		if(searchInResult != null) {
+			queryMap.put("searchInResult", "%" + searchInResult + "%");
+			builder.append(" and ((UPPER(sp.commonName) like UPPER(:searchInResult)");
+			builder.append(" or UPPER(sp.scientificName) like UPPER(:searchInResult)");
+			builder.append(" or UPPER(profile.content) like UPPER(:searchInResult)))");
+		}
+		
+		return new QueryPaginator<IndicatorSpecies>().page(this.getSession(), builder.toString(), queryMap, filter, "sp");
+	}
 }

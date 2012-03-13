@@ -1,6 +1,7 @@
 package au.com.gaiaresources.bdrs.model.taxa;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -140,6 +141,17 @@ public interface TaxaDAO {
     List<IndicatorSpecies> getIndicatorSpecies(TaxonGroup group);
 
     List<IndicatorSpecies> getIndicatorSpeciesByNameSearch(String name);
+    
+    /**
+     * Queries taxa with a query build up using a taxongroup id or query parameter 'AND' a sub-query parameter if available.
+     * 
+     * @param groupId the id of a taxongroup
+     * @param searchInGroups the query parameter
+     * @param searchInResult the sub-query parameter
+     * @param filter the PaginationFilter
+     * @return a PagedQueryResult of IndicatorSpecies
+     */
+    PagedQueryResult<IndicatorSpecies> getIndicatorSpeciesByQueryString(Integer groupId, String searchInGroups, String searchInResult, PaginationFilter filter);
 
     IndicatorSpecies getIndicatorSpecies(Integer id);
     
