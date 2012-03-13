@@ -29,6 +29,7 @@ import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 @Controller
 public class BdrsCoreOfflineController extends AbstractController {
@@ -276,8 +277,8 @@ public class BdrsCoreOfflineController extends AbstractController {
 
     private Survey getSurvey(HttpServletRequest req) {
         Survey survey;
-    	if (req.getSession().getAttribute("surveyId") != null) {
-        	int surveyId = (Integer)req.getSession().getAttribute("surveyId");
+    	if (req.getSession().getAttribute(BdrsWebConstants.PARAM_SURVEY_ID) != null) {
+        	int surveyId = (Integer)req.getSession().getAttribute(BdrsWebConstants.PARAM_SURVEY_ID);
             survey = surveyDAO.get(surveyId);
         } else {
         survey =  surveyDAO.getLastSurveyForUser(getRequestContext().getUser());

@@ -50,6 +50,7 @@ import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 /**
  * Controller to render the yearly sightings form
@@ -66,17 +67,17 @@ public class YearlySightingsController extends AbstractController {
     /**
      * Query parameter for the survey ID
      */
-    public static final String PARAM_SURVEY_ID = "surveyId";
+    public static final String PARAM_SURVEY_ID = BdrsWebConstants.PARAM_SURVEY_ID;
     
     /**
      * Query parameter for the record ID
      */
-    public static final String PARAM_RECORD_ID = "recordId";
+    public static final String PARAM_RECORD_ID = BdrsWebConstants.PARAM_RECORD_ID;
     
     /**
      * Query parameter for the location ID
      */
-    public static final String PARAM_LOCATION_ID = "locationId";
+    public static final String PARAM_LOCATION_ID = BdrsWebConstants.PARAM_LOCATION_ID;
     
     /**
      * View name for the yearly sightings form
@@ -338,7 +339,7 @@ public class YearlySightingsController extends AbstractController {
         ModelAndView mv = RecordWebFormContext.getSubmitRedirect(request, recToDisplay);
         
         if (request.getParameter(RecordWebFormContext.PARAM_SUBMIT_AND_ADD_ANOTHER) != null) {
-            mv.addObject("surveyId", survey.getId());
+            mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
             getRequestContext().addMessage(MSG_CODE_SUCCESS_ADD_ANOTHER);
         } else {
             switch (survey.getFormSubmitAction()) {

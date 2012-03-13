@@ -332,7 +332,15 @@
                 <input type="text"
                     id="${inputName}"
                     name="${inputName}"
-                    class="datepicker <c:if test="${ formField.attribute.required }">validate(required)</c:if>"
+                    class="datepicker 
+                    <c:choose>
+                    <c:when test="${ formField.attribute.required }">
+                        validate(date)
+                    </c:when>
+                    <c:otherwise>
+                        validate(dateOrBlank)
+                    </c:otherwise>
+                </c:choose>"
                     value="<c:out value="${ fieldValue }"/>"
                 />
             </c:when>

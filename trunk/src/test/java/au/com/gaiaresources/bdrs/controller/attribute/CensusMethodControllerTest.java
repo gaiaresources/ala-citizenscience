@@ -33,6 +33,7 @@ import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 public class CensusMethodControllerTest extends AbstractControllerTest {
     
@@ -149,7 +150,7 @@ public class CensusMethodControllerTest extends AbstractControllerTest {
     public void testViewExisting() throws Exception {
         request.setMethod("GET");
         request.setRequestURI(CensusMethodController.EDIT_URL);        
-        request.setParameter("censusMethodId", m1.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, m1.getId().toString());
         
         ModelAndView mv = this.handle(request, response);
         
@@ -175,7 +176,7 @@ public class CensusMethodControllerTest extends AbstractControllerTest {
     public void testEditExistingAdd() throws Exception {
         request.setMethod("POST");
         request.setRequestURI(CensusMethodController.EDIT_URL);
-        request.setParameter("censusMethodId", m1.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, m1.getId().toString());
         
         testEditing("mama mia", m1.getId());
     }
@@ -184,7 +185,7 @@ public class CensusMethodControllerTest extends AbstractControllerTest {
     public void testSetTaxonomic1() throws Exception {
         request.setMethod("POST");
         request.setRequestURI(CensusMethodController.EDIT_URL);
-        request.setParameter("censusMethodId", m1.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, m1.getId().toString());
         request.setParameter("censusMethodName", m1.getName());
         request.setParameter("taxonomic", "TAXONOMIC");
         
@@ -200,7 +201,7 @@ public class CensusMethodControllerTest extends AbstractControllerTest {
     public void testSetTaxonomic2() throws Exception {
         request.setMethod("POST");
         request.setRequestURI(CensusMethodController.EDIT_URL);
-        request.setParameter("censusMethodId", m1.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, m1.getId().toString());
         request.setParameter("censusMethodName", m1.getName());
         request.setParameter("taxonomic", "NONTAXONOMIC");
         
@@ -216,7 +217,7 @@ public class CensusMethodControllerTest extends AbstractControllerTest {
     public void testSetTaxonomic3() throws Exception {
         request.setMethod("POST");
         request.setRequestURI(CensusMethodController.EDIT_URL);
-        request.setParameter("censusMethodId", m1.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, m1.getId().toString());
         request.setParameter("censusMethodName", m1.getName());
         request.setParameter("taxonomic", "OPTIONALLYTAXONOMIC");
         
@@ -307,7 +308,7 @@ public class CensusMethodControllerTest extends AbstractControllerTest {
     public void setPointOnly() throws Exception {
         request.setMethod("POST");
         request.setRequestURI(CensusMethodController.EDIT_URL);
-        request.setParameter("censusMethodId", m1.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, m1.getId().toString());
         request.setParameter("censusMethodName", m1.getName());
         request.setParameter("taxonomic", "OPTIONALLYTAXONOMIC");
         request.setParameter(CensusMethodController.PARAM_DRAW_POINT_ENABLED, "true");
@@ -327,7 +328,7 @@ public class CensusMethodControllerTest extends AbstractControllerTest {
     public void setLineOnly() throws Exception {
         request.setMethod("POST");
         request.setRequestURI(CensusMethodController.EDIT_URL);
-        request.setParameter("censusMethodId", m1.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, m1.getId().toString());
         request.setParameter("censusMethodName", m1.getName());
         request.setParameter("taxonomic", "OPTIONALLYTAXONOMIC");
         request.setParameter(CensusMethodController.PARAM_DRAW_LINE_ENABLED, "true");
@@ -347,7 +348,7 @@ public class CensusMethodControllerTest extends AbstractControllerTest {
     public void setPolygonOnly() throws Exception {
         request.setMethod("POST");
         request.setRequestURI(CensusMethodController.EDIT_URL);
-        request.setParameter("censusMethodId", m1.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, m1.getId().toString());
         request.setParameter("censusMethodName", m1.getName());
         request.setParameter("taxonomic", "OPTIONALLYTAXONOMIC");
         request.setParameter(CensusMethodController.PARAM_DRAW_POLYGON_ENABLED, "true");
@@ -398,7 +399,7 @@ public class CensusMethodControllerTest extends AbstractControllerTest {
         request.setRequestURI(CensusMethodController.CENSUS_METHOD_SEARCH_URL);
        
         // should have 0 matches
-        request.setParameter("surveyId", "3");
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, "3");
         
         request.setParameter(JqGridDataHelper.MAX_PER_PAGE_PARAM, "1");
         request.setParameter(JqGridDataHelper.REQUESTED_PAGE_PARAM, "3");

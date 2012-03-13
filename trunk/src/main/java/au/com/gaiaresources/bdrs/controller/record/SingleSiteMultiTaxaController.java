@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 /**
  * The <code>SingleSiteMultiTaxa</code> controller is a record add form renderer
@@ -29,9 +30,9 @@ import au.com.gaiaresources.bdrs.security.Role;
 public class SingleSiteMultiTaxaController extends SingleSiteController {
     
     public static final String SINGLE_SITE_MULTI_TAXA_URL = "/bdrs/user/singleSiteMultiTaxa.htm";
-    public static final String PARAM_RECORD_ID = SingleSiteController.PARAM_RECORD_ID;
-    public static final String PARAM_SURVEY_ID = SingleSiteController.PARAM_SURVEY_ID;
-    public static final String PARAM_CENSUS_METHOD_ID = SingleSiteController.PARAM_CENSUS_METHOD_ID;
+    public static final String PARAM_RECORD_ID = BdrsWebConstants.PARAM_RECORD_ID;
+    public static final String PARAM_SURVEY_ID = BdrsWebConstants.PARAM_SURVEY_ID;
+    public static final String PARAM_CENSUS_METHOD_ID = BdrsWebConstants.PARAM_CENSUS_METHOD_ID;
     public static final String SINGLE_SITE_MULTI_TAXA_VIEW_NAME = "singleSiteMultiTaxa";
     
     /**
@@ -95,13 +96,7 @@ public class SingleSiteMultiTaxaController extends SingleSiteController {
     public ModelAndView saveRecord(MultipartHttpServletRequest request,
                                     HttpServletResponse response,
                                     @RequestParam(value=PARAM_SURVEY_ID, required=true) int surveyId,
-                                    @RequestParam(value=SingleSiteController.PARAM_LATITUDE, required=false) Double latitude,
-                                    @RequestParam(value=SingleSiteController.PARAM_LONGITUDE, required=false) Double longitude,
-                                    @RequestParam(value=SingleSiteController.PARAM_DATE, required=false) Date date,
-                                    @RequestParam(value=SingleSiteController.PARAM_TIME_HOUR, required=false) String time_hour,
-                                    @RequestParam(value=SingleSiteController.PARAM_TIME_MINUTE, required=false) String time_minute,
-                                    @RequestParam(value=SingleSiteController.PARAM_NOTES, required=false) String notes,
                                     @RequestParam(value=SingleSiteController.PARAM_ROW_PREFIX, required=true, defaultValue="") String[] rowIds) throws ParseException, IOException {
-        return saveRecordHelper(request, response, surveyId, latitude, longitude, date, time_hour, time_minute, notes, rowIds);
+        return saveRecordHelper(request, response, surveyId, rowIds);
     }
 }

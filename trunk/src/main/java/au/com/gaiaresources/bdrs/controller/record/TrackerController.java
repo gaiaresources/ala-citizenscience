@@ -63,7 +63,9 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.content.ContentService;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 /**
  * Controller for the default 'tracker' form.
@@ -98,11 +100,11 @@ public class TrackerController extends AbstractController {
     /**
      * Request param, survey ID
      */
-    public static final String PARAM_SURVEY_ID = "surveyId";
+    public static final String PARAM_SURVEY_ID = BdrsWebConstants.PARAM_SURVEY_ID;
     /**
      * Request param, census method ID
      */
-    public static final String PARAM_CENSUS_METHOD_ID = "censusMethodId";
+    public static final String PARAM_CENSUS_METHOD_ID = BdrsWebConstants.PARAM_CENSUS_METHOD_ID;
     /**
      * Request param, species ID
      */
@@ -118,7 +120,7 @@ public class TrackerController extends AbstractController {
     /**
      * Request param, existing record ID
      */
-    public static final String PARAM_RECORD_ID = "recordId";
+    public static final String PARAM_RECORD_ID = BdrsWebConstants.PARAM_RECORD_ID;
     /**
      * Request param, notes
      */
@@ -465,7 +467,7 @@ public class TrackerController extends AbstractController {
         ModelAndView mv = new ModelAndView(TRACKER_VIEW_NAME);
         mv.addObject("censusMethod", censusMethod);
         mv.addObject("record", record);
-        mv.addObject("recordId", record.getId());
+        mv.addObject(BdrsWebConstants.PARAM_RECORD_ID, record.getId());
         mv.addObject("survey", survey);
         mv.addObject("locations", locations);
         mv.addObject("surveyFormFieldList", surveyFormFieldList);
@@ -588,11 +590,12 @@ public class TrackerController extends AbstractController {
             getRequestContext().setSessionAttribute("valueMap", valueMap);
             getRequestContext().setSessionAttribute(MV_WKT, request.getParameter(PARAM_WKT));
             
-            ModelAndView mv = new ModelAndView(new RedirectView("/bdrs/user/tracker.htm", true));
+            String redirectURL = request.getRequestURI().replace(ContentService.getContextPath(request.getRequestURL().toString()), "");
+            ModelAndView mv = new ModelAndView(new RedirectView(redirectURL, true));
             mv.addObject(MV_ERROR_MAP, res.getErrorMap());
 
-            mv.addObject("surveyId", surveyPk);
-            mv.addObject("censusMethodId", Integer.valueOf(censusMethodId));
+            mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, surveyPk);
+            mv.addObject(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, Integer.valueOf(censusMethodId));
             if(species != null) {
                 mv.addObject("taxonSearch", species.getScientificName());
             }
@@ -601,6 +604,8 @@ public class TrackerController extends AbstractController {
                 mv.addObject(PARAM_RECORD_ID, Integer.parseInt(recordId));
             }
             getRequestContext().addMessage("form.validation");
+            // add the edit parameter on error so the form will remain editable
+            mv.addObject(RecordWebFormContext.PARAM_EDIT, true);
             return mv;
         }
         
@@ -611,12 +616,12 @@ public class TrackerController extends AbstractController {
             // A tab change has been requested
             mv = new ModelAndView(new RedirectView(
                RenderController.SURVEY_RENDER_REDIRECT_URL, true));
-               mv.addObject("surveyId", survey.getId());
-               mv.addObject("censusMethodId", Integer.valueOf(censusMethodId));
+               mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
+               mv.addObject(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, Integer.valueOf(censusMethodId));
                mv.addObject("selectedTab", SELECT_TAB_SUB_RECORD);
                // record has been saved successfully by this point so
                // it must have a valid ID.
-               mv.addObject("recordId", res.getRecord().getId());
+               mv.addObject(BdrsWebConstants.PARAM_RECORD_ID, res.getRecord().getId());
         } else {
             mv = RecordWebFormContext.getSubmitRedirect(request, res.getRecord());
 
@@ -673,7 +678,7 @@ public class TrackerController extends AbstractController {
     @RequestMapping(value = "/bdrs/user/ajaxTrackerTaxonAttributeTable.htm", method = RequestMethod.GET)
     public ModelAndView ajaxTaxonAttributeTable(HttpServletRequest request,
                                                 HttpServletResponse response,
-                                                @RequestParam(value="surveyId", required=true) int surveyPk,
+                                                @RequestParam(value=BdrsWebConstants.PARAM_SURVEY_ID, required=true) int surveyPk,
                                                 @RequestParam(value="taxonId", required=true) int taxonPk,
                                                 @RequestParam(value=PARAM_RECORD_ID, required=false, defaultValue="0") int recordPk) {
  

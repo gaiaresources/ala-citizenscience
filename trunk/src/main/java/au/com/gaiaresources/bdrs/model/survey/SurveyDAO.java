@@ -18,6 +18,8 @@ public interface SurveyDAO extends TransactionDAO {
     /**
      * Returns a list of surveys for the given user ordered by survey date.
      * Please note, this include both ACTIVE and INACTIVE surveys.
+     * Please note, for ADMIN role, this is all surveys and for all other roles, 
+     * it is surveys which the user has been added to
      * 
      * @param user
      *            the user to search for.
@@ -255,4 +257,12 @@ public interface SurveyDAO extends TransactionDAO {
     
     PagedQueryResult<Survey> search(PaginationFilter filter);
 
+    /**
+     * Returns a listing of surveys that this user can edit. For ADMIN role, 
+     * this is all surveys, for POWER_USER and SUPERVISOR, this is any survey 
+     * they have created.
+     * @param user the {@link User} to get the {@link List} of {@link Survey Surveys} for.
+     * @return a {@link List} of {@link Survey Surveys} that the {@link User} can edit
+     */
+    public List<Survey> getSurveyListing(User user);
 }

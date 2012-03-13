@@ -14,6 +14,7 @@ import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.threshold.Operator;
 import au.com.gaiaresources.bdrs.model.threshold.ThresholdDAO;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 public class AttributeControllerTest extends AbstractGridControllerTest {
 
@@ -80,7 +81,7 @@ public class AttributeControllerTest extends AbstractGridControllerTest {
         request.setParameter("name", "test_attr");
         request.setParameter("typeCode", AttributeType.TEXT.getCode());
         request.setParameter("scopeCode", AttributeScope.SURVEY_MODERATION.toString());
-        request.setParameter("surveyId", survey1.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey1.getId().toString());
 
         handle(request, response);
         String resContent = response.getContentAsString();
@@ -93,7 +94,7 @@ public class AttributeControllerTest extends AbstractGridControllerTest {
         request.setParameter("name", "test_attr");
         request.setParameter("typeCode", AttributeType.TEXT.getCode());
         request.setParameter("scopeCode", AttributeScope.SURVEY.toString());
-        request.setParameter("surveyId", survey1.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey1.getId().toString());
 
         handle(request, response);
         resContent = response.getContentAsString();

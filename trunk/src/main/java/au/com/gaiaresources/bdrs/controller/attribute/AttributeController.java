@@ -25,6 +25,7 @@ import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.threshold.ThresholdService;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 
 @Controller
@@ -62,7 +63,7 @@ public class AttributeController extends AbstractController {
             @RequestParam(value="typeCode", required=false) String typeCode,
             @RequestParam(value="scopeCode", required=false) String scopeCode,
             @RequestParam(value="options", required=false) String options,
-            @RequestParam(value="surveyId", required=true) int surveyId) {
+            @RequestParam(value=BdrsWebConstants.PARAM_SURVEY_ID, required=true) int surveyId) {
 
         Session sesh = RequestContextHolder.getContext().getHibernate();
         // create a mock attribute for testing against the thresholds

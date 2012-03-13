@@ -44,6 +44,7 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 /**
  * A controller class to load data into the field guide pages
@@ -70,7 +71,7 @@ public class FieldGuideController extends AbstractController {
     /**
      * GET param used to indicate a survey to redirect to so we can make a recording
      */
-    public static final String PARAM_SURVEY_ID = "surveyId";
+    public static final String PARAM_SURVEY_ID = BdrsWebConstants.PARAM_SURVEY_ID;
     
     /**
      * URL
@@ -166,7 +167,7 @@ public class FieldGuideController extends AbstractController {
         model.addAttribute("taxonGroup", taxonGroup.getName());
         LinkedHashMap<String, String> breadcrumbs = new LinkedHashMap<String, String>();
         boolean isDesktop;
-        if (request.getSession().getAttribute("surveyId") == null) {
+        if (request.getSession().getAttribute(BdrsWebConstants.PARAM_SURVEY_ID) == null) {
             isDesktop = true;
         } else {
             isDesktop = false;

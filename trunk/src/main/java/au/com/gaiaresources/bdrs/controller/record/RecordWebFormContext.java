@@ -13,6 +13,7 @@ import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 /**
  * Helper for holding constants used across the board for record forms
@@ -41,7 +42,7 @@ public class RecordWebFormContext {
     /**
      * Request param - the survey to open the form with.
      */
-    public static final String PARAM_SURVEY_ID = "surveyId";
+    public static final String PARAM_SURVEY_ID = BdrsWebConstants.PARAM_SURVEY_ID;
     /**
      * Msg code - cannot edit form due to auth failure
      */
@@ -70,7 +71,7 @@ public class RecordWebFormContext {
     /**
      * Request param - census method ID used to open the form.
      */
-    public static final String PARAM_CENSUS_METHOD_ID = "censusMethodId";
+    public static final String PARAM_CENSUS_METHOD_ID = BdrsWebConstants.PARAM_CENSUS_METHOD_ID;
     
     // From MySightingsController - the query parameter record ID.
     // Not refering to MySightings directly here since we may introduce

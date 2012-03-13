@@ -271,7 +271,15 @@
                         calDate.setTime(formField.getRecord().getWhen());
                     }
                 %>
-                <input id="date" class="datepicker_historical <c:if test="${ formField.required }">validate(required)</c:if>" type="text" name="${ formPrefix }date"
+                <input id="date" class="datepicker_historical 
+                    <c:choose>
+                        <c:when test="${ formField.required }">
+                            validate(date)
+                        </c:when>
+                        <c:otherwise>
+                            validate(dateOrBlank)
+                        </c:otherwise>
+                    </c:choose>" type="text" name="${ formPrefix }date"
                     <c:choose>
                         <c:when test="<%= valueMap != null && valueMap.containsKey(formField.getPrefix()+\"date\") %>">
                             value="<c:out value="<%= valueMap.get(formField.getPrefix()+\"date\") %>"/>"

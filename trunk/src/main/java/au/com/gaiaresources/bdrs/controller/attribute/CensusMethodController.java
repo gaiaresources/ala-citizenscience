@@ -33,6 +33,7 @@ import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 @RolesAllowed( {Role.POWERUSER,Role.SUPERVISOR,Role.ADMIN} )
 @Controller
@@ -57,7 +58,7 @@ public class CensusMethodController extends AbstractController {
     /**
      * Request parameter - survey ID
      */
-    public static final String PARAM_SURVEY_ID = "surveyId";
+    public static final String PARAM_SURVEY_ID = BdrsWebConstants.PARAM_SURVEY_ID;
     /**
      * Request parameter - draw point control enabled for census method
      */
@@ -93,7 +94,7 @@ public class CensusMethodController extends AbstractController {
     @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR})
     @RequestMapping(value = EDIT_URL, method = RequestMethod.GET)
     public ModelAndView openEdit(HttpServletRequest request, HttpServletResponse response,
-            @RequestParam(value="censusMethodId", defaultValue="0", required=false) Integer pk) {
+            @RequestParam(value=BdrsWebConstants.PARAM_CENSUS_METHOD_ID, defaultValue="0", required=false) Integer pk) {
         CensusMethod cm;
         if(pk == 0) {
             cm = new CensusMethod();
@@ -123,7 +124,7 @@ public class CensusMethodController extends AbstractController {
             @RequestParam(value="taxonomic", required=false, defaultValue="NONTAXONOMIC") String taxonomic,
             @RequestParam(value="type", required=true, defaultValue="") String type,
             @RequestParam(value="description", required=true, defaultValue="") String description,
-            @RequestParam(value="censusMethodId", defaultValue="0", required=false) Integer pk,
+            @RequestParam(value=BdrsWebConstants.PARAM_CENSUS_METHOD_ID, defaultValue="0", required=false) Integer pk,
             @RequestParam(value="attribute", required=false) int[] attributePkArray,
             @RequestParam(value="add_attribute", required=false) int[] attributeIndexArray,
             @RequestParam(value="childCensusMethod", required=false) int[] childCensusMethodList,
@@ -206,7 +207,7 @@ public class CensusMethodController extends AbstractController {
     public void searchService(HttpServletRequest request, HttpServletResponse response,
             @RequestParam(value="name", required=false) String name,
             @RequestParam(value="taxonomic", required=false) Boolean taxonomic,
-            @RequestParam(value="surveyId", required=false) Integer surveyId) throws Exception {
+            @RequestParam(value=BdrsWebConstants.PARAM_SURVEY_ID, required=false) Integer surveyId) throws Exception {
         JqGridDataHelper jqGridHelper = new JqGridDataHelper(request);
         PaginationFilter filter = jqGridHelper.createFilter(request);
         

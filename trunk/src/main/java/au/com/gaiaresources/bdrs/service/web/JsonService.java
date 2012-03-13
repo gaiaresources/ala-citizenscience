@@ -17,6 +17,7 @@ import au.com.gaiaresources.bdrs.model.map.GeoMapFeature;
 import au.com.gaiaresources.bdrs.model.record.AccessControlledRecordAdapter;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 @Service
 public class JsonService {
@@ -37,8 +38,8 @@ public class JsonService {
     public static final String RECORD_KEY_HABITAT = "habitat";
     public static final String RECORD_KEY_WHEN = "when";
     public static final String RECORD_KEY_BEHAVIOUR = "behaviour";
-    public static final String RECORD_KEY_RECORD_ID = "recordId";
-    public static final String RECORD_KEY_SURVEY_ID = "surveyId";
+    public static final String RECORD_KEY_RECORD_ID = BdrsWebConstants.PARAM_RECORD_ID;
+    public static final String RECORD_KEY_SURVEY_ID = BdrsWebConstants.PARAM_SURVEY_ID;
     public static final String RECORD_KEY_VISIBILITY = "recordVisibility";
     
     // first + last name of the recording user

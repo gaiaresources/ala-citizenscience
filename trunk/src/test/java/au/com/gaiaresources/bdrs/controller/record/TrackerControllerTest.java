@@ -53,6 +53,7 @@ import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 /**
  * Tests all aspects of the <code>TrackerController</code>.
@@ -289,7 +290,7 @@ public class TrackerControllerTest extends RecordFormTest {
 
         request.setMethod(requestMethod);
         request.setRequestURI("/bdrs/user/tracker.htm");
-        request.setParameter("surveyId", Integer.toString(0));
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, Integer.toString(0));
         
         ModelAndView mav = handle(request, response);
         
@@ -302,7 +303,7 @@ public class TrackerControllerTest extends RecordFormTest {
 
         request.setMethod("GET");
         request.setRequestURI("/bdrs/user/tracker.htm");
-        request.setParameter("surveyId", survey.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
 
         ModelAndView mv = handle(request, response);
         ModelAndViewAssert.assertViewName(mv, "tracker");
@@ -334,7 +335,7 @@ public class TrackerControllerTest extends RecordFormTest {
 
         request.setMethod("GET");
         request.setRequestURI("/bdrs/user/tracker.htm");
-        request.setParameter("surveyId", survey.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         request.setParameter("taxonSearch", speciesA.getScientificName());
 
         ModelAndView mv = handle(request, response);
@@ -382,7 +383,7 @@ public class TrackerControllerTest extends RecordFormTest {
 
         request.setMethod("GET");
         request.setRequestURI("/bdrs/user/tracker.htm");
-        request.setParameter("surveyId", survey.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         request.setParameter("taxonSearch", "Indicator Species");
 
         ModelAndView mv = handle(request, response);
@@ -422,7 +423,7 @@ public class TrackerControllerTest extends RecordFormTest {
     	login("admin", "password", new String[] { Role.ADMIN });
         request.setMethod("POST");
         request.setRequestURI("/bdrs/user/tracker.htm");
-        request.setParameter("surveyId", mockSurvey.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, mockSurvey.getId().toString());
         setDwcRequired(false, mockSurvey);
         setDwcHidden(true, mockSurvey);
         ModelAndView mv = handle(request, response);
@@ -654,8 +655,8 @@ public class TrackerControllerTest extends RecordFormTest {
 
         request.setMethod("GET");
         request.setRequestURI("/bdrs/user/tracker.htm");
-        request.setParameter("surveyId", survey.getId().toString());
-        request.setParameter("recordId", record.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_RECORD_ID, record.getId().toString());
 
         ModelAndView mv = handle(request, response);
         ModelAndViewAssert.assertViewName(mv, "tracker");
@@ -727,7 +728,7 @@ public class TrackerControllerTest extends RecordFormTest {
         request.setRequestURI("/bdrs/user/tracker.htm");
 
         Map<String, String> params = new HashMap<String, String>();
-        params.put("surveyId", survey.getId().toString());
+        params.put(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         params.put("survey_species_search", speciesA.getScientificName());
         params.put("species", speciesA.getId().toString());
         params.put("latitude", "-32.546");
@@ -1061,8 +1062,8 @@ public class TrackerControllerTest extends RecordFormTest {
         request.setRequestURI("/bdrs/user/tracker.htm");
  
         Map<String, String> params = new HashMap<String, String>();
-        params.put("surveyId", survey.getId().toString());
-        //params.put("recordId","");
+        params.put(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
+        //params.put(BdrsWebConstants.PARAM_RECORD_ID,"");
         params.put("survey_species_search", speciesA.getScientificName());
         params.put("species", speciesA.getId().toString());
         params.put("latitude", "-32.546");
@@ -1133,7 +1134,7 @@ public class TrackerControllerTest extends RecordFormTest {
         request.setRequestURI("/bdrs/user/tracker.htm");
  
         Map<String, String> params = new HashMap<String, String>();
-        params.put("surveyId", simpleSurvey.getId().toString());
+        params.put(BdrsWebConstants.PARAM_SURVEY_ID, simpleSurvey.getId().toString());
         params.put("survey_species_search", "");
         params.put("latitude", String.valueOf(lat));
         params.put("longitude", String.valueOf(lon));

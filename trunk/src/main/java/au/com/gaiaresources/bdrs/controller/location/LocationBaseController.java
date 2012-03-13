@@ -60,6 +60,7 @@ import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -68,7 +69,7 @@ public class LocationBaseController extends AbstractController {
     
     public static final String GET_SURVEY_LOCATIONS_FOR_USER = "/bdrs/location/getSurveyLocationsForUser.htm";
     
-    public static final String PARAM_SURVEY_ID = "surveyId";
+    public static final String PARAM_SURVEY_ID = BdrsWebConstants.PARAM_SURVEY_ID;
     
 
     private Logger log = Logger.getLogger(getClass());
@@ -243,7 +244,7 @@ public class LocationBaseController extends AbstractController {
     @RolesAllowed( {Role.POWERUSER,Role.SUPERVISOR,Role.ADMIN} )
     @RequestMapping(value = "/bdrs/admin/survey/locationListing.htm", method = RequestMethod.GET)
     public ModelAndView editSurveyLocationListing(HttpServletRequest request, HttpServletResponse response,
-            @RequestParam(value="surveyId", required = true) int surveyId) {
+            @RequestParam(value=BdrsWebConstants.PARAM_SURVEY_ID, required = true) int surveyId) {
         Survey survey = getSurvey(surveyId);
         if (survey == null) {
             return SurveyBaseController.nullSurveyRedirect(getRequestContext());
@@ -256,7 +257,7 @@ public class LocationBaseController extends AbstractController {
     @RolesAllowed( {Role.POWERUSER,Role.SUPERVISOR,Role.ADMIN} )
     @RequestMapping(value = "/bdrs/admin/survey/locationListing.htm", method = RequestMethod.POST)
     public ModelAndView submitSurveyLocationListing(HttpServletRequest request, HttpServletResponse response,
-            @RequestParam(value="surveyId", required = true) int surveyId) {
+            @RequestParam(value=BdrsWebConstants.PARAM_SURVEY_ID, required = true) int surveyId) {
         Survey survey = getSurvey(surveyId);
         if (survey == null) {
             return SurveyBaseController.nullSurveyRedirect(getRequestContext());
@@ -298,7 +299,7 @@ public class LocationBaseController extends AbstractController {
         ModelAndView mv;
         if(request.getParameter("saveAndContinue") != null) {
             mv = new ModelAndView(new RedirectView("/bdrs/admin/survey/editUsers.htm", true));
-            mv.addObject("surveyId", survey.getId());
+            mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
         }
         else {
             mv = new ModelAndView(new RedirectView("/bdrs/admin/survey/listing.htm", true));
@@ -318,8 +319,8 @@ public class LocationBaseController extends AbstractController {
     @RolesAllowed( {Role.POWERUSER,Role.SUPERVISOR,Role.ADMIN} )
     @RequestMapping(value = "/bdrs/admin/survey/editLocation.htm", method = RequestMethod.GET)
     public ModelAndView editSurveyLocation(HttpServletRequest request, HttpServletResponse response,
-            @RequestParam(value="surveyId", required = true) int surveyId,
-            @RequestParam(value="locationId", required = false) Integer locationId) {
+            @RequestParam(value=BdrsWebConstants.PARAM_SURVEY_ID, required = true) int surveyId,
+            @RequestParam(value=BdrsWebConstants.PARAM_LOCATION_ID, required = false) Integer locationId) {
         Survey survey = getSurvey(surveyId);
         if (survey == null) {
             return SurveyBaseController.nullSurveyRedirect(getRequestContext());
@@ -373,8 +374,8 @@ public class LocationBaseController extends AbstractController {
     @RolesAllowed( {Role.POWERUSER,Role.SUPERVISOR,Role.ADMIN} )
     @RequestMapping(value = "/bdrs/admin/survey/editLocation.htm", method = RequestMethod.POST)
     public ModelAndView submitSurveyLocation(MultipartHttpServletRequest request, HttpServletResponse response,
-            @RequestParam(value="surveyId", required = true) int surveyId,
-            @RequestParam(value="locationId", required = false) Integer locationId) {
+            @RequestParam(value=BdrsWebConstants.PARAM_SURVEY_ID, required = true) int surveyId,
+            @RequestParam(value=BdrsWebConstants.PARAM_LOCATION_ID, required = false) Integer locationId) {
         Survey survey = getSurvey(surveyId);
         if (survey == null) {
             return SurveyBaseController.nullSurveyRedirect(getRequestContext());
@@ -410,7 +411,7 @@ public class LocationBaseController extends AbstractController {
         }
         
         ModelAndView mv = new ModelAndView(new RedirectView("/bdrs/admin/survey/locationListing.htm", true));
-        mv.addObject("surveyId", survey.getId());
+        mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
         return mv;
     }
     

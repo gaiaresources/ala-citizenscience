@@ -66,6 +66,7 @@ import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.content.ContentService;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 
 import com.vividsolutions.jts.geom.Geometry;
@@ -86,9 +87,6 @@ public abstract class SingleSiteController extends AbstractController {
     public static final String PREFIX_TEMPLATE = "%d_";
     public static final String PARAM_ROW_PREFIX = "rowPrefix";
 
-    public static final String PARAM_RECORD_ID = "recordId";
-    public static final String PARAM_SURVEY_ID = "surveyId";
-    public static final String PARAM_CENSUS_METHOD_ID = "censusMethodId";
     public static final String PARAM_ACCURACY = "accuracyInMeters";
     
     public static final String PARAM_SPECIES = "species";
@@ -133,6 +131,9 @@ public abstract class SingleSiteController extends AbstractController {
      * The record object used to populate the form fields.
      */
     public static final String MODEL_RECORD = "record";
+
+    public static final String PARAM_RECORD_ID = BdrsWebConstants.PARAM_RECORD_ID;
+    public static final String PARAM_SURVEY_ID = BdrsWebConstants.PARAM_SURVEY_ID;
 
     @Autowired
     private RecordDAO recordDAO;
@@ -187,8 +188,7 @@ public abstract class SingleSiteController extends AbstractController {
      */
     protected ModelAndView saveRecordHelper(
             MultipartHttpServletRequest request, HttpServletResponse response,
-            int surveyId, Double latitude, Double longitude, Date date,
-            String time_hour, String time_minute, String notes, String[] rowIds) throws ParseException, IOException {
+            int surveyId, String[] rowIds) throws ParseException, IOException {
 
         Map<String, String[]> paramMap = this.getModifiableParameterMap(request);
 
@@ -230,7 +230,7 @@ public abstract class SingleSiteController extends AbstractController {
         ModelAndView mv = RecordWebFormContext.getSubmitRedirect(request, results.get(0).getRecord());
 
         if (request.getParameter(RecordWebFormContext.PARAM_SUBMIT_AND_ADD_ANOTHER) != null) {
-            mv.addObject("surveyId", survey.getId());
+            mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
             getRequestContext().addMessage(MSG_CODE_SUCCESS_ADD_ANOTHER, new Object[] { results.size() });
         } else {
             switch (survey.getFormSubmitAction()) {
@@ -282,12 +282,12 @@ public abstract class SingleSiteController extends AbstractController {
         getRequestContext().setSessionAttribute("valueMap", valueMap);
         getRequestContext().setSessionAttribute(TrackerController.MV_WKT, request.getParameter(TrackerController.PARAM_WKT));
         
-        mv.addObject("surveyId", request.getParameter("surveyId"));
-        mv.addObject("censusMethodId", request.getParameter("censusMethodId"));
+        mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, request.getParameter(BdrsWebConstants.PARAM_SURVEY_ID));
+        mv.addObject(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, request.getParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID));
         
-        String recordId = request.getParameter(PARAM_RECORD_ID);
+        String recordId = request.getParameter(BdrsWebConstants.PARAM_RECORD_ID);
         if(recordId != null && !recordId.isEmpty()) {
-            mv.addObject(PARAM_RECORD_ID, Integer.parseInt(recordId));
+            mv.addObject(BdrsWebConstants.PARAM_RECORD_ID, Integer.parseInt(recordId));
         }
         getRequestContext().addMessage("form.validation");
         return mv;
@@ -361,10 +361,10 @@ public abstract class SingleSiteController extends AbstractController {
         Survey survey = surveyDAO.getSurvey(surveyId);
         Record record = null;
         CensusMethod censusMethod = null;
-        if (request.getParameter(PARAM_RECORD_ID) != null
-                && !request.getParameter(PARAM_RECORD_ID).isEmpty()) {
+        if (request.getParameter(BdrsWebConstants.PARAM_RECORD_ID) != null
+                && !request.getParameter(BdrsWebConstants.PARAM_RECORD_ID).isEmpty()) {
             try {
-                record = recordDAO.getRecord(Integer.parseInt(request.getParameter(PARAM_RECORD_ID)));
+                record = recordDAO.getRecord(Integer.parseInt(request.getParameter(BdrsWebConstants.PARAM_RECORD_ID)));
                 censusMethod = record.getCensusMethod();
             } catch (NumberFormatException nfe) {
                 record = new Record();
@@ -489,7 +489,7 @@ public abstract class SingleSiteController extends AbstractController {
                         }
                         // remove the attribute from the value map
                         valsToRemove.add(key);
-                    } else if (attrName.equals("recordId")) {
+                    } else if (attrName.equals(BdrsWebConstants.PARAM_RECORD_ID)) {
                         if (!StringUtils.nullOrEmpty(valueEntry.getValue())) {
                             record.setId(Integer.valueOf(valueEntry.getValue()));
                         }

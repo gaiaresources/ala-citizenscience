@@ -41,6 +41,7 @@ import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 public class LocationBaseControllerTest extends AbstractControllerTest {
     
@@ -89,7 +90,7 @@ public class LocationBaseControllerTest extends AbstractControllerTest {
         login("admin", "password", new String[] { Role.ADMIN });
         request.setMethod("GET");
         request.setRequestURI("/bdrs/admin/survey/locationListing.htm");
-        request.setParameter("surveyId", String.valueOf(simpleSurvey.getId()));
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, String.valueOf(simpleSurvey.getId()));
 
         ModelAndView mv = handle(request, response);
         ModelAndViewAssert.assertViewName(mv, "locationListing");
@@ -102,7 +103,7 @@ public class LocationBaseControllerTest extends AbstractControllerTest {
 
         request.setMethod("GET");
         request.setRequestURI("/bdrs/admin/survey/editLocation.htm");
-        request.setParameter("surveyId", String.valueOf(simpleSurvey.getId()));
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, String.valueOf(simpleSurvey.getId()));
         
         ModelAndView mv = handle(request, response);
         ModelAndViewAssert.assertViewName(mv, "surveyEditLocation");
@@ -119,7 +120,7 @@ public class LocationBaseControllerTest extends AbstractControllerTest {
 
         request.setMethod("POST");
         request.setRequestURI("/bdrs/admin/survey/editLocation.htm");
-        request.setParameter("surveyId", String.valueOf(simpleSurvey.getId()));
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, String.valueOf(simpleSurvey.getId()));
         
         Map<String, String> params = new HashMap<String, String>();
         params.put("survey", String.valueOf(simpleSurvey.getId()));
@@ -152,7 +153,7 @@ public class LocationBaseControllerTest extends AbstractControllerTest {
 
         request.setMethod("GET");
         request.setRequestURI("/bdrs/admin/survey/editLocation.htm");
-        request.setParameter("surveyId", String.valueOf(locAttSurvey.getId()));
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, String.valueOf(locAttSurvey.getId()));
         
         ModelAndView mv = handle(request, response);
         ModelAndViewAssert.assertViewName(mv, "surveyEditLocation");
@@ -181,7 +182,7 @@ public class LocationBaseControllerTest extends AbstractControllerTest {
 
         request.setMethod("POST");
         request.setRequestURI("/bdrs/admin/survey/editLocation.htm");
-        request.setParameter("surveyId", String.valueOf(locAttSurvey.getId()));
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, String.valueOf(locAttSurvey.getId()));
         
         Calendar cal = Calendar.getInstance();
         cal.clear();

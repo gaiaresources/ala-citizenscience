@@ -7,6 +7,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 
 import au.com.gaiaresources.bdrs.db.impl.SortOrder;
 import au.com.gaiaresources.bdrs.db.impl.SortingCriteria;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 /**
  * Provides an advanced filtering system for making record queries.
@@ -48,7 +49,7 @@ public class AdvancedRecordFilter extends AbstractRecordFilter {
         StringBuilder builder = new StringBuilder();
         if (getSurveyPk() > 0) {
             builder.append(" and record.survey.id = :surveyId");
-            paramMap.put("surveyId", getSurveyPk());
+            paramMap.put(BdrsWebConstants.PARAM_SURVEY_ID, getSurveyPk());
         }
         if (getGroupPk() > 0) {
             // Cascade classes and groups

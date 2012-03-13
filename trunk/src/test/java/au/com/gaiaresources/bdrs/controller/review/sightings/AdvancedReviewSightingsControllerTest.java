@@ -67,6 +67,7 @@ import au.com.gaiaresources.bdrs.service.facet.MonthFacet;
 import au.com.gaiaresources.bdrs.service.facet.SurveyFacet;
 import au.com.gaiaresources.bdrs.service.facet.TaxonGroupFacet;
 import au.com.gaiaresources.bdrs.service.facet.UserFacet;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.util.KMLUtils;
 
 /**
@@ -775,7 +776,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndViewAssert.assertViewName(mv, "advancedReview");
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
-        ModelAndViewAssert.assertModelAttributeAvailable(mv, "surveyId");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortBy");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortOrder");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "searchText");
@@ -807,7 +808,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndViewAssert.assertViewName(mv, "advancedReview");
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
-        ModelAndViewAssert.assertModelAttributeAvailable(mv, "surveyId");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortBy");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortOrder");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "searchText");
@@ -827,7 +828,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndViewAssert.assertViewName(mv, "advancedReview");
 
         ModelAndViewAssert.assertModelAttributeValue(mv, AdvancedReviewSightingsController.MODEL_TABLE_VIEW_SELECTED, true);
-        ModelAndViewAssert.assertModelAttributeAvailable(mv, "surveyId");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortBy");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortOrder");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "searchText");
@@ -888,7 +889,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndViewAssert.assertViewName(mv, "advancedReview");
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
-        ModelAndViewAssert.assertModelAttributeAvailable(mv, "surveyId");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortBy");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortOrder");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "searchText");
@@ -918,7 +919,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndViewAssert.assertViewName(mv, "advancedReview");
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
-        ModelAndViewAssert.assertModelAttributeAvailable(mv, "surveyId");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortBy");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortOrder");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "searchText");
@@ -1072,7 +1073,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndViewAssert.assertViewName(mv, "advancedReview");
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
-        ModelAndViewAssert.assertModelAttributeAvailable(mv, "surveyId");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortBy");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortOrder");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "searchText");
@@ -1110,7 +1111,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndViewAssert.assertViewName(mv, "advancedReview");
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
-        ModelAndViewAssert.assertModelAttributeAvailable(mv, "surveyId");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortBy");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortOrder");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "searchText");
@@ -1181,7 +1182,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndViewAssert.assertViewName(mv, "advancedReview");
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
-        ModelAndViewAssert.assertModelAttributeAvailable(mv, "surveyId");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortBy");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortOrder");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "searchText");
@@ -1223,7 +1224,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndViewAssert.assertViewName(mv, "advancedReview");
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
-        ModelAndViewAssert.assertModelAttributeAvailable(mv, "surveyId");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortBy");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortOrder");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "searchText");
@@ -1260,7 +1261,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndViewAssert.assertViewName(mv, "advancedReview");
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
-        ModelAndViewAssert.assertModelAttributeAvailable(mv, "surveyId");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortBy");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortOrder");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "searchText");
@@ -1301,7 +1302,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndViewAssert.assertViewName(mv, "advancedReview");
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
-        ModelAndViewAssert.assertModelAttributeAvailable(mv, "surveyId");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortBy");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortOrder");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "searchText");
@@ -1395,7 +1396,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndViewAssert.assertViewName(mv, "advancedReview");
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
-        ModelAndViewAssert.assertModelAttributeAvailable(mv, "surveyId");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortBy");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortOrder");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "searchText");
@@ -1436,7 +1437,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndViewAssert.assertViewName(mv, "advancedReview");
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
-        ModelAndViewAssert.assertModelAttributeAvailable(mv, "surveyId");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortBy");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortOrder");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "searchText");
@@ -1465,7 +1466,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndViewAssert.assertViewName(mv, "advancedReview");
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
-        ModelAndViewAssert.assertModelAttributeAvailable(mv, "surveyId");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortBy");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortOrder");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "searchText");

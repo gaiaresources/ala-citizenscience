@@ -30,6 +30,7 @@ import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.db.DeleteCascadeHandler;
 import au.com.gaiaresources.bdrs.service.db.DeletionService;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 import com.vividsolutions.jts.geom.Point;
 
@@ -254,7 +255,7 @@ public class LocationDAOImpl extends AbstractDAOImpl implements LocationDAO {
             builder.append( " and (s.public = true or :user in (select u from s.users u))");
         }
         Map<String, Object> argMap = new HashMap<String, Object>();
-        argMap.put("surveyId", surveyId);
+        argMap.put(BdrsWebConstants.PARAM_SURVEY_ID, surveyId);
         if (!unrestricted) {
             argMap.put("user", user);
         }

@@ -46,6 +46,7 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 /**
  * Tests all aspects of the <code>SingleSiteMultiTaxaController</code>.
@@ -151,7 +152,7 @@ public class SingleSiteMultiTaxaControllerTest extends RecordFormTest {
 
         request.setMethod("GET");
         request.setRequestURI(URI);
-        request.setParameter("surveyId", survey.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
 
         ModelAndView mv = handle(request, response);
         ModelAndViewAssert.assertViewName(mv, viewName);
@@ -208,7 +209,7 @@ public class SingleSiteMultiTaxaControllerTest extends RecordFormTest {
         request.setRequestURI(URI);
 
         Map<String, String> param = new HashMap<String, String>();
-        param.put("surveyId", survey.getId().toString());
+        param.put(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         // Try 3 requests
         for (int i = 0; i < 3; i++) {
             param.put("sightingIndex", Integer.valueOf(i).toString());
@@ -301,7 +302,7 @@ public class SingleSiteMultiTaxaControllerTest extends RecordFormTest {
         Date sightingDate = cal.getTime();
 
         Map<String, String> params = new HashMap<String, String>();
-        params.put("surveyId", survey.getId().toString());
+        params.put(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         params.put("latitude", "-36.879620605027");
         params.put("longitude", "126.650390625");
         params.put("date", dateFormat.format(sightingDate));

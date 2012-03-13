@@ -47,6 +47,7 @@ import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 /**
  * The Survey Service provides a web API for Survey based services.
@@ -76,7 +77,7 @@ public class SurveyService extends AbstractController {
 
     static final String AUTHORISATION_PARAMETER = "ident";
     static final String GROUP_ID_PARAMETER = "groupId";
-    static final String SURVEY_ID_PARAMETER = "surveyId";
+    static final String SURVEY_ID_PARAMETER = BdrsWebConstants.PARAM_SURVEY_ID;
     
     /**
      * Returns a JSON encoded representation of the survey with the specified 

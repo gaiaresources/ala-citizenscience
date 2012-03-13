@@ -42,11 +42,12 @@ public class HandlerExceptionResolver implements org.springframework.web.servlet
         // feel free to add an error code (or a text message but this is not recommended)
         // and it shall be added into the RequestContext's message list for display to the user.
         if(ex instanceof AccessDeniedException) {
-
             if(request.getRemoteUser() == null) {
                 // Go to the login page
                 mv = new ModelAndView(new RedirectView("/home.htm", true));
                 mv.addObject("signin", true);
+                // save the URL requested to the session so you will be redirected after login
+                request.getSession().setAttribute(BdrsWebConstants.SAVED_REQUEST_KEY, getRequestURL(request));
             } else {
                 // Go to the home page
                 mv = new ModelAndView(new RedirectView("/authenticated/redirect.htm", true));
@@ -103,5 +104,43 @@ public class HandlerExceptionResolver implements org.springframework.web.servlet
             mv = new ModelAndView(new RedirectView("/error/500.htm", true));
         }
         return mv;
+    }
+
+    /**
+     * Creates a String representation of an HttpRequest with parameters.
+     * @param request the request to construct the url from
+     * @return a String representation of an HttpRequest, including parameters
+     */
+    private String getRequestURL(HttpServletRequest request) {
+        // reconstruct the url with parameters
+        StringBuilder builder = new StringBuilder(request.getRequestURL());
+        Map map = request.getParameterMap();
+        if (!map.isEmpty()) {
+            builder.append("?");
+        }
+        for (Object key : map.keySet()) {
+            Object value = map.get(key);
+            if (value instanceof String[]) {
+                String[] valueList = (String[]) value;
+                for (String string : valueList) {
+                    builder.append(key);
+                    builder.append("=");
+                    builder.append(string);
+                    builder.append("&");
+                }
+            } else if (value instanceof String) {
+                builder.append(key);
+                builder.append("=");
+                builder.append(value.toString());
+                builder.append("&");
+            } else {
+                throw new IllegalArgumentException();
+            }
+        }
+        if (builder.toString().endsWith("&")) {
+            // remove the trailing &
+            builder.setLength(builder.length()-1);
+        }
+        return builder.toString();
     }
 }

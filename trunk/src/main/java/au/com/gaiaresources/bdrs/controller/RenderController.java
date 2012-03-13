@@ -25,6 +25,7 @@ import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 @Controller
 public class RenderController extends AbstractController {
@@ -39,8 +40,8 @@ public class RenderController extends AbstractController {
     private Logger log = Logger.getLogger(this.getClass());
 
     public static final String SURVEY_RENDER_REDIRECT_URL = "/bdrs/user/surveyRenderRedirect.htm";
-    public static final String PARAM_RECORD_ID = "recordId";
-    public static final String PARAM_SURVEY_ID = "surveyId";
+    public static final String PARAM_RECORD_ID = BdrsWebConstants.PARAM_RECORD_ID;
+    public static final String PARAM_SURVEY_ID = BdrsWebConstants.PARAM_SURVEY_ID;
 
     /**
      * Redirects the request to the appropriate survey renderer depending upon

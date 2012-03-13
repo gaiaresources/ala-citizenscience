@@ -23,6 +23,7 @@ import au.com.gaiaresources.bdrs.service.facet.FacetOption;
 import au.com.gaiaresources.bdrs.service.facet.FacetService;
 import au.com.gaiaresources.bdrs.service.facet.SurveyFacet;
 import au.com.gaiaresources.bdrs.service.report.ReportService;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.servlet.RequestContext;
 import au.com.gaiaresources.bdrs.util.KMLUtils;
 import au.com.gaiaresources.bdrs.util.StringUtils;
@@ -68,7 +69,7 @@ public class AdvancedReviewSightingsController extends SightingsController {
     public static final String SEARCH_QUERY_PARAM_NAME = "searchText";
     public static final String RESULTS_PER_PAGE_QUERY_PARAM_NAME = "resultsPerPage";
     public static final String PAGE_NUMBER_QUERY_PARAM_NAME = "pageNumber";
-    public static final String LATEST_RECORD_ID = "recordId";
+    public static final String LATEST_RECORD_ID = BdrsWebConstants.PARAM_RECORD_ID;
     
     public static final String DEFAULT_RESULTS_PER_PAGE = "20";
     public static final String DEFAULT_PAGE_NUMBER = "1";
@@ -137,7 +138,7 @@ public class AdvancedReviewSightingsController extends SightingsController {
         String sortOrder = request.getParameter(SORT_ORDER_QUERY_PARAM_NAME);
 
         mv.addObject("facetList", facetList);
-        mv.addObject("surveyId", request.getParameter(SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME));
+        mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, request.getParameter(SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME));
         
         // set sortBy or use default if none requested.
         mv.addObject("sortBy", sortBy != null ? sortBy : "record.when");

@@ -22,6 +22,7 @@ import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.content.ContentService;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 /**
  * Calling it UserMessage vs UserEmail or anything like that because eventually this will not default
@@ -37,14 +38,14 @@ public class UserMessageController extends AbstractController {
     public static final String CONTACT_RECORD_OWNER_URL = "/bdrs/user/contactRecordOwner.htm";
     
     public static final String VIEW_MESSAGE_USER = "messageUser";
-    public static final String PARAM_RECORD_ID = "recordId";
+    public static final String PARAM_RECORD_ID = BdrsWebConstants.PARAM_RECORD_ID;
     public static final String PARAM_REPLY_EMAIL = "replyEmail";
     public static final String PARAM_TEXT = "text";
     public static final String PARAM_SEND_TO_SELF = "sendToSelf";
     
     public static final String MV_TEXT = "text";
     public static final String MV_REPLY_EMAIL = "replyEmail";
-    public static final String MV_RECORD_ID = "recordId";
+    public static final String MV_RECORD_ID = BdrsWebConstants.PARAM_RECORD_ID;
     
     @Autowired
     private RecordDAO recordDAO;

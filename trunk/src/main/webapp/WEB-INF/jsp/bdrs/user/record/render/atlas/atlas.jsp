@@ -25,7 +25,7 @@
     
     
     <c:if test="${ not preview }">
-    <form method="POST" action="${pageContext.request.contextPath}/bdrs/user/tracker.htm" enctype="multipart/form-data">
+    <form method="POST" action="${pageContext.request.contextPath}/bdrs/user/atlas.htm" enctype="multipart/form-data">
         <input type="hidden" name="surveyId" value="${survey.id}"/>
         <input type="hidden" id="redirecturl" name="redirecturl" value="/review/sightings/advancedReview.htm"/>
         <c:if test="${record != null}">
