@@ -1,5 +1,13 @@
 <h1>Select a Taxonomic Group</h1>
 
+<div class="buttonpanel textright searchButtonContainer">
+	<form action="${pageContext.request.contextPath}/fieldguide/taxa.htm" method="GET" onsubmit="return validateQuery();">
+		<label for="search_in_groups">Search within groups:</label>
+		<input id="search_in_groups" name="search_in_groups" type="text"/>
+	    <input id="search_criteria" class="form_action" type="submit" value="Search">
+    </form>
+</div>
+
 #if(${taxonGroups.isEmpty()})
 <p>
 Your portal currently has no species in the Field Guide. Your administrator can change this and add in species manually or import them from the <a href="http://www.ala.org.au/">Atlas of Living Australia</a>.
@@ -25,3 +33,18 @@ Click on the group name or thumbnail below to get a list of species for that gro
     </div>
 #end
 <div class="clear"></div>
+
+<script type="text/javascript">
+	/**
+	 * Blocks the search in groups form from submitting when it contains an empty string only.
+	 */
+	function validateQuery() {
+		var searchInGroupsVal = jQuery('#search_in_groups').val();
+		if (searchInGroupsVal === ""){
+			//cancel submit
+			return false;
+		} else {
+			return true;
+		}
+	}
+</script>

@@ -1,4 +1,15 @@
-<h1>${taxonGroup.name}</h1>
+<h1 id="searchResultHeader">
+	${searchResultHeader}
+</h1>
+
+<div class="buttonpanel textright searchButtonContainer">
+	<form action="" onsubmit="return bdrs.fieldGuide.getTaxa();">
+		<label for="search_in_result">Search within result:</label>
+		<input name="search_in_result" id="search_in_result" type="text"/>
+	    <input id="search_in_result_button" class="form_action" type="button" value="Search">
+    </form>
+</div>
+
 <p>
 To view more detailed information for a species, please click on either the name or thumbnail of the species you want to view.
 </p>
@@ -10,33 +21,58 @@ To record a sighting of a species click on the <i><b>Record Now</b></i> button i
 <div id="pager2"></div>
 
 <script type="text/javascript">
-
+    
+    if (window.bdrs === undefined) {
+    	window.bdrs = {};
+	}
+	
+	if (window.bdrs.fieldGuide === undefined) {
+		window.bdrs.fieldGuide = {};
+	}
+	
+	// Sets the jqGrid parameters and triggers a reload. Then updates the page header.
+    bdrs.fieldGuide.reloadTaxaGrid = function(params){
+    			jQuery("#taxaList").jqGrid().setGridParam({
+		            url:'${pageContext.request.contextPath}/fieldguide/listTaxa.htm' + params,
+		            page:1}).trigger("reloadGrid");
+		        jQuery("#searchResultHeader").html("Search results for \"" + jQuery('#search_in_result').val() + "\"");
+				
+    };
+    
     jQuery(function() {
+        // Initialize the grid
         var actionLinkFormatter = function(cellvalue, options, rowObject) {
-            return '<form method="get" action="${pageContext.request.contextPath}/bdrs/user/taxonSurveyRenderRedirect.htm">' + 
-                         '<div class="buttonpanel">' +
-                           '<input type="hidden" name="speciesId" value="' + rowObject.id +'">' + 
-                           '<input type="hidden" name="redirectURL" value="${pageContext.request.contextPath}/fieldguide/taxon.htm?id=' + rowObject.id +'">' + 
-                           '<input class="button form_action" type="submit" value="Record Now">' + 
-                         '</div>' + 
-                       '</form>';
-        };
-        
-        var thumbnailFormatter = function(cellvalue, options, rowObject) {
-            if (cellvalue != undefined && cellvalue != '') {
-                return '<a href="${pageContext.request.contextPath}/fieldguide/taxon.htm?id=' + rowObject.id +'">' + 
-                          '<img class="max_size_img" src="${pageContext.request.contextPath}/files/downloadByUUID.htm?uuid=' + cellvalue + '"/>' +
-                       '</a>';
-            }
-            return '';
-        };
-        
-        var nameLinkFormatter = function(cellvalue, options, rowObject) {
-            return '<a href="${pageContext.request.contextPath}/fieldguide/taxon.htm?id=' + rowObject.id +'">' + cellvalue + '</a>';
-        };
-        
-        jQuery("#taxaList").jqGrid({
-                url: '${pageContext.request.contextPath}/fieldguide/listTaxa.htm?groupId=${taxonGroup.id}',
+	            return '<form method="get" action="${pageContext.request.contextPath}/bdrs/user/taxonSurveyRenderRedirect.htm">' + 
+	                         '<div class="buttonpanel">' +
+	                           '<input type="hidden" name="speciesId" value="' + rowObject.id +'">' + 
+	                           '<input type="hidden" name="redirectURL" value="${pageContext.request.contextPath}/fieldguide/taxon.htm?id=' + rowObject.id +'">' + 
+	                           '<input class="button form_action" type="submit" value="Record Now">' + 
+	                         '</div>' + 
+	                       '</form>';
+	        	};
+	        	
+	        	var thumbnailFormatter = function(cellvalue, options, rowObject) {
+		            if (cellvalue != undefined && cellvalue != '') {
+		                return '<a href="${pageContext.request.contextPath}/fieldguide/taxon.htm?id=' + rowObject.id +'">' + 
+		                          '<img class="max_size_img" src="${pageContext.request.contextPath}/files/downloadByUUID.htm?uuid=' + cellvalue + '"/>' +
+		                       '</a>';
+		            }
+		            return '';
+	        	};
+    			
+    			var nameLinkFormatter = function(cellvalue, options, rowObject) {
+            		return '<a href="${pageContext.request.contextPath}/fieldguide/taxon.htm?id=' + rowObject.id +'">' + cellvalue + '</a>';
+        		};
+    
+    			var initParams = "";
+    			 #if( ${taxonGroup.id} )
+	    			initParams = "?groupId=${taxonGroup.id}";
+				#else
+					initParams = "?search_in_groups=${groupsQuery}";
+				#end
+				
+    	        jQuery("#taxaList").jqGrid({
+                url: '${pageContext.request.contextPath}/fieldguide/listTaxa.htm' + initParams,
                 datatype: "json",
                 mtype: "GET",
                 colNames:['Scientific Name','Common Name', '', ''],
@@ -57,6 +93,22 @@ To record a sighting of a species click on the <i><b>Record Now</b></i> button i
                 width: '100%',
                 height: "100%"
         });
+
+        // Ignores submitting 'search in result' when string is empty otherwise triggers the bdrs.fieldGuide.reloadTaxaGrid function.
+    	bdrs.fieldGuide.getTaxa = function(){
+	    	var searchResultsQuery = jQuery('#search_in_result').val();
+    		#if( ${taxonGroup.id} )
+    		bdrs.fieldGuide.reloadTaxaGrid("?groupId=${taxonGroup.id}&search_in_result=" + searchResultsQuery);
+			#else
+			bdrs.fieldGuide.reloadTaxaGrid("?search_in_groups=${groupsQuery}&search_in_result=" + searchResultsQuery);
+			#end
+			return false;
+    	}
+    	
+    	jQuery('#search_in_result_button').bind('click', function(){
+    		bdrs.fieldGuide.getTaxa();
+    	});
+    	
         jQuery(".ui-jqgrid-bdiv").css('overflow-x', 'hidden');
     });
 </script>

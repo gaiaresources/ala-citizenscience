@@ -28,20 +28,35 @@ import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 
+/**
+ * The <code>BDRSFieldGuide</code> controller is a taxongroup and taxa add form renderer
+ * that allows multiple sightings of differing taxa to be created for a single
+ * location.
+ */
+
 @Controller
 public class BDRSFieldGuideController  extends AbstractController {
+	
     private static final String TAXA_LISTING_TABLE_ID = "fieldGuideTaxaListingTable";
     private static final int TAXA_LISTING_PAGE_SIZE = 50;
+    private static final String  FIELDGUIDE_GROUPS_URL= "/fieldguide/groups.htm";
+    public static final String FIELGUIDE_LIST_TAXA_URL = "/fieldguide/listTaxa.htm";
+    public static final String FIELDGUIDE_TAXA_URL = "/fieldguide/taxa.htm";
     
     @SuppressWarnings("unused")
     private Logger log = Logger.getLogger(getClass());
-    
     @Autowired
     private TaxaDAO taxaDAO;
-    
     private ParamEncoder taxonListingParamEncoder = new ParamEncoder(TAXA_LISTING_TABLE_ID);
     
-    @RequestMapping(value = "/fieldguide/groups.htm", method = RequestMethod.GET)
+    /**
+     * Displays a gridview of taxongroups.
+     * 
+     * @param request the browser request
+     * @param response the server response
+     * @return
+     */
+    @RequestMapping(value = FIELDGUIDE_GROUPS_URL, method = RequestMethod.GET)
     public ModelAndView listGroups(  HttpServletRequest request,
                                 HttpServletResponse response) {
         
@@ -50,20 +65,33 @@ public class BDRSFieldGuideController  extends AbstractController {
         return mv;
     }
     
-    @RequestMapping(value = "/fieldguide/taxa.htm", method = RequestMethod.GET)
+    /**
+     * Displays a listview of taxa found by using the query parameter or the taxongroup id.
+     * 
+     * @param request the browser request
+     * @param response the server response
+     * @param searchInGroups the query parameter
+     * @param groupId the taxongroup id
+     * @return
+     * @throws NullPointerException
+     * @throws ParseException
+     */
+    @RequestMapping(value = FIELDGUIDE_TAXA_URL, method = RequestMethod.GET)
     public ModelAndView listTaxa(  HttpServletRequest request,
                                 HttpServletResponse response,
-                                @RequestParam(value="groupId", required=true) int groupPk) throws NullPointerException, ParseException {
+                                @RequestParam(value="search_in_groups",  required=false) String searchInGroups,
+                                @RequestParam(value="groupId", required=false) Integer groupPk) throws NullPointerException, ParseException {
         
-        TaxonGroup taxonGroup = taxaDAO.getTaxonGroup(groupPk);
-        String pnArg = request.getParameter(getTaxonPageNumberParamName());
-
+    	ModelAndView mv = new ModelAndView("fieldGuideTaxaListing");
+    	
+    	//Creates a paginationFilter
+    	String pnArg = request.getParameter(getTaxonPageNumberParamName());
         int pageNum = pnArg != null && !pnArg.isEmpty() ? Integer.parseInt(pnArg) : 1;
         pageNum = pageNum < 1 ? 1 : pageNum;
         int start = (pageNum - 1) * TAXA_LISTING_PAGE_SIZE;
-        
         PaginationFilter filter = new PaginationFilter(start, TAXA_LISTING_PAGE_SIZE);
         
+        //Adds sorting criteria to filter
         if (StringUtils.hasLength(request.getParameter(getTaxonSortParamName()))
                 && StringUtils.hasLength(request.getParameter(getTaxonOrderParamName()))) {
             
@@ -73,23 +101,42 @@ public class BDRSFieldGuideController  extends AbstractController {
             filter.addSortingCriteria(sortArg, SortOrder.fromString(sortOrder));
         }
         
-        ModelAndView mv = new ModelAndView("fieldGuideTaxaListing");
-        mv.addObject("taxonGroup", taxonGroup);
-        mv.addObject("taxaPaginator", taxaDAO.getIndicatorSpecies(taxonGroup, filter));
+        if(groupPk != null) {
+        	TaxonGroup taxonGroup = taxaDAO.getTaxonGroup(groupPk);
+        	mv.addObject("taxonGroup", taxonGroup);
+        	mv.addObject("searchResultHeader", taxonGroup.getName());
+        	mv.addObject("taxaPaginator", taxaDAO.getIndicatorSpecies(taxonGroup, filter));
+        } else if(searchInGroups != null && StringUtils.hasLength(searchInGroups)) {
+			mv.addObject("groupsQuery", searchInGroups);
+    		mv.addObject("searchResultHeader", "Search results for \"" + searchInGroups + "\"");
+    		mv.addObject("taxaPaginator", taxaDAO.getIndicatorSpeciesByQueryString(null, searchInGroups, null, filter));
+    	}
+
         return mv;
     }
     
-    @RequestMapping(value = "/fieldguide/listTaxa.htm", method = RequestMethod.GET)
+    /**
+     * Returns a list of taxa based upon the query parameters. 
+     * This function is typically invoked by an AJAX request.
+     * 
+     * @param request the browser request
+     * @param response the server response
+     * @param searchInGroups the query parameter
+     * @param searchInResult the 'AND' query parameter
+     * @param groupId the taxongroup id
+     * @throws Exception
+     */
+    @RequestMapping(value = FIELGUIDE_LIST_TAXA_URL, method = RequestMethod.GET)
     public void asyncListTaxa(HttpServletRequest request,
                                 HttpServletResponse response,
-                                @RequestParam(value="groupId", required=true) int groupPk) throws Exception {
-
-        TaxonGroup taxonGroup = taxaDAO.getTaxonGroup(groupPk);
+                                @RequestParam(value="search_in_groups",  required=false) String searchInGroups,
+                                @RequestParam(value="search_in_result", required=false) String searchInResult,
+                                @RequestParam(value="groupId", required=false) Integer groupId) throws Exception {
+		
+    	PagedQueryResult<IndicatorSpecies> queryResult = new PagedQueryResult<IndicatorSpecies>();
         JqGridDataHelper jqGridHelper = new JqGridDataHelper(request);       
         PaginationFilter filter = jqGridHelper.createFilter(request);
-        
-        PagedQueryResult<IndicatorSpecies> queryResult = taxaDAO.getIndicatorSpecies(taxonGroup, filter);
-        
+    	queryResult = taxaDAO.getIndicatorSpeciesByQueryString(groupId, searchInGroups, searchInResult, filter);
         JqGridDataBuilder builder = new JqGridDataBuilder(jqGridHelper.getMaxPerPage(), queryResult.getCount(), jqGridHelper.getRequestedPage());
 
         if (queryResult.getCount() > 0) {
@@ -102,10 +149,17 @@ public class BDRSFieldGuideController  extends AbstractController {
                 builder.addRow(row);
             }
         }
+        
         response.setContentType("application/json");
         response.getWriter().write(builder.toJson());
     }
     
+    /**
+     * Returns the uuid of the first thumbnail found in the profile of the species or an empty string when none is found.
+     * 
+     * @param species the indicatorspecies
+     * @return
+     */
     private String getSpeciesThumbnail(IndicatorSpecies species) {
         SpeciesProfile imgProfile = null;
         boolean isThumbnail = false;
