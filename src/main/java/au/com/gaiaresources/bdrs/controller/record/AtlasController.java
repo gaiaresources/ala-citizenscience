@@ -1,5 +1,7 @@
 package au.com.gaiaresources.bdrs.controller.record;
 
+import java.io.IOException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
@@ -46,6 +49,7 @@ import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.web.AtlasService;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import edu.emory.mathcs.backport.java.util.Collections;
 
 /**
@@ -62,8 +66,8 @@ public class AtlasController extends AbstractController {
     
     public static final String ATLAS_FORM_VIEW_NAME = "atlas";
     
-    public static final String PARAM_SURVEY_ID = "surveyId";
-    public static final String PARAM_RECORD_ID = "recordId";
+    public static final String PARAM_SURVEY_ID = BdrsWebConstants.PARAM_SURVEY_ID;
+    public static final String PARAM_RECORD_ID = BdrsWebConstants.PARAM_RECORD_ID;
     public static final String PARAM_TAXON_SEARCH = "taxonSearch";
 
     @Autowired
@@ -80,7 +84,8 @@ public class AtlasController extends AbstractController {
     private MetadataDAO metadataDAO;
     @Autowired
     private RecordService recordService;
-
+    @Autowired
+    private TrackerController tc;
     private FormFieldFactory formFieldFactory = new FormFieldFactory();
 
     /**
@@ -99,9 +104,9 @@ public class AtlasController extends AbstractController {
     public ModelAndView addRecord(
             HttpServletRequest request,
             HttpServletResponse response,
-            @RequestParam(value = "surveyId", required = true) int surveyId,
+            @RequestParam(value = BdrsWebConstants.PARAM_SURVEY_ID, required = true) int surveyId,
             @RequestParam(value = PARAM_TAXON_SEARCH, required = false) String taxonSearch,
-            @RequestParam(value = "recordId", required = false, defaultValue = "0") int recordId,
+            @RequestParam(value = BdrsWebConstants.PARAM_RECORD_ID, required = false, defaultValue = "0") int recordId,
             @RequestParam(value = "guid", required = false) String guid) {
         
         Survey survey = surveyDAO.getSurvey(surveyId);
@@ -152,7 +157,7 @@ public class AtlasController extends AbstractController {
             // If we do not have one, fall back to the tracker form.
             mv = new ModelAndView(new RedirectView("tracker.htm"));
             mv.addAllObjects(request.getParameterMap());
-            mv.addObject("surveyId", surveyId);
+            mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, surveyId);
             return mv;
         } else {
             // Add all attribute form fields
@@ -240,6 +245,19 @@ public class AtlasController extends AbstractController {
             mv.addObject(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT, webFormContext);
         }
         
+        return mv;
+    }
+    
+    @RequestMapping(value = ATLAS_URL, method = RequestMethod.POST)
+    public ModelAndView saveRecord(
+            MultipartHttpServletRequest request,
+            HttpServletResponse response,
+            @RequestParam(value = BdrsWebConstants.PARAM_SURVEY_ID, required = true) int surveyId,
+            @RequestParam(value = PARAM_TAXON_SEARCH, required = false) String taxonSearch,
+            @RequestParam(value = BdrsWebConstants.PARAM_RECORD_ID, required = false, defaultValue = "0") int recordId,
+            @RequestParam(value = "guid", required = false) String guid) throws ParseException, IOException {
+        // call the tracker form save
+        ModelAndView mv = tc.saveRecord(request, response, surveyId, 0, null);
         return mv;
     }
 }

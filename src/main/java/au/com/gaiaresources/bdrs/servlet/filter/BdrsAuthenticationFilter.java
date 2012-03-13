@@ -7,12 +7,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import au.com.gaiaresources.bdrs.controller.HomePageController;
+import au.com.gaiaresources.bdrs.servlet.BdrsSavedRequestAwareAuthenticationSuccessHandler;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 /**
  * Overrides the behaviour of the default Spring authentication filter to work nicely
@@ -29,12 +29,12 @@ public class BdrsAuthenticationFilter extends
     private static final String RESTFUL_PORTAL_PATTERN_STR = "(" + PortalSelectionFilter.BASE_RESTFUL_PORTAL_PATTERN + ")?";
     
     private Pattern authenticationPattern;
+    private BdrsSavedRequestAwareAuthenticationSuccessHandler successHandler;
     
     public BdrsAuthenticationFilter() {
         super();
         // need to override default behaviour which is redirecting to '/'
-        SavedRequestAwareAuthenticationSuccessHandler successHandler = new SavedRequestAwareAuthenticationSuccessHandler();
-        successHandler.setDefaultTargetUrl(HomePageController.AUTHENTICATED_REDIRECT_URL);
+        successHandler = new BdrsSavedRequestAwareAuthenticationSuccessHandler();
         SimpleUrlAuthenticationFailureHandler failureHandler = new SimpleUrlAuthenticationFailureHandler(HomePageController.LOGIN_FAILED_URL);
         setAuthenticationSuccessHandler(successHandler);
         setAuthenticationFailureHandler(failureHandler);
@@ -64,6 +64,14 @@ public class BdrsAuthenticationFilter extends
             uri = uri.substring(0, pathParamIndex);
         }
         Matcher m = authenticationPattern.matcher(uri);
+        
+        // if a request URL has been stored in the session, use that one, otherwise, use the default
+        Object savedURL = request.getSession().getAttribute(BdrsWebConstants.SAVED_REQUEST_KEY);
+        if (savedURL != null) {
+            successHandler.setDefaultTargetUrl(savedURL.toString());
+        } else {
+            successHandler.setDefaultTargetUrl(HomePageController.AUTHENTICATED_REDIRECT_URL);
+        }
         return m.find();
     }
 

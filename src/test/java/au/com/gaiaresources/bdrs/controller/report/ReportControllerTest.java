@@ -26,6 +26,7 @@ import au.com.gaiaresources.bdrs.model.report.Report;
 import au.com.gaiaresources.bdrs.model.report.ReportDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 /**
  * Tests all aspects of the <code>ReportController</code>.
@@ -367,7 +368,7 @@ public class ReportControllerTest extends AbstractGridControllerTest {
         for(Survey s : surveyDAO.getActiveSurveysForUser(currentUser)) {
             request.setMethod("GET");
             request.setRequestURI(renderURL);
-            request.setParameter("surveyId", String.valueOf(s.getId()));
+            request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, String.valueOf(s.getId()));
             handle(request, response);
             Assert.assertTrue(getRequestContext().getMessageContents().isEmpty());
         }
@@ -376,7 +377,7 @@ public class ReportControllerTest extends AbstractGridControllerTest {
         request.setMethod("GET");
         request.setRequestURI(renderURL);
         for(Survey s : surveyDAO.getActiveSurveysForUser(currentUser)) {
-            request.addParameter("surveyId", String.valueOf(s.getId()));
+            request.addParameter(BdrsWebConstants.PARAM_SURVEY_ID, String.valueOf(s.getId()));
         }
         handle(request, response);
         Assert.assertTrue(getRequestContext().getMessageContents().isEmpty());
@@ -422,7 +423,7 @@ public class ReportControllerTest extends AbstractGridControllerTest {
         for(Survey s : surveyDAO.getActiveSurveysForUser(currentUser)) {
             request.setMethod("GET");
             request.setRequestURI(renderURL);
-            request.setParameter("surveyId", String.valueOf(s.getId()));
+            request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, String.valueOf(s.getId()));
             handle(request, response);
             Assert.assertTrue(getRequestContext().getMessageContents().isEmpty());
         }
@@ -431,7 +432,7 @@ public class ReportControllerTest extends AbstractGridControllerTest {
         request.setMethod("GET");
         request.setRequestURI(renderURL);
         for(Survey s : surveyDAO.getActiveSurveysForUser(currentUser)) {
-            request.addParameter("surveyId", String.valueOf(s.getId()));
+            request.addParameter(BdrsWebConstants.PARAM_SURVEY_ID, String.valueOf(s.getId()));
         }
         handle(request, response);
         Assert.assertTrue(getRequestContext().getMessageContents().isEmpty());

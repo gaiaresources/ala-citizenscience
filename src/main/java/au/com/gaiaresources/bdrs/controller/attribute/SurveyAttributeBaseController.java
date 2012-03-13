@@ -51,6 +51,7 @@ import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.content.ContentService;
 import au.com.gaiaresources.bdrs.service.property.PropertyService;
 import au.com.gaiaresources.bdrs.service.threshold.ThresholdService;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 @RolesAllowed( {Role.POWERUSER,Role.SUPERVISOR,Role.ADMIN} )
 @Controller
@@ -103,7 +104,7 @@ public class SurveyAttributeBaseController extends AbstractController {
     @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR})
     @RequestMapping(value = "/bdrs/admin/survey/editAttributes.htm", method = RequestMethod.GET)
     public ModelAndView editSurveyAttributes(HttpServletRequest request, HttpServletResponse response) {
-        Survey survey = getSurvey(request.getParameter("surveyId"));
+        Survey survey = getSurvey(request.getParameter(BdrsWebConstants.PARAM_SURVEY_ID));
         
         if (survey == null) {
             return SurveyBaseController.nullSurveyRedirect(getRequestContext());
@@ -176,7 +177,7 @@ public class SurveyAttributeBaseController extends AbstractController {
             @RequestParam(value = PARAM_MODERATION_PERFORMED_EMAIL, required=false) String modPerformedEmailKey,
             @RequestParam(value = PARAM_MODERATION_REQUIRED_EMAIL, required=false) String modRequiredEmailKey) {
         
-        Survey survey = getSurvey(request.getParameter("surveyId"));
+        Survey survey = getSurvey(request.getParameter(BdrsWebConstants.PARAM_SURVEY_ID));
 
         if (survey == null) {
             return SurveyBaseController.nullSurveyRedirect(getRequestContext());
@@ -228,7 +229,7 @@ public class SurveyAttributeBaseController extends AbstractController {
                 getRequestContext().addMessage("bdrs.survey.attributes.parsingError", new Object[]{error.getKey(), error.getValue()});
             }
             mv = new ModelAndView(new RedirectView("/bdrs/admin/survey/editAttributes.htm", true));
-            mv.addObject("surveyId", survey.getId());
+            mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
             mv.addAllObjects(getFailedAttributeObjects(failAttributeList));
             return mv;
         }
@@ -237,11 +238,11 @@ public class SurveyAttributeBaseController extends AbstractController {
         
         if(request.getParameter("saveAndContinue") != null) {
             mv = new ModelAndView(new RedirectView("/bdrs/admin/survey/locationListing.htm", true));
-            mv.addObject("surveyId", survey.getId());
+            mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
         }
         else if(request.getParameter("saveAndPreview") != null) {
             mv = new ModelAndView(new RedirectView(RenderController.SURVEY_RENDER_REDIRECT_URL, true));
-            mv.addObject("surveyId", survey.getId());
+            mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
             mv.addObject("preview", "preview");
         }
         else {

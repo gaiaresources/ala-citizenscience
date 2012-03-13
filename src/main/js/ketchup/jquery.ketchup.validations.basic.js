@@ -197,10 +197,14 @@ $.fn.ketchup.validation('match', function(element, value, match) {
 
 
 $.fn.ketchup.validation('date', function(element, value) {
-  if(!/Invalid|NaN/.test(new Date(value))) return true;
+  if(!/Invalid Date|NaN/.test(new Date(value)) && /^\d{1,2} \w{3} \d{2,4}$/.test(value)) return true;
   else return false;
 });
 
+$.fn.ketchup.validation('dateOrBlank', function(element, value) {
+  if((!/Invalid Date|NaN/.test(new Date(value)) && /^\d{1,2} \w{3} \d{2,4}$/.test(value)) || value.length == 0) return true;
+  else return false;
+});
 
 function watchSelect(type) {
   $('input['+$.fn.ketchup.defaults.validationAttribute+'*="'+type+'"]').each(function() {

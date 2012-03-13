@@ -22,13 +22,14 @@ import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 @Controller
 public class RecordDeletionController extends AbstractController {
 
     private Logger log = Logger.getLogger(getClass());
     
-    public static final String PARAM_RECORD_ID = "recordId";
+    public static final String PARAM_RECORD_ID = BdrsWebConstants.PARAM_RECORD_ID;
     public static final String RECORD_DELETE_URL = "/bdrs/user/deleteRecord.htm";
     
     public static final String MSG_CODE_RECORD_DELETE_SUCCESS = "bdrs.record.delete.success";

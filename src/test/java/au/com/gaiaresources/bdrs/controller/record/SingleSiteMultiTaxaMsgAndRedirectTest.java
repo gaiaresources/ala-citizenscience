@@ -30,6 +30,7 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 public class SingleSiteMultiTaxaMsgAndRedirectTest extends
         AbstractControllerTest {
@@ -97,7 +98,7 @@ public class SingleSiteMultiTaxaMsgAndRedirectTest extends
         Date sightingDate = cal.getTime();
 
         Map<String, String> params = new HashMap<String, String>();
-        params.put("surveyId", survey.getId().toString());
+        params.put(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         params.put("latitude", "-36.879620605027");
         params.put("longitude", "126.650390625");
         params.put("date", dateFormat.format(sightingDate));

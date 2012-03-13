@@ -23,6 +23,7 @@ import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 /**
  * The <code>SingleSiteAllTaxa</code> controller is a record add form renderer
@@ -56,7 +57,7 @@ public class SingleSiteAllTaxaController extends SingleSiteController {
     @RequestMapping(value = "/bdrs/user/singleSiteAllTaxa/sightingTableAllTaxa.htm", method = RequestMethod.GET)
     public ModelAndView ajaxGetSightingsTable(HttpServletRequest request,
                                     HttpServletResponse response,
-                                    @RequestParam(value="surveyId", required=true) int surveyId,
+                                    @RequestParam(value=BdrsWebConstants.PARAM_SURVEY_ID, required=true) int surveyId,
                                     @RequestParam(value="sightingIndex", defaultValue="0") int sightingIndex) {
         return super.ajaxGetSightingsTable(request, response, surveyId, sightingIndex);
     }
@@ -74,8 +75,8 @@ public class SingleSiteAllTaxaController extends SingleSiteController {
     @RequestMapping(value = SINGLE_SITE_ALL_TAXA_URL, method = RequestMethod.GET)
     public ModelAndView addAllSpeciesRecord(HttpServletRequest request,
                                     HttpServletResponse response,
-                                    @RequestParam(value="surveyId", required=true) int surveyId,
-                                    @RequestParam(value = "censusMethodId", required = false, defaultValue = "0") Integer censusMethodId) {
+                                    @RequestParam(value=BdrsWebConstants.PARAM_SURVEY_ID, required=true) int surveyId,
+                                    @RequestParam(value = BdrsWebConstants.PARAM_CENSUS_METHOD_ID, required = false, defaultValue = "0") Integer censusMethodId) {
         return addRecord(request, response, surveyId, SINGLE_SITE_ALL_TAXA_VIEW_NAME, censusMethodId);
     }
     
@@ -103,15 +104,9 @@ public class SingleSiteAllTaxaController extends SingleSiteController {
     @RequestMapping(value = SINGLE_SITE_ALL_TAXA_URL, method = RequestMethod.POST)
     public ModelAndView saveRecord(MultipartHttpServletRequest request,
                                     HttpServletResponse response,
-                                    @RequestParam(value=SingleSiteController.PARAM_SURVEY_ID, required=true) int surveyId,
-                                    @RequestParam(value=SingleSiteController.PARAM_LATITUDE, required=false) Double latitude,
-                                    @RequestParam(value=SingleSiteController.PARAM_LONGITUDE, required=false) Double longitude,
-                                    @RequestParam(value=SingleSiteController.PARAM_DATE, required=false) Date date,
-                                    @RequestParam(value=SingleSiteController.PARAM_TIME_HOUR, required=false) String time_hour,
-                                    @RequestParam(value=SingleSiteController.PARAM_TIME_MINUTE, required=false) String time_minute,
-                                    @RequestParam(value=SingleSiteController.PARAM_NOTES, required=false) String notes,
+                                    @RequestParam(value=BdrsWebConstants.PARAM_SURVEY_ID, required=true) int surveyId,
                                     @RequestParam(value=SingleSiteController.PARAM_ROW_PREFIX, required=true, defaultValue="") String[] rowIds) throws ParseException, IOException {
-        return saveRecordHelper(request, response, surveyId, latitude, longitude, date, time_hour, time_minute, notes, rowIds);
+        return saveRecordHelper(request, response, surveyId, rowIds);
     }
     
     @Override

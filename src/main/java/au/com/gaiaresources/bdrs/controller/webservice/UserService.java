@@ -117,7 +117,7 @@ public class UserService extends AbstractController {
 
         if(ident != null) {
             User user = userDAO.getUserByRegistrationKey(ident);
-            if(user != null && user.isAdmin()) {
+            if(user != null && Role.isRoleHigherThanOrEqualTo(Role.getHighestRole(user.getRoles()), Role.POWERUSER)) {
 
                 JSONArray array = new JSONArray();
                 for(User u : userDAO.getUsersByNameSearch(query)) {

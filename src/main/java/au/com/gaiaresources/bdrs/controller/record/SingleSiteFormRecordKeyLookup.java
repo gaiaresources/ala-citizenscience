@@ -2,6 +2,7 @@ package au.com.gaiaresources.bdrs.controller.record;
 
 import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.deserialization.record.RecordKeyLookup;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 /**
  * @author stephanie
@@ -37,7 +38,7 @@ public class SingleSiteFormRecordKeyLookup implements RecordKeyLookup {
      */
     @Override
     public String getCensusMethodIdKey() {
-        return SingleSiteController.PARAM_CENSUS_METHOD_ID;
+        return BdrsWebConstants.PARAM_CENSUS_METHOD_ID;
     }
 
     /* (non-Javadoc)
@@ -110,7 +111,7 @@ public class SingleSiteFormRecordKeyLookup implements RecordKeyLookup {
      */
     @Override
     public String getRecordIdKey() {
-        return SingleSiteController.PARAM_RECORD_ID;
+        return BdrsWebConstants.PARAM_RECORD_ID;
     }
 
     /* (non-Javadoc)
@@ -150,7 +151,7 @@ public class SingleSiteFormRecordKeyLookup implements RecordKeyLookup {
      */
     @Override
     public String getSurveyIdKey() {
-        return SingleSiteController.PARAM_SURVEY_ID;
+        return BdrsWebConstants.PARAM_SURVEY_ID;
     }
 
     /* (non-Javadoc)

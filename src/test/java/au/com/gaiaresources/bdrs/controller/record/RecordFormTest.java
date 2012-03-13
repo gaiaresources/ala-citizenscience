@@ -28,6 +28,7 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 
 import com.vividsolutions.jts.util.Assert;
@@ -126,7 +127,7 @@ public abstract class RecordFormTest extends AbstractControllerTest {
         }
         request.setMethod("GET");
         request.setRequestURI(requestURI);
-        request.setParameter("surveyId", survey.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
 
         ModelAndView mv = handle(request, response);
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "locations");

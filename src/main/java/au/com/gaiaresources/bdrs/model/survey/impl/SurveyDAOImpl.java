@@ -1,6 +1,7 @@
 package au.com.gaiaresources.bdrs.model.survey.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -36,6 +37,7 @@ import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.db.DeleteCascadeHandler;
 import au.com.gaiaresources.bdrs.service.db.DeletionService;
 
@@ -97,7 +99,7 @@ public class SurveyDAOImpl extends AbstractDAOImpl implements SurveyDAO {
          super.deleteByQuery(survey);
      }
      
-    public List<Survey> getSurveys(User user) {
+     public List<Survey> getSurveys(User user) {
         if(user == null) return new ArrayList<Survey>();
         if(user.isAdmin()) {
             return find("from Survey order by name asc");
@@ -129,6 +131,34 @@ public class SurveyDAOImpl extends AbstractDAOImpl implements SurveyDAO {
             return surveys;
         }
     }
+    
+     @Override
+     public List<Survey> getSurveyListing(User user) {
+       if(user == null) {
+           return Collections.EMPTY_LIST;
+       }
+       if(user.isAdmin()) {
+           // admin can get any survey
+           return find("from Survey order by name asc");
+       } else if (Role.isRoleHigherThanOrEqualTo(Role.getHighestRole(user.getRoles()), Role.POWERUSER)) {
+           // power users and supervisors only get surveys that they have created
+           StringBuilder builder = new StringBuilder();
+           // Find the surveys
+           builder.append("select distinct s");
+           builder.append(" from Survey s ");
+           
+           builder.append(" where s.createdBy=:userid");
+           builder.append(" order by s.name asc");
+
+           Query q = getSession().createQuery(builder.toString());
+           q.setParameter("userid", user.getId());
+           List<Survey> surveys = q.list();
+           return surveys;
+       } else {
+           return Collections.EMPTY_LIST;
+       }
+   }
+    
     public List<Survey> getActiveSurveysForUser(User user) {
         return getActiveSurveysForUser(user, null);
     }

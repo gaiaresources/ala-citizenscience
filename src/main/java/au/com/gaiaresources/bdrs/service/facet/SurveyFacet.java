@@ -8,6 +8,7 @@ import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.util.Pair;
 import edu.emory.mathcs.backport.java.util.Arrays;
 
@@ -15,7 +16,7 @@ import edu.emory.mathcs.backport.java.util.Arrays;
  * Represents records on a per survey basis.
  */
 public class SurveyFacet extends AbstractFacet {
-    public static final String SURVEY_ID_QUERY_PARAM_NAME = "surveyId";
+    public static final String SURVEY_ID_QUERY_PARAM_NAME = BdrsWebConstants.PARAM_SURVEY_ID;
     
     /**
      * The base name of the query parameter.

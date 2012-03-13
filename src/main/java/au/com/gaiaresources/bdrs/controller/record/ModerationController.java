@@ -30,6 +30,7 @@ import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.content.ContentService;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 /**
  * This controller allows moderators (ROOT, ADMIN, and SUPERVISOR roles)
@@ -42,7 +43,7 @@ public class ModerationController extends AbstractController {
 
     private Logger log = Logger.getLogger(getClass());
     
-    public static final String PARAM_RECORD_ID = "recordId";
+    public static final String PARAM_RECORD_ID = BdrsWebConstants.PARAM_RECORD_ID;
     public static final String PARAM_HOLD = "hold";
     
     public static final String RECORD_MODERATE_URL = "/bdrs/user/moderateRecord.htm";

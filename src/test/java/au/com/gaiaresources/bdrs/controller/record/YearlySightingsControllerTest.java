@@ -52,6 +52,7 @@ import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 /**
  * Tests all aspects of the <code>YearlySightingsControllerTest</code>.
@@ -176,7 +177,7 @@ public class YearlySightingsControllerTest extends RecordFormTest {
 
         request.setMethod("GET");
         request.setRequestURI("/bdrs/user/yearlySightings.htm");
-        request.setParameter("surveyId", survey.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
 
         ModelAndView mv = handle(request, response);
         ModelAndViewAssert.assertViewName(mv, "yearlySightings");
@@ -335,8 +336,8 @@ public class YearlySightingsControllerTest extends RecordFormTest {
 
         request.setMethod("GET");
         request.setRequestURI("/bdrs/user/yearlySightings.htm");
-        request.setParameter("surveyId", survey.getId().toString());
-        request.setParameter("recordId", record.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_RECORD_ID, record.getId().toString());
 
         ModelAndView mv = handle(request, response);
         ModelAndViewAssert.assertViewName(mv, "yearlySightings");
@@ -402,8 +403,8 @@ public class YearlySightingsControllerTest extends RecordFormTest {
         request.setRequestURI("/bdrs/user/yearlySightings.htm");
         
         Map<String, String> params = new HashMap<String, String>();
-        params.put("surveyId", survey.getId().toString());
-        params.put("locationId", locationA.getId().toString());
+        params.put(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
+        params.put(BdrsWebConstants.PARAM_LOCATION_ID, locationA.getId().toString());
         
         DateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy");
         dateFormat.setLenient(false);

@@ -57,11 +57,11 @@ public class ContainsHandler implements SimpleOperatorHandler {
         if(objA == null || objB == null) {
             return false;
         } else if(objA.getClass().isArray()) {
-        	boolean isContained = true;
-        	for(Object item : (Object[])objB) {
-        		isContained = isContained && Arrays.binarySearch((Object[])objA, item) > -1;
-        	}
-        	return isContained;
+            boolean isContained = true;
+            for(Object item : (Object[])objB) {
+                isContained = isContained && Arrays.binarySearch((Object[])objA, item) > -1;
+            }
+            return isContained;
         } else if(objB.getClass().isArray()) {
             boolean isContained = true;
             isContained = isContained && Arrays.binarySearch((Object[])objB, objA) > -1;
@@ -69,9 +69,6 @@ public class ContainsHandler implements SimpleOperatorHandler {
         } else if(Collection.class.isAssignableFrom(objA.getClass())) {
             return ((Collection) objA).contains(objB);
         } else if(Collection.class.isAssignableFrom(objB.getClass())) {
-            for (Object o : ((Collection)objB)) {
-                log.debug(o);
-            }
             return ((Collection) objB).contains(objA);
         } else {
             return objA.toString().contains(objB.toString());

@@ -35,6 +35,7 @@ import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -75,7 +76,7 @@ public class LocationWebService extends AbstractController {
     public void getLocationById(HttpServletRequest request,
                                 HttpServletResponse response,
                                 @RequestParam(value="id", required=true) int pk,
-                                @RequestParam(value="surveyId", required=false, defaultValue="-1") int surveyId)
+                                @RequestParam(value=BdrsWebConstants.PARAM_SURVEY_ID, required=false, defaultValue="-1") int surveyId)
         throws IOException {
 
         Location location = locationDAO.getLocation(pk);

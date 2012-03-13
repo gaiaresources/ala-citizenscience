@@ -51,6 +51,7 @@ import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.service.bulkdata.AbstractBulkDataService;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 @Controller
 public class RecordService extends AbstractController {
@@ -68,7 +69,7 @@ public class RecordService extends AbstractController {
     /**
      * Request parameter for census method ID
      */
-    public static final String PARAM_CENSUS_METHOD_ID = "censusMethodId";
+    public static final String PARAM_CENSUS_METHOD_ID = BdrsWebConstants.PARAM_CENSUS_METHOD_ID;
 
     private Logger log = Logger.getLogger(getClass());
     @Autowired
@@ -441,7 +442,7 @@ public class RecordService extends AbstractController {
     public void recordsForSurvey(HttpServletRequest request,
             HttpServletResponse response,
             @RequestParam(value = "regkey", defaultValue = "0") String regkey,
-            @RequestParam(value = "surveyId", defaultValue = "0") int surveyId)
+            @RequestParam(value = BdrsWebConstants.PARAM_SURVEY_ID, defaultValue = "0") int surveyId)
             throws IOException {
 
         // check authorisation
@@ -476,8 +477,8 @@ public class RecordService extends AbstractController {
     @RequestMapping(value = "/webservice/record/getRecordsForLocation.htm", method = RequestMethod.GET)
     public void getRecordsForLocation(
             @RequestParam(value = "ident", required = true) String ident,
-            @RequestParam(value = "surveyId", defaultValue = "0", required = true) int surveyPk,
-            @RequestParam(value = "locationId", defaultValue = "0", required = true) int locationPk,
+            @RequestParam(value = BdrsWebConstants.PARAM_SURVEY_ID, defaultValue = "0", required = true) int surveyPk,
+            @RequestParam(value = BdrsWebConstants.PARAM_LOCATION_ID, defaultValue = "0", required = true) int locationPk,
             HttpServletResponse response) throws IOException {
 
         List<Record> recordList = recordDAO.getRecords(ident, surveyPk,
@@ -501,7 +502,7 @@ public class RecordService extends AbstractController {
     @RequestMapping(value = "/webservice/record/deleteRecord.htm", method = RequestMethod.POST)
     public void deleteRecord(
             @RequestParam(value = "ident", required = true) String ident,
-            @RequestParam(value = "recordId", required = true) int recordPk,
+            @RequestParam(value = BdrsWebConstants.PARAM_RECORD_ID, required = true) int recordPk,
             HttpServletResponse response) throws IOException {
 
         User user;
@@ -570,7 +571,7 @@ public class RecordService extends AbstractController {
     @RequestMapping(value = "/webservice/record/getRecordById.htm", method = RequestMethod.GET)
     public void getRecordById(
             @RequestParam(value = "regkey", required = true) String ident,
-            @RequestParam(value = "recordId", defaultValue = "0", required = true) int recordPk,
+            @RequestParam(value = BdrsWebConstants.PARAM_RECORD_ID, defaultValue = "0", required = true) int recordPk,
             HttpServletResponse response) throws IOException {
         User user;
         if (ident.isEmpty()) {

@@ -40,6 +40,7 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonRank;
 import au.com.gaiaresources.bdrs.service.db.DeleteCascadeHandler;
 import au.com.gaiaresources.bdrs.service.db.DeletionService;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.util.Pair;
 
 /**
@@ -860,7 +861,7 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
     public List<IndicatorSpecies> getDistinctRecordedTaxaForSurvey(int surveyId) {
         Query q = getSession().createQuery(
         "select distinct taxon from Record rec left join rec.species taxon left join rec.survey survey where survey.id = :surveyId");
-        q.setParameter("surveyId", surveyId);
+        q.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, surveyId);
         return q.list();
     }
 

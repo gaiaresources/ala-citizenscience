@@ -40,6 +40,7 @@ import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 
 import com.thoughtworks.selenium.DefaultSelenium;
@@ -377,10 +378,10 @@ public class SecurityTest  extends AbstractControllerTest {
         // get the parameter from the map, or create it if it doesn't exist
         String value = paramMap.get(paramName);
         if (value == null) {
-            if (paramName.equals("surveyId")) {
+            if (paramName.equals(BdrsWebConstants.PARAM_SURVEY_ID)) {
                 Survey survey = getOrCreateSurvey();
                 value = survey.getId().toString();
-            } else if (paramName.equals("recordId")) {
+            } else if (paramName.equals(BdrsWebConstants.PARAM_RECORD_ID)) {
                 Record record = getOrCreateRecord();
                 value = record == null ? null : record.getId().toString();
             }

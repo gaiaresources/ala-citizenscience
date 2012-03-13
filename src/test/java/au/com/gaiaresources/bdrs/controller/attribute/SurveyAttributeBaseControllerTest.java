@@ -37,6 +37,7 @@ import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
 
@@ -141,7 +142,7 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
 
         request.setMethod("GET");
         request.setRequestURI("/bdrs/admin/survey/editAttributes.htm");
-        request.setParameter("surveyId", Integer.toString(0));
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, Integer.toString(0));
 
         ModelAndView mv = handle(request, response);
         Assert.assertTrue(mv.getView() instanceof RedirectView);
@@ -157,7 +158,7 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
 
         request.setMethod("GET");
         request.setRequestURI("/bdrs/admin/survey/editAttributes.htm");
-        request.setParameter("surveyId", survey.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
 
         ModelAndView mv = handle(request, response);
         ModelAndViewAssert.assertViewName(mv, "surveyEditAttributes");
@@ -220,7 +221,7 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
 
         request.setMethod("GET");
         request.setRequestURI("/bdrs/admin/survey/editAttributes.htm");
-        request.setParameter("surveyId", survey.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
 
         ModelAndView mv = handle(request, response);
         ModelAndViewAssert.assertViewName(mv, "surveyEditAttributes");
@@ -256,7 +257,7 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
 
         int curWeight = 0;
         Map<String, String> params = new HashMap<String, String>();
-        params.put("surveyId", survey.getId().toString());
+        params.put(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
 
         String attributeOptions = "Option A,Option B,Option C,Option D";
 
@@ -306,7 +307,7 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
         RedirectView redirect = (RedirectView) mv.getView();
         Assert.assertEquals("/bdrs/admin/survey/listing.htm", redirect.getUrl());
 
-        Survey actualSurvey = surveyDAO.get(new Integer(params.get("surveyId")));
+        Survey actualSurvey = surveyDAO.get(new Integer(params.get(BdrsWebConstants.PARAM_SURVEY_ID)));
         Assert.assertEquals(survey.getId(), actualSurvey.getId());
 
         int expectedAttrCount = AttributeType.values().length
@@ -352,7 +353,7 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
 
         int curWeight = 0;
         Map<String, String> params = new HashMap<String, String>();
-        params.put("surveyId", survey.getId().toString());
+        params.put(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         
         int index = 0;
         
@@ -372,7 +373,7 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
         RedirectView redirect = (RedirectView) mv.getView();
         Assert.assertEquals("/bdrs/admin/survey/listing.htm", redirect.getUrl());
 
-        Survey actualSurvey = surveyDAO.get(new Integer(params.get("surveyId")));
+        Survey actualSurvey = surveyDAO.get(new Integer(params.get(BdrsWebConstants.PARAM_SURVEY_ID)));
         Assert.assertEquals(survey.getId(), actualSurvey.getId());
         
         // because there is no name parameter for the submitted attribute it should be ignored....
@@ -419,11 +420,11 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
         login("admin", "password", new String[] { Role.ADMIN });
         request.setMethod("POST");
         request.setRequestURI("/bdrs/admin/survey/editAttributes.htm");
-        request.setParameter("surveyId", survey.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         
         int curWeight = 0;
         Map<String, String> params = new HashMap<String, String> ();
-        params.put("surveyId", survey.getId().toString());
+        params.put(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         for(Attribute attribute : survey.getAttributes()){
             params.put(String.format("weight_%d", attribute.getId()), String.valueOf(curWeight));
             if (attribute.getType() != AttributeType.HTML_HORIZONTAL_RULE) {
@@ -453,7 +454,7 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
         RedirectView redirect = (RedirectView) mv.getView();
         Assert.assertEquals("/bdrs/admin/survey/listing.htm", redirect.getUrl());
 
-        Survey actualSurvey = surveyDAO.get(new Integer(params.get("surveyId")));
+        Survey actualSurvey = surveyDAO.get(new Integer(params.get(BdrsWebConstants.PARAM_SURVEY_ID)));
         Assert.assertEquals(survey.getId(), actualSurvey.getId());
 
         for (Attribute attribute : actualSurvey.getAttributes()) {
@@ -498,11 +499,11 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
         login("admin", "password", new String[] { Role.ADMIN });
         request.setMethod("POST");
         request.setRequestURI("/bdrs/admin/survey/editAttributes.htm");
-        request.setParameter("surveyId", survey.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         
         int curWeight = 0;
         Map<String, String> params = new HashMap<String, String> ();
-        params.put("surveyId", survey.getId().toString());
+        params.put(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         
         // intentionally leaving name out
         params.put(String.format("weight_%d", attrToBeIgnored.getId()), String.valueOf(curWeight));
@@ -520,7 +521,7 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
         RedirectView redirect = (RedirectView) mv.getView();
         Assert.assertEquals("/bdrs/admin/survey/listing.htm", redirect.getUrl());
 
-        Survey actualSurvey = surveyDAO.get(new Integer(params.get("surveyId")));
+        Survey actualSurvey = surveyDAO.get(new Integer(params.get(BdrsWebConstants.PARAM_SURVEY_ID)));
         Assert.assertEquals(survey.getId(), actualSurvey.getId());
         
         Assert.assertTrue("survey attribute list should be empty", survey.getAttributes().isEmpty());
@@ -531,7 +532,7 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
         login("admin", "password", new String[] { Role.ADMIN });
         request.setMethod("POST");
         request.setRequestURI("/bdrs/admin/survey/editAttributes.htm");
-        request.setParameter("surveyId", survey.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         int curWeight = 0;
         for(RecordPropertyType type : RecordPropertyType.values()) {
             request.setParameter(String.format(RecordProperty.METADATA_KEY_TEMPLATE,type.getName(), RecordPropertySetting.WEIGHT.toString()), String.valueOf(curWeight));
@@ -550,7 +551,7 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
         login("admin", "password", new String[] { Role.ADMIN });
         request.setMethod("POST");
         request.setRequestURI("/bdrs/admin/survey/editAttributes.htm");
-        request.setParameter("surveyId", survey.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         int curWeight = 0;
         for(RecordPropertyType type : RecordPropertyType.values()) {
             request.setParameter(String.format(RecordProperty.METADATA_KEY_TEMPLATE, type.getName(), RecordPropertySetting.WEIGHT.toString()), String.valueOf(curWeight));
@@ -562,7 +563,7 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
         Assert.assertTrue(mv.getView() instanceof RedirectView);
         RedirectView redirect = (RedirectView) mv.getView();
         Assert.assertEquals("/bdrs/user/surveyRenderRedirect.htm", redirect.getUrl());
-        ModelAndViewAssert.assertModelAttributeAvailable(mv, "surveyId");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "preview");
     }
 }

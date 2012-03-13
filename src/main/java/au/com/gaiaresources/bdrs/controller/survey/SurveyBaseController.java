@@ -47,6 +47,7 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.servlet.RequestContext;
 import au.com.gaiaresources.bdrs.util.ImageUtil;
 
@@ -96,7 +97,7 @@ public class SurveyBaseController extends AbstractController {
     public ModelAndView listSurveys(HttpServletRequest request, HttpServletResponse response) {
 
         ModelAndView mv = new ModelAndView("surveyListing");
-        mv.addObject("surveyList", surveyDAO.getSurveys(getRequestContext().getUser()));
+        mv.addObject("surveyList", surveyDAO.getSurveyListing(getRequestContext().getUser()));
         return mv;
     }
 
@@ -105,7 +106,7 @@ public class SurveyBaseController extends AbstractController {
     public ModelAndView editSurvey(
             HttpServletRequest request,
             HttpServletResponse response,
-            @RequestParam(value = "surveyId", required = false) Integer surveyId,
+            @RequestParam(value = BdrsWebConstants.PARAM_SURVEY_ID, required = false) Integer surveyId,
             @RequestParam(value = "publish", required = false) String publish) {
 
         Survey survey;
@@ -152,7 +153,7 @@ public class SurveyBaseController extends AbstractController {
     public ModelAndView submitSurveyEdit(
             MultipartHttpServletRequest request,
             HttpServletResponse response,
-            @RequestParam(value = "surveyId", required = false) Integer surveyId,
+            @RequestParam(value = BdrsWebConstants.PARAM_SURVEY_ID, required = false) Integer surveyId,
             @RequestParam(value = "name", required = true) String name,
             @RequestParam(value = "description", required = true) String description,
             @RequestParam(value = "active", defaultValue = "false") boolean active,
@@ -274,7 +275,7 @@ public class SurveyBaseController extends AbstractController {
         if (request.getParameter("saveAndContinue") != null) {
             mv = new ModelAndView(new RedirectView(
                     "/bdrs/admin/survey/editTaxonomy.htm", true));
-            mv.addObject("surveyId", survey.getId());
+            mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
         } else {
             mv = new ModelAndView(new RedirectView(
                     SURVEY_LISTING_URL, true));
@@ -289,7 +290,7 @@ public class SurveyBaseController extends AbstractController {
     @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR})
     @RequestMapping(value = "/bdrs/admin/survey/editUsers.htm", method = RequestMethod.GET)
     public ModelAndView editSurveyUsers(HttpServletRequest request, HttpServletResponse response) {
-        Survey survey = getSurvey(request.getParameter("surveyId"));
+        Survey survey = getSurvey(request.getParameter(BdrsWebConstants.PARAM_SURVEY_ID));
         if (survey == null) {
             return SurveyBaseController.nullSurveyRedirect(getRequestContext());
         }
@@ -302,7 +303,7 @@ public class SurveyBaseController extends AbstractController {
     @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR})
     @RequestMapping(value = "/bdrs/admin/survey/editUsers.htm", method = RequestMethod.POST)
     public ModelAndView submitSurveyUsers(HttpServletRequest request, HttpServletResponse response) {
-        Survey survey = getSurvey(request.getParameter("surveyId"));
+        Survey survey = getSurvey(request.getParameter(BdrsWebConstants.PARAM_SURVEY_ID));
         if (survey == null) {
             return SurveyBaseController.nullSurveyRedirect(getRequestContext());
         }
@@ -354,7 +355,7 @@ public class SurveyBaseController extends AbstractController {
         ModelAndView mv;
         if(request.getParameter("saveAndContinue") != null) {
             mv = new ModelAndView(new RedirectView("/bdrs/admin/survey/edit.htm", true));
-            mv.addObject("surveyId", survey.getId());
+            mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
             mv.addObject("publish", "publish");
         }
         else {
@@ -370,7 +371,7 @@ public class SurveyBaseController extends AbstractController {
     @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR})
     @RequestMapping(value = "/bdrs/admin/survey/editTaxonomy.htm", method = RequestMethod.GET)
     public ModelAndView editSurveyTaxonomy(HttpServletRequest request, HttpServletResponse response) {
-        Survey survey = getSurvey(request.getParameter("surveyId"));
+        Survey survey = getSurvey(request.getParameter(BdrsWebConstants.PARAM_SURVEY_ID));
         if (survey == null) {
             return SurveyBaseController.nullSurveyRedirect(getRequestContext());
         }
@@ -414,7 +415,7 @@ public class SurveyBaseController extends AbstractController {
     @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR})
     @RequestMapping(value = "/bdrs/admin/survey/editTaxonomy.htm", method = RequestMethod.POST)
     public ModelAndView submitSurveyTaxonomy(HttpServletRequest request, HttpServletResponse response) {
-        Survey survey = getSurvey(request.getParameter("surveyId"));
+        Survey survey = getSurvey(request.getParameter(BdrsWebConstants.PARAM_SURVEY_ID));
         if (survey == null) {
             return SurveyBaseController.nullSurveyRedirect(getRequestContext());
         }
@@ -476,7 +477,7 @@ public class SurveyBaseController extends AbstractController {
         ModelAndView mv;
         if(request.getParameter("saveAndContinue") != null) {
             mv = new ModelAndView(new RedirectView("/bdrs/admin/survey/editAttributes.htm", true));
-            mv.addObject("surveyId", survey.getId());
+            mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
         }
         else {
             mv = new ModelAndView(new RedirectView(SURVEY_LISTING_URL, true));

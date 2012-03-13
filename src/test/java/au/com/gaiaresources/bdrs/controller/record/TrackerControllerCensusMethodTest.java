@@ -39,6 +39,7 @@ import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
     @Autowired 
@@ -168,8 +169,8 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         
         request.setMethod("GET");
         request.setRequestURI("/bdrs/user/tracker.htm");
-        request.setParameter("surveyId", survey.getId().toString());
-        request.setParameter("censusMethodId", m3.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, m3.getId().toString());
         
         ModelAndView mv = this.handle(request, response);
         
@@ -177,7 +178,7 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         // m1 should have 2 test attributes so....
         Assert.assertEquals(1, cmFormFields.size());
         Assert.assertTrue(Taxonomic.OPTIONALLYTAXONOMIC.equals(mv.getModel().get("taxonomic")));
-        Assert.assertEquals(null, mv.getModel().get("censusMethodId"));
+        Assert.assertEquals(null, mv.getModel().get(BdrsWebConstants.PARAM_CENSUS_METHOD_ID));
     }
     
     @Test
@@ -186,8 +187,8 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         
         request.setMethod("GET");
         request.setRequestURI("/bdrs/user/tracker.htm");
-        request.setParameter("surveyId", survey.getId().toString());
-        request.setParameter("censusMethodId", m1.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, m1.getId().toString());
         
         ModelAndView mv = this.handle(request, response);
         
@@ -195,7 +196,7 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         // m1 should have 2 test attributes so....
         Assert.assertEquals(2, cmFormFields.size());
         Assert.assertTrue(Taxonomic.NONTAXONOMIC.equals(mv.getModel().get("taxonomic")));
-        Assert.assertEquals(null, mv.getModel().get("censusMethodId"));
+        Assert.assertEquals(null, mv.getModel().get(BdrsWebConstants.PARAM_CENSUS_METHOD_ID));
     }
     
     @Test
@@ -204,8 +205,8 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         
         request.setMethod("GET");
         request.setRequestURI("/bdrs/user/tracker.htm");
-        request.setParameter("surveyId", survey.getId().toString());
-        request.setParameter("censusMethodId", m2.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, m2.getId().toString());
         
         ModelAndView mv = this.handle(request, response);
         
@@ -213,7 +214,7 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         // m1 should have 1 test attributes so....
         Assert.assertEquals(1, cmFormFields.size());
         Assert.assertTrue(Taxonomic.TAXONOMIC.equals(mv.getModel().get("taxonomic")));
-        Assert.assertEquals(null, mv.getModel().get("censusMethodId"));
+        Assert.assertEquals(null, mv.getModel().get(BdrsWebConstants.PARAM_CENSUS_METHOD_ID));
     }
     
     @Test
@@ -222,15 +223,15 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         
         request.setMethod("GET");
         request.setRequestURI("/bdrs/user/tracker.htm");
-        request.setParameter("surveyId", survey.getId().toString());
-        request.setParameter("censusMethodId", "0");
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, "0");
         
         ModelAndView mv = this.handle(request, response);
         
         List<FormField> cmFormFields = (List<FormField>)mv.getModelMap().get("censusMethodFormFieldList");
 
         Assert.assertEquals(0, cmFormFields.size());
-        Assert.assertEquals(null, mv.getModel().get("censusMethodId"));
+        Assert.assertEquals(null, mv.getModel().get(BdrsWebConstants.PARAM_CENSUS_METHOD_ID));
         Assert.assertEquals(null, mv.getModel().get("censusMethod"));
     }
     
@@ -240,16 +241,16 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         
         request.setMethod("POST");
         request.setRequestURI("/bdrs/user/tracker.htm");
-        request.setParameter("surveyId", survey.getId().toString());
-        request.setParameter("censusMethodId", m1.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, m1.getId().toString());
         request.setParameter(RecordWebFormContext.PARAM_SUBMIT_AND_ADD_ANOTHER, "Submit and Add Another");
         
         ModelAndView mv = handle(request, response);
         
         this.assertRedirect(mv, TrackerController.EDIT_URL);
         
-        Assert.assertEquals(survey.getId(), mv.getModelMap().get("surveyId"));
-        Assert.assertEquals(m1.getId(), mv.getModelMap().get("censusMethodId"));
+        Assert.assertEquals(survey.getId(), mv.getModelMap().get(BdrsWebConstants.PARAM_SURVEY_ID));
+        Assert.assertEquals(m1.getId(), mv.getModelMap().get(BdrsWebConstants.PARAM_CENSUS_METHOD_ID));
         Assert.assertNotNull(getRequestContext().getSessionAttribute("errorMap"));
     }
     
@@ -273,16 +274,16 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         
         request.setMethod("POST");
         request.setRequestURI("/bdrs/user/tracker.htm");
-        request.setParameter("surveyId", survey.getId().toString());
-        request.setParameter("censusMethodId", m1.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, m1.getId().toString());
         request.setParameter(RecordWebFormContext.PARAM_SUBMIT_AND_ADD_ANOTHER, "Submit and Add Another");
         
         ModelAndView mv = handle(request, response);
         
         this.assertRedirect(mv, RecordWebFormContext.SURVEY_RENDER_REDIRECT_URL);
         
-        Assert.assertEquals(survey.getId(), mv.getModelMap().get("surveyId"));
-        Assert.assertEquals(m1.getId(), mv.getModelMap().get("censusMethodId"));
+        Assert.assertEquals(survey.getId(), mv.getModelMap().get(BdrsWebConstants.PARAM_SURVEY_ID));
+        Assert.assertEquals(m1.getId(), mv.getModelMap().get(BdrsWebConstants.PARAM_CENSUS_METHOD_ID));
         Assert.assertNull(getRequestContext().getSessionAttribute("errorMap"));
         
         Assert.assertEquals(1, recordDAO.countRecords(getRequestContext().getUser()).intValue());
@@ -314,16 +315,16 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         
         request.setMethod("POST");
         request.setRequestURI("/bdrs/user/tracker.htm");
-        request.setParameter("surveyId", survey.getId().toString());
-        request.setParameter("censusMethodId", m3.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, m3.getId().toString());
         request.setParameter(RecordWebFormContext.PARAM_SUBMIT_AND_ADD_ANOTHER, "Submit and Add Another");
         
         ModelAndView mv = handle(request, response);
         
         this.assertRedirect(mv, RecordWebFormContext.SURVEY_RENDER_REDIRECT_URL);
         
-        Assert.assertEquals(survey.getId(), mv.getModelMap().get("surveyId"));
-        Assert.assertEquals(m3.getId(), mv.getModelMap().get("censusMethodId"));
+        Assert.assertEquals(survey.getId(), mv.getModelMap().get(BdrsWebConstants.PARAM_SURVEY_ID));
+        Assert.assertEquals(m3.getId(), mv.getModelMap().get(BdrsWebConstants.PARAM_CENSUS_METHOD_ID));
         Assert.assertNull(getRequestContext().getSessionAttribute("errorMap"));
         
         Assert.assertEquals(1, recordDAO.countRecords(getRequestContext().getUser()).intValue());
@@ -355,16 +356,16 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         
         request.setMethod("POST");
         request.setRequestURI("/bdrs/user/tracker.htm");
-        request.setParameter("surveyId", survey.getId().toString());
-        request.setParameter("censusMethodId", m3.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
+        request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, m3.getId().toString());
         request.setParameter(RecordWebFormContext.PARAM_SUBMIT_AND_ADD_ANOTHER, "Submit and Add Another");
         
         ModelAndView mv = handle(request, response);
         
         this.assertRedirect(mv, RecordWebFormContext.SURVEY_RENDER_REDIRECT_URL);
         
-        Assert.assertEquals(survey.getId(), mv.getModelMap().get("surveyId"));
-        Assert.assertEquals(m3.getId(), mv.getModelMap().get("censusMethodId"));
+        Assert.assertEquals(survey.getId(), mv.getModelMap().get(BdrsWebConstants.PARAM_SURVEY_ID));
+        Assert.assertEquals(m3.getId(), mv.getModelMap().get(BdrsWebConstants.PARAM_CENSUS_METHOD_ID));
         Assert.assertNull(getRequestContext().getSessionAttribute("errorMap"));
         
         Assert.assertEquals(1, recordDAO.countRecords(getRequestContext().getUser()).intValue());

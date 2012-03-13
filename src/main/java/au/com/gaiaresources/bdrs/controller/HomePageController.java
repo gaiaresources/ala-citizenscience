@@ -191,7 +191,7 @@ public class HomePageController extends AbstractController {
         }
 
 //        boolean isMobile = mobileHeaderCheck(req);
-//        if (isMobile || req.getSession().getAttribute("surveyId") != null) {
+//        if (isMobile || req.getSession().getAttribute(BdrsWebConstants.PARAM_SURVEY_ID) != null) {
 //            return getRedirectSecureMobileHome();
 //        } else 
         if (getRequestContext().getRoles() != null) {
@@ -256,10 +256,10 @@ public class HomePageController extends AbstractController {
 //		mv.addObject("surveys", surveyDAO.getSurveys(getRequestContext().getUser()));
 //		mv.addObject("hometype", "basic");
 //
-//		if ((request.getParameter("surveyId") != null)
-//				&& (!request.getParameter("surveyId").isEmpty())) {
-//			int id = new Integer(request.getParameter("surveyId"));
-//			request.getSession().setAttribute("surveyId", id);
+//		if ((request.getParameter(BdrsWebConstants.PARAM_SURVEY_ID) != null)
+//				&& (!request.getParameter(BdrsWebConstants.PARAM_SURVEY_ID).isEmpty())) {
+//			int id = new Integer(request.getParameter(BdrsWebConstants.PARAM_SURVEY_ID));
+//			request.getSession().setAttribute(BdrsWebConstants.PARAM_SURVEY_ID, id);
 //		}
 //
 //		mv.addObject("manifest", "mobile.manifest?ident=" + ident);

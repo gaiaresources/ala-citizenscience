@@ -64,7 +64,7 @@
                 <input class="validate(required, integer)" type="text" name="add_${ keyValuePrefix }_value_${ index }"/>
             </c:when>
             <c:when test="<%= Date.class.equals(klass) %>">
-                <input class="validate(required) datepicker" type="text" name="add_${ keyValuePrefix }_value_${ index }"/>
+                <input class="validate(date) datepicker" type="text" name="add_${ keyValuePrefix }_value_${ index }"/>
             </c:when>
             <c:when test="<%= klass.isEnum() %>">
                 <select class="validate(required)" name="add_${ keyValuePrefix }_value_${ index }" multiple="multiple" size="3">
@@ -156,7 +156,7 @@
                 />
             </c:when>
             <c:when test="<%= Date.class.equals(klass) %>">
-                <input class="validate(required) datepicker" type="text" name="${ keyValuePrefix }_value_${ condition.id }"
+                <input class="datepicker validate(date)" type="text" name="${ keyValuePrefix }_value_${ condition.id }"
                     <c:choose>
                         <c:when test="${ valueForKey }">
                             value="<fmt:formatDate pattern="dd MMM yyyy" value="<%= condition.dateKey() %>"/>"
