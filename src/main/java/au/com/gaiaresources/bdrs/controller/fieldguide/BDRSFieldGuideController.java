@@ -133,10 +133,9 @@ public class BDRSFieldGuideController  extends AbstractController {
                                 @RequestParam(value="search_in_result", required=false) String searchInResult,
                                 @RequestParam(value="groupId", required=false) Integer groupId) throws Exception {
 		
-    	PagedQueryResult<IndicatorSpecies> queryResult = new PagedQueryResult<IndicatorSpecies>();
         JqGridDataHelper jqGridHelper = new JqGridDataHelper(request);       
         PaginationFilter filter = jqGridHelper.createFilter(request);
-    	queryResult = taxaDAO.getIndicatorSpeciesByQueryString(groupId, searchInGroups, searchInResult, filter);
+        PagedQueryResult<IndicatorSpecies> queryResult = taxaDAO.getIndicatorSpeciesByQueryString(groupId, searchInGroups, searchInResult, filter);
         JqGridDataBuilder builder = new JqGridDataBuilder(jqGridHelper.getMaxPerPage(), queryResult.getCount(), jqGridHelper.getRequestedPage());
 
         if (queryResult.getCount() > 0) {
