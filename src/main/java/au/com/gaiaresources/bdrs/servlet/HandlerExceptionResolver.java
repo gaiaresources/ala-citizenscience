@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -114,27 +115,18 @@ public class HandlerExceptionResolver implements org.springframework.web.servlet
     private String getRequestURL(HttpServletRequest request) {
         // reconstruct the url with parameters
         StringBuilder builder = new StringBuilder(request.getRequestURL());
-        Map map = request.getParameterMap();
+        Map<String, String[]> map = request.getParameterMap();
         if (!map.isEmpty()) {
             builder.append("?");
         }
-        for (Object key : map.keySet()) {
-            Object value = map.get(key);
-            if (value instanceof String[]) {
-                String[] valueList = (String[]) value;
-                for (String string : valueList) {
-                    builder.append(key);
-                    builder.append("=");
-                    builder.append(string);
-                    builder.append("&");
-                }
-            } else if (value instanceof String) {
+        for (Entry<String, String[]> entry : map.entrySet()) {
+            String key = entry.getKey();
+            String[] valueList = entry.getValue();
+            for (String string : valueList) {
                 builder.append(key);
                 builder.append("=");
-                builder.append(value.toString());
+                builder.append(string);
                 builder.append("&");
-            } else {
-                throw new IllegalArgumentException();
             }
         }
         if (builder.toString().endsWith("&")) {
