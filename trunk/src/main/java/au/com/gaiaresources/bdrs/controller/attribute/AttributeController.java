@@ -78,7 +78,6 @@ public class AttributeController extends AbstractController {
             attribute.setOptions(createAttributeOptions(sesh, options));
         }
         sesh.evict(attribute);
-        Survey survey = surveyDAO.get(surveyId);
         try {
             response.getOutputStream().write(String.valueOf(thresholdService.isActiveThresholdForAttribute(attribute)).getBytes());
         } catch (IOException e) {
