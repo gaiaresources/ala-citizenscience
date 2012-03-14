@@ -18,8 +18,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import au.com.gaiaresources.bdrs.controller.AbstractController;
-import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
@@ -34,9 +32,6 @@ public class AttributeController extends AbstractController {
     
     @Autowired
     private ThresholdService thresholdService;
-    
-    @Autowired
-    private SurveyDAO surveyDAO;
     
     private AttributeFormFieldFactory formFieldFactory = new AttributeFormFieldFactory();
 
