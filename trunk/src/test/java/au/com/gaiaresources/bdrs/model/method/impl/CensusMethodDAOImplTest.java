@@ -133,4 +133,34 @@ public class CensusMethodDAOImplTest extends AbstractControllerTest {
         Assert.assertEquals(1, result.getList().size());
         Assert.assertEquals(m3.getId(), result.getList().get(0).getId());
     }
+    
+    @Test
+    public void testSearchEndsWith() {
+    	 PaginationFilter filter = new PaginationFilter(0, 1);
+         filter.addSortingCriteria("name", SortOrder.DESCENDING);       
+         PagedQueryResult<CensusMethod> result = cmDAO.search(filter, "pple", null);
+         Assert.assertEquals(1, result.getCount());
+         Assert.assertEquals(1, result.getList().size());
+         Assert.assertEquals(m1.getId(), result.getList().get(0).getId());
+    }
+    
+	@Test
+	public void testSearchStartsWith() {
+		PaginationFilter filter = new PaginationFilter(0, 1);
+		filter.addSortingCriteria("name", SortOrder.DESCENDING);
+		PagedQueryResult<CensusMethod> result = cmDAO.search(filter, "appl",null);
+		Assert.assertEquals(1, result.getCount());
+		Assert.assertEquals(1, result.getList().size());
+		Assert.assertEquals(m1.getId(), result.getList().get(0).getId());
+	}
+    
+    @Test
+    public void testSearchContains() {
+      	 PaginationFilter filter = new PaginationFilter(0, 1);
+         filter.addSortingCriteria("name", SortOrder.DESCENDING);       
+         PagedQueryResult<CensusMethod> result = cmDAO.search(filter, "ppl", null);
+         Assert.assertEquals(1, result.getCount());
+         Assert.assertEquals(1, result.getList().size());
+    }
+    
 }

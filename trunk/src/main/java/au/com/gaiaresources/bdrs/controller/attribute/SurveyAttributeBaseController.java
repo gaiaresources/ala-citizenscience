@@ -126,7 +126,7 @@ public class SurveyAttributeBaseController extends AbstractController {
             } else {
                 field = formFieldFactory.createAttributeFormField(attributeDAO, attr);
             }
-            boolean isActiveThold = thresholdService.isActiveThresholdForAttribute(survey, attr);
+            boolean isActiveThold = thresholdService.isActiveThresholdForAttribute(attr);
             field.setHasThreshold(isActiveThold);
             formFieldList.add(field);
         }
@@ -134,7 +134,7 @@ public class SurveyAttributeBaseController extends AbstractController {
         // add the remaining new unsaved attributes
         for(Attribute attr : failAttributeList) {
             field = formFieldFactory.createAttributeFormField(attributeDAO, attr);
-            boolean isActiveThold = thresholdService.isActiveThresholdForAttribute(survey, attr);
+            boolean isActiveThold = thresholdService.isActiveThresholdForAttribute(attr);
             field.setHasThreshold(isActiveThold);
         }
         

@@ -80,7 +80,7 @@ public class AttributeController extends AbstractController {
         sesh.evict(attribute);
         Survey survey = surveyDAO.get(surveyId);
         try {
-            response.getOutputStream().write(String.valueOf(thresholdService.isActiveThresholdForAttribute(survey, attribute)).getBytes());
+            response.getOutputStream().write(String.valueOf(thresholdService.isActiveThresholdForAttribute(attribute)).getBytes());
         } catch (IOException e) {
             log.warn("Error occurred writing to response stream", e);
         }

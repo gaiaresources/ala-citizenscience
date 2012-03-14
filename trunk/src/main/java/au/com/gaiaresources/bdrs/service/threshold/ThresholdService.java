@@ -317,10 +317,9 @@ public class ThresholdService implements ConditionOperatorHandler {
      * @return true if there is an active {@linkThreshold Thresholds} with a 
      * {@link Condition} on this {@link Attribute}, false otherwise
      */
-    public boolean isActiveThresholdForAttribute(Survey survey, Attribute attribute) {
+    public boolean isActiveThresholdForAttribute(Attribute attribute) {
         Session sesh = RequestContextHolder.getContext().getHibernate();
-        // get the attributes here so there isn't a problem with lazy loading after the survey has been evicted
-        survey.getAttributes();
+        Survey survey = new Survey();
         sesh.evict(survey);
         
         // get all the active thresholds

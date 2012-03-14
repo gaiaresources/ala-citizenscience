@@ -46,7 +46,7 @@ public class CensusMethodDAOImpl extends AbstractDAOImpl implements CensusMethod
             q = new HqlQuery("from CensusMethod cm ");
         }
         if (name != null) {
-            q.and(Predicate.ilike("cm.name", name + "%"));
+        	q.and(Predicate.ilike("cm.name", "%" + name + "%"));
         }
         return new QueryPaginator<CensusMethod>().page(this.getSession(), q.getQueryString(), q.getParametersValue(), filter, sortTargetAlias);
     }
