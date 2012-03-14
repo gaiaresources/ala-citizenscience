@@ -688,13 +688,13 @@ public class ThresholdServiceTest extends AbstractGridControllerTest {
         for (Attribute att : surveyScopedSurvey.getAttributes()) {
             Assert.assertEquals("Testing attribute "+att.getName()+" against record scoped threshold", 
                                 AttributeScope.isRecordScope(att.getScope()), 
-                                thresholdService.isActiveThresholdForAttribute(surveyScopedSurvey, att));
+                                thresholdService.isActiveThresholdForAttribute(att));
         }
         
         for (Attribute att : recordScopedSurvey.getAttributes()) {
             Assert.assertEquals("Testing attribute "+att.getName()+" against record scoped threshold", 
                                 AttributeScope.isRecordScope(att.getScope()), 
-                                thresholdService.isActiveThresholdForAttribute(recordScopedSurvey, att));
+                                thresholdService.isActiveThresholdForAttribute(att));
         }
     }
     
