@@ -465,7 +465,7 @@ public class AtlasService {
                         source = tmpAuthor.substring(tmpAuthor.lastIndexOf(" ")) + syn.substring(index);
                     }
                 }
-                if (syn.contains(source)) {
+                if (StringUtils.notEmpty(source) && syn.contains(source)) {
                     syn = syn.substring(0, syn.indexOf(source));
                 } 
                 addProfileInfoItem(infoItems, SpeciesProfile.SPECIES_PROFILE_SCIENTIFICNAME, 
