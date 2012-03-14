@@ -52,7 +52,7 @@
         bdrs.map.addLocationLayer(bdrs.map.baseMap, bdrs.survey.location.LOCATION_LAYER_NAME);
     
         <c:choose>
-		    <c:when test="${survey.predefinedLocationsOnly || not mapEditable}">
+		    <c:when test="${survey.predefinedLocationsOnly || not recordWebFormContext.editable}">
                 var layer = bdrs.map.addPositionLayer(layerName);
             </c:when>
             <c:otherwise>
