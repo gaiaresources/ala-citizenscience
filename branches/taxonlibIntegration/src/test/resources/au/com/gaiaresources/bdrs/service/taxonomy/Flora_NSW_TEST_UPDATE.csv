@@ -1,0 +1,15 @@
+Record_No,Family,Genus,Species,Infraspecies,Display Name,Common Name,Author,Native_Introduced,NSW_TSC,EPBC_Status,NSW_Distribution,Dist_Other,Synonym
+101,Afamily,Rhodanthe,microglossa,forma. Awesome,Rhodanthe microglossa forma. Awesome,common name two,Recard.j.,I,,,NC CC SC NT CT ST NWS CWS SWS NWP SWP,WA,Y
+100,Afamily,Rhodanthe,microglossa,,Rhodanthe microglossa,common name one,Recard.j.,I,,,NC CC SC NT CT ST NWS CWS SWS NWP SWP,WA,104
+102,Afamily,Rhodanthe,microglossa,forma. Cowabunga,Rhodanthe microglossa forma. Cowabunga,common name three,Picard.j.,N,,,NC,,103
+29324,Asteraceae,Helipterum,corymbiflorum,var. microglossum,Helipterum corymbiflorum var. microglossum,,,,,,,,970
+29331,Asteraceae,Helipterum,microglossum,,Helipterum microglossum,,,,,,,,970
+970,Asteraceae,Rhodanthe,microglossa,,Rhodanthe microglossa,,(Benth.) Paul G.Wilson,N,,,SWP NFWP SFWP,Qld S.A. N.T.,Y
+130253,Fabaceae - Faboideae,Pultenaea,"sp. Genowlan Point (Allen s.n., 29 Nov 1997)",,"Pultenaea sp. Genowlan Point (Allen s.n., 29 Nov 1997)",,,N,Critically Endangered,,CT,,Y
+24604,Asteraceae,Euchiton,nitidulus,,Euchiton nitidulus,,(Hook.f.) Anderb.,N,Vulnerable,,ST,Vic.,Y
+47425,Asteraceae,Gnaphalium,nitidulum,,Gnaphalium nitidulum,,Hook.f.,,,,,,24604
+47426,Asteraceae,Gnaphalium,sp. I sensu Jacobs & Pickard (1981),,Gnaphalium sp. I sensu Jacobs & Pickard (1981),,,,,,,,47425
+49409,Poaceae,Elymus,scabrus,var. scabrus,Elymus scabrus var. scabrus,,(R.Br.) A.Löve,,,,,,130480
+103,Afamily,Greenus,yellowus,,Greenus yellowus,Green yellow thing,Jimmy.j.,N,,,NC,,Y
+104,Afamily,Greenus,yellowus,forma. voltron,Greenus yellowus forma. voltron,Greenie,Gerard.j.,I,,,NC CC SC NT CT ST NWS CWS SWS NWP SWP,WA,103
+105,Bfamily,Bgenus,bspecies,,Bgenus bspecies,bspecies,,,,,,,Y
