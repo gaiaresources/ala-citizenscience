@@ -95,7 +95,6 @@ user that last updated the Managed File will be displayed.</strong>
 	            sortname: 'file.updatedAt',
 	            viewrecords: true,
 	            sortorder: "desc",
-	            caption:"Managed Files",
 	            multiselect: true
 	    });
 	

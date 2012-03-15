@@ -137,7 +137,7 @@ public class TaxonGroupManagementControllerTest extends AbstractControllerTest {
         
         index = 0;
         for (Attribute attribute : sortedAttrList) {
-            Assert.assertEquals(Integer.parseInt(request.getParameter(String.format("add_weight_%d", index))), attribute.getWeight());
+            Assert.assertEquals(Integer.parseInt(request.getParameter(String.format("add_weight_%d", index))), attribute.getWeight().intValue());
             Assert.assertEquals(request.getParameter(String.format("add_name_%d", index)), attribute.getName());
             Assert.assertEquals(request.getParameter(String.format("add_description_%d", index)), attribute.getDescription());
             Assert.assertEquals(request.getParameter(String.format("add_typeCode_%d", index)), attribute.getTypeCode());
@@ -317,7 +317,7 @@ public class TaxonGroupManagementControllerTest extends AbstractControllerTest {
         Assert.assertEquals(expectedAttrCount, actualGroup.getAttributes().size());
         
         for (Attribute attribute : actualGroup.getAttributes()) {
-            Assert.assertEquals(Integer.parseInt(request.getParameter(String.format("weight_%d", attribute.getId()))), attribute.getWeight());
+            Assert.assertEquals(Integer.parseInt(request.getParameter(String.format("weight_%d", attribute.getId()))), attribute.getWeight().intValue());
             Assert.assertEquals(request.getParameter(String.format("name_%d", attribute.getId())), attribute.getName());
             Assert.assertEquals(request.getParameter(String.format("description_%d", attribute.getId())), attribute.getDescription());
             Assert.assertEquals(request.getParameter(String.format("typeCode_%d", attribute.getId())), attribute.getTypeCode());

@@ -41,10 +41,10 @@
             <id>Maven Repo</id>
             <url>https://repo2.maven.org/maven2</url>
         </repository>
-        <repository>
+		<repository>
             <id>gbif repo</id>
-            <url>http://repository.gbif.org/content/repositories/releases</url>
-        </repository>
+			<url>http://repository.gbif.org/content/repositories/releases</url>
+		</repository>
     </repositories>
     <dependencies>
         <!-- Selenium -->
@@ -340,12 +340,6 @@
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
-            <artifactId>gt-jai-tools</artifactId>
-            <version>2.5.5-jai-tools</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.geotools</groupId>
             <artifactId>gt-shapefile</artifactId>
             <version>2.5.3</version>
             <scope>compile</scope>
@@ -384,9 +378,19 @@
         </dependency>
         <!-- PostGIS JDBC -->
         <dependency>
+            <!--
             <groupId>postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>8.1-407.jdbc3</version>
+			-->
+			<!--
+			<groupId>postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>9.1-901.jdbc4</version>
+			-->
+			<groupId>postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>8.4-702.jdbc4</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -455,6 +459,12 @@
             <version>2.1</version>
             <scope>compile</scope>
         </dependency>
+		<dependency>
+		    <groupId>net.sourceforge.javacsv</groupId>
+		    <artifactId>javacsv</artifactId>
+		    <version>2.0</version>
+			<scope>provided</scope>
+		</dependency>
         <!-- ALA CAS Authentication -->
         <dependency>
             <groupId>org.jasig.cas</groupId>
@@ -510,12 +520,12 @@
             <version>1.1.3</version>
 			<scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>org.gbif</groupId>
+		<dependency>
+			<groupId>org.gbif</groupId>
             <artifactId>dwca-reader</artifactId>
             <version>1.8</version>
             <scope>compile</scope>
-        </dependency>
+	    </dependency>
         <!-- JTidy for HTML validation -->
         <dependency>
             <groupId>net.sf.jtidy</groupId>
@@ -529,13 +539,19 @@
             <artifactId>jep</artifactId>
             <version>2.4</version>
             <scope>provided</scope>
-        </dependency>
+        </dependency> 
         <!-- Simple is a high performance asynchronous HTTP server for Java -->
         <dependency>
             <groupId>org.simpleframework</groupId>
             <artifactId>simple</artifactId>
             <version>4.1.21</version>
             <scope>test</scope>
+        </dependency>
+		<dependency>
+            <groupId>au.com.gaiaresources</groupId>
+            <artifactId>taxonlib</artifactId>
+			<version>0.1</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
     <build>
@@ -943,10 +959,8 @@
                 <bdrs.default.mail.server>gaia</bdrs.default.mail.server>
                 <bdrs.default.mail.port>25</bdrs.default.mail.port>
                 <bdrs.default.mail.from>bdrs-core@gaiaresources.com.au</bdrs.default.mail.from>
-                <bdrs.error.mail.to></bdrs.error.mail.to>
+                <bdrs.error.mail.to>aaron@gaiaresources.com.au</bdrs.error.mail.to>
                 <bdrs.mail.subject.prefix>[BDRS-Core - Dev]</bdrs.mail.subject.prefix>
-                <!-- Application address properties -->
-                <bdrs.application.url>http://localhost:8080/BDRS</bdrs.application.url>
                 <!-- Google Maps API Key. Good for http://localhost:8080/* -->
                 <bdrs.google.maps.key>ABQIAAAAVf-yI1VYl3fsYYNGwKOfGBT2yXp_ZAY8_ufC3CFXhHIE1NvwkxQTUAIK7KnqImTPI8drRbqfl1uq7A</bdrs.google.maps.key>
                 <!-- Database properties -->
@@ -964,9 +978,102 @@
                 <bdrs.recaptcha.private.key>6LfbwwQAAAAAAF5wVuk8nLcOanKCwvA_-rmtvNIL</bdrs.recaptcha.private.key>
                 <!-- File storage location -->
                 <bdrs.file.store.location>/tmp</bdrs.file.store.location>
-                <!-- Logging Properties -->
-                <bdrs.logfile>logs/bdrs-core.log</bdrs.logfile>
-                <bdrs.sqllogfile>logs/bdrs-core-SQL.log</bdrs.sqllogfile>
+            </properties>
+        </profile>
+        <profile>
+            <id>stage</id>
+            <properties>
+                <!-- LSID Properties -->
+                <bdrs.lsid.authority>dev.gaiaresources.com.au</bdrs.lsid.authority>
+                <!-- Site properties -->
+               <bdrs.site.name>Biological Data Recording System</bdrs.site.name>
+                <!-- Mail properties -->
+                <bdrs.default.mail.server>gaia</bdrs.default.mail.server>
+                <bdrs.default.mail.port>25</bdrs.default.mail.port>
+                <bdrs.default.mail.from>bdrs-core@gaiaresources.com.au</bdrs.default.mail.from>
+                <bdrs.error.mail.to></bdrs.error.mail.to>
+                <bdrs.mail.subject.prefix>[BDRS - Vanilla - Stage]</bdrs.mail.subject.prefix>
+                <!-- Google Maps API Key. Good for http://localhost:8080/* -->
+                <bdrs.google.maps.key>ABQIAAAAbuPEA3CKOaThmpII2anfvxQLgrigbAw_6NBpxRIAtq-Kb_cjVBTl4-hPWp2P8TihwIW4-QNtYigNng</bdrs.google.maps.key>
+                <!-- Database properties -->
+                <bdrs.db.user.name>postgres</bdrs.db.user.name>
+                <bdrs.db.user.password>htsdmvg8</bdrs.db.user.password>
+                <bdrs.db.url>jdbc:postgresql://localhost:5432/climatewatch2_vanilla</bdrs.db.url>
+                <bdrs.db.driver>org.postgresql.Driver</bdrs.db.driver>
+                <!-- Tomcat properties -->
+                <bdrs.tomcat.manager.url>http://localhost:8080/manager</bdrs.tomcat.manager.url>
+                <bdrs.tomcat.server.name>LocalTomcat</bdrs.tomcat.server.name>
+                <bdrs.tomcat.manager.username>tomcat</bdrs.tomcat.manager.username>
+                <bdrs.tomcat.manager.password>tomcat</bdrs.tomcat.manager.password>
+                <!-- reCAPTCHA properties -->
+                <bdrs.recaptcha.public.key>6LfbwwQAAAAAAEiDp_pgbdLzIOgVLpTpA3kqUfXF</bdrs.recaptcha.public.key>
+                <bdrs.recaptcha.private.key>6LfbwwQAAAAAAF5wVuk8nLcOanKCwvA_-rmtvNIL</bdrs.recaptcha.private.key>
+                <!-- File storage location -->
+                <bdrs.file.store.location>/var/lib/tomcat6/vanilla/filestore</bdrs.file.store.location>
+            </properties>
+        </profile>
+        <profile>
+            <id>stage-external</id>
+            <properties>
+                <!-- LSID Properties -->
+                <bdrs.lsid.authority>core.gaiaresources.com.au</bdrs.lsid.authority>
+                <!-- Site properties -->
+               <bdrs.site.name>Biological Data Recording System</bdrs.site.name>
+                <!-- Mail properties -->
+                <bdrs.default.mail.server>localhost</bdrs.default.mail.server>
+                <bdrs.default.mail.port>25</bdrs.default.mail.port>
+                <bdrs.default.mail.from>bdrs-core@gaiaresources.com.au</bdrs.default.mail.from>
+                <bdrs.error.mail.to></bdrs.error.mail.to>
+                <bdrs.mail.subject.prefix>[BDRS - Core ]</bdrs.mail.subject.prefix>
+                <!-- Google Maps API Key. Good for http://localhost:8080/* -->
+                <bdrs.google.maps.key>ABQIAAAAZlF008vltzKxmUQHWEa5NhQPKSey823obaBBEKXgL8q7AUOSHxTuA2rMzgdJZp1dxUd_5buT21qmAQ</bdrs.google.maps.key>
+                <!-- Database properties -->
+                <bdrs.db.user.name>root</bdrs.db.user.name>
+                <bdrs.db.user.password>htsdmvg8</bdrs.db.user.password>
+                <bdrs.db.url>jdbc:postgresql://localhost:5432/bdrs</bdrs.db.url>
+                <bdrs.db.driver>org.postgresql.Driver</bdrs.db.driver>
+                <!-- Tomcat properties -->
+                <bdrs.tomcat.manager.url>http://localhost:8080/manager</bdrs.tomcat.manager.url>
+                <bdrs.tomcat.server.name>LocalTomcat</bdrs.tomcat.server.name>
+                <bdrs.tomcat.manager.username>tomcat</bdrs.tomcat.manager.username>
+                <bdrs.tomcat.manager.password>tomcat</bdrs.tomcat.manager.password>
+                <!-- reCAPTCHA properties -->
+                <bdrs.recaptcha.public.key>6LfIfcISAAAAAF3Jrq238JAAjwoTiL4ZZkSLbueD</bdrs.recaptcha.public.key>
+                <bdrs.recaptcha.private.key>6LfIfcISAAAAAIq95zfFBLFmAdjl_zHrbpe_ostr</bdrs.recaptcha.private.key>
+                <!-- File storage location -->
+                <bdrs.file.store.location>/home/bdrs/filestore</bdrs.file.store.location>
+            </properties>
+        </profile>
+        <profile>
+            <id>production</id>
+            <properties>
+                <!-- LSID Properties -->
+                <bdrs.lsid.authority>citizenscience.ala.org.au</bdrs.lsid.authority>
+                <!-- Site properties -->
+                <bdrs.site.name>Biological Data Recording System</bdrs.site.name>
+                <!-- Mail properties -->
+                <bdrs.default.mail.server>localhost</bdrs.default.mail.server>
+                <bdrs.default.mail.port>25</bdrs.default.mail.port>
+                <bdrs.default.mail.from>bdrs@gaiaresources.com.au</bdrs.default.mail.from>
+                <bdrs.error.mail.to></bdrs.error.mail.to>
+                <bdrs.mail.subject.prefix>[BDRS - Production ]</bdrs.mail.subject.prefix>
+                <!-- Google Maps API Key. -->
+                <bdrs.google.maps.key>ABQIAAAAZlF008vltzKxmUQHWEa5NhTI9lENksmi9WbNk4V9cfHLKZK1bRRNv_6X-JTe6SLnWqTfqfjvALWaAQ</bdrs.google.maps.key>
+                <!-- Database properties -->
+                <bdrs.db.user.name>postgresql</bdrs.db.user.name>
+                <bdrs.db.user.password>postgresql</bdrs.db.user.password>
+                <bdrs.db.url>jdbc:postgresql://localhost:5432/bdrs</bdrs.db.url>
+                <bdrs.db.driver>org.postgresql.Driver</bdrs.db.driver>
+                <!-- Tomcat properties -->
+                <bdrs.tomcat.manager.url>http://localhost:8080/manager</bdrs.tomcat.manager.url>
+                <bdrs.tomcat.server.name>LocalTomcat</bdrs.tomcat.server.name>
+                <bdrs.tomcat.manager.username>tomcat</bdrs.tomcat.manager.username>
+                <bdrs.tomcat.manager.password>tomcat</bdrs.tomcat.manager.password>
+                <!-- reCAPTCHA properties -->
+                <bdrs.recaptcha.public.key>6Ldyq70SAAAAAEkx4WV5dZvhlOV2zs3ww7BPHFdK</bdrs.recaptcha.public.key>
+                <bdrs.recaptcha.private.key>6Ldyq70SAAAAAKCKj6ndTE0TXEWCGJdwTLw5-ASv</bdrs.recaptcha.private.key>
+                <!-- File storage location -->
+                <bdrs.file.store.location>/data/bdrs/filestore</bdrs.file.store.location>
             </properties>
         </profile>
      </profiles>

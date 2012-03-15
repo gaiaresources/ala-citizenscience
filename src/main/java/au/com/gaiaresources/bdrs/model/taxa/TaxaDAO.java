@@ -177,6 +177,8 @@ public interface TaxaDAO {
     Integer countAllSpecies();
 
     IndicatorSpecies getIndicatorSpeciesByScientificName(String scientificName);
+    
+    IndicatorSpecies getIndicatorSpeciesByScientificNameAndParent(Session sesh, String source, String scientificName, TaxonRank rank, Integer parentId);
 
     IndicatorSpecies getIndicatorSpeciesByScientificName(Session sesh,
             String scientificName);
@@ -213,6 +215,8 @@ public interface TaxaDAO {
     IndicatorSpeciesAttribute save(Session sesh, IndicatorSpeciesAttribute taxonAttribute);
 
     IndicatorSpecies getIndicatorSpeciesBySourceDataID(Session sesh, String sourceDataId);
+    
+    IndicatorSpecies getIndicatorSpeciesBySourceDataID(Session sesh, String source, String sourceDataId);
     
     /**
      * Returns the indicator species for the specified survey. If the survey

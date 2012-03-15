@@ -4,6 +4,7 @@ import au.com.gaiaresources.bdrs.controller.AbstractGridControllerTest;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
+import au.com.gaiaresources.bdrs.model.taxa.TaxonRank;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,4 +101,32 @@ public class TaxaDAOImplTest extends AbstractGridControllerTest {
         }
     }
 
+    @Test
+    public void testGetIndicatorSpeciesByScientificNameAndParent() {
+        String source = "source";
+        IndicatorSpecies parent = new IndicatorSpecies();
+        parent.setTaxonGroup(g1);
+        parent.setScientificName("parent sci");
+        parent.setCommonName("parent common name");
+        parent.setSource(source);
+        parent.setTaxonRank(TaxonRank.FAMILY);
+        taxaDAO.save(parent);
+        IndicatorSpecies child = new IndicatorSpecies();
+        child.setTaxonGroup(g1);
+        child.setScientificName("child sci");
+        child.setCommonName("child common name");
+        child.setSource(source);
+        child.setTaxonRank(TaxonRank.GENUS);
+        child.setParent(parent);
+        taxaDAO.save(child);
+        
+        IndicatorSpecies parent_r = taxaDAO.getIndicatorSpeciesByScientificNameAndParent(null, source, "parent sci", TaxonRank.FAMILY, null);
+        IndicatorSpecies child_r = taxaDAO.getIndicatorSpeciesByScientificNameAndParent(null, source, "child sci", TaxonRank.GENUS, parent.getId());
+        
+        Assert.assertNotNull("parent_r cannot be null", parent_r);
+        Assert.assertNotNull("child_r cannot be null", child_r);
+        
+        Assert.assertEquals("wrong id", parent.getId(), parent_r.getId());
+        Assert.assertEquals("wrong child id", child.getId(), child_r.getId());
+    }
 }

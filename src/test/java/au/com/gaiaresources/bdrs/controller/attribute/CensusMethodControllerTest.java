@@ -281,7 +281,7 @@ public class CensusMethodControllerTest extends AbstractControllerTest {
         
         index = 0;
         for (Attribute attribute : sortedAttrList) {
-            Assert.assertEquals(Integer.parseInt(request.getParameter(String.format("add_weight_%d", index))), attribute.getWeight());
+            Assert.assertEquals(Integer.parseInt(request.getParameter(String.format("add_weight_%d", index))), attribute.getWeight().intValue());
             Assert.assertEquals(request.getParameter(String.format("add_name_%d", index)), attribute.getName());
             Assert.assertEquals(request.getParameter(String.format("add_description_%d", index)), attribute.getDescription());
             Assert.assertEquals(request.getParameter(String.format("add_typeCode_%d", index)), attribute.getTypeCode());

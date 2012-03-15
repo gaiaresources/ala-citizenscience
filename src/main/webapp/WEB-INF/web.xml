@@ -22,6 +22,7 @@
         <exception-type>org.springframework.security.access.AccessDeniedException</exception-type>
         <location>/home.htm?signin=true</location>
     </error-page>
+	<!--
     <error-page>
         <error-code>404</error-code>
         <location>/error/redirect404.htm</location>
@@ -30,7 +31,7 @@
         <error-code>500</error-code>
         <location>/error/redirect500.htm</location>
     </error-page>
-    
+	-->
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>

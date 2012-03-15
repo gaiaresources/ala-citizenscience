@@ -519,6 +519,21 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
              return taxonList.get(0);
          }
      }
+	
+	@Override
+	public IndicatorSpecies getIndicatorSpeciesBySourceDataID(Session sesh, String source, String sourceDataId) {
+	    String query = "select s from IndicatorSpecies s where s.source = :source and s.sourceId = :sourceId";
+            Query q;
+            if (sesh == null) {
+                q = getSession().createQuery(query);
+            } else {
+                    q = sesh.createQuery(query);
+            }
+            
+            q.setParameter("sourceId", sourceDataId);
+            q.setParameter("source", source);
+            return (IndicatorSpecies)q.uniqueResult();
+	}
 
 	@Override
 	public List<IndicatorSpecies> getIndicatorSpeciesBySpeciesProfileItem(
@@ -678,6 +693,32 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
 			return species.get(0);
 		}
 	}
+	
+	@Override
+        public IndicatorSpecies getIndicatorSpeciesByScientificNameAndParent(Session sesh, String source, 
+                String scientificName, TaxonRank rank, Integer parentId) {
+            if(sesh == null) {
+                sesh = getSession();
+            }
+            HqlQuery hQuery = new HqlQuery("select i from IndicatorSpecies i");
+            hQuery.and(Predicate.eq("upper(i.scientificName)", scientificName.toUpperCase()));
+            if (parentId != null) {
+                hQuery.and(Predicate.eq("i.parent.id", parentId));    
+            }
+            if (source != null) {
+                hQuery.and(Predicate.eq("i.source", source));    
+            }
+            if (rank != null) {
+                hQuery.and(Predicate.eq("i.taxonRank", rank));    
+            }
+            
+            Query q = sesh.createQuery(hQuery.getQueryString());
+            Object[] args = hQuery.getParametersValue();
+            for (int i = 0; i<args.length; ++i) {
+                q.setParameter(i, args[i]);
+            }
+            return (IndicatorSpecies)q.uniqueResult();
+        }
 	
 	@Override
         public List<IndicatorSpecies> getIndicatorSpeciesListByScientificName(String scientificName) {

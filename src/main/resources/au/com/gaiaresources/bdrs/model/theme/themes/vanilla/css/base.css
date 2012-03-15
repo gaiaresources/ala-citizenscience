@@ -498,6 +498,15 @@ tr.ui-widget-content {
     border: ${style.table.border.width} ${style.table.border.style} ${style.table.border.color};
 }
 
+.datatable tr,
+.ui-jqgrid tr {
+   border-color: ${style.table.border.color};
+}
+
+.ui-jqgrid table {
+   border-color: ${style.table.border.color};
+}
+
 .datatable th a,
 table.ui-jqgrid-btable th a {
     color: ${style.table.header.text.color};
@@ -635,10 +644,67 @@ a:hover.fixedLink {
     text-decoration: ${style.anchor.link.decoration};
 }
 
+a:link, a:visited, a:visited.neverVisited {
+    color:${style.anchor.link.color};
+}
+
 /************************************/
 /* Signin  Styling                  */
 /************************************/
 #signin input[type=text],
 #signin input[type=password] {
     border: ${style.input.text.signin.border.width} ${style.input.text.signin.border.style} ${style.input.text.signin.border.color};
+}
+
+/************************************/
+/* Advanced review                  */
+/************************************/
+.facet {
+    border-color: ${style.menu.border.color};
+}
+
+.facetOptions {
+    border-top: 1px solid ${style.menu.border.color};
+}
+
+.facet h4 {
+    background-color: ${style.menu.background.color};
+}
+
+.alaSightingsContent .columnBanner {
+    background-color: ${style.menu.background.color};
+    border-color: ${style.menu.border.color};
+}
+
+.alaSightingsTable .sighting {
+    border-bottom: 1px solid ${style.menu.border.color};
+}
+
+.alaSightingsContent .sortPanel {
+    background-color: transparent;
+    border-color: ${style.menu.border.color};
+}
+
+.alaSightingsTable .altRow {
+    background-color: ${style.table.altrow.color};
+}
+
+/**********************/
+/* Tab View           */
+/**********************/
+
+.controlPanel {
+    border-bottom-color: ${style.menu.border.color};
+}
+
+.displayTab {
+    border-color: ${style.menu.border.color};
+}
+
+.displayTab:hover {
+    background-color: ${style.table.altrow.color};
+}
+
+.displayTabSelected {
+    color: ${style.content.text.color};
 }
