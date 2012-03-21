@@ -451,6 +451,14 @@ alter table SURVEY_GEO_MAP_LAYER add constraint FK47E798BB42522E6E foreign key (
 alter table SURVEY_GEO_MAP_LAYER add constraint FK47E798BBC136AD4E foreign key (PORTAL_ID) references PORTAL;
 alter table SURVEY_GEO_MAP_LAYER add constraint FK47E798BB6B93B13B foreign key (survey_SURVEY_ID) references SURVEY;
 
+INSERT INTO base_map_layer SELECT nextval('base_map_layer_base_map_layer_id_seq'::regclass), now() as created_at, now() as updated_at, s.created_by, s.updated_by, '0' as weight, 'G_HYBRID_MAP' as layer_source, 'TRUE' as default_layer, s.survey_id, s.portal_id from survey s;
+
+INSERT INTO base_map_layer SELECT nextval('base_map_layer_base_map_layer_id_seq'::regclass), now() as created_at, now() as updated_at, s.created_by, s.updated_by, '0' as weight, 'G_PHYSICAL_MAP' as layer_source, 'FALSE' as default_layer, s.survey_id, s.portal_id from survey s;
+
+INSERT INTO base_map_layer SELECT nextval('base_map_layer_base_map_layer_id_seq'::regclass), now() as created_at, now() as updated_at, s.created_by, s.updated_by, '0' as weight, 'G_NORMAL_MAP' as layer_source, 'FALSE' as default_layer, s.survey_id, s.portal_id from survey s;
+
+INSERT INTO base_map_layer SELECT nextval('base_map_layer_base_map_layer_id_seq'::regclass), now() as created_at, now() as updated_at, s.created_by, s.updated_by, '0' as weight, 'G_SATELLITE_MAP' as layer_source, 'FALSE' as default_layer, s.survey_id, s.portal_id from survey s;
+
 ROLLBACK;
 
 </code>
