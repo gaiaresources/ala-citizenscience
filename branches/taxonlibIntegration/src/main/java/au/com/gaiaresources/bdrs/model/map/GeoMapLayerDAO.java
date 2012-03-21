@@ -53,4 +53,9 @@ public interface GeoMapLayerDAO extends TransactionDAO {
      * @return
      */
     List<AssignedGeoMapLayer> getAssignedLayerByLayerId(int layerId);
+    /**
+     * Gets all of the layers for the portal.
+     * @return
+     */
+    public List<GeoMapLayer> getAllLayers();
 }

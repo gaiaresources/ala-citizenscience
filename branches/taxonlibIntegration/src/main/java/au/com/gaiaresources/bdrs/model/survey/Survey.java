@@ -28,6 +28,7 @@ import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
 import au.com.gaiaresources.bdrs.model.group.Group;
 import au.com.gaiaresources.bdrs.model.location.Location;
+import au.com.gaiaresources.bdrs.model.map.BaseMapLayer;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
@@ -44,8 +45,8 @@ import au.com.gaiaresources.bdrs.util.DateUtils;
 @Table(name = "SURVEY")
 @AttributeOverride(name = "id", column = @Column(name = "SURVEY_ID"))
 public class Survey extends PortalPersistentImpl implements Comparable<Survey> {
-	private String name;
-	private String description;
+    private String name;
+    private String description;
     private boolean active;
     private Date startDate;
     private Date endDate;
@@ -58,6 +59,8 @@ public class Survey extends PortalPersistentImpl implements Comparable<Survey> {
 
     private List<Attribute> attributes = new ArrayList<Attribute>();
     private List<CensusMethod> censusMethods = new ArrayList<CensusMethod>();
+    private List<BaseMapLayer> baseMapLayers = new ArrayList<BaseMapLayer>();
+    private List<SurveyGeoMapLayer> geoMapLayers = new ArrayList<SurveyGeoMapLayer>();
 
     private Set<Metadata> metadata = new HashSet<Metadata>();
     
@@ -586,9 +589,9 @@ public class Survey extends PortalPersistentImpl implements Comparable<Survey> {
             return false;
         }
 
-		if (md.getKey() == null) {
-			throw new IllegalArgumentException("Metadata key cannot be null.");
-		}
+        if (md.getKey() == null) {
+            throw new IllegalArgumentException("Metadata key cannot be null.");
+        }
 
         for (Metadata m : metadata) {
             if (md.getKey().equals(m.getKey())) {
@@ -652,5 +655,97 @@ public class Survey extends PortalPersistentImpl implements Comparable<Survey> {
     @Transient
     public void removeMetadata(Metadata md) {
         metadata.remove(md);
+    }
+    
+    /**
+     * Get the default map center for this survey.
+     * @return
+     */
+    @Transient
+    public String getMapCenter() {
+        Metadata md = getMetadataByKey(Metadata.MAP_DEFAULT_CENTER);
+        if (md != null) {
+            return md.getValue();
+        }
+        return null;
+    }
+    
+    /**
+     * Get the default map zoom level for the survey.
+     * @return
+     */
+    @Transient
+    public String getMapZoom() {
+        Metadata md = getMetadataByKey(Metadata.MAP_DEFAULT_ZOOM);
+        if (md != null) {
+            return md.getValue();
+        }
+        return null;
+    }
+
+    /**
+     * Get the {@link BaseMapLayer} for this survey
+     * @return
+     */
+    @OneToMany(mappedBy="survey", fetch = FetchType.LAZY)
+    public List<BaseMapLayer> getBaseMapLayers() {
+        return baseMapLayers;
+    }
+    
+    /**
+     * Set the {@link BaseMapLayer} for this survey
+     * @param newLayers
+     */
+    public void setBaseMapLayers(List<BaseMapLayer> newLayers) {
+        baseMapLayers = newLayers;
+    }
+    
+    /**
+     * Get the {@link GeoMapLayer} linked to this survey.
+     * @return
+     */
+    @OneToMany(mappedBy="survey", fetch = FetchType.LAZY)
+    public List<SurveyGeoMapLayer> getGeoMapLayers() {
+        return geoMapLayers;
+    }
+    
+    /**
+     * Set the {@link GeoMapLayer} for this survey
+     * @param newLayers the layers for the survey
+     */
+    public void setGeoMapLayers(List<SurveyGeoMapLayer> newLayers) {
+        geoMapLayers = newLayers;
+    }
+
+    /**
+     * Add a {@link GeoMapLayer} to the survey
+     * @param thisLayer the {@link SurveyGeoMapLayer} to add to the survey
+     */
+    public void addGeoMapLayer(SurveyGeoMapLayer thisLayer) {
+        geoMapLayers.add(thisLayer);
+    }
+
+    /**
+     * Remove this {@link GeoMapLayer} from the Survey.
+     * @param thisLayer the {@link SurveyGeoMapLayer} to remove from the survey
+     */
+    public void removeGeoMapLayer(SurveyGeoMapLayer thisLayer) {
+        geoMapLayers.remove(thisLayer);
+    }
+
+    /**
+     * Add this {@link BaseMapLayer} to the Survey.
+     * @param layer
+     */
+    public void addBaseMapLayer(BaseMapLayer layer) {
+        baseMapLayers.add(layer);
+    }
+
+    /**
+     * Remove this {@link BaseMapLayer} from the Survey.
+     * @param layer
+     */
+    public void removeBaseMapLayer(BaseMapLayer layer) {
+        baseMapLayers.remove(layer);
     }
 }

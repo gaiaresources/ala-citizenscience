@@ -391,7 +391,7 @@
 			<groupId>postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>8.4-702.jdbc4</version>
-            <scope>provided</scope>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.postgis</groupId>
@@ -463,7 +463,7 @@
 		    <groupId>net.sourceforge.javacsv</groupId>
 		    <artifactId>javacsv</artifactId>
 		    <version>2.0</version>
-			<scope>provided</scope>
+			<scope>compile</scope>
 		</dependency>
         <!-- ALA CAS Authentication -->
         <dependency>
@@ -769,7 +769,7 @@
                     <dependency>
                         <groupId>postgresql</groupId>
                         <artifactId>postgresql</artifactId>
-                        <version>8.1-407.jdbc3</version>
+                        <version>8.4-702.jdbc4</version>
                         <scope>provided</scope>
                     </dependency>
                     <dependency>
@@ -797,7 +797,7 @@
                     <dependency>
                         <groupId>postgresql</groupId>
                         <artifactId>postgresql</artifactId>
-                        <version>8.1-407.jdbc3</version>
+                        <version>8.4-702.jdbc4</version>
                     </dependency>
                 </dependencies>
                 <!-- common configuration shared by all executions -->

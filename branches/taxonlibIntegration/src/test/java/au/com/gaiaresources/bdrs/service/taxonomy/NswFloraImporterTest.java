@@ -14,7 +14,6 @@ import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile;
 import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfileDAO;
@@ -32,8 +31,6 @@ public class NswFloraImporterTest extends TaxonomyImportTest {
     private TaxaDAO taxaDAO;
     @Autowired
     private SpeciesProfileDAO spDAO;
-    @Autowired
-    private MetadataDAO mdDAO;
 
     private Logger log = Logger.getLogger(getClass());
 
@@ -44,7 +41,7 @@ public class NswFloraImporterTest extends TaxonomyImportTest {
             now = getDate(2000, 12, 12);
 
             NswFloraImporter importer = new NswFloraImporter(
-                    this.taxonLibSession, now, taxaDAO, spDAO, mdDAO);
+                    this.taxonLibSession, now, taxaDAO, spDAO);
             importer.runImport(csvStream);
         } finally {
             if (csvStream != null) {
@@ -59,12 +56,12 @@ public class NswFloraImporterTest extends TaxonomyImportTest {
 
     // this just tests whether we have funky exceptions thrown and also to check how long this takes...
     // @Test
-    //public void testFullImport() throws Exception {
-    // logging is for timing
-    //    log.debug("NSW Flora Full import start");
-    //    doImport("Flora_NSW_25Nov11_Final.csv");
-    //    log.debug("NSW Flora full import end");
-    //}
+    public void testFullImport() throws Exception {
+     //logging is for timing
+        log.debug("NSW Flora Full import start");
+        doImport("Flora_NSW_25Nov11_Final.csv");
+        log.debug("NSW Flora full import end");
+    }
 
     @Test
     public void testUpdate() throws Exception {

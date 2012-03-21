@@ -48,7 +48,9 @@ public class HandlerExceptionResolver implements org.springframework.web.servlet
                 mv = new ModelAndView(new RedirectView("/home.htm", true));
                 mv.addObject("signin", true);
                 // save the URL requested to the session so you will be redirected after login
-                request.getSession().setAttribute(BdrsWebConstants.SAVED_REQUEST_KEY, getRequestURL(request));
+                if (request.getMethod().equals("GET")) {
+                    request.getSession().setAttribute(BdrsWebConstants.SAVED_REQUEST_KEY, getRequestURL(request));
+                }
             } else {
                 // Go to the home page
                 mv = new ModelAndView(new RedirectView("/authenticated/redirect.htm", true));
@@ -56,7 +58,6 @@ public class HandlerExceptionResolver implements org.springframework.web.servlet
                 RequestContextHolder.getContext().addMessage(ex.getMessage());
             }
             logger.warn("Access denied exception", ex);
-
         } else {
             // Error has occured, request rollback
             // Important to stop the hibernate session from becoming unusable

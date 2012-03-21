@@ -14,7 +14,7 @@ import au.com.gaiaresources.bdrs.model.record.Record;
  * records in a survey. Likewise a scope of {@link Record} indicates that
  * each record contains a different value for the attribute.
  */
-public enum GeoMapLayerSource implements JSONEnum {
+public enum GeoMapLayerSource implements JSONEnum, MapLayerSource {
     KML,
     SHAPEFILE,
     SURVEY_KML,

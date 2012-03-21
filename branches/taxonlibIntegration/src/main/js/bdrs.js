@@ -258,6 +258,10 @@ bdrs.map.control = {
  */
 bdrs.map.DEFAULT_POINT_ZOOM_LEVEL = 16;
 
+// This stops the user from reaching zoom level '0' which wraps around
+// the world several times.
+bdrs.map.MIN_GOOGLE_ZOOM_LEVEL = 1;
+
 // --------------------------------------
 // Some notes on map projections
 //
@@ -372,51 +376,12 @@ bdrs.map.createDefaultMap = function(mapId, mapOptions){
     // are cleared from the map
     map.persistentLayers = new Array();
     
-    // This stops the user from reaching zoom level '0' which wraps around
-    // the world several times.
-    var MIN_GOOGLE_ZOOM_LEVEL = 1;
-    
     if (mapOptions.isPublic === true) {
-        var layers =  [];
-        if(window.G_PHYSICAL_MAP !== undefined && window.G_PHYSICAL_MAP !== null) {
-            var gphy = new OpenLayers.Layer.Google('Google Physical', {
-                type: G_PHYSICAL_MAP,
-                sphericalMercator: true,
-                MIN_ZOOM_LEVEL: MIN_GOOGLE_ZOOM_LEVEL
-            });
-            layers.push(gphy);
-        }
-
-        if(window.G_NORMAL_MAP !== undefined && window.G_NORMAL_MAP !== null) {
-            var gmap = new OpenLayers.Layer.Google('Google Streets', // the default
-            {
-                type: G_NORMAL_MAP,
-                numZoomLevels: 20,
-                sphericalMercator: true,
-                MIN_ZOOM_LEVEL: MIN_GOOGLE_ZOOM_LEVEL
-            });
-            layers.push(gmap);
-        }
-        
-        var ghyb = null;
-        if(window.G_HYBRID_MAP !== undefined && window.G_HYBRID_MAP !== null) {
-            ghyb = new OpenLayers.Layer.Google('Google Hybrid', {
-                type: G_HYBRID_MAP,
-                numZoomLevels: 20,
-                sphericalMercator: true,
-                MIN_ZOOM_LEVEL: MIN_GOOGLE_ZOOM_LEVEL
-            });
-            layers.push(ghyb);
-        }
-        
-        if(window.G_SATELLITE_MAP !== undefined && window.G_SATELLITE_MAP !== null) {
-            var gsat = new OpenLayers.Layer.Google('Google Satellite', {
-                type: G_SATELLITE_MAP,
-                numZoomLevels: 22,
-                sphericalMercator: true,
-                MIN_ZOOM_LEVEL: MIN_GOOGLE_ZOOM_LEVEL
-            });
-            layers.push(gsat);
+        var layers;
+        if (bdrs.map.customMapLayers) {
+            layers = bdrs.map.customMapLayers();
+        } else {
+            layers = bdrs.map.defaultMapLayers();
         }
         
         if(layers.length === 0) {
@@ -425,8 +390,8 @@ bdrs.map.createDefaultMap = function(mapId, mapOptions){
         }
         
         map.addLayers(layers);
-        if(ghyb !== null) {
-            map.setBaseLayer(ghyb);
+        if(bdrs.map.baseLayer) {
+            map.setBaseLayer(bdrs.map.baseLayer);
         } else {
             if(layers.length > 0) {
                 map.setBaseLayer(layers[0]);
@@ -481,6 +446,62 @@ bdrs.map.createDefaultMap = function(mapId, mapOptions){
      }
      */
     return map;
+};
+
+bdrs.map.defaultMapLayers = function() {
+
+    var layers =  [];
+    if(window.G_PHYSICAL_MAP !== undefined && window.G_PHYSICAL_MAP !== null) {
+        var gphy = new OpenLayers.Layer.Google('Google Physical', {
+            type: G_PHYSICAL_MAP,
+            sphericalMercator: true,
+            MIN_ZOOM_LEVEL: bdrs.map.MIN_GOOGLE_ZOOM_LEVEL
+        });
+        layers.push(gphy);
+    }
+
+    if(window.G_NORMAL_MAP !== undefined && window.G_NORMAL_MAP !== null) {
+        var gmap = new OpenLayers.Layer.Google('Google Streets', // the default
+        {
+            type: G_NORMAL_MAP,
+            numZoomLevels: 20,
+            sphericalMercator: true,
+            MIN_ZOOM_LEVEL: bdrs.map.MIN_GOOGLE_ZOOM_LEVEL
+        });
+        layers.push(gmap);
+    }
+    
+    var ghyb = null;
+    if(window.G_HYBRID_MAP !== undefined && window.G_HYBRID_MAP !== null) {
+        ghyb = new OpenLayers.Layer.Google('Google Hybrid', {
+            type: G_HYBRID_MAP,
+            numZoomLevels: 20,
+            sphericalMercator: true,
+            MIN_ZOOM_LEVEL: bdrs.map.MIN_GOOGLE_ZOOM_LEVEL
+        });
+        layers.push(ghyb);
+    }
+    
+    if(window.G_SATELLITE_MAP !== undefined && window.G_SATELLITE_MAP !== null) {
+        var gsat = new OpenLayers.Layer.Google('Google Satellite', {
+            type: G_SATELLITE_MAP,
+            numZoomLevels: 22,
+            sphericalMercator: true,
+            MIN_ZOOM_LEVEL: bdrs.map.MIN_GOOGLE_ZOOM_LEVEL
+        });
+        layers.push(gsat);
+    }
+    
+    if(layers.length === 0) {
+        var nobase = new OpenLayers.Layer("No Basemap",{isBaseLayer: true, 'displayInLayerSwitcher': true});
+        layers.push(nobase);
+    }
+    
+    if (ghyb !== null) {
+        bdrs.map.baseLayer = ghyb;
+    }
+    
+    return layers;
 };
 
 /**
@@ -1354,13 +1375,17 @@ bdrs.openlayers.locationlayer.stylemap = {
     };
 
 bdrs.map.addLocationLayer = function(map, layerName){
-    var layer = new OpenLayers.Layer.Vector(layerName, {
-        styleMap: new OpenLayers.StyleMap(bdrs.openlayers.locationlayer.stylemap)
-    });
-    
+    var layer = bdrs.map.addVectorLayer(map, layerName, bdrs.openlayers.locationlayer.stylemap);
     map.addLayers([layer]);
     return layer;
 };
+
+bdrs.map.addVectorLayer = function(map, layerName, stylemap) {
+    var layer = new OpenLayers.Layer.Vector(layerName, {
+        styleMap: new OpenLayers.StyleMap(stylemap)
+    });
+    return layer;
+}
 
 bdrs.map.roundNumber = function(num, dec){
     var result = Math.round(num * Math.pow(10, dec)) / Math.pow(10, dec);
@@ -2137,8 +2162,8 @@ bdrs.map.latLonToName = function(latitude, longitude, callback){
 bdrs.map.centerMapToLayerExtent = function(map, layer){
     var extent = null;
     if (layer instanceof Array) {
-    	// get the extent from all of the layers
-    	for (var i = 0; i < layer.length; i++) {
+        // get the extent from all of the layers
+        for (var i = 0; i < layer.length; i++) {
             var thislayer = layer[i];
             if (extent !== null && thislayer && thislayer.getDataExtent() !== null) {
                 extent.extend(thislayer.getDataExtent());
@@ -2527,33 +2552,33 @@ bdrs.survey = {};
  * @param msgSelector [optional] - The id of the domElement that will receive a statusMessage in regards to the delete action.
  */
 bdrs.survey.deleteAjaxRecord = function(userIdent, recordId, recordSelector, msgSelector) {
-	if(recordId !== undefined && recordId !== ""){
-		if(confirm('Are you sure you want to delete this record?')) {
-			var statusMsg;
-			jQuery.ajax({
-				url: bdrs.contextPath + "/webservice/record/deleteRecord.htm",
-			    type: "POST",
-			    data: {
-			        ident: userIdent,
-	        		recordId: recordId
-			    },
-			    success: function(data){
-			    	if(data.succeeded){
-			    		if(recordSelector !== undefined){
-			    			jQuery(recordSelector).remove();
-			    		}
-			    	} else {
-			    		bdrs.message.set("The record is not deleted.");
-			    	}
-			    },
-			    error: function(){
-			    	bdrs.message.set("The record is not deleted.");
-			    }
-			});
-	    }
-	} else {
-		jQuery(recordSelector).remove();
-	}
+    if(recordId !== undefined && recordId !== ""){
+        if(confirm('Are you sure you want to delete this record?')) {
+            var statusMsg;
+            jQuery.ajax({
+                url: bdrs.contextPath + "/webservice/record/deleteRecord.htm",
+                type: "POST",
+                data: {
+                    ident: userIdent,
+                    recordId: recordId
+                },
+                success: function(data){
+                    if(data.succeeded){
+                        if(recordSelector !== undefined){
+                            jQuery(recordSelector).remove();
+                        }
+                    } else {
+                        bdrs.message.set("The record is not deleted.");
+                    }
+                },
+                error: function(){
+                    bdrs.message.set("The record is not deleted.");
+                }
+            });
+        }
+    } else {
+        jQuery(recordSelector).remove();
+    }
 };
 
 bdrs.survey.location = {};

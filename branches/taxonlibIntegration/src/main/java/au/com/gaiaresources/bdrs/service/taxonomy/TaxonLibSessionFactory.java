@@ -13,17 +13,17 @@ public class TaxonLibSessionFactory {
 
     private static Logger log = Logger.getLogger(TaxonLibSessionFactory.class);
     
-    public static TaxonLibSession getSession() throws Exception {
-        return TaxonLib.openSession(getConnection());
+    public static TaxonLibSession getSession(String url, String username, String password) throws Exception {
+        return TaxonLib.openSession(getConnection(url, username, password));
     }
 
-    private static Connection getConnection() throws Exception {
+    private static Connection getConnection(String url, String username, String password) throws Exception {
 
         // hardcode connection for now...
-        String DB_CONN_STRING = "jdbc:postgresql://localhost:5432/taxonlib";
+        String DB_CONN_STRING = "jdbc:postgresql://" + url;
         String DRIVER_CLASS_NAME = "org.postgresql.Driver";
-        String USER_NAME = "postgres";
-        String PASSWORD = "postgres";
+        String USER_NAME = username;
+        String PASSWORD = password;
 
         Connection result = null;
         try {

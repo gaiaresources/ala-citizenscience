@@ -14,10 +14,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import au.com.gaiaresources.bdrs.db.FilterManager;
 import au.com.gaiaresources.bdrs.db.Persistent;
 import au.com.gaiaresources.bdrs.db.QueryCriteria;
+import au.com.gaiaresources.bdrs.db.TransactionDAO;
 import au.com.gaiaresources.bdrs.model.portal.Portal;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 
-public abstract class AbstractDAOImpl {
+public abstract class AbstractDAOImpl implements TransactionDAO {
 
     @SuppressWarnings("unused")
     private Logger log = Logger.getLogger(AbstractDAOImpl.class);
@@ -29,7 +30,7 @@ public abstract class AbstractDAOImpl {
         return sessionFactory;
     }
 
-    protected <T extends Persistent> T save(T instance) {
+    public <T extends Persistent> T save(T instance) {
         updateTimestamp(instance);
         return save(sessionFactory.getCurrentSession(), instance);
     }
@@ -44,6 +45,11 @@ public abstract class AbstractDAOImpl {
         updateTimestamp(instance);
         sesh.saveOrUpdate(instance);
         return instance;
+    }
+    
+    @Override
+    public <T extends Persistent> T saveOrUpdate(T instance) {
+        return saveOrUpdate(sessionFactory.getCurrentSession(), instance);
     }
     
     protected int deleteByQuery(Persistent instance) {
@@ -79,7 +85,7 @@ public abstract class AbstractDAOImpl {
         this.delete(sessionFactory.getCurrentSession(),instance);
     }
 
-    protected <T extends Persistent> T update(T instance) {
+    public <T extends Persistent> T update(T instance) {
         updateTimestamp(instance);
         return update(sessionFactory.getCurrentSession(), instance);
     }
