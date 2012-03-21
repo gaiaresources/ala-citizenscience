@@ -1,7 +1,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://tiles.apache.org/tags-tiles" prefix="tiles" %>
 
-<tiles:useAttribute name="bdrsLayer" classname="au.com.gaiaresources.bdrs.model.map.GeoMapLayer" ignore="true"/>
+<tiles:useAttribute name="bdrsLayer" classname="au.com.gaiaresources.bdrs.model.survey.SurveyGeoMapLayer" ignore="true"/>
 
 <tr>
   <td class="drag_handle">
