@@ -166,16 +166,12 @@ public class GeoMapLayer extends PortalPersistentImpl implements Comparable<GeoM
     }
     @Override
     public int compareTo(GeoMapLayer other) {
-        if (other instanceof GeoMapLayer) {
-            int compareVal = Integer.valueOf(this.getWeight()).compareTo(((GeoMapLayer)other).getWeight());
-            // if they are equal, compare the names
-            if (compareVal == 0) {
-                compareVal = this.getName().compareTo(((GeoMapLayer)other).getName());
-            }
-            return compareVal;
+        int compareVal = Integer.valueOf(this.getWeight()).compareTo(((GeoMapLayer)other).getWeight());
+        // if they are equal, compare the names
+        if (compareVal == 0) {
+            compareVal = this.getName().compareTo(((GeoMapLayer)other).getName());
         }
-        // if it is not a GeoMapLayer, they cannot be compared and will just be considered equal
-        return 0;
+        return compareVal;
     }
     
     @Override

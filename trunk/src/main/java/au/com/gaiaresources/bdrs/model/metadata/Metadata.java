@@ -145,11 +145,11 @@ public class Metadata extends PortalPersistentImpl {
     /**
      * The default zoom level of the map.
      */
-    public static String MAP_DEFAULT_ZOOM = "Survey.MapZoom";
+    public static final String MAP_DEFAULT_ZOOM = "Survey.MapZoom";
     /**
      * The default center of the map.
      */
-    public static String MAP_DEFAULT_CENTER = "Survey.MapCenter";
+    public static final String MAP_DEFAULT_CENTER = "Survey.MapCenter";
 
     private String key;
     private String value;
