@@ -14,7 +14,6 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.springframework.util.StringUtils;
 
-import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile;
 import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfileDAO;
@@ -49,9 +48,8 @@ public class NswFloraImporter {
     
     private TaxaDAO taxaDAO;
     private SpeciesProfileDAO spDAO;
-    private MetadataDAO mdDAO;
 
-    public NswFloraImporter(TaxonLibSession session, Date now, TaxaDAO taxaDAO, SpeciesProfileDAO spDAO, MetadataDAO mdDAO)
+    public NswFloraImporter(TaxonLibSession session, Date now, TaxaDAO taxaDAO, SpeciesProfileDAO spDAO)
             throws TaxonLibException {
         if (session == null) {
             throw new IllegalArgumentException("TaxonLibSession cannot be null");
@@ -65,15 +63,11 @@ public class NswFloraImporter {
         if (spDAO == null) {
             throw new IllegalArgumentException("SpeciesProfileDAO cannot be null");
         }
-        if (mdDAO == null) {
-            throw new IllegalArgumentException("MetadataDAO cannot be null");
-        }
         temporalContext = session.getTemporalContext(now);
         untrackedContext = session.getUntrackedContext();
         
         this.taxaDAO = taxaDAO;
         this.spDAO = spDAO;
-        this.mdDAO = mdDAO;
     }
 
     public static final String EXPECTED_CHARSET = "UTF-8";

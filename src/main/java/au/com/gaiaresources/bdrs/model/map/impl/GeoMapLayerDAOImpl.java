@@ -10,6 +10,7 @@ import org.hibernate.Session;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
+import au.com.gaiaresources.bdrs.db.Persistent;
 import au.com.gaiaresources.bdrs.db.impl.AbstractDAOImpl;
 import au.com.gaiaresources.bdrs.db.impl.HqlQuery;
 import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
@@ -138,5 +139,10 @@ public class GeoMapLayerDAOImpl extends AbstractDAOImpl implements GeoMapLayerDA
             return Collections.EMPTY_LIST;
         }
         return result;
+    }
+
+    @Override
+    public List<GeoMapLayer> getAllLayers() {
+        return find("from GeoMapLayer ml ");
     }
 }

@@ -11,7 +11,7 @@
 <tiles:useAttribute name="mapEditable" ignore="true" />
 
 <c:if test="${mapEditable == null}">
-	<c:set var="mapEditable" value="true" />
+    <c:set var="mapEditable" value="true" />
 </c:if>
 
 <cw:getContent key="user/recordSightingMapDescription" />
@@ -50,7 +50,7 @@
         var layerName = bdrs.survey.location.LAYER_NAME;
         bdrs.map.initBaseMap('base_map', { geocode: { selector: '#geocode' }, hideShowMapLink : true});
         bdrs.map.addLocationLayer(bdrs.map.baseMap, bdrs.survey.location.LOCATION_LAYER_NAME);
-    
+
         <c:choose>
 		    <c:when test="${survey.predefinedLocationsOnly || not recordWebFormContext.editable}">
                 var layer = bdrs.map.addPositionLayer(layerName);
@@ -88,7 +88,57 @@
                 bdrs.map.addLonLatChangeHandler(layer, entryForm.longSelector, entryForm.latSelector);
             </c:otherwise>
         </c:choose>
-    
+
+        // add the vector layers to the map
+        // add the vector layers
+        var geoMapLayers = ${recordWebFormContext.geoMapLayers};
+        var layerArray = new Array();
+        <c:forEach items="${survey.geoMapLayers}" var="assignedLayer">
+        {
+            var layer;
+            <c:choose>
+            <c:when test="${assignedLayer.layer.layerSource == \"SHAPEFILE\" || assignedLayer.layer.layerSource == \"SURVEY_MAPSERVER\"}">
+                var layerOptions = {
+                    bdrsLayerId: ${assignedLayer.layer.id},
+                    visible: true,
+                    opacity: bdrs.map.DEFAULT_OPACITY,
+                    fillColor: "${assignedLayer.layer.fillColor}",
+                    strokeColor: "${assignedLayer.layer.strokeColor}",
+                    strokeWidth: ${assignedLayer.layer.strokeWidth},
+                    size: ${assignedLayer.layer.symbolSize}
+                };
+                // intentionally don't add this one as mapserver layers use transparent tiles not kml features
+                bdrs.map.addMapServerLayer(bdrs.map.baseMap, "${assignedLayer.layer.name}", bdrs.map.getBdrsMapServerUrl(), layerOptions);
+            </c:when>
+            <c:when test="${assignedLayer.layer.layerSource == \"SURVEY_KML\"}">
+                var layerOptions = {
+                    visible: true,
+                    // cluster strategy doesn't work properly for polygons
+                    includeClusterStrategy: true
+                };
+                layer = bdrs.map.addKmlLayer(bdrs.map.baseMap, "${assignedLayer.layer.name}", "${pageContext.request.contextPath}/bdrs/map/getLayer.htm?layerPk=${assignedLayer.layer.id}", layerOptions);
+            </c:when>
+            <c:when test="${assignedLayer.layer.layerSource == \"KML\"}">
+                var layerOptions = {
+                    visible: true,
+                    // cluster strategy doesn't work properly for polygons
+                    includeClusterStrategy: false
+                };
+                layer = bdrs.map.addKmlLayer(bdrs.map.baseMap, "${assignedLayer.layer.name}", "${pageContext.request.contextPath}/bdrs/map/getLayer.htm?layerPk=${assignedLayer.layer.id}", layerOptions);
+            </c:when>
+            </c:choose>
+            if (layer) {
+                layerArray.push(layer);
+            }
+        }
+        </c:forEach>
+
+        // leaving the select handler out for now because it overrides the select handler
+        // for adding a new point, so you can't move new points once they are created
+        // Add select for KML stuff
+        //bdrs.map.addSelectHandler(bdrs.map.baseMap, layerArray);
+
+        
         var lat = jQuery(entryForm.latSelector);
         var lon = jQuery(entryForm.longSelector);
         var wkt = jQuery(entryForm.wktSelector);
@@ -147,7 +197,72 @@
             });
         } else {
             // default center map
-            bdrs.map.centerMap(bdrs.map.baseMap, null, 3);
+            var geom = OpenLayers.Geometry.fromWKT('${survey.mapCenter}');
+            if (geom) {
+                var point = geom.getCentroid();
+                bdrs.map.defaultCenterLat = point.y;
+                bdrs.map.defaultCenterLong = point.x;
+            }
+            if ('${survey.mapZoom}' != '') {
+                bdrs.map.defaultCenterZoom = '${survey.mapZoom}';
+            }
+
+            bdrs.map.centerMap(bdrs.map.baseMap);
         }
     });
+
+    bdrs.map.customMapLayers = function() {
+        var layers =  [];
+        var baseLayers = ${recordWebFormContext.mapBaseLayers};
+        for (var i = 0; i < baseLayers.length; i++) {
+            var layer = baseLayers[i];
+            var thisLayer;
+            if(layer.layerSource === 'G_PHYSICAL_MAP' && window.G_PHYSICAL_MAP !== undefined && window.G_PHYSICAL_MAP !== null) {
+                thisLayer = new OpenLayers.Layer.Google('Google Physical', {
+                    type: G_PHYSICAL_MAP,
+                    sphericalMercator: true,
+                    MIN_ZOOM_LEVEL: bdrs.map.MIN_GOOGLE_ZOOM_LEVEL
+                });
+            } else if(layer.layerSource === 'G_NORMAL_MAP' && window.G_NORMAL_MAP !== undefined && window.G_NORMAL_MAP !== null) {
+                thisLayer = new OpenLayers.Layer.Google('Google Streets', // the default
+                {
+                    type: G_NORMAL_MAP,
+                    numZoomLevels: 20,
+                    sphericalMercator: true,
+                    MIN_ZOOM_LEVEL: bdrs.map.MIN_GOOGLE_ZOOM_LEVEL
+                });
+            } else if(layer.layerSource === 'G_HYBRID_MAP' && window.G_HYBRID_MAP !== undefined && window.G_HYBRID_MAP !== null) {
+                thisLayer = new OpenLayers.Layer.Google('Google Hybrid', {
+                    type: G_HYBRID_MAP,
+                    numZoomLevels: 20,
+                    sphericalMercator: true,
+                    MIN_ZOOM_LEVEL: bdrs.map.MIN_GOOGLE_ZOOM_LEVEL
+                });
+            } else if(layer.layerSource === 'G_SATELLITE_MAP' && window.G_SATELLITE_MAP !== undefined && window.G_SATELLITE_MAP !== null) {
+                thisLayer = new OpenLayers.Layer.Google('Google Satellite', {
+                    type: G_SATELLITE_MAP,
+                    numZoomLevels: 22,
+                    sphericalMercator: true,
+                    MIN_ZOOM_LEVEL: bdrs.map.MIN_GOOGLE_ZOOM_LEVEL
+                });
+            } else if (layer.layerSource === 'OSM') {
+                thisLayer = new OpenLayers.Layer.OSM();
+            }
+
+            if (thisLayer) {
+                layers.push(thisLayer);
+            }
+            
+            if (layer['default']) {
+                bdrs.map.baseLayer = thisLayer;
+            }
+        }
+        
+        if(layers.length === 0) {
+            var nobase = new OpenLayers.Layer("No Basemap",{isBaseLayer: true, 'displayInLayerSwitcher': true});
+            layers.push(nobase);
+        }
+
+        return layers;
+    };
 </script>

@@ -110,5 +110,41 @@
         "preferenceCategoryName": "category.searchResults",
         "portalName": null,
         "isRequired": true
+    },
+	{
+        "classname": "au.com.gaiaresources.bdrs.model.preference.PreferenceCategory",
+        "name": "taxonlib.config",
+        "displayName": "TaxonLib Configuration",
+        "description": "Configuration for BDRS integration with taxonlib." 
+    },
+	{
+        "classname": "au.com.gaiaresources.bdrs.model.preference.Preference",
+        "key": "taxonlib.database.url",
+        "value": "",
+        "locked": true,
+        "description": "The URL for the TaxonLib database.",
+        "preferenceCategoryName": "taxonlib.config",
+        "portalName": null,
+        "isRequired": false
+    },
+	{
+        "classname": "au.com.gaiaresources.bdrs.model.preference.Preference",
+        "key": "taxonlib.database.username",
+        "value": "",
+        "locked": true,
+        "description": "The user name for the TaxonLib database.",
+        "preferenceCategoryName": "taxonlib.config",
+        "portalName": null,
+        "isRequired": false
+    },
+	{
+        "classname": "au.com.gaiaresources.bdrs.model.preference.Preference",
+        "key": "taxonlib.database.password",
+        "value": "",
+        "locked": true,
+        "description": "The password for the TaxonLib database.",
+        "preferenceCategoryName": "taxonlib.config",
+        "portalName": null,
+        "isRequired": false
     }
 ]

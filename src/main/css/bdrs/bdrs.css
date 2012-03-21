@@ -1837,3 +1837,10 @@ div.blockUI.blockMsg.blockPage h1 {
     font-size:1.1em;
     font-weight: bold;
 }
+
+/*****************************************/
+/* Styling for map settings editor       */
+/*****************************************/
+#attribute_input_table tbody td.checkColumn {
+    width: 75px;
+}

@@ -11,8 +11,6 @@ import au.com.gaiaresources.bdrs.db.impl.Predicate;
 import au.com.gaiaresources.bdrs.db.impl.QueryPaginator;
 import au.com.gaiaresources.bdrs.model.map.GeoMap;
 import au.com.gaiaresources.bdrs.model.map.GeoMapDAO;
-import au.com.gaiaresources.bdrs.model.map.GeoMapLayer;
-import au.com.gaiaresources.bdrs.model.user.User;
 
 @Repository
 public class GeoMapDAOImpl extends AbstractDAOImpl implements GeoMapDAO {

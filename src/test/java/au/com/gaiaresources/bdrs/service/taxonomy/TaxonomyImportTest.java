@@ -19,7 +19,7 @@ public abstract class TaxonomyImportTest extends AbstractTransactionalTest {
 
     @Before
     public void taxonomyImportTestSetup() throws Exception {
-        taxonLibSession = TaxonLibSessionFactory.getSession();
+        taxonLibSession = TaxonLibSessionFactory.getSession("localhost:5432/taxonlib", "postgres", "postgres");
     }
 
     @After

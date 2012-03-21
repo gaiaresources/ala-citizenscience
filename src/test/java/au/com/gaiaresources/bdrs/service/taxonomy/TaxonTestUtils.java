@@ -3,6 +3,9 @@ package au.com.gaiaresources.bdrs.service.taxonomy;
 import java.util.Collection;
 import java.util.List;
 
+import junit.framework.Assert;
+
+import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile;
 import au.com.gaiaresources.taxonlib.ITemporalContext;
 import au.com.gaiaresources.taxonlib.model.ITaxonConcept;
 import au.com.gaiaresources.taxonlib.model.ITaxonConceptRelation;
@@ -13,6 +16,23 @@ import au.com.gaiaresources.taxonlib.model.TaxonConceptRelation;
 import au.com.gaiaresources.taxonlib.model.TaxonName;
 
 public class TaxonTestUtils {
+	
+	public static SpeciesProfile getProfileItemByType(List<SpeciesProfile> spList,
+            String type) {
+        for (SpeciesProfile sp : spList) {
+            if (sp.getType().equals(type)) {
+                return sp;
+            }
+        }
+        return null;
+    }
+
+    public static void assertSpeciesProfileValue(List<SpeciesProfile> spList,
+            String type, String expectedValue) {
+        SpeciesProfile sp = getProfileItemByType(spList, type);
+        Assert.assertNotNull("SpeciesProfile cannot be null", sp);
+        Assert.assertEquals("wrong value", expectedValue, sp.getContent());
+    }
 
     public static ITaxonConcept getTaxonConceptById(
             Collection<ITaxonConcept> tcList, Integer id) {

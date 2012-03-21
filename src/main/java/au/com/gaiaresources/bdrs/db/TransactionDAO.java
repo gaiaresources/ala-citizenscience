@@ -11,4 +11,9 @@ public interface TransactionDAO {
     public <T extends Persistent> void delete(Session sesh, T instance);
     public <T extends Persistent> Long count(Class<T> clazz);
     public SessionFactory getSessionFactory();
+    
+    public <T extends Persistent> T save(T instance);
+    public <T extends Persistent> T update(T instance);
+    public <T extends Persistent> T saveOrUpdate(T instance);
+    public <T extends Persistent> void delete(T instance);
 }
