@@ -411,5 +411,46 @@ INSERT INTO report_report_view (report_id, view)
     SELECT report_id, 'REPORT_LISTING' FROM Report;
 
 ROLLBACK;
+</code>
+
+= r193 =
+<code language="sql">
+BEGIN;
+
+create table BASE_MAP_LAYER 
+(
+  BASE_MAP_LAYER_ID  serial not null, 
+  CREATED_AT timestamp, 
+  UPDATED_AT timestamp, 
+  CREATED_BY integer, 
+  UPDATED_BY integer, 
+  WEIGHT integer, 
+  LAYER_SOURCE character varying(255),
+  DEFAULT_LAYER bool not null, 
+  SURVEY_ID integer not null, 
+  PORTAL_ID integer, 
+  primary key (BASE_MAP_LAYER_ID)
+);
+
+alter table BASE_MAP_LAYER add constraint FK390EF480C136AD4E foreign key (PORTAL_ID) references PORTAL;
+alter table BASE_MAP_LAYER add constraint BASE_MAP_LAYER_TO_SURVEY_FK foreign key (SURVEY_ID) references SURVEY;
+
+create table SURVEY_GEO_MAP_LAYER (
+   SURVEY_GEO_MAP_LAYER_ID serial not null,
+   WEIGHT integer, 
+   CREATED_AT timestamp, 
+   UPDATED_AT timestamp, 
+   CREATED_BY integer, 
+   UPDATED_BY integer, 
+   survey_SURVEY_ID integer, 
+   PORTAL_ID integer, 
+   layer_GEO_MAP_LAYER_ID integer,
+   primary key (SURVEY_GEO_MAP_LAYER_ID)
+);
+alter table SURVEY_GEO_MAP_LAYER add constraint FK47E798BB42522E6E foreign key (layer_GEO_MAP_LAYER_ID) references GEO_MAP_LAYER;
+alter table SURVEY_GEO_MAP_LAYER add constraint FK47E798BBC136AD4E foreign key (PORTAL_ID) references PORTAL;
+alter table SURVEY_GEO_MAP_LAYER add constraint FK47E798BB6B93B13B foreign key (survey_SURVEY_ID) references SURVEY;
+
+ROLLBACK;
 
 </code>
