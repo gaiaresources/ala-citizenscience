@@ -13,7 +13,9 @@ bdrs.dnd.tableDnDDropHandler = function(table, row) {
     var rows = table.tBodies[0].rows;
     for(var row_index=0; row_index<rows.length; row_index++) {
         var j_row = jQuery(rows[row_index]);
-        j_row.find("input.sort_weight").val(row_index * 100);
+        // adding one to the row index prevents a value of 0, which means 
+        // an unsorted value in some tables
+        j_row.find("input.sort_weight").val((row_index+1) * 100);
     }
     
     jQuery(row).effect("highlight", {}, "normal");

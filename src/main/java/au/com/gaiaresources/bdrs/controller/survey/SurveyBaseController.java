@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -30,10 +31,17 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
+import edu.emory.mathcs.backport.java.util.Arrays;
+
 import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.file.FileService;
 import au.com.gaiaresources.bdrs.model.group.Group;
 import au.com.gaiaresources.bdrs.model.group.GroupDAO;
+import au.com.gaiaresources.bdrs.model.map.BaseMapLayer;
+import au.com.gaiaresources.bdrs.model.map.BaseMapLayerDAO;
+import au.com.gaiaresources.bdrs.model.map.BaseMapLayerSource;
+import au.com.gaiaresources.bdrs.model.map.GeoMapLayer;
+import au.com.gaiaresources.bdrs.model.map.GeoMapLayerDAO;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
@@ -41,6 +49,7 @@ import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormSubmitAction;
+import au.com.gaiaresources.bdrs.model.survey.SurveyGeoMapLayer;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
@@ -50,6 +59,7 @@ import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.servlet.RequestContext;
 import au.com.gaiaresources.bdrs.util.ImageUtil;
+import au.com.gaiaresources.bdrs.util.StringUtils;
 
 @Controller
 public class SurveyBaseController extends AbstractController {
@@ -75,6 +85,11 @@ public class SurveyBaseController extends AbstractController {
     
     @Autowired
     private FileService fileService;
+    
+    @Autowired
+    private GeoMapLayerDAO geoMapLayerDAO;
+    @Autowired
+    private BaseMapLayerDAO baseMapLayerDAO;
     
     public static final Dimension TARGET_LOGO_DIMENSION = new Dimension(250,187);
     public static final String TARGET_LOGO_IMAGE_FORMAT = "PNG";
@@ -496,5 +511,185 @@ public class SurveyBaseController extends AbstractController {
     public static ModelAndView nullSurveyRedirect(RequestContext requestContext) {
         requestContext.addMessage(SurveyBaseController.SURVEY_DOES_NOT_EXIST_ERROR_KEY);
         return new ModelAndView(new RedirectView(SurveyBaseController.SURVEY_LISTING_URL, true));
+    }
+    
+    /**
+     * View for editing survey map settings.  Allows the user to set up default zoom and 
+     * centering, base layer and custom bdrs layers to show on the project maps.
+     * @param request
+     * @param response
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR})
+    @RequestMapping(value = "/bdrs/admin/survey/editMap.htm", method = RequestMethod.GET)
+    public ModelAndView editSurveyMap(HttpServletRequest request, HttpServletResponse response) {
+        Survey survey = getSurvey(request.getParameter(BdrsWebConstants.PARAM_SURVEY_ID));
+        if (survey == null) {
+            return SurveyBaseController.nullSurveyRedirect(getRequestContext());
+        }
+        
+        ModelAndView mv = new ModelAndView("surveyEditMap");
+        mv.addObject("survey", survey);
+        
+        // get the base layers that have been set for the survey
+        List<BaseMapLayerSource> enumKeys = new ArrayList<BaseMapLayerSource>(BaseMapLayerSource.values().length);
+        enumKeys.addAll((List<BaseMapLayerSource>)Arrays.asList(BaseMapLayerSource.values()));
+        List<BaseMapLayer> surveyLayers = survey.getBaseMapLayers();
+        List<BaseMapLayer> baseLayers = new ArrayList<BaseMapLayer>(BaseMapLayerSource.values().length);
+        BaseMapLayer defaultLayer = null;
+        boolean showDefaults = surveyLayers.size() < 1;
+        for (BaseMapLayer baseMapLayer : surveyLayers) {
+            enumKeys.remove(baseMapLayer.getLayerSource());
+            if (baseMapLayer.isDefault()) {
+                defaultLayer = baseMapLayer;
+            }
+            baseMapLayer.setShowOnMap(true);
+            baseLayers.add(baseMapLayer);
+        }
+        
+        // create fake base layers for any remaining enum values
+        for (BaseMapLayerSource baseMapLayerSource : enumKeys) {
+            BaseMapLayer layer = new BaseMapLayer();
+            layer.setLayerSource(baseMapLayerSource);
+            boolean isGoogleDefault = defaultLayer == null && BaseMapLayerSource.G_HYBRID_MAP.equals(baseMapLayerSource);
+            boolean isDefault = defaultLayer != null && baseMapLayerSource.equals(defaultLayer.getLayerSource());
+            // set the layer to visible if no values have been saved and it is a Google layer
+            // or if there is no default and it is G_HYBRID_MAP (for the default)
+            layer.setShowOnMap((showDefaults && baseMapLayerSource.getName().startsWith("Google")) || isGoogleDefault || isDefault);
+            layer.setDefault(isGoogleDefault || isDefault);
+            baseLayers.add(layer);
+        }
+        
+        // get the bdrs layers for the survey
+        List<GeoMapLayer> bdrsLayers = geoMapLayerDAO.getAllLayers();
+        List<SurveyGeoMapLayer> selectedBdrsLayers = survey.getGeoMapLayers();
+        List<SurveyGeoMapLayer> allBdrsLayers = new ArrayList<SurveyGeoMapLayer>(bdrsLayers.size());
+        for (GeoMapLayer geoMapLayer : bdrsLayers) {
+            SurveyGeoMapLayer thisLayer = new SurveyGeoMapLayer(survey, geoMapLayer);
+            if (selectedBdrsLayers.contains(thisLayer)) {
+                thisLayer = selectedBdrsLayers.get(selectedBdrsLayers.indexOf(thisLayer));
+            }
+            thisLayer.setShowOnMap(selectedBdrsLayers.contains(thisLayer));
+            allBdrsLayers.add(thisLayer);
+        }
+        
+        // sort the lists before adding to the view
+        Collections.sort(baseLayers);
+        Collections.sort(allBdrsLayers);
+        
+        log.debug("after sorting, base layers are: ");
+        for (BaseMapLayer baseLayer : baseLayers) {
+            log.debug("        "+baseLayer.getLayerSource().getName()+" with weight "+baseLayer.getWeight());
+        }
+        log.debug("after sorting, bdrs layers are: ");
+        for (SurveyGeoMapLayer baseLayer : allBdrsLayers) {
+            log.debug("        "+baseLayer.getLayer().getName()+" with weight "+baseLayer.getWeight());
+        }
+        
+        mv.addObject("baseLayers", baseLayers);
+        mv.addObject("bdrsLayers", allBdrsLayers);
+        return mv;
+    }
+    
+    /**
+     * View for saving survey map settings.  Allows the user to set up default zoom and 
+     * centering, base layer and custom bdrs layers to show on the project maps.
+     * @param request
+     * @param response
+     * @return
+     */
+    @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR})
+    @RequestMapping(value = "/bdrs/admin/survey/editMap.htm", method = RequestMethod.POST)
+    public ModelAndView submitSurveyMap(HttpServletRequest request, HttpServletResponse response) {
+        Survey survey = getSurvey(request.getParameter(BdrsWebConstants.PARAM_SURVEY_ID));
+        if (survey == null) {
+            return SurveyBaseController.nullSurveyRedirect(getRequestContext());
+        }
+        
+        // save the zoom and center defaults
+        String zoom = request.getParameter("zoomLevel");
+        Metadata md = survey.addMetadata(Metadata.MAP_DEFAULT_ZOOM, zoom);
+        metadataDAO.save(md);
+        String center = request.getParameter("mapCenter");
+        md = survey.addMetadata(Metadata.MAP_DEFAULT_CENTER, center);
+        metadataDAO.save(md);
+        surveyDAO.save(survey);
+        
+        String defaultLayerSource = request.getParameter("default");
+        // save any changes to exisitng base layers and remove any that are no longer selected
+        for (BaseMapLayerSource layerSource : BaseMapLayerSource.values()) {
+            String layerId = request.getParameter("id_"+layerSource);
+            BaseMapLayer layer;
+            if(layerId != null && !layerId.isEmpty()) {
+                layer = baseMapLayerDAO.getBaseMapLayer(Integer.valueOf(layerId));
+                if (layer == null) {
+                    throw new NullPointerException("Null object returned for layer with id "+layerId);
+                }
+            } else {
+                layer = new BaseMapLayer();
+                layer.setLayerSource(layerSource);
+                layer.setSurvey(survey);
+            }
+            
+            String selected = request.getParameter("selected_"+layerSource);
+            if (!StringUtils.nullOrEmpty(selected) || layerSource.toString().equals(defaultLayerSource)) {
+                // the layer is selected, update the default setting
+                layer.setDefault(layerSource.toString().equals(defaultLayerSource));
+                layer.setWeight(Integer.valueOf(request.getParameter("weight_"+layerSource)));
+                baseMapLayerDAO.save(layer);
+                survey.addBaseMapLayer(layer);
+            } else {
+                // the layer is not selected, delete it from the database
+                if (layer.getId() != null) {
+                    baseMapLayerDAO.delete(layer);
+                    survey.removeBaseMapLayer(layer);
+                }
+            }
+        }
+        
+        // save any bdrs layers that have been selected/deselected
+        List<SurveyGeoMapLayer> surveyLayers = survey.getGeoMapLayers();
+        if(request.getParameterValues("bdrsLayer") != null) {
+            for(String layerId : request.getParameterValues("bdrsLayer")) {
+                if(layerId != null && !layerId.isEmpty()) {
+                    GeoMapLayer layer = geoMapLayerDAO.get(Integer.valueOf(layerId));
+                    if (layer != null) {
+                        String selected = request.getParameter("bdrs_selected_"+layerId);
+                        SurveyGeoMapLayer thisLayer = new SurveyGeoMapLayer(survey, layer);
+                        if (surveyLayers.contains(thisLayer)) {
+                            thisLayer = surveyLayers.get(surveyLayers.indexOf(thisLayer));
+                        }
+                        if (!StringUtils.nullOrEmpty(selected)) {
+                            // save the new layer or updated old one
+                            int weight = Integer.valueOf(request.getParameter("weight_"+layerId));
+                            log.debug("saving layer "+layerId+" with weight "+weight);
+                            thisLayer.setWeight(weight);
+                            if (surveyLayers.contains(thisLayer)) {
+                                survey.addGeoMapLayer(thisLayer);
+                            }
+                            surveyDAO.save(thisLayer);
+                        } else {
+                            // remove the layer if it exists
+                            if (surveyLayers.contains(thisLayer)) {
+                                survey.removeGeoMapLayer(thisLayer);
+                                surveyDAO.delete(thisLayer);
+                            }
+                        }
+                    }
+                }
+            }
+            // save the survey at the end of all the changes
+            survey = surveyDAO.save(survey);
+        }
+        
+        ModelAndView mv;
+        if(request.getParameter("saveAndContinue") != null) {
+            mv = new ModelAndView(new RedirectView("/bdrs/admin/survey/locationListing.htm", true));
+            mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
+        } else {
+            mv = new ModelAndView(new RedirectView(SURVEY_LISTING_URL, true));
+        }
+        return mv;
     }
 }

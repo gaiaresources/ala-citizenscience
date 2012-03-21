@@ -121,6 +121,14 @@
         <put-list-attribute name="customJavaScript">
         </put-list-attribute>
     </definition>
+    
+    <definition name="settingsMap" template="/WEB-INF/jsp/bdrs/map/settingsMap.jsp">
+        <put-attribute name="maps" value="true"/>
+        <put-list-attribute name="customCss">
+        </put-list-attribute>
+        <put-list-attribute name="customJavaScript">
+        </put-list-attribute>
+    </definition>
 	
 	<definition name="recordFormHeader" template="/WEB-INF/jsp/bdrs/user/record/render/recordFormHeader.jsp">
 	</definition>
