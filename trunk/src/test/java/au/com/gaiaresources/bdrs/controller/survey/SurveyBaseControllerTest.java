@@ -8,7 +8,9 @@ import java.io.FileInputStream;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.imageio.ImageIO;
 
@@ -23,18 +25,25 @@ import org.springframework.test.web.ModelAndViewAssert;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
-import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
+import au.com.gaiaresources.bdrs.controller.AbstractGridControllerTest;
+import au.com.gaiaresources.bdrs.model.map.BaseMapLayer;
+import au.com.gaiaresources.bdrs.model.map.BaseMapLayerSource;
+import au.com.gaiaresources.bdrs.model.map.GeoMapLayer;
+import au.com.gaiaresources.bdrs.model.map.GeoMapLayerDAO;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormSubmitAction;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
-public class SurveyBaseControllerTest extends AbstractControllerTest {
+public class SurveyBaseControllerTest extends AbstractGridControllerTest {
     
     @Autowired
     private SurveyDAO surveyDAO;
+    @Autowired
+    private GeoMapLayerDAO geoMapLayerDAO;
 
     @Test
     public void testListSurveys() throws Exception {
@@ -180,5 +189,60 @@ public class SurveyBaseControllerTest extends AbstractControllerTest {
     @Override
     protected MockHttpServletRequest createMockHttpServletRequest() {
         return super.createUploadRequest();
+    }
+    
+    /**
+     * Test that the survey map editing interface can be correctly opened.
+     * @throws Exception
+     */
+    @Test
+    public void testEditMap() throws Exception {
+        login("admin", "password", new String[] { Role.ADMIN });
+        
+        request.setMethod("GET");
+        request.setRequestURI("/bdrs/admin/survey/editMap.htm");
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, String.valueOf(survey1.getId()));
+        
+        ModelAndView mv = handle(request, response);
+        ModelAndViewAssert.assertViewName(mv, "surveyEditMap");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, "survey");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, "baseLayers");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, "bdrsLayers");
+    }
+    
+    /**
+     * Test that survey map settings can be saved and that they show on the record entry form.
+     * @throws Exception
+     */
+    @Test
+    public void testSaveMapSettings() throws Exception {
+        login("admin", "password", new String[] { Role.ADMIN });
+        
+        request.setMethod("POST");
+        request.setRequestURI("/bdrs/admin/survey/editMap.htm");
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, String.valueOf(survey1.getId()));
+        request.setParameter("zoomLevel", "10");
+        request.setParameter("mapCenter", "POINT(140, -28)");
+        request.setParameter("weight_"+BaseMapLayerSource.G_HYBRID_MAP, "1");
+        request.setParameter("selected_"+BaseMapLayerSource.G_HYBRID_MAP, "true");
+        request.setParameter("default", BaseMapLayerSource.G_HYBRID_MAP.toString());
+        request.setParameter("saveAndContinue", "true");
+        
+        ModelAndView mv = handle(request, response);
+        Assert.assertTrue(mv.getView() instanceof RedirectView);
+        RedirectView redirect = (RedirectView)mv.getView();
+        Assert.assertEquals("/bdrs/admin/survey/locationListing.htm", redirect.getUrl());
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, "surveyId");
+        
+        // assert that the survey settings have been saved properly
+        Assert.assertEquals("POINT(140, -28)", survey1.getMapCenter());
+        Assert.assertEquals("10", survey1.getMapZoom());
+        List<BaseMapLayer> baseLayers = survey1.getBaseMapLayers();
+        // there should be one base layer and it should be as above
+        Assert.assertEquals(1, baseLayers.size());
+        BaseMapLayer layer = baseLayers.get(0);
+        Assert.assertEquals(BaseMapLayerSource.G_HYBRID_MAP, layer.getLayerSource());
+        Assert.assertEquals(1, layer.getWeight());
+        Assert.assertEquals(true, layer.isDefault());
     }
 }

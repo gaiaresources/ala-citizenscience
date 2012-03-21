@@ -1,5 +1,8 @@
 package au.com.gaiaresources.bdrs.controller.record;
 
+import java.util.Collections;
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.security.access.AccessDeniedException;
@@ -8,9 +11,13 @@ import org.springframework.web.servlet.view.RedirectView;
 
 import au.com.gaiaresources.bdrs.config.AppContext;
 import au.com.gaiaresources.bdrs.controller.RenderController;
+import au.com.gaiaresources.bdrs.json.JSONArray;
+import au.com.gaiaresources.bdrs.model.map.BaseMapLayer;
+import au.com.gaiaresources.bdrs.model.map.GeoMapLayer;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
+import au.com.gaiaresources.bdrs.model.survey.SurveyGeoMapLayer;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
@@ -86,6 +93,9 @@ public class RecordWebFormContext {
     private Integer surveyId;
     private boolean moderateOnly;
     
+    private JSONArray mapBaseLayers = new JSONArray();
+    private JSONArray geoMapLayers = new JSONArray();
+
     /**
      * Create a new web form context for use with the form GET handler
      * 
@@ -120,6 +130,22 @@ public class RecordWebFormContext {
         unlockable = existingRecord && recordToLoad.canWrite(accessingUser);
         
         recordAccessSecurityCheck(recordToLoad, accessingUser, editable);
+        
+        // add the flattened layers to the page so they can be referenced 
+        // through the javascript on the map pages
+        if (survey != null) {
+            List<BaseMapLayer> sortedLayers = survey.getBaseMapLayers();
+            Collections.sort(sortedLayers);
+            for (BaseMapLayer layer : sortedLayers) {
+                mapBaseLayers.add(layer.flatten());
+            }
+            
+            List<SurveyGeoMapLayer> sortedGeoLayers = survey.getGeoMapLayers();
+            Collections.sort(sortedGeoLayers);
+            for (SurveyGeoMapLayer layer : sortedGeoLayers) {
+                geoMapLayers.add(layer.flatten(2));
+            }
+        }
     }
     
     /**
@@ -275,5 +301,22 @@ public class RecordWebFormContext {
             }
         }
         return mv;
+    }
+    
+    
+    /**
+     * Gets the base layers that should be shown on the map.
+     * @return the mapBaseLayers
+     */
+    public String getMapBaseLayers() {
+        return mapBaseLayers.toString();
+    }
+    
+    /**
+     * Gets the geo map layers that should be shown on the map.
+     * @return the geoMapLayers
+     */
+    public String getGeoMapLayers() {
+        return geoMapLayers.toString();
     }
 }

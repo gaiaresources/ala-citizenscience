@@ -237,7 +237,7 @@ public class SurveyAttributeBaseController extends AbstractController {
         getRequestContext().addMessage("bdrs.survey.attributes.success", new Object[]{survey.getName()});
         
         if(request.getParameter("saveAndContinue") != null) {
-            mv = new ModelAndView(new RedirectView("/bdrs/admin/survey/locationListing.htm", true));
+            mv = new ModelAndView(new RedirectView("/bdrs/admin/survey/editMap.htm", true));
             mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
         }
         else if(request.getParameter("saveAndPreview") != null) {

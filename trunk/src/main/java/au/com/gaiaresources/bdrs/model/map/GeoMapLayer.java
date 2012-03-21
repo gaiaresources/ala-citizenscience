@@ -13,6 +13,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
@@ -29,7 +30,7 @@ import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 @Filter(name=PortalPersistentImpl.PORTAL_FILTER_NAME, condition=":portalId = PORTAL_ID")
 @Table(name = "GEO_MAP_LAYER")
 @AttributeOverride(name = "id", column = @Column(name = "GEO_MAP_LAYER_ID"))
-public class GeoMapLayer extends PortalPersistentImpl {
+public class GeoMapLayer extends PortalPersistentImpl implements Comparable<GeoMapLayer> {
 
     Survey survey = null;
     String name = "";
@@ -51,6 +52,8 @@ public class GeoMapLayer extends PortalPersistentImpl {
     int strokeWidth = 1;
     
     List<Attribute> attributes = new LinkedList<Attribute>();
+    
+    private boolean showOnSurveyMap = false;
     
     @ManyToOne
     @JoinColumn(name = "SURVEY_ID", nullable = true)
@@ -83,8 +86,10 @@ public class GeoMapLayer extends PortalPersistentImpl {
     public GeoMapLayerSource getLayerSource() {
         return this.layerSrc;
     }
-    public void setLayerSource(GeoMapLayerSource value) {
-        this.layerSrc = value;
+    public void setLayerSource(MapLayerSource value) {
+        if (value instanceof GeoMapLayerSource) {
+            this.layerSrc = (GeoMapLayerSource) value;
+        }
     }
     
     @Column(name = "DESCRIPTION", length=1023, nullable = false)
@@ -158,5 +163,37 @@ public class GeoMapLayer extends PortalPersistentImpl {
     }
     public void setStrokeWidth(int strokeWidth) {
         this.strokeWidth = strokeWidth;
+    }
+    @Override
+    public int compareTo(GeoMapLayer other) {
+        if (other instanceof GeoMapLayer) {
+            int compareVal = Integer.valueOf(this.getWeight()).compareTo(((GeoMapLayer)other).getWeight());
+            // if they are equal, compare the names
+            if (compareVal == 0) {
+                compareVal = this.getName().compareTo(((GeoMapLayer)other).getName());
+            }
+            return compareVal;
+        }
+        // if it is not a GeoMapLayer, they cannot be compared and will just be considered equal
+        return 0;
+    }
+    
+    @Override
+    public boolean equals(Object other) {
+        if (!super.equals(other) || !(other instanceof GeoMapLayer)) {
+            return false;
+        }
+        
+        GeoMapLayer that = (GeoMapLayer) other;
+        return this.getName().equals(that.getName()) && 
+                // either both surveys are null or they are equal
+               (this.getSurvey() == null && that.getSurvey() == null || 
+                       (this.getSurvey() != null && this.getSurvey().equals(that.getSurvey()))) &&
+               this.getLayerSource().equals(that.getLayerSource());
+    }
+    
+    @Override
+    public int hashCode() {
+        return this.getName().hashCode() + this.getSurvey().hashCode() + this.getLayerSource().hashCode();
     }
 }
