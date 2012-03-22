@@ -1,17 +1,7 @@
 package au.com.gaiaresources.bdrs.model.group;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TreeSet;
-
-import javax.persistence.AttributeOverride;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-
+import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
+import au.com.gaiaresources.bdrs.model.user.User;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Filter;
@@ -21,8 +11,16 @@ import org.hibernate.annotations.ParamDef;
 import org.hibernate.annotations.Sort;
 import org.hibernate.annotations.SortType;
 
-import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
-import au.com.gaiaresources.bdrs.model.user.User;
+import javax.persistence.AttributeOverride;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TreeSet;
 
 @Entity
 @FilterDef(name=PortalPersistentImpl.PORTAL_FILTER_NAME, parameters=@ParamDef( name="portalId", type="integer" ) )
@@ -110,4 +108,26 @@ public class Group extends PortalPersistentImpl implements Comparable<Group> {
         // we're good, compare the ID's as usual
         return this.getId() - other.getId();
     }
+
+    /**
+     * Returns true if this Group or any sub-groups of this Group contain the supplied User.
+     * @param user the User to check group membership of.
+     * @return true if the supplied User is a member of this Group.
+     */
+    @Transient
+    public boolean contains(User user) {
+
+        if (users.contains(user) || admins.contains(user)) {
+            return true;
+        }
+
+        for (Group group : getGroups()) {
+            if (group.contains(user)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+    
 }

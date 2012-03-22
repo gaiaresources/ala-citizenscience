@@ -142,6 +142,11 @@ public class Metadata extends PortalPersistentImpl {
      */
     public static final String DEFAULT_LOCATION_ID = "DefaultLocationId";
 
+    /** 
+     * Whether users can comment on Records created against a particular Survey 
+     */
+    public static final String COMMENTS_ENABLED_FOR_SURVEY = "commentsEnabledForSurvey";
+
     /**
      * The default zoom level of the map.
      */
@@ -150,7 +155,7 @@ public class Metadata extends PortalPersistentImpl {
      * The default center of the map.
      */
     public static final String MAP_DEFAULT_CENTER = "Survey.MapCenter";
-
+    
     private String key;
     private String value;
 

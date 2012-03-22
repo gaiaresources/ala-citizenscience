@@ -1,28 +1,5 @@
 package au.com.gaiaresources.bdrs.model.record;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.TimeZone;
-
-import javax.persistence.AttributeOverride;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-
-import org.apache.log4j.Logger;
-import org.hibernate.annotations.*;
-
 import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
@@ -38,9 +15,40 @@ import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValueUtil;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.user.User;
-
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
+import org.apache.log4j.Logger;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.FilterDefs;
+import org.hibernate.annotations.Filters;
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
+import org.hibernate.annotations.ParamDef;
+import org.hibernate.annotations.Type;
+
+import javax.persistence.AttributeOverride;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.TimeZone;
 
 @Entity
 @FilterDefs({
@@ -105,6 +113,9 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     private Set<ReviewRequest> reviewRequests = new HashSet<ReviewRequest>();
 
     private Set<Metadata> metadata = new HashSet<Metadata>();
+
+    /** Contains the Comments that have been made on this Record */
+    private List<Comment> comments = new ArrayList<Comment> ();
 
     /**
      * {@inheritDoc}
@@ -544,6 +555,52 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     public void setMetadata(Set<Metadata> metadata) {
         this.metadata = metadata;
     }
+
+    /**
+     * @return the List of Comments made about this Record.  The List is sorted by newest Comment first.
+     */
+    @OneToMany(cascade={CascadeType.ALL}, fetch=FetchType.LAZY, mappedBy="record")
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE_ORPHAN)
+    @OrderBy("createdAt desc")
+    public List<Comment> getComments() {
+        return comments;
+    }
+
+    /**
+     * Sets the List of comments on this Record.  This is a framework method, clients should use "addComment" instead.
+     * @param comments the List of Comments that are replies to this Comment.
+     */
+    void setComments(List<Comment> comments) {
+        this.comments = comments;
+    }
+
+    /**
+     * Adds a Comment to his Record.
+     * @param comment the Comment to add.
+     */
+    @Transient
+    public void addComment(Comment comment) {
+         comment.setRecord(this);
+        // Insert the comment into the start of the list for consistency - when retrieved from the
+        // database comments are returned in descending date created order.
+         comments.add(0, comment);
+    }
+
+    /**
+     * Convenience method to add a comment as a string to a Record.
+     * @param commentText the text of the comment to add.
+     * @return the newly created Comment
+     */
+    @Transient
+    public Comment addComment(String commentText) {
+        Comment comment = new Comment();
+        comment.setCommentText(commentText);
+        addComment(comment);
+        
+        return comment;
+    }
+
+
     @Transient
     public String getMetadataValue(String key) {
         if(key == null) {
@@ -730,9 +787,50 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
         }
     }
 
+    /**
+     * Returns true if the supplied User is allowed to comment on this Record.
+     *
+     * @param commentingUser the user to check.
+     * @return true if the supplied user can comment on this Record.
+     */
+    @Transient
+    public boolean canComment(User commentingUser) {
+
+        return canView(commentingUser) && survey.hasAccess(commentingUser);
+    }
+
     @Override
     @Transient
     public AttributeValue createAttribute() {
         return new AttributeValue();
+    }
+
+    /**
+     * Returns the Comment with the specified id.  If no such Comment exists, an IllegalArgumentException will
+     * be thrown.
+     * @param commentId the ID of the Comment to return.
+     * @return the Comment with the supplied ID.
+     */
+    @Transient
+    public Comment getCommentById(int commentId) {
+        
+        Comment comment = null;
+        for (Comment tmpComment : comments) {
+            if (tmpComment.getId() == commentId) {
+                comment = tmpComment;
+                break;
+            }
+            
+            comment = tmpComment.getCommentById(commentId);
+            if (comment != null) {
+                break;
+            }
+        }
+        
+        if (comment == null) {
+            throw new IllegalArgumentException("No comment has been made on this Record with ID="+commentId);
+        }
+        
+        return comment;
     }
 }

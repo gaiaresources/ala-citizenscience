@@ -736,6 +736,9 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
             recAttr = saveAttributeValue(recAttr);
             cascadeHandler.deleteCascade(recAttr);
         }
+        // Removing the comments in this way triggers the cascade delete setting on the association to delete
+        // the comments associated with the Record.
+        record.getComments().clear();
         deleteByQuery(record);
     }
     

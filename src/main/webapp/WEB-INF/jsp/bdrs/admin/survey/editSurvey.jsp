@@ -209,6 +209,16 @@
 	                        />
 	                    </td>
 	                </tr>
+                    <tr>
+                        <th title="Controls if users can add comments to records created using this survey">Comments on records allowed</th>
+                        <td>
+                            <input type="checkbox" name="recordCommentsEnabled" value="True"
+                                <c:if test="${survey.recordCommentsEnabled}">
+                                    checked="checked"
+                                </c:if>
+                            />
+                        </td>
+                    </tr>
 				</tbody>
 			</table>
 		</div>

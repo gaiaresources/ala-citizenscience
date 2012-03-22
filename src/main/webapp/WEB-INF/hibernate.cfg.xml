@@ -27,6 +27,7 @@
         <mapping class="au.com.gaiaresources.bdrs.model.taxa.IndicatorSpeciesAttribute"/>
         <mapping class="au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile"/>
         <mapping class="au.com.gaiaresources.bdrs.model.record.Record"/>
+        <mapping class="au.com.gaiaresources.bdrs.model.record.Comment"/>
         
         <mapping class="au.com.gaiaresources.bdrs.model.survey.Survey"/>
         <mapping class="au.com.gaiaresources.bdrs.model.project.Project"/>

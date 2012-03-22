@@ -1844,3 +1844,62 @@ div.blockUI.blockMsg.blockPage h1 {
 #attribute_input_table tbody td.checkColumn {
     width: 75px;
 }
+
+
+/************************************************/
+/* Styling for comments                         */
+/************************************************/
+.comments {
+    margin-top: 20px;
+    padding: 0px 16px 16px 16px;
+    /* Rounded Border */
+    border: 1px solid #DADADA;
+    -webkit-border-radius: 8px;
+    -khtml-border-radius: 8px;
+    -moz-border-radius: 8px;
+    border-radius: 8px;
+    background-color: #F0F0F0;
+    color: #666666;
+}
+
+.commentHeader {
+    position: relative;
+    font-size: 0.9em;
+}
+
+.commentHeader .actions {
+    position: absolute;
+    right: 0px;
+}
+
+.comments ul {
+    margin: 0 0 0 2em;
+    list-style: none;
+}
+
+.comments li {
+    margin-top: 1em;
+    margin-bottom: 1em;
+    list-style: none;
+}
+
+.comments .userName {
+    font-weight: bold;
+}
+
+.comments addCommentForm {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.comments .deleted {
+    color: #d3d3d3;
+}
+
+.comments .warning {
+    padding-left: 1em;
+}
+
+.jcollapsible {
+    font-size: 1.1em;
+}
