@@ -137,7 +137,7 @@ public class SurveyAttributeBaseController extends AbstractController {
             boolean isActiveThold = thresholdService.isActiveThresholdForAttribute(attr);
             field.setHasThreshold(isActiveThold);
         }
-        
+
         for(RecordPropertyType type : RecordPropertyType.values()) {
             RecordProperty recordProperty = new RecordProperty(survey, type, metadataDAO);
             field = formFieldFactory.createAttributeFormField(recordProperty);

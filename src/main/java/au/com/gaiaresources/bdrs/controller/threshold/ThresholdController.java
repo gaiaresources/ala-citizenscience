@@ -109,7 +109,7 @@ public class ThresholdController extends AbstractController {
 
         String displayNameKey;
         Map<String, String> displayNameMap = new HashMap<String, String>(
-                ThresholdService.THRESHOLD_CLASSES.length);
+                ThresholdService.THRESHOLD_CLASSES.size());
         for (Class<?> thresholdClass : ThresholdService.THRESHOLD_CLASSES) {
             displayNameKey = String.format(THRESHOLD_CLASS_DISPLAYNAME_PLURAL_TEMPLATE, thresholdClass.getCanonicalName());
             displayNameMap.put(thresholdClass.getCanonicalName(), propertyService.getMessage(displayNameKey));

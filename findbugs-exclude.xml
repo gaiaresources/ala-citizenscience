@@ -17,10 +17,30 @@
        <Class name="au.com.gaiaresources.bdrs.json.JSONObject"/>
        <Bug pattern="NM_SAME_SIMPLE_NAME_AS_SUPERCLASS" />
      </Match>
+    <Match>
+        <Class name="au.com.gaiaresources.bdrs.db.SessionFactory"/>
+        <Bug pattern="NM_SAME_SIMPLE_NAME_AS_INTERFACE" />
+    </Match>
+    <Match>
+        <Class name="au.com.gaiaresources.bdrs.db.Session"/>
+        <Bug pattern="NM_SAME_SIMPLE_NAME_AS_INTERFACE" />
+    </Match>
+    <Match>
+        <Class name="au.com.gaiaresources.bdrs.db.TransactionCallback"/>
+        <Bug pattern="NM_SAME_SIMPLE_NAME_AS_INTERFACE" />
+    </Match>
+    <Match>
+        <Class name="au.com.gaiaresources.bdrs.security.UserDetails"/>
+        <Bug pattern="NM_SAME_SIMPLE_NAME_AS_INTERFACE" />
+    </Match>
      <Match>
        <Class name="au.com.gaiaresources.bdrs.servlet.HandlerExceptionResolver"/>
        <Bug pattern="NM_SAME_SIMPLE_NAME_AS_INTERFACE" />
      </Match>
+    <Match>
+        <Class name="au.com.gaiaresources.bdrs.validation.Validator"/>
+        <Bug pattern="NM_SAME_SIMPLE_NAME_AS_INTERFACE" />
+    </Match>
      <Match>
        <Class name="au.com.gaiaresources.bdrs.model.theme.Theme"/>
        <Bug pattern="EI_EXPOSE_REP2" />

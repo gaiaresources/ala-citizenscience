@@ -71,8 +71,15 @@ public class ThresholdService implements ConditionOperatorHandler {
     /**
      * The list of classes where theresholding may be applied.
      */
-    public static final Class<?>[] THRESHOLD_CLASSES = new Class<?>[] {
-            Record.class, Survey.class, IndicatorSpecies.class, User.class };
+    public static final List<Class<?>> THRESHOLD_CLASSES;
+    static {
+        ArrayList<Class<?>> list = new ArrayList<Class<?>>();
+        list.add(Record.class);
+        list.add(Survey.class);
+        list.add(IndicatorSpecies.class);
+        list.add(User.class);
+        THRESHOLD_CLASSES = Collections.unmodifiableList(list);
+    } 
 
     /**
      * A mapping of simple datatypes and the possible operations that may be

@@ -1,26 +1,33 @@
 package au.com.gaiaresources.bdrs.controller.survey;
 
-import java.awt.Dimension;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.annotation.security.RolesAllowed;
-import javax.imageio.ImageIO;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.ws.http.HTTPException;
-
-import org.apache.commons.io.FileUtils;
+import au.com.gaiaresources.bdrs.controller.AbstractController;
+import au.com.gaiaresources.bdrs.file.FileService;
+import au.com.gaiaresources.bdrs.json.JSONException;
+import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.model.group.Group;
+import au.com.gaiaresources.bdrs.model.group.GroupDAO;
+import au.com.gaiaresources.bdrs.model.map.*;
+import au.com.gaiaresources.bdrs.model.metadata.Metadata;
+import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
+import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
+import au.com.gaiaresources.bdrs.model.survey.*;
+import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
+import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.model.user.UserDAO;
+import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.survey.SurveyImportExportService;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import au.com.gaiaresources.bdrs.servlet.RequestContext;
+import au.com.gaiaresources.bdrs.util.ImageUtil;
+import au.com.gaiaresources.bdrs.util.StringUtils;
+import au.com.gaiaresources.bdrs.util.ZipUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.classic.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,41 +38,79 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
-import edu.emory.mathcs.backport.java.util.Arrays;
-
-import au.com.gaiaresources.bdrs.controller.AbstractController;
-import au.com.gaiaresources.bdrs.file.FileService;
-import au.com.gaiaresources.bdrs.model.group.Group;
-import au.com.gaiaresources.bdrs.model.group.GroupDAO;
-import au.com.gaiaresources.bdrs.model.map.BaseMapLayer;
-import au.com.gaiaresources.bdrs.model.map.BaseMapLayerDAO;
-import au.com.gaiaresources.bdrs.model.map.BaseMapLayerSource;
-import au.com.gaiaresources.bdrs.model.map.GeoMapLayer;
-import au.com.gaiaresources.bdrs.model.map.GeoMapLayerDAO;
-import au.com.gaiaresources.bdrs.model.metadata.Metadata;
-import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
-import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
-import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
-import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
-import au.com.gaiaresources.bdrs.model.survey.SurveyFormSubmitAction;
-import au.com.gaiaresources.bdrs.model.survey.SurveyGeoMapLayer;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
-import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.model.user.UserDAO;
-import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
-import au.com.gaiaresources.bdrs.servlet.RequestContext;
-import au.com.gaiaresources.bdrs.util.ImageUtil;
-import au.com.gaiaresources.bdrs.util.StringUtils;
+import javax.annotation.security.RolesAllowed;
+import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.ws.http.HTTPException;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.*;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 @Controller
 public class SurveyBaseController extends AbstractController {
-    
+    /**
+     * The URL of the handler to retrieve an exported survey.
+     */
+    public static final String SURVEY_EXPORT_URL = "/bdrs/admin/survey/export.htm";
+
+    /**
+     * The URL of the handler to parse an imported survey.
+     */
+    public static final String SURVEY_IMPORT_URL = "/bdrs/admin/survey/import.htm";
+
+    /**
+     * The POST dictionary key name of the survey import file.
+     */
+    public static final String POST_KEY_SURVEY_IMPORT_FILE = "survey_file";
+
+    /**
+     * The name of the JSON file containing the imported/exported survey data.
+     */
+    public static final String SURVEY_JSON_IMPORT_EXPORT_FILENAME = "survey.json";
+
     public static final String SURVEY_DOES_NOT_EXIST_ERROR_KEY = "bdrs.survey.doesNotExist";
-    
+
+    /**
+     * The target survey logo dimension.
+     */
+    public static final Dimension TARGET_LOGO_DIMENSION = new Dimension(250, 187);
+    /**
+     * The target survey logo image format.
+     */
+    public static final String TARGET_LOGO_IMAGE_FORMAT = "PNG";
+    /**
+     * Query parameter name for the records default visibility.
+     */
+    public static final String PARAM_DEFAULT_RECORD_VISIBILITY = "defaultRecordVis";
+    /**
+     * Query parameter name for the value indicating if the record visibility is modifiable by standard users.
+     */
+    public static final String PARAM_RECORD_VISIBILITY_MODIFIABLE = "recordVisModifiable";
+
+    /**
+     * Request parameter, the form submit action for the survey.
+     */
+    public static final String PARAM_FORM_SUBMIT_ACTION = "formSubmitAction";
+
+    /** The parameter that configures whether records may be commented on */
+    public static final String PARAM_RECORD_COMMENTS_ENABLED = "recordCommentsEnabled";
+
+    /**
+     * The URL of the page displaying a list of all surveys.
+     */
+    public static final String SURVEY_LISTING_URL = "/bdrs/admin/survey/listing.htm";
+    /**
+     * The Query parameter name of the survey primary key passed into the survey exporter.
+     */
+    public static final String QUERY_PARAM_SURVEY_ID = "surveyId";
+
     private Logger log = Logger.getLogger(getClass());
 
     @Autowired
@@ -91,31 +136,25 @@ public class SurveyBaseController extends AbstractController {
     @Autowired
     private BaseMapLayerDAO baseMapLayerDAO;
     
-    public static final Dimension TARGET_LOGO_DIMENSION = new Dimension(250,187);
-    public static final String TARGET_LOGO_IMAGE_FORMAT = "PNG";
-    
-    // what is the record visibility
-    public static final String PARAM_DEFAULT_RECORD_VISIBILITY = "defaultRecordVis";
-    // is the record visibility modifiable to standard users.
-    // admins can always alter the record visibility
-    public static final String PARAM_RECORD_VISIBILITY_MODIFIABLE = "recordVisModifiable";
-    
-    /** The parameter that configures whether records may be commented on */
-    public static final String PARAM_RECORD_COMMENTS_ENABLED = "recordCommentsEnabled";
-    
     /**
-     * Request parameter, the form submit action for the survey.
+     * Provides access to hibernate sessions. This is used for survey import where the entire import executes
+     * in a single transaction.
      */
-    public static final String PARAM_FORM_SUBMIT_ACTION = "formSubmitAction";
-    
-    public static final String SURVEY_LISTING_URL = "/bdrs/admin/survey/listing.htm";
+    @Autowired
+    private SessionFactory sessionFactory;
+
+    /**
+     * The import/export service that takes JSON data and creates BDRS objects.
+     */
+    @Autowired
+    private SurveyImportExportService surveyImportExportService;
 
     @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR})
     @RequestMapping(value = SURVEY_LISTING_URL, method = RequestMethod.GET)
     public ModelAndView listSurveys(HttpServletRequest request, HttpServletResponse response) {
 
         ModelAndView mv = new ModelAndView("surveyListing");
-        mv.addObject("surveyList", surveyDAO.getSurveyListing(getRequestContext().getUser()));
+        mv.addObject("surveyList", surveyDAO.getSurveys(getRequestContext().getUser()));
         return mv;
     }
 
@@ -505,12 +544,117 @@ public class SurveyBaseController extends AbstractController {
         return mv;
     }
 
-    private Survey getSurvey(String rawSurveyId) {
-        if(rawSurveyId == null){
-            // Do not know which survey to deal with. Bail out.
-            throw new HTTPException(HttpServletResponse.SC_NOT_FOUND);
+    // --------------------------------------
+    //  Survey Export
+    // --------------------------------------
+
+    /**
+     * JSON encodes and compresses the survey, censusmethod, metadata and associated attributes and attribute options.
+     *
+     * @param request  the client request
+     * @param response the server response
+     * @param surveyId the primary key of the survey to be exported.
+     * @return compressed JSON representation of the survey, census method, metadata and attributes.
+     */
+    @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR})
+    @RequestMapping(value = SURVEY_EXPORT_URL, method = RequestMethod.GET)
+    public void exportSurvey(HttpServletRequest request,
+                             HttpServletResponse response,
+                             @RequestParam(required = true, value = QUERY_PARAM_SURVEY_ID) int surveyId) throws IOException {
+        Survey survey = surveyDAO.get(surveyId);
+        JSONObject jsonSurvey = surveyImportExportService.exportSurvey(survey);
+
+        response.setContentType(ZipUtils.ZIP_CONTENT_TYPE);
+        response.setHeader("Content-Disposition", "attachment;filename=survey_export_"
+                + survey.getId() + ".zip");
+
+        ZipEntry entry = new ZipEntry(SURVEY_JSON_IMPORT_EXPORT_FILENAME);
+        ZipOutputStream out = new ZipOutputStream(response.getOutputStream());
+        out.putNextEntry(entry);
+        out.write(jsonSurvey.toJSONString().getBytes());
+
+        out.flush();
+        out.close();
+    }
+
+    /**
+     * Creates a new survey based upon an uploaded file.
+     *
+     * @param request  the client request.
+     * @param response the server response.
+     * @return The survey listing page with a message indicating success or failure.
+     */
+    @RolesAllowed({Role.ADMIN})
+    @RequestMapping(value = SURVEY_IMPORT_URL, method = RequestMethod.POST)
+    public ModelAndView importSurvey(MultipartHttpServletRequest request,
+                                     HttpServletResponse response) throws IOException {
+        try {
+            JSONObject importData = null;
+            {
+                MultipartFile file = request.getFile(POST_KEY_SURVEY_IMPORT_FILE);
+                ZipInputStream zis = new ZipInputStream(file.getInputStream());
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                byte[] buffer = new byte[4096];
+                for (ZipEntry entry = zis.getNextEntry(); entry != null; entry = zis.getNextEntry()) {
+                    if (SURVEY_JSON_IMPORT_EXPORT_FILENAME.equals(entry.getName())) {
+                        int read = zis.read(buffer, 0, buffer.length);
+                        while (read > -1) {
+                            baos.write(buffer, 0, read);
+                            read = zis.read(buffer, 0, buffer.length);
+                        }
+                    }
+                }
+                zis.close();
+                importData = JSONObject.fromStringToJSONObject(new String(baos.toByteArray()));
+            }
+
+            if (importData != null) {
+                Session sesh = null;
+                Transaction tx = null;
+                try {
+                    sesh = sessionFactory.openSession();
+
+                    tx = sesh.beginTransaction();
+                    surveyImportExportService.importSurvey(sesh, importData);
+                    tx.commit();
+                    getRequestContext().addMessage("bdrs.survey.import.success");
+                } catch (Throwable t) {
+                    if (tx != null) {
+                        tx.rollback();
+                    }
+                    log.error(t.getMessage(), t);
+                    getRequestContext().addMessage("bdrs.survey.import.error.unknown");
+                } finally {
+                    if (sesh != null) {
+                        sesh.close();
+                    }
+                }
+            } else {
+                getRequestContext().addMessage("bdrs.survey.import.error.missingFile");
+            }
+        } catch (JSONException je) {
+            log.error(je.getMessage(), je);
+            getRequestContext().addMessage("bdrs.survey.import.error.json");
+        } catch (IOException ioe) {
+            log.error(ioe.getMessage(), ioe);
+            getRequestContext().addMessage("bdrs.survey.import.error.io");
         }
-        return surveyDAO.getSurvey(Integer.parseInt(rawSurveyId));
+
+        return new ModelAndView(new RedirectView(SurveyBaseController.SURVEY_LISTING_URL, true));
+    }
+
+    private Survey getSurvey(String rawSurveyId) {
+        Survey survey = null;
+        try {
+            if(rawSurveyId != null) {
+                survey = surveyDAO.getSurvey(Integer.parseInt(rawSurveyId));
+            }
+        } catch(NumberFormatException nfe) {
+            log.warn(String.format("Raw survey ID %s is not a valid integer", rawSurveyId), nfe);
+
+            // Leave survey as null.
+        }
+        return survey;
     }
     
     public static ModelAndView nullSurveyRedirect(RequestContext requestContext) {
@@ -539,7 +683,7 @@ public class SurveyBaseController extends AbstractController {
         
         // get the base layers that have been set for the survey
         List<BaseMapLayerSource> enumKeys = new ArrayList<BaseMapLayerSource>(BaseMapLayerSource.values().length);
-        enumKeys.addAll((List<BaseMapLayerSource>)Arrays.asList(BaseMapLayerSource.values()));
+        enumKeys.addAll((List<BaseMapLayerSource>) Arrays.asList(BaseMapLayerSource.values()));
         List<BaseMapLayer> surveyLayers = survey.getBaseMapLayers();
         List<BaseMapLayer> baseLayers = new ArrayList<BaseMapLayer>(BaseMapLayerSource.values().length);
         BaseMapLayer defaultLayer = null;
