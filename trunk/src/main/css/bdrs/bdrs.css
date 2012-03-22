@@ -1885,6 +1885,7 @@ div.blockUI.blockMsg.blockPage h1 {
 
 .comments .userName {
     font-weight: bold;
+    font-size: 1.2em;
 }
 
 .comments addCommentForm {
@@ -1898,6 +1899,10 @@ div.blockUI.blockMsg.blockPage h1 {
 
 .comments .warning {
     padding-left: 1em;
+}
+
+.comments .commentBody {
+    white-space: pre;
 }
 
 .jcollapsible {
