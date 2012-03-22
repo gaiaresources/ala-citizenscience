@@ -462,3 +462,16 @@ INSERT INTO base_map_layer SELECT nextval('base_map_layer_base_map_layer_id_seq'
 ROLLBACK;
 
 </code>
+
+= r202 =
+<code language="sql">
+BEGIN;
+create table RECORD_COMMENT (COMMENT_ID  serial not null, WEIGHT int4, CREATED_AT timestamp, UPDATED_AT timestamp, CREATED_BY int4, UPDATED_BY int4, DELETED bool, COMMENT_TEXT varchar(1024), RECORD_ID int4, PARENT_COMMENT int4, PORTAL_ID int4, primary key (COMMENT_ID));
+
+alter table RECORD_COMMENT add constraint FK2A21A0519ADDB07A foreign key (PARENT_COMMENT) references RECORD_COMMENT;
+alter table RECORD_COMMENT add constraint FK2A21A051C136AD4E foreign key (PORTAL_ID) references PORTAL;
+alter table RECORD_COMMENT add constraint FK2A21A0516771C7A9 foreign key (RECORD_ID) references RECORD;
+
+ROLLBACK;
+
+</code>
