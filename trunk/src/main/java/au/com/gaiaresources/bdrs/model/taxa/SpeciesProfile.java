@@ -3,12 +3,7 @@
  */
 package au.com.gaiaresources.bdrs.model.taxa;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import javax.persistence.AttributeOverride;
 import javax.persistence.Column;
@@ -68,7 +63,7 @@ public class SpeciesProfile extends PortalPersistentImpl {
     public static final String SPECIES_PROFILE_SOURCE = "source";
     
     public static final Map<String, String> SPECIES_PROFILE_TYPE_VALUES;
-    public static final String[] SPECIES_PROFILE_FILE_TYPE_VALUES;
+    public static final List<String> SPECIES_PROFILE_FILE_TYPE_VALUES;
     private static final String[] SPECIES_PROFILE_IMG_TYPE_VALUES;
     private static final String[] SPECIES_PROFILE_IMG_THUMB_TYPE_VALUES;
     
@@ -103,22 +98,19 @@ public class SpeciesProfile extends PortalPersistentImpl {
         
         SPECIES_PROFILE_TYPE_VALUES = Collections.unmodifiableMap(map);
         
-        String[] fileTypes = {
-            SPECIES_PROFILE_IMAGE,
-            SPECIES_PROFILE_IMAGE_40x40,
-            SPECIES_PROFILE_IMAGE_32x32,
-            SPECIES_PROFILE_IMAGE_16x16,
-            
-            SPECIES_PROFILE_MAP,
-            SPECIES_PROFILE_MAP_40x40,
-            
-            SPECIES_PROFILE_SILHOUETTE,
-            SPECIES_PROFILE_SILHOUETTE_40x40,
-            
-            SPECIES_PROFILE_AUDIO
-        };
-        Arrays.sort(fileTypes);
-        SPECIES_PROFILE_FILE_TYPE_VALUES = fileTypes;
+        ArrayList<String> fileTypes = new ArrayList<String>();
+        fileTypes.add(SPECIES_PROFILE_IMAGE);
+        fileTypes.add(SPECIES_PROFILE_IMAGE_40x40);
+        fileTypes.add(SPECIES_PROFILE_IMAGE_32x32);
+        fileTypes.add(SPECIES_PROFILE_IMAGE_16x16);
+        fileTypes.add(SPECIES_PROFILE_MAP);
+        fileTypes.add(SPECIES_PROFILE_MAP_40x40);
+        fileTypes.add(SPECIES_PROFILE_SILHOUETTE);
+        fileTypes.add(SPECIES_PROFILE_SILHOUETTE_40x40);
+        fileTypes.add(SPECIES_PROFILE_AUDIO);
+        Collections.sort(fileTypes);
+        
+        SPECIES_PROFILE_FILE_TYPE_VALUES = Collections.unmodifiableList(fileTypes);
         
         String[] imgTypes = {
                 SPECIES_PROFILE_IMAGE,
@@ -214,8 +206,7 @@ public class SpeciesProfile extends PortalPersistentImpl {
         if(this.type == null) {
             return false;
         }
-        
-        return Arrays.binarySearch(SpeciesProfile.SPECIES_PROFILE_FILE_TYPE_VALUES, this.type) > -1;
+        return Collections.binarySearch(SPECIES_PROFILE_FILE_TYPE_VALUES, this.type) > -1;
     }
     
     @Transient

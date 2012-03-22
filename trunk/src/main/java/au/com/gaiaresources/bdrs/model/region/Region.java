@@ -59,11 +59,4 @@ public class Region extends PortalPersistentImpl {
         this.boundary = boundary;
     }
 
-    public boolean equals(Object other) {
-        if (other instanceof Region) {
-            Region o = (Region) other;
-            return o.getId().equals(getId());
-        }
-        return false;
-    }
 }

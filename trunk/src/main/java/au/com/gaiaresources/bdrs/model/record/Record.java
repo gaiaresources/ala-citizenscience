@@ -9,81 +9,59 @@ import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeValueUtil;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
+import au.com.gaiaresources.bdrs.model.taxa.*;
 import au.com.gaiaresources.bdrs.model.user.User;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
 import org.apache.log4j.Logger;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.Filter;
-import org.hibernate.annotations.FilterDef;
-import org.hibernate.annotations.FilterDefs;
-import org.hibernate.annotations.Filters;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
-import org.hibernate.annotations.ParamDef;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.*;
 
-import javax.persistence.AttributeOverride;
+import javax.persistence.*;
 import javax.persistence.CascadeType;
-import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
-import javax.persistence.Transient;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.TimeZone;
+import java.util.*;
 
 @Entity
 @FilterDefs({
-        @FilterDef(name=PortalPersistentImpl.PORTAL_FILTER_NAME, parameters=@ParamDef( name="portalId", type="integer" )),
+        @FilterDef(name = PortalPersistentImpl.PORTAL_FILTER_NAME, parameters = @ParamDef(name = "portalId", type = "integer")),
         // The following filters define the visibility of Records based on the users role.
-        @FilterDef(name=Record.ANONYMOUS_RECORD_ACCESS_FILTER),
-        @FilterDef(name=Record.USER_ACCESS_FILTER, parameters= @ParamDef(name="userId", type="integer")),
-        @FilterDef(name=Record.MODERATOR_ACCESS_FILTER, parameters= @ParamDef(name="userId", type="integer"))
+        @FilterDef(name = Record.ANONYMOUS_RECORD_ACCESS_FILTER),
+        @FilterDef(name = Record.USER_ACCESS_FILTER, parameters = @ParamDef(name = "userId", type = "integer")),
+        @FilterDef(name = Record.MODERATOR_ACCESS_FILTER, parameters = @ParamDef(name = "userId", type = "integer"))
 })
 @Filters({
-        @Filter(name=PortalPersistentImpl.PORTAL_FILTER_NAME, condition=":portalId = PORTAL_ID"),
-        @Filter(name=Record.ANONYMOUS_RECORD_ACCESS_FILTER, condition="RECORD_VISIBILITY = 'PUBLIC' and not HELD"),
-        @Filter(name=Record.USER_ACCESS_FILTER, condition="(INDICATOR_USER_ID = :userId or (RECORD_VISIBILITY = 'PUBLIC' and not HELD))"),
-        @Filter(name=Record.MODERATOR_ACCESS_FILTER, condition="(INDICATOR_USER_ID = :userId or RECORD_VISIBILITY = 'PUBLIC')")
+        @Filter(name = PortalPersistentImpl.PORTAL_FILTER_NAME, condition = ":portalId = PORTAL_ID"),
+        @Filter(name = Record.ANONYMOUS_RECORD_ACCESS_FILTER, condition = "RECORD_VISIBILITY = 'PUBLIC' and not HELD"),
+        @Filter(name = Record.USER_ACCESS_FILTER, condition = "(INDICATOR_USER_ID = :userId or (RECORD_VISIBILITY = 'PUBLIC' and not HELD))"),
+        @Filter(name = Record.MODERATOR_ACCESS_FILTER, condition = "(INDICATOR_USER_ID = :userId or RECORD_VISIBILITY = 'PUBLIC')")
 })
 @Table(name = "RECORD")
 @AttributeOverride(name = "id", column = @Column(name = "RECORD_ID"))
 public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attributable<AttributeValue> {
-    
+
     public static final String ANONYMOUS_RECORD_ACCESS_FILTER = "anonymousRecordAccessFilter";
     public static final String USER_ACCESS_FILTER = "userRecordAccessFilter";
     public static final String MODERATOR_ACCESS_FILTER = "moderatorRecordAccessFilter";
     public static final String FILTER_PARAMETER_USER = "userId";
-    
+
     // no species and number seen
-    public static final RecordPropertyType[] NON_TAXONOMIC_RECORD_PROPERTY_NAMES = new RecordPropertyType[] {
-        RecordPropertyType.LOCATION,
-        RecordPropertyType.POINT,
-        RecordPropertyType.ACCURACY,
-        RecordPropertyType.WHEN,
-        RecordPropertyType.TIME,
-        RecordPropertyType.NOTES};
+    public static final List<RecordPropertyType> NON_TAXONOMIC_RECORD_PROPERTY_NAMES;
+
+    static {
+        ArrayList list = new ArrayList<RecordPropertyType>(6);
+        list.add(RecordPropertyType.LOCATION);
+        list.add(RecordPropertyType.POINT);
+        list.add(RecordPropertyType.ACCURACY);
+        list.add(RecordPropertyType.WHEN);
+        list.add(RecordPropertyType.TIME);
+        list.add(RecordPropertyType.NOTES);
+        NON_TAXONOMIC_RECORD_PROPERTY_NAMES = Collections.unmodifiableList(list);
+    }
 
     private Logger log = Logger.getLogger(getClass());
-    
+
     private Survey survey;
     private IndicatorSpecies species;
     private User user;
@@ -105,7 +83,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     private String habitat = "";
     private Integer number;
     private CensusMethod censusMethod;
-    
+
     private Record parentRecord;
     private Set<Record> childRecords = new HashSet<Record>();
 
@@ -114,8 +92,10 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
 
     private Set<Metadata> metadata = new HashSet<Metadata>();
 
-    /** Contains the Comments that have been made on this Record */
-    private List<Comment> comments = new ArrayList<Comment> ();
+    /**
+     * Contains the Comments that have been made on this Record
+     */
+    private List<Comment> comments = new ArrayList<Comment>();
 
     /**
      * {@inheritDoc}
@@ -136,26 +116,26 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     public void setSpecies(IndicatorSpecies species) {
         this.species = species;
     }
-    
+
     @ManyToOne
     @JoinColumn(name = "PARENT_RECORD_ID", nullable = true)
     @ForeignKey(name = "PARENT_RECORD_TO_RECORD_FK")
     public Record getParentRecord() {
         return this.parentRecord;
     }
-    
+
     public void setParentRecord(Record value) {
         this.parentRecord = value;
     }
-    
+
     /**
      * DO NO UPDATE THIS LIST! the relationship is managed by the
      * get/setParentRecord! Any changes to the list will be ignored
      * See RecordDAOImplTest.java
-     *  
+     *
      * @return
      */
-    @OneToMany(mappedBy="parentRecord", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "parentRecord", fetch = FetchType.LAZY)
     public Set<Record> getChildRecords() {
         return childRecords;
     }
@@ -164,7 +144,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
      * DO NO UPDATE THIS LIST! the relationship is managed by the
      * get/setParentRecord! Any changes to the list will be ignored
      * See RecordDAOImplTest.java
-     * 
+     *
      * @param value
      */
     public void setChildRecords(Set<Record> value) {
@@ -173,11 +153,11 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
 
     /**
      * Gets the survey that the record belongs to
-     * 
+     * <p/>
      * Should this really be nullable ?
      */
     @CompactAttribute
-    @ManyToOne(fetch =  FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "INDICATOR_SURVEY_ID", nullable = true)
     @ForeignKey(name = "RECORD_SURVEY_FK")
     public Survey getSurvey() {
@@ -187,14 +167,14 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     public void setSurvey(Survey survey) {
         this.survey = survey;
     }
-    
-    @ManyToOne(fetch =  FetchType.LAZY)
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "INDICATOR_CENSUSMETHOD_ID", nullable = true)
     @ForeignKey(name = "RECORD_CENSUSMETHOD_FK")
     public CensusMethod getCensusMethod() {
         return this.censusMethod;
     }
-    
+
     public void setCensusMethod(CensusMethod value) {
         this.censusMethod = value;
     }
@@ -221,6 +201,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
 
     /**
      * Get the location that the user saw the species.
+     *
      * @return {@link Location}
      */
     @CompactAttribute
@@ -235,7 +216,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
         this.location = location;
     }
 
-    
+
     @Transient
     public Point getPoint() {
         return geometry == null ? null : geometry.getCentroid();
@@ -244,7 +225,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     public void setPoint(Point location) {
         this.geometry = location;
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -279,7 +260,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     public void setAccuracyInMeters(Double accuracy) {
         this.AccuracyInMeters = accuracy;
     }
-    
+
     @CompactAttribute
     @Column(name = "HELD", nullable = false)
     /**
@@ -292,9 +273,10 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     public void setHeld(boolean held) {
         this.held = held;
     }
+
     @CompactAttribute
     @Transient
-    public Boolean getHeld(){
+    public Boolean getHeld() {
         return isHeld();
     }
 
@@ -374,12 +356,12 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
 
     public void setLastTime(Long time) {
         this.lastTime = time;
-        if  (time == null) {
+        if (time == null) {
             this.lastDate = null;
         } else {
             this.lastDate = new Date(time);
         }
-        
+
     }
 
     @Transient
@@ -389,7 +371,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
      * @return {@link Date}
      */
     public Date getTimeAsDate() {
-        if(time == null) {
+        if (time == null) {
             return null;
         }
         return convertTimeToDate(time);
@@ -402,7 +384,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
      * @return {@link Date}
      */
     public Date getLastTimeAsDate() {
-        if(lastTime == null) {
+        if (lastTime == null) {
             return null;
         }
         return convertTimeToDate(lastTime);
@@ -420,7 +402,8 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
 
     /**
      * Get the set of attributes that were recorded for the species.
-     * @return {@link Set} of {@link RecordAttribute}
+     *
+     * @return {@link Set} of {@link AttributeValue}
      */
     @CompactAttribute
     @OneToMany
@@ -435,6 +418,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
 
     /**
      * Any notes that the user might have about the sighting.
+     *
      * @return {@link String}
      */
     @CompactAttribute
@@ -503,7 +487,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     }
 
     @CompactAttribute
-    @Column(name = "NUMBER_SEEN", nullable=true)
+    @Column(name = "NUMBER_SEEN", nullable = true)
     /**
      * How many were seen?
      * @return {@link Integer}
@@ -530,8 +514,8 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     }
 
     /**
-     * The visibility level of the record. Defaults to 'owner only' 
-     * 
+     * The visibility level of the record. Defaults to 'owner only'
+     *
      * @return
      */
     @CompactAttribute
@@ -559,7 +543,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     /**
      * @return the List of Comments made about this Record.  The List is sorted by newest Comment first.
      */
-    @OneToMany(cascade={CascadeType.ALL}, fetch=FetchType.LAZY, mappedBy="record")
+    @OneToMany(cascade = {CascadeType.ALL}, fetch = FetchType.LAZY, mappedBy = "record")
     @Cascade(org.hibernate.annotations.CascadeType.DELETE_ORPHAN)
     @OrderBy("createdAt desc")
     public List<Comment> getComments() {
@@ -568,6 +552,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
 
     /**
      * Sets the List of comments on this Record.  This is a framework method, clients should use "addComment" instead.
+     *
      * @param comments the List of Comments that are replies to this Comment.
      */
     void setComments(List<Comment> comments) {
@@ -576,18 +561,20 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
 
     /**
      * Adds a Comment to his Record.
+     *
      * @param comment the Comment to add.
      */
     @Transient
     public void addComment(Comment comment) {
-         comment.setRecord(this);
+        comment.setRecord(this);
         // Insert the comment into the start of the list for consistency - when retrieved from the
         // database comments are returned in descending date created order.
-         comments.add(0, comment);
+        comments.add(0, comment);
     }
 
     /**
      * Convenience method to add a comment as a string to a Record.
+     *
      * @param commentText the text of the comment to add.
      * @return the newly created Comment
      */
@@ -596,35 +583,34 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
         Comment comment = new Comment();
         comment.setCommentText(commentText);
         addComment(comment);
-        
+
         return comment;
     }
 
 
     @Transient
     public String getMetadataValue(String key) {
-        if(key == null) {
+        if (key == null) {
             return "";
         }
 
-        for(Metadata md : this.getMetadata()) {
-            if(md.getKey().equals(key)) {
+        for (Metadata md : this.getMetadata()) {
+            if (md.getKey().equals(key)) {
                 return md.getValue();
             }
         }
 
-     return "";
+        return "";
     }
+
     @Transient
     public Double getLatitude() {
         Location loc = this.getLocation();
-        if(this.getPoint() != null) {
+        if (this.getPoint() != null) {
             return this.getPoint().getY();
-        }
-        else if(loc != null && loc.getLocation() != null){
+        } else if (loc != null && loc.getLocation() != null) {
             return loc.getLocation().getCentroid().getY();
-        }
-        else {
+        } else {
             return null;
         }
     }
@@ -632,27 +618,27 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     @Transient
     public Double getLongitude() {
         Location loc = this.getLocation();
-        if(this.getPoint() != null) {
+        if (this.getPoint() != null) {
             return this.getPoint().getX();
-        }
-        else if(loc != null && loc.getLocation() != null){
+        } else if (loc != null && loc.getLocation() != null) {
             return loc.getLocation().getCentroid().getX();
-        }
-        else {
+        } else {
             return null;
         }
     }
+
     @Transient
     /**
      * If the record has a Metadata value for Metadata.RECORD_NOT_DUPLICATE and this is true, returns true,
      * otherwise false 
      */
-    public boolean isNotDuplicate(){
+    public boolean isNotDuplicate() {
         return Boolean.parseBoolean(this.getMetadataValue(Metadata.RECORD_NOT_DUPLICATE));
     }
-    
-        /**
+
+    /**
      * Returns a list of the AttributeValues ordered by Attribute weight
+     *
      * @return
      */
     @Transient
@@ -663,7 +649,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     /**
      * Whether or not the details of this record should be hidden when outputing to json,
      * or any other means.
-     * 
+     *
      * @param accessor
      * @return
      */
@@ -694,17 +680,17 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
         // everyone besided the owner and admin can only see public and unheld records
         return !isPublic || isHeld();
     }
-    
+
     /**
      * Whether or not the user attempting to write to this record actually has
      * write access
-     * 
+     *
      * @param writer - the user attempting to write to this record
      * @return true if writing allowed, false otherwise
      */
     @Transient
     public boolean canWrite(User writer) {
-        
+
         if (writer == null) {
             log.warn("Attempting to write to record with a null user. This _probably should not happen");
             // we can't write a record with no writer!
@@ -720,7 +706,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
             return true;
         }
         // at this point we know the record already exists in the database (non null record id).
-        
+
         if (this.getUser() == null || this.getUser().getId() == null) {
             // record is not yet properly created (user field cannot be null in database).
             log.warn("Attempting to determine whether a record should have hidden details but the record has no owner");
@@ -730,9 +716,10 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
         // only the owner, admins, and moderators can write a record
         return isOwner || writer.isAdmin() || (writer.isModerator() && isAtLeastOneModerationAttribute());
     }
-    
+
     /**
      * Checks all of the {@link Attribute Attributes} for one with a moderation scope.
+     *
      * @return true if the record has at least one moderation attribute, false otherwise
      */
     @Transient
@@ -748,7 +735,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
 
     /**
      * Contains the logic for if a user can view (not edit) this record
-     * 
+     *
      * @param viewer - the user attempting to view this record. can be null (i.e. not logged in)
      * @return true if viewing allowed, false otherwise
      */
@@ -766,16 +753,16 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
         if (this.getUser() == null || this.getUser().getId() == null) {
             throw new IllegalStateException("The owner of the record is invalid");
         }
-        
+
         boolean hasPrivilege = viewer != null ? viewer.isAdmin() || (viewer.isModerator() && isAtLeastOneModerationAttribute()) : false;
         boolean isOwner = viewer != null ? viewer.getId().equals(this.getUser().getId()) : false;
-        
+
         switch (this.recordVisibility) {
             // only the owner or admin can view an OWNER_ONLY record
             case OWNER_ONLY:
-            // CONTROLLED records are a bit strange. alot of the information is hidden so rendering
-            // forms could be a little tricky. For now handle controlled records the same as
-            // owner only records
+                // CONTROLLED records are a bit strange. alot of the information is hidden so rendering
+                // forms could be a little tricky. For now handle controlled records the same as
+                // owner only records
             case CONTROLLED:
                 return isOwner || hasPrivilege;
             case PUBLIC:
@@ -808,29 +795,30 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     /**
      * Returns the Comment with the specified id.  If no such Comment exists, an IllegalArgumentException will
      * be thrown.
+     *
      * @param commentId the ID of the Comment to return.
      * @return the Comment with the supplied ID.
      */
     @Transient
     public Comment getCommentById(int commentId) {
-        
+
         Comment comment = null;
         for (Comment tmpComment : comments) {
             if (tmpComment.getId() == commentId) {
                 comment = tmpComment;
                 break;
             }
-            
+
             comment = tmpComment.getCommentById(commentId);
             if (comment != null) {
                 break;
             }
         }
-        
+
         if (comment == null) {
-            throw new IllegalArgumentException("No comment has been made on this Record with ID="+commentId);
+            throw new IllegalArgumentException("No comment has been made on this Record with ID=" + commentId);
         }
-        
+
         return comment;
     }
 }

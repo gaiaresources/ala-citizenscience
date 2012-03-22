@@ -35,7 +35,9 @@ public class Role {
     }
 
     public static final String[] getAllRoles() {
-        return ROLE_ORDER;
+        String[] copy = new String[ROLE_ORDER.length];
+        System.arraycopy(ROLE_ORDER, 0, copy, 0, ROLE_ORDER.length);
+        return copy;
     }
     
     /**
