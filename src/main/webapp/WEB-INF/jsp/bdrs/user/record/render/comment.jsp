@@ -9,9 +9,9 @@
 <li>
     <div class="commentHeader">
         <span class="userName"><cw:userFullName userId="${tmpComment.createdBy}"/></span> on <fmt:formatDate dateStyle="MEDIUM" type="date" value="${tmpComment.createdAt}"/> <fmt:formatDate pattern="HH:mm" value="${tmpComment.createdAt}"/> said:
-        <c:if test="${recordWebFormContext.commentable}">
-          <span class="actions"><a href="javascript:jQuery('#addComment${tmpComment.id}').toggle(500);" name="reply">Reply</a>
-          <sec:authorize ifAllGranted="ROLE_ADMIN"> | <a href="javascript:jQuery('#deleteComment${tmpComment.id}').submit();">Delete</a></sec:authorize>
+        <c:if test="${recordWebFormContext.commentable && not tmpComment.deleted}">
+          <span class="actions"><a href="#comment${tmpComment.id}" name="reply" onclick="javascript:jQuery('#addComment${tmpComment.id}').toggle(500); return false;">Reply</a>
+          <sec:authorize ifAllGranted="ROLE_ADMIN"> | <a href="#comment${tmpComment.id}" onclick="javascript:jQuery('#deleteComment${tmpComment.id}').submit(); return false;">Delete</a></sec:authorize>
         </c:if>
         </span>
 
@@ -29,9 +29,7 @@
             </div>
         </c:when>
         <c:otherwise>
-            <div class="commentBody">
-                <c:out value="${tmpComment.commentText}" escapeXml="true"/>
-            </div>
+            <div class="commentBody"><c:out value="${tmpComment.commentText}" escapeXml="true"/></div>
         </c:otherwise>
     </c:choose>
 
