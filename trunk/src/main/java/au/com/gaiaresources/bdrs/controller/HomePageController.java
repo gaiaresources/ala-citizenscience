@@ -1,11 +1,14 @@
 package au.com.gaiaresources.bdrs.controller;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -100,6 +103,7 @@ public class HomePageController extends AbstractController {
         ModelAndView view = new ModelAndView();
         if (request.getParameter("signin") != null) {
             view.setViewName("signin");
+            configureRedirectAfterLogin(request);
         } else {
             view.setViewName("home");
             Record latestRecord = recordDAO.getLatestRecord();
@@ -110,6 +114,33 @@ public class HomePageController extends AbstractController {
             view.addObject("publicSurveys", surveyDAO.getActivePublicSurveys(true));
         }
         return view;
+    }
+
+    /**
+     * If the http request contains a parameter called "redirectUrl",  the user will be redirected to the
+     * specified URL after signing in.
+     * @param request the http request being processed.
+     */
+    private void configureRedirectAfterLogin(HttpServletRequest request) {
+        String redirectTo = request.getParameter("redirectUrl");
+        if (redirectTo != null) {
+
+            // Prepend the request domain and context then do a quick validation of the URL
+            try {
+                URL url = new URL(redirectTo);
+                // Make sure the redirect URL matches the current domain.
+                URL requestUrl = new URL(request.getRequestURL().toString());
+                if (url.getHost().equals(requestUrl.getHost())) {
+                    request.getSession().setAttribute(BdrsWebConstants.SAVED_REQUEST_KEY, redirectTo);
+                }
+                else {
+                    log.warn("An attempt to redirect to a different server was detected: "+url);
+                }
+            }
+            catch (MalformedURLException e) {
+                log.warn("A redirect to a malformed URL was requested after signing ing: "+redirectTo);
+            }
+        }
     }
 
     @RequestMapping(value = "/deviceDataStore.htm", method = RequestMethod.POST)

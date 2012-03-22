@@ -11,7 +11,9 @@
             <input class="form_action" type="button" value="Continue" onclick="window.document.location='${pageContext.request.contextPath}/bdrs/admin/survey/locationListing.htm?surveyId=${recordWebFormContext.surveyId}'"/>
         </div>
     </c:when>
-    <c:when test="${ recordWebFormContext.editable }">
+    <c:otherwise>
+
+        <c:if test="${ recordWebFormContext.editable }">
     	
 		<c:choose>
 			<c:when test="${ recordWebFormContext.existingRecord }">
@@ -28,5 +30,9 @@
                 </form>
 			</c:otherwise>	
 		</c:choose>
-    </c:when>
+    </c:if>
+
+    <tiles:insertDefinition name="commentsRenderer"/>
+
+    </c:otherwise>
 </c:choose>

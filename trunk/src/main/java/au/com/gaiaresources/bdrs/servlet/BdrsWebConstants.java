@@ -26,4 +26,9 @@ public class BdrsWebConstants {
      * Constant for web form parameter "locationId"
      */
     public static final String PARAM_LOCATION_ID = "locationId";
+
+    /**
+     * Constant for the web form parameter "commentId".
+     */
+    public static final String PARAM_COMMENT_ID = "commentId";
 }

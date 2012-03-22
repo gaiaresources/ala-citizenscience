@@ -100,6 +100,9 @@ public class SurveyBaseController extends AbstractController {
     // admins can always alter the record visibility
     public static final String PARAM_RECORD_VISIBILITY_MODIFIABLE = "recordVisModifiable";
     
+    /** The parameter that configures whether records may be commented on */
+    public static final String PARAM_RECORD_COMMENTS_ENABLED = "recordCommentsEnabled";
+    
     /**
      * Request parameter, the form submit action for the survey.
      */
@@ -177,6 +180,7 @@ public class SurveyBaseController extends AbstractController {
             @RequestParam(value = "surveyEndDate", required = false) String surveyEndDate,
             @RequestParam(value = PARAM_DEFAULT_RECORD_VISIBILITY, required = true) String defaultRecordVis,
             @RequestParam(value = PARAM_RECORD_VISIBILITY_MODIFIABLE, defaultValue="false") boolean recordVisMod,
+            @RequestParam(value = PARAM_RECORD_COMMENTS_ENABLED, defaultValue="false") boolean recordCommentsEnabled,
             @RequestParam(value = PARAM_FORM_SUBMIT_ACTION, required = true) String formSubmitAction) 
         throws IOException {
 
@@ -204,6 +208,7 @@ public class SurveyBaseController extends AbstractController {
         survey.setDefaultRecordVisibility(RecordVisibility.parse(defaultRecordVis), metadataDAO);
         survey.setRecordVisibilityModifiable(recordVisMod, metadataDAO);
         survey.setFormSubmitAction(SurveyFormSubmitAction.valueOf(formSubmitAction), metadataDAO);
+        survey.setRecordCommentsEnabled(recordCommentsEnabled, metadataDAO);
         
         // A list of metadata to delete. To maintain referential integrity,
         // the link between survey and metadata must be broken before the 
