@@ -802,6 +802,7 @@
                 <configuration>
                     <contextPath>/BDRS</contextPath>
                     <scanIntervalSeconds>3</scanIntervalSeconds>
+                    <reload>manual</reload>
                     <webApp>target/bdrs-core.war</webApp>
                     <webAppConfig>
                         <defaultsDescriptor>webdefault.xml</defaultsDescriptor>
@@ -921,7 +922,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>findbugs-maven-plugin</artifactId>
-                <version>2.3.2</version>
+                <version>2.4.0</version>
                 <configuration>
                     <findbugsXmlOutput>true</findbugsXmlOutput>
                     <findbugsXmlWithMessages>true</findbugsXmlWithMessages>
