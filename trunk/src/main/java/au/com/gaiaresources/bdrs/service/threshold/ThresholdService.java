@@ -11,6 +11,9 @@ import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
+import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
+import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
+import au.com.gaiaresources.bdrs.service.threshold.actionhandler.ModerationHistoryRecorder;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +30,6 @@ import au.com.gaiaresources.bdrs.service.threshold.operatorhandler.RecordAttribu
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
-import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyFormField;
-import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
 import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.email.EmailService;
 import au.com.gaiaresources.bdrs.model.record.Record;
@@ -41,7 +42,6 @@ import au.com.gaiaresources.bdrs.model.threshold.Action;
 import au.com.gaiaresources.bdrs.model.threshold.ActionType;
 import au.com.gaiaresources.bdrs.model.threshold.Condition;
 import au.com.gaiaresources.bdrs.model.threshold.Operator;
-import au.com.gaiaresources.bdrs.model.threshold.PathDescriptor;
 import au.com.gaiaresources.bdrs.model.threshold.Threshold;
 import au.com.gaiaresources.bdrs.model.threshold.ThresholdDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
@@ -118,7 +118,7 @@ public class ThresholdService implements ConditionOperatorHandler {
         {
             put(IndicatorSpecies.class, new ActionType[] { ActionType.EMAIL_NOTIFICATION });
             put(Record.class, new ActionType[] { ActionType.EMAIL_NOTIFICATION, 
-                ActionType.MODERATION_EMAIL_NOTIFICATION, ActionType.HOLD_RECORD });
+                ActionType.MODERATION_EMAIL_NOTIFICATION, ActionType.HOLD_RECORD, ActionType.MODERATION_HISTORY });
             put(User.class, new ActionType[] { ActionType.EMAIL_NOTIFICATION });
             put(Survey.class, new ActionType[] { ActionType.EMAIL_NOTIFICATION });
         }
@@ -166,6 +166,14 @@ public class ThresholdService implements ConditionOperatorHandler {
     
     @Autowired
     private UserDAO userDAO;
+
+    /** The ModerationHistoryRecorder needs this to retrieve the description of the species property */
+    @Autowired
+    private MetadataDAO metadataDAO;
+
+    /** The ModerationHistoryRecorder uses this to determine whether to record a species common or scientific name */
+    @Autowired
+    private PreferenceDAO preferenceDAO;
     
     @PostConstruct
     public void init() {
@@ -182,6 +190,7 @@ public class ThresholdService implements ConditionOperatorHandler {
                              new ModerationEmailActionHandler(emailService, propertyService, 
                                                               contentService, redirService, userDAO));
         actionHandlerMap.put(ActionType.HOLD_RECORD, new HoldRecordHandler());
+        actionHandlerMap.put(ActionType.MODERATION_HISTORY, new ModerationHistoryRecorder(metadataDAO, preferenceDAO));
     }
 
     private void populateOperatorHandlers() {

@@ -21,7 +21,12 @@ public enum ActionType implements JSONEnum {
     /**
      * Set the held property of the record to <code>true</code>.
      */
-    HOLD_RECORD("Hold Record");
+    HOLD_RECORD("Hold Record"),
+
+    /**
+     * Writes the species and the values of moderation level attributes as a comment.
+     */
+    MODERATION_HISTORY("Saves moderation history as a comment on a record");
 
     private String displayText;
 

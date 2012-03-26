@@ -65,25 +65,34 @@ public class ModerationUtil {
         // set the actions
         List<Action> actionList = new ArrayList<Action>();
         // hold action
-        Action action = new Action();
-        action.setActionType(ActionType.HOLD_RECORD);
-        action.setValue("");
-        action.setActionEvent(ActionEvent.CREATE);
-        action.setPortal(portal);
-        action = thresholdDAO.save(sesh, action);
-        actionList.add(action);
+        actionList.add(createAction(sesh, portal, ActionType.HOLD_RECORD, ActionEvent.CREATE));
         
         // email action
-        action = new Action();
-        action.setActionType(ActionType.MODERATION_EMAIL_NOTIFICATION);
-        action.setValue("");
-        action.setActionEvent(ActionEvent.CREATE_AND_UPDATE);
-        action.setPortal(portal);
-        action = thresholdDAO.save(sesh, action);
-        actionList.add(action);
+        actionList.add(createAction(sesh, portal, ActionType.MODERATION_EMAIL_NOTIFICATION, ActionEvent.CREATE_AND_UPDATE));
+        
+        // moderation history
+        actionList.add(createAction(sesh, portal, ActionType.MODERATION_HISTORY, ActionEvent.CREATE_AND_UPDATE));
         
         threshold.setActions(actionList);
 
         return thresholdDAO.save(sesh, threshold);
+    }
+
+    /**
+     * Helper method for creating Actions.
+     * @param sesh the Session to use when saving the action.
+     * @param portal the Portal the Action belongs to.
+     * @param actionType the type of action to create.
+     * @param actionEvent the event that should trigger the Action.
+     * @return the new Action
+     */
+    private Action createAction(Session sesh, Portal portal, ActionType actionType, ActionEvent actionEvent) {
+        Action action = new Action();
+        action.setActionType(actionType);
+        action.setValue("");
+        action.setActionEvent(actionEvent);
+        action.setPortal(portal);
+        action = thresholdDAO.save(sesh, action);
+        return action;
     }
 }
