@@ -36,6 +36,12 @@ public class Preference extends PortalPersistentImpl {
     /** Identifies the preference that configures how search results are displayed by default on the Advanced Review page */
     public static final String ADVANCED_REVIEW_DEFAULT_VIEW_KEY = "searchResults.advancedReview.defaultToMapView";
 
+    /** Identifies the Preference that controls whether species names are displayed using the scientific or common name */
+    public static final String SHOW_SCIENTIFIC_NAME_KEY = "taxon.showScientificName";
+
+    /** The default value for the taxon.showScientificName preference. */
+    public static final boolean DEFAULT_SHOW_SCIENTIFIC_NAME = false;
+
     @SuppressWarnings("unused")
     private Logger log = Logger.getLogger(getClass());
 
