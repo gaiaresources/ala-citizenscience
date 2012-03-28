@@ -14,7 +14,7 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonRank;
 import au.com.gaiaresources.taxonlib.ITemporalContext;
-import au.com.gaiaresources.taxonlib.TaxonLibSession;
+import au.com.gaiaresources.taxonlib.ITaxonLibSession;
 import au.com.gaiaresources.taxonlib.importer.afd.AfdImporter;
 import au.com.gaiaresources.taxonlib.importer.afd.AfdImporterRowHandler;
 import au.com.gaiaresources.taxonlib.importer.afd.AfdRow;
@@ -36,7 +36,7 @@ public class BdrsAfdImporterRowHandler implements AfdImporterRowHandler {
 	
 	public static final String AFD_GROUP_NAME = "AFD";
 	
-	public BdrsAfdImporterRowHandler(TaxonLibSession taxonLibSession, Date now, Session sesh, TaxaDAO taxaDAO, SpeciesProfileDAO spDAO) {
+	public BdrsAfdImporterRowHandler(ITaxonLibSession taxonLibSession, Date now, Session sesh, TaxaDAO taxaDAO, SpeciesProfileDAO spDAO) {
 		if (taxonLibSession == null) {
 			throw new IllegalArgumentException("TaxonLibSession cannot be null");
 		}

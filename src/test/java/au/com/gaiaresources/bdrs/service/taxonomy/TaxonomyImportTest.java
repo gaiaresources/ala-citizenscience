@@ -15,12 +15,12 @@ import org.junit.After;
 import org.junit.Before;
 
 import au.com.gaiaresources.bdrs.test.AbstractTransactionalTest;
-import au.com.gaiaresources.taxonlib.TaxonLibSession;
+import au.com.gaiaresources.taxonlib.ITaxonLibSession;
 import au.com.gaiaresources.taxonlib.TestUtils;
 
 public abstract class TaxonomyImportTest extends AbstractTransactionalTest {
 
-    protected TaxonLibSession taxonLibSession;
+    protected ITaxonLibSession taxonLibSession;
     
     private Logger log = Logger.getLogger(TaxonomyImportTest.class);
 
@@ -57,7 +57,7 @@ public abstract class TaxonomyImportTest extends AbstractTransactionalTest {
     	if (dropDatabase) {
 			InputStream sqlStream = null;
 			try {
-				sqlStream = TaxonLibSession.class.getResourceAsStream("taxonlib.sql");
+				sqlStream = ITaxonLibSession.class.getResourceAsStream("taxonlib.sql");
 				importSQL(taxonLibSession.getConnection(), sqlStream);
 			} finally {
 				if (sqlStream != null) {

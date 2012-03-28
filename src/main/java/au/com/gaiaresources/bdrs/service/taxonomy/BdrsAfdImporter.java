@@ -10,7 +10,7 @@ import org.hibernate.Session;
 
 import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfileDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
-import au.com.gaiaresources.taxonlib.TaxonLibSession;
+import au.com.gaiaresources.taxonlib.ITaxonLibSession;
 import au.com.gaiaresources.taxonlib.importer.afd.AfdImporter;
 import au.com.gaiaresources.taxonlib.importer.afd.AfdImporterRowHandler;
 
@@ -18,7 +18,7 @@ public class BdrsAfdImporter {
 	
 	private AfdImporter importer;
 
-	public BdrsAfdImporter(TaxonLibSession taxonLibSession, Date now, Session sesh, TaxaDAO taxaDAO, SpeciesProfileDAO spDAO) {
+	public BdrsAfdImporter(ITaxonLibSession taxonLibSession, Date now, Session sesh, TaxaDAO taxaDAO, SpeciesProfileDAO spDAO) {
 		if (taxonLibSession == null) {
 			throw new IllegalArgumentException("TaxonLibSession cannot be null");
 		}
