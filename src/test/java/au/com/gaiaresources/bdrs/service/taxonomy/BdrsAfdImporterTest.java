@@ -38,11 +38,6 @@ public class BdrsAfdImporterTest extends TaxonomyImportTest {
 	}
 	
 	@Test
-	public void testMollusca() throws Exception {
-		runImport("Mollusca.csv");
-	}
-	
-	@Test
 	public void testDoubleImport() throws Exception {
 		runImport("AFD_TEST.csv");
 		
