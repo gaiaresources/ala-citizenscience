@@ -36,7 +36,7 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 
 @Controller
 public class BDRSFieldGuideController  extends AbstractController {
-	
+
     private static final String TAXA_LISTING_TABLE_ID = "fieldGuideTaxaListingTable";
     private static final int TAXA_LISTING_PAGE_SIZE = 50;
     private static final String  FIELDGUIDE_GROUPS_URL= "/fieldguide/groups.htm";
@@ -82,10 +82,10 @@ public class BDRSFieldGuideController  extends AbstractController {
                                 @RequestParam(value="search_in_groups",  required=false) String searchInGroups,
                                 @RequestParam(value="groupId", required=false) Integer groupPk) throws NullPointerException, ParseException {
         
-    	ModelAndView mv = new ModelAndView("fieldGuideTaxaListing");
-    	
-    	//Creates a paginationFilter
-    	String pnArg = request.getParameter(getTaxonPageNumberParamName());
+        ModelAndView mv = new ModelAndView("fieldGuideTaxaListing");
+        
+        //Creates a paginationFilter
+        String pnArg = request.getParameter(getTaxonPageNumberParamName());
         int pageNum = pnArg != null && !pnArg.isEmpty() ? Integer.parseInt(pnArg) : 1;
         pageNum = pageNum < 1 ? 1 : pageNum;
         int start = (pageNum - 1) * TAXA_LISTING_PAGE_SIZE;
@@ -102,16 +102,19 @@ public class BDRSFieldGuideController  extends AbstractController {
         }
         
         if(groupPk != null) {
-        	TaxonGroup taxonGroup = taxaDAO.getTaxonGroup(groupPk);
-        	mv.addObject("taxonGroup", taxonGroup);
-        	mv.addObject("searchResultHeader", taxonGroup.getName());
-        	mv.addObject("taxaPaginator", taxaDAO.getIndicatorSpecies(taxonGroup, filter));
+            TaxonGroup taxonGroup = taxaDAO.getTaxonGroup(groupPk);
+            mv.addObject("taxonGroup", taxonGroup);
+            mv.addObject("searchResultHeader", taxonGroup.getName());
         } else if(searchInGroups != null && StringUtils.hasLength(searchInGroups)) {
-			mv.addObject("groupsQuery", searchInGroups);
-    		mv.addObject("searchResultHeader", "Search results for \"" + searchInGroups + "\"");
-    		mv.addObject("taxaPaginator", taxaDAO.getIndicatorSpeciesByQueryString(null, searchInGroups, null, filter));
-    	}
-
+        mv.addObject("groupsQuery", searchInGroups);
+            mv.addObject("searchResultHeader", "Search results for \"" + searchInGroups + "\"");
+        }
+        try {
+            PagedQueryResult<IndicatorSpecies> pq = taxaDAO.searchTaxa(groupPk, searchInGroups, null, filter);
+            mv.addObject("taxaPaginator", pq);
+        } catch (org.apache.lucene.queryParser.ParseException e) {
+            log.error("Error finding taxa", e);
+        }
         return mv;
     }
     
@@ -132,10 +135,10 @@ public class BDRSFieldGuideController  extends AbstractController {
                                 @RequestParam(value="search_in_groups",  required=false) String searchInGroups,
                                 @RequestParam(value="search_in_result", required=false) String searchInResult,
                                 @RequestParam(value="groupId", required=false) Integer groupId) throws Exception {
-		
+        
         JqGridDataHelper jqGridHelper = new JqGridDataHelper(request);       
         PaginationFilter filter = jqGridHelper.createFilter(request);
-        PagedQueryResult<IndicatorSpecies> queryResult = taxaDAO.getIndicatorSpeciesByQueryString(groupId, searchInGroups, searchInResult, filter);
+        PagedQueryResult<IndicatorSpecies> queryResult = taxaDAO.searchTaxa(groupId, searchInGroups, searchInResult, filter);
         JqGridDataBuilder builder = new JqGridDataBuilder(jqGridHelper.getMaxPerPage(), queryResult.getCount(), jqGridHelper.getRequestedPage());
 
         if (queryResult.getCount() > 0) {

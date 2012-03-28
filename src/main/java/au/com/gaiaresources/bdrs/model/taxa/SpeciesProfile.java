@@ -16,6 +16,7 @@ import javax.persistence.Transient;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
+import org.hibernate.search.annotations.Field;
 
 import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
@@ -152,18 +153,21 @@ public class SpeciesProfile extends PortalPersistentImpl {
 
     @CompactAttribute
     @Column(name = "HEADER")
+    @Field
     public String getHeader() {
         return header;
     }
 
     @CompactAttribute
     @Column(name = "DESCRIPTION", columnDefinition="TEXT")
+    @Field
     public String getDescription() {
         return description;
     }
 
     @CompactAttribute
     @Column(name = "CONTENT", columnDefinition="TEXT")
+    @Field
     public String getContent() {
         return content;
     }
