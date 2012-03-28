@@ -16,6 +16,7 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.persistence.Transient;
 
+import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.Query;
@@ -736,6 +737,12 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
             recAttr = saveAttributeValue(recAttr);
             cascadeHandler.deleteCascade(recAttr);
         }
+        // Removing the comments in this way triggers the cascade delete setting on the association to delete
+        // the comments associated with the Record.
+        record.getComments().clear();
+        // Force the deletion of the comments before we delete the Record using a query.
+        RequestContextHolder.getContext().getHibernate().flush();
+
         deleteByQuery(record);
     }
     

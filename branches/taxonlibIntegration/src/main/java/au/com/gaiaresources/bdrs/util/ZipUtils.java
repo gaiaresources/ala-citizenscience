@@ -19,6 +19,11 @@ import java.util.zip.ZipOutputStream;
 import org.apache.log4j.Logger;
 
 public class ZipUtils {
+
+    /**
+     * Content type for zip files.
+     */
+    public static final String ZIP_CONTENT_TYPE = "application/zip";
     public static final Logger log = Logger.getLogger(ZipUtils.class);
 
     /**

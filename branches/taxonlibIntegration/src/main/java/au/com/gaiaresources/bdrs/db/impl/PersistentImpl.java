@@ -33,6 +33,11 @@ public abstract class PersistentImpl implements Persistent,
         DataInterchangeSerializable {
     public static final int DEFAULT_WEIGHT = 0;
 
+    /**
+     * The key name indicating the class of the flattened instance.
+     */
+    public static final String FLATTEN_KEY_CLASS = "_class";
+
     private Logger log = Logger.getLogger(getClass());
 
     private Integer id;
@@ -221,8 +226,7 @@ public abstract class PersistentImpl implements Persistent,
                         map.put(name, list);
                         
                     } else if (String.class.isAssignableFrom(returnType)) {
-                        map.put(name, value == null ? ""
-                                : value.toString());
+                        map.put(name, value == null ? null : value.toString());
                     } else if (returnType.isArray()) {
                     	List<Object> list = new ArrayList<Object>();
                         if (value != null) {
@@ -286,8 +290,7 @@ public abstract class PersistentImpl implements Persistent,
                     } else if (returnType.isPrimitive()) {
                         map.put(name, value);
                     } else {
-                        map.put(name, value == null ? ""
-                                : value.toString());
+                        map.put(name, value == null ? null : value.toString());
                     }
                 }
             }
@@ -299,7 +302,7 @@ public abstract class PersistentImpl implements Persistent,
             log.error(e.getMessage(), e);
         }
 
-        map.put("_class", getClass().getSimpleName());
+        map.put(FLATTEN_KEY_CLASS, getClass().getSimpleName());
         
         return map;
     }

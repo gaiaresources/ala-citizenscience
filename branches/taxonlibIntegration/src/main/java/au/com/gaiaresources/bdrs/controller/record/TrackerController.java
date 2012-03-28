@@ -427,7 +427,8 @@ public class TrackerController extends AbstractController {
         if(Taxonomic.OPTIONALLYTAXONOMIC.equals(taxonomic) || Taxonomic.TAXONOMIC.equals(taxonomic)) {
             recordProperties = RecordPropertyType.values();
         } else {
-            recordProperties = Record.NON_TAXONOMIC_RECORD_PROPERTY_NAMES;
+            recordProperties = Record.NON_TAXONOMIC_RECORD_PROPERTY_NAMES.toArray(
+                    new RecordPropertyType[Record.NON_TAXONOMIC_RECORD_PROPERTY_NAMES.size()]);
         }
         
         boolean showMap =false;

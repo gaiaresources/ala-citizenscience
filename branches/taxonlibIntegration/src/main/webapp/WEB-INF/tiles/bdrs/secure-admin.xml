@@ -128,7 +128,7 @@
         <put-attribute name="maps" value="false"/>
         <put-list-attribute name="customCss"></put-list-attribute>
         <put-list-attribute name="customJavaScript">
-            
+            <add-attribute>bdrs/survey.js</add-attribute>
         </put-list-attribute>
     </definition>
 

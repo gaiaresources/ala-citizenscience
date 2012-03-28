@@ -6,6 +6,7 @@ import au.com.gaiaresources.bdrs.util.DateUtils;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -130,15 +131,27 @@ public class DisplayElementTag extends TagSupport {
                             }
                             write(outputString);
                         }
-                    } catch (Exception e) {
-                        throw new JspException("Failed to extract property " + render 
-                                             + " from instance of " + bean.getClass(), e);
+                    } catch (NoSuchMethodException e) {
+                        throw new JspException("Failed to extract property " + render
+                                + " from instance of " + bean.getClass(), e);
+                    } catch (IOException e) {
+                        throw new JspException("Failed to extract property " + render
+                                + " from instance of " + bean.getClass(), e);
+                    } catch (IllegalAccessException e) {
+                        throw new JspException("Failed to extract property " + render
+                                + " from instance of " + bean.getClass(), e);
+                    } catch (InvocationTargetException e) {
+                        throw new JspException("Failed to extract property " + render
+                                + " from instance of " + bean.getClass(), e);
+                    } catch (NoSuchFieldException e) {
+                        throw new JspException("Failed to extract property " + render
+                                + " from instance of " + bean.getClass(), e);
                     }
                     break;
                 case A:
                 case E:
                     ImageButtonTag imageButton = t.equals(TYPE.E) ? new EditButtonTag() : new ActionButtonTag();
-                    
+
                     String url = elements[1];
                     String[] subNames = Arrays.copyOfRange(elements, 2, elements.length);
                     String[] subs = new String[subNames.length];
@@ -151,10 +164,10 @@ public class DisplayElementTag extends TagSupport {
                         }
                     }
                     url = StringUtils.substitution(url, "%", subs);
-                    
+
                     try {
                         start(t, url);
-                        
+
                         imageButton.setUrl(url);
                         imageButton.setPageContext(pageContext);
                         imageButton.setParent(this);

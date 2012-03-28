@@ -21,6 +21,23 @@ public class Authority implements GrantedAuthority {
         return roleName;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Authority authority = (Authority) o;
+
+        if (!roleName.equals(authority.roleName)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return roleName.hashCode();
+    }
+
     public int compareTo(Object o) {
         if (o instanceof GrantedAuthority) {
             GrantedAuthority ga = (GrantedAuthority) o;

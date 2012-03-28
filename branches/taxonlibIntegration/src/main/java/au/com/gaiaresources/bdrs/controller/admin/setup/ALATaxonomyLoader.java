@@ -611,7 +611,7 @@ public class ALATaxonomyLoader {
             if (line.length == 10) {
 
                 commonNameRow = new CommonNameRow();
-                commonNameRow.COMMON_NAME_CONCEPT_LSID = line[0];
+                //commonNameRow.COMMON_NAME_CONCEPT_LSID = line[0];
                 commonNameRow.COMMON_NAME_NAME_LSID = line[1];
                 commonNameRow.COMMON_NAME_STRING = line[2];
                 commonNameRow.PUBLICATION_LSID = line[3];
@@ -646,7 +646,7 @@ public class ALATaxonomyLoader {
 
     private static class CommonNameRow {
         @SuppressWarnings("unused")
-        String COMMON_NAME_CONCEPT_LSID;
+        //String COMMON_NAME_CONCEPT_LSID;
         String COMMON_NAME_NAME_LSID;
         String COMMON_NAME_STRING;
         String PUBLICATION_LSID;

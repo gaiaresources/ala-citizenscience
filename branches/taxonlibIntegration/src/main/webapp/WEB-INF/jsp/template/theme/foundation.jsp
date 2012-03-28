@@ -79,7 +79,9 @@
             <script src="${pageContext.request.contextPath}/js/BdrsCluster.js" type="text/javascript"></script>
         </c:if>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/bdrs.js"></script>
-        
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js/jquery.jcollapsible.min.js"></script>
+
+
         <!-- Theme css and js file includes -->
         <c:if test="${ theme != null }">
             <c:forEach items="${ theme.cssFiles }" var="cssFile">

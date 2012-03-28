@@ -343,16 +343,19 @@ public class ThemeService {
         JSONObject config = (JSONObject) au.com.gaiaresources.bdrs.util.FileUtils.readJsonStream(configInputStream);
         try {
             JSONArray cssArray = config.getJSONArray("css_files");
-            String[] css = new String[cssArray.size()];
+            List<String> css = new ArrayList<String>(cssArray.size());
+//            String[] css = new String[cssArray.size()];
             for(int i=0; i<cssArray.size(); i++) {
-                css[i] = cssArray.getString(i);
+                //css[i] = cssArray.getString(i);
+                css.add(cssArray.getString(i));
             }
             theme.setCssFiles(css);
             
             JSONArray jsArray = config.getJSONArray("js_files");
-            String[] js = new String[jsArray.size()];
+//            String[] js = new String[jsArray.size()];
+            List<String> js = new ArrayList<String>(jsArray.size());
             for(int i=0; i<jsArray.size(); i++) {
-                js[i] = jsArray.getString(i);
+                js.add(jsArray.getString(i));
             }
             theme.setJsFiles(js);
             

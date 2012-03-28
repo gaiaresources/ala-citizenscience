@@ -21,6 +21,7 @@ public class AttributeOption extends PortalPersistentImpl {
     private String value;
 
     @CompactAttribute
+    @Column(name = "value")
     public String getValue() {
         return value;
     }

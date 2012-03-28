@@ -52,8 +52,8 @@ public class Theme extends PortalPersistentImpl {
     private String themeFileUUID;
     private List<ThemeElement> themeElements = new ArrayList<ThemeElement>();
     
-    private String[] cssFiles = new String[]{};
-    private String[] jsFiles = new String[]{};
+    private List<String> cssFiles = new ArrayList<String>();
+    private List<String> jsFiles = new ArrayList<String>();
 
     @Column(name = "ACTIVE", nullable = false)
     public boolean isActive() {
@@ -101,38 +101,55 @@ public class Theme extends PortalPersistentImpl {
     @Column(name = "CSS_FILE")
     @IndexColumn(name = "ARRAY_INDEX")
     @Fetch(FetchMode.SUBSELECT)
-    public String[] getCssFiles() {
-        // Hibernate is doing some magic behind the scenes that means that the
-        // line below will cause errors.         
-        //return Arrays.copyOf(this.cssFiles, this.cssFiles.length);
-        
+    public List<String> getCssFiles() {
         return this.cssFiles;
     }
-    public void setCssFiles(String[] cssFiles) {
-        // Hibernate is doing some magic behind the scenes that means that the
-        // line below will cause errors.    
-        //this.cssFiles = Arrays.copyOf(cssFiles, cssFiles.length);
-        
+    
+    public void setCssFiles(List<String> cssFiles) {
         this.cssFiles = cssFiles;
     }
+    
+//    public String[] getCssFiles() {
+//        // Hibernate is doing some magic behind the scenes that means that the
+//        // line below will cause errors.         
+//        return Arrays.copyOf(this.cssFiles, this.cssFiles.length);
+//        
+//        //return this.cssFiles;
+//    }
+//    public void setCssFiles(String[] cssFiles) {
+//        // Hibernate is doing some magic behind the scenes that means that the
+//        // line below will cause errors.    
+//        //this.cssFiles = Arrays.copyOf(cssFiles, cssFiles.length);
+//        
+//        this.cssFiles = cssFiles;
+//    }
     
     @CollectionOfElements
     @JoinTable(name = "THEME_JS_FILE")
     @Column(name = "JS_FILE")
     @IndexColumn(name = "ARRAY_INDEX")
     @Fetch(FetchMode.SUBSELECT)
-    public String[] getJsFiles() {
-        // Hibernate is doing some magic behind the scenes that means that the
-        // line below will cause errors.    
-        //return Arrays.copyOf(this.jsFiles, this.jsFiles.length);
-        
-        return jsFiles;
+    public List<String> getJsFiles() {
+        return this.jsFiles;
     }
-    public void setJsFiles(String[] jsFiles) {
-        // Hibernate is doing some magic behind the scenes that means that the
-        // line below will cause errors.    
-        //this.jsFiles = Arrays.copyOf(jsFiles, jsFiles.length);
-        
+    
+    public void setJsFiles(List<String> jsFiles) {
         this.jsFiles = jsFiles;
     }
+    
+    
+//    public String[] getJsFiles() {
+//        // Hibernate is doing some magic behind the scenes that means that the
+//        // line below will cause errors.    
+//        //return Arrays.copyOf(this.jsFiles, this.jsFiles.length);
+//        
+//        return jsFiles;
+//    }
+//    public void setJsFiles(String[] jsFiles) {
+//        // Hibernate is doing some magic behind the scenes that means that the
+//        // line below will cause errors.    
+//        this.jsFiles = Arrays.copyOf(jsFiles, jsFiles.length);
+//        
+//        //this.jsFiles = jsFiles;
+//    }
 }

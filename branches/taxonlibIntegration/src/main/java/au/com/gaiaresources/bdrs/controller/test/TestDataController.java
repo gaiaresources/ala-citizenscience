@@ -87,7 +87,8 @@ public class TestDataController extends AbstractController {
                             HttpServletResponse response) {
         
         List<SpeciesProfile> profileList = 
-            speciesProfileDAO.getSpeciesProfileByType(SpeciesProfile.SPECIES_PROFILE_FILE_TYPE_VALUES);
+            speciesProfileDAO.getSpeciesProfileByType(SpeciesProfile.SPECIES_PROFILE_FILE_TYPE_VALUES.toArray(
+                    new String[SpeciesProfile.SPECIES_PROFILE_FILE_TYPE_VALUES.size()]));
         for(SpeciesProfile profile : profileList) {
             deletionService.deleteManagedFileByUUID(profile.getContent());
         }
