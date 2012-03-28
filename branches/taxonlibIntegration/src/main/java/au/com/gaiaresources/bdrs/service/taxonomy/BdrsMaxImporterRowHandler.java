@@ -15,7 +15,7 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonRank;
 import au.com.gaiaresources.taxonlib.ITemporalContext;
-import au.com.gaiaresources.taxonlib.TaxonLibSession;
+import au.com.gaiaresources.taxonlib.ITaxonLibSession;
 import au.com.gaiaresources.taxonlib.importer.max.MaxFamilyRow;
 import au.com.gaiaresources.taxonlib.importer.max.MaxGeneraRow;
 import au.com.gaiaresources.taxonlib.importer.max.MaxImporter;
@@ -46,7 +46,7 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
 	
 	private TaxonGroup group;
 	
-	public BdrsMaxImporterRowHandler(TaxonLibSession taxonLibSession, Date now, TaxaDAO taxaDAO, SpeciesProfileDAO spDAO) {
+	public BdrsMaxImporterRowHandler(ITaxonLibSession taxonLibSession, Date now, TaxaDAO taxaDAO, SpeciesProfileDAO spDAO) {
 		if (taxonLibSession == null) {
 			throw new IllegalArgumentException("TaxonLibSession cannot be null");
 		}

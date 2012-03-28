@@ -29,7 +29,7 @@ import au.com.gaiaresources.bdrs.service.taxonomy.BdrsAfdImporter;
 import au.com.gaiaresources.bdrs.service.taxonomy.BdrsMaxImporter;
 import au.com.gaiaresources.bdrs.service.taxonomy.NswFloraImporter;
 import au.com.gaiaresources.bdrs.service.taxonomy.TaxonLibSessionFactory;
-import au.com.gaiaresources.taxonlib.TaxonLibSession;
+import au.com.gaiaresources.taxonlib.ITaxonLibSession;
 
 @Controller
 public class TaxonLibImportController extends AbstractController {
@@ -96,7 +96,7 @@ public class TaxonLibImportController extends AbstractController {
 		
 		log.debug("TAXONOMY IMPORT START");
 		try {
-			TaxonLibSession taxonLibSession = TaxonLibSessionFactory.getSession(url, username, password);
+			ITaxonLibSession taxonLibSession = TaxonLibSessionFactory.getSession(url, username, password);
 			
 			TaxonLibImportSource importSource = TaxonLibImportSource.valueOf(request.getParameter("importSource"));
 			
@@ -126,13 +126,13 @@ public class TaxonLibImportController extends AbstractController {
 		return mv;
 	}
 	
-	private void runNswFloraImport(MultipartHttpServletRequest request, TaxonLibSession tls) throws IOException, Exception {
+	private void runNswFloraImport(MultipartHttpServletRequest request, ITaxonLibSession tls) throws IOException, Exception {
 		MultipartFile file = request.getFile("taxonomyFile");
 		NswFloraImporter importer = new NswFloraImporter(tls, new Date(), taxaDAO, spDAO);
 		importer.runImport(file.getInputStream());
 	}
 	
-	private void runMaxImport(MultipartHttpServletRequest request, TaxonLibSession tls) throws IOException, Exception {
+	private void runMaxImport(MultipartHttpServletRequest request, ITaxonLibSession tls) throws IOException, Exception {
 		MultipartFile familyFile = request.getFile("maxFamilyFile");
 		MultipartFile generaFile = request.getFile("maxGeneraFile");
 		MultipartFile nameFile = request.getFile("maxNameFile");
@@ -142,7 +142,7 @@ public class TaxonLibImportController extends AbstractController {
 		importer.runImport(familyFile.getInputStream(), generaFile.getInputStream(), nameFile.getInputStream(), xrefFile.getInputStream());
 	}
 	
-	private void runAfdImport(MultipartHttpServletRequest request, TaxonLibSession tls) throws IOException, Exception {
+	private void runAfdImport(MultipartHttpServletRequest request, ITaxonLibSession tls) throws IOException, Exception {
 		MultipartFile file = request.getFile("taxonomyFile");
 		Session sesh = null;
 		try {

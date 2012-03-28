@@ -23,7 +23,7 @@ import au.com.gaiaresources.taxonlib.Citation;
 import au.com.gaiaresources.taxonlib.ITemporalContext;
 import au.com.gaiaresources.taxonlib.IUntrackedContext;
 import au.com.gaiaresources.taxonlib.TaxonLibException;
-import au.com.gaiaresources.taxonlib.TaxonLibSession;
+import au.com.gaiaresources.taxonlib.ITaxonLibSession;
 import au.com.gaiaresources.taxonlib.model.ITaxonConcept;
 import au.com.gaiaresources.taxonlib.model.ITaxonName;
 import au.com.gaiaresources.taxonlib.model.TaxonNameType;
@@ -49,7 +49,7 @@ public class NswFloraImporter {
     private TaxaDAO taxaDAO;
     private SpeciesProfileDAO spDAO;
 
-    public NswFloraImporter(TaxonLibSession session, Date now, TaxaDAO taxaDAO, SpeciesProfileDAO spDAO)
+    public NswFloraImporter(ITaxonLibSession session, Date now, TaxaDAO taxaDAO, SpeciesProfileDAO spDAO)
             throws TaxonLibException {
         if (session == null) {
             throw new IllegalArgumentException("TaxonLibSession cannot be null");

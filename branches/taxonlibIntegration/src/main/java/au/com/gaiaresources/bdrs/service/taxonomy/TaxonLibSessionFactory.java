@@ -7,13 +7,13 @@ import java.sql.SQLException;
 import org.apache.log4j.Logger;
 
 import au.com.gaiaresources.taxonlib.TaxonLib;
-import au.com.gaiaresources.taxonlib.TaxonLibSession;
+import au.com.gaiaresources.taxonlib.ITaxonLibSession;
 
 public class TaxonLibSessionFactory {
 
     private static Logger log = Logger.getLogger(TaxonLibSessionFactory.class);
     
-    public static TaxonLibSession getSession(String url, String username, String password) throws Exception {
+    public static ITaxonLibSession getSession(String url, String username, String password) throws Exception {
         return TaxonLib.openSession(getConnection(url, username, password));
     }
 
