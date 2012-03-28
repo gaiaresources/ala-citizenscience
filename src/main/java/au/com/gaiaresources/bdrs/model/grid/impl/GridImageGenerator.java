@@ -76,7 +76,7 @@ public class GridImageGenerator {
     
             ColourClassifier classifier = new ColourClassifier(values, 10,
                     new Color(255, 0, 0), 50, 230);
-            for (Color c : classifier.colours) {
+            for (Color c : classifier.getColours()) {
                 writer.createStylePoly(convertColourToID(c), c);
             }
     
@@ -108,7 +108,7 @@ public class GridImageGenerator {
     
             classifier = new ColourClassifier(values, 10, new Color(255, 0, 0), 50,
                     230);
-            for (Color c : classifier.colours) {
+            for (Color c : classifier.getColours()) {
                 writer.createStylePoly(convertColourToID(c), c);
             }
     
@@ -566,98 +566,6 @@ public class GridImageGenerator {
 		return styleFactory.createFill(fillColor);
 	}
 
-	private class EqualClasses {
-		int numberClasses;
-		double[] breaks;
-		double[] collection;
-
-		/**
-		 * Creates a new instance of EqualClasses
-		 * 
-		 * @param numberClasses
-		 * @param fc
-		 */
-		public EqualClasses(int numberClasses, double[] fc) {
-			if (numberClasses >= fc.length) {
-				int sections = numberClasses * 2;
-				double[] newValues = new double[sections];
-				double min = fc[0] - 1;
-				double max = fc[fc.length - 1] + 1;
-				for (int i = 0; i < sections; i++) {
-					newValues[i] = (i + 1) * (max - min) / sections;
-				}
-				setCollection(newValues);
-			} else {
-				setCollection(fc);
-			}
-			setNumberClasses(numberClasses);
-		}
-
-		/**
-		 * Getter for property numberClasses.
-		 * 
-		 * @return Value of property numberClasses.
-		 * 
-		 */
-		public int getNumberClasses() {
-			return numberClasses;
-		}
-
-		/**
-		 * Setter for property numberClasses.
-		 * 
-		 * @param numberClasses
-		 *            New value of property numberClasses.
-		 * 
-		 */
-		public void setNumberClasses(int numberClasses) {
-			this.numberClasses = numberClasses;
-			if (breaks == null) {
-				if (numberClasses > collection.length) {
-					breaks = new double[collection.length];
-				} else {
-					breaks = new double[numberClasses - 1];
-				}
-			}
-
-			Arrays.sort(collection);
-
-			int step = collection.length / numberClasses;
-			int firstCollectionIndex = step;
-			if (step == 0) {
-				// Case where the number of items in the collection is less than
-				// the number of classes (colours).
-				step = 1;
-			}
-			for (int i = firstCollectionIndex, j = 0; j < breaks.length; j++, i += step) {
-				breaks[j] = collection[i];
-			}
-		}
-
-		/**
-		 * returns the the break points between the classes <b>Note</b> You get
-		 * one less breaks than number of classes.
-		 * 
-		 * @return Value of property breaks.
-		 * 
-		 */
-		public double[] getBreaks() {
-		    return Arrays.copyOf(this.breaks, this.breaks.length);
-		}
-
-		/**
-		 * Setter for property collection.
-		 * 
-		 * @param collection
-		 *            New value of property collection.
-		 * 
-		 */
-		public void setCollection(double[] collection) {
-		    this.collection = Arrays.copyOf(collection, this.collection.length);;
-		}
-
-	}
-
 //	private class TransparentColor extends Color {
 //		private TransparentColor(int r, int g, int b, int a) {
 //			super(r, g, b, a);
@@ -668,50 +576,4 @@ public class GridImageGenerator {
 //					+ ", blue: " + getBlue() + ", alpha: " + getAlpha() + "]";
 //		}
 //	}
-
-	private class ColourClassifier {
-		private Color baseColour;
-		private int startOpacity;
-		private int endOpacity;
-
-		private Color[] colours;
-		private int[] values;
-		private double step;
-
-		private ColourClassifier(int[] values, int levels, Color baseColour,
-				int startOpacity, int endOpacity) {
-			this.colours = new Color[levels];
-			this.values = values;
-			Arrays.sort(this.values);
-
-			this.baseColour = baseColour;
-			this.startOpacity = startOpacity;
-			this.endOpacity = endOpacity;
-
-			this.step = calculateStep();
-
-			initialiseColours();
-		}
-
-		private double calculateStep() {
-			int minValue = values[0];
-			int maxValue = values[values.length - 1];
-
-			return ((double) (maxValue - minValue)) / (double) colours.length;
-		}
-
-		private void initialiseColours() {
-			int opacityStep = (endOpacity - startOpacity) / colours.length;
-			for (int o = startOpacity, i = 0; o < endOpacity; o += opacityStep, i++) {
-				colours[i] = new Color(baseColour.getRed(), baseColour
-						.getGreen(), baseColour.getBlue(), startOpacity
-						+ (i * opacityStep));
-			}
-		}
-
-		private Color getColour(int value) {
-			int colourIndex = (int) Math.round((value - values[0]) / step);
-			return colours[Math.max(0, colourIndex - 1)];
-		}
-	}
 }

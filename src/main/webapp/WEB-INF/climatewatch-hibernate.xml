@@ -50,8 +50,10 @@
 		        <value>au.com.gaiaresources.bdrs.model.taxa.IndicatorSpeciesAttribute</value>
 		        <value>au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile</value>
 		        <value>au.com.gaiaresources.bdrs.model.record.Record</value>
-		        
-		        <value>au.com.gaiaresources.bdrs.model.survey.Survey</value>
+                <value>au.com.gaiaresources.bdrs.model.record.Comment</value>
+
+
+                <value>au.com.gaiaresources.bdrs.model.survey.Survey</value>
 		        <value>au.com.gaiaresources.bdrs.model.project.Project</value>
 		        <value>au.com.gaiaresources.bdrs.model.metadata.Metadata</value>
 		        

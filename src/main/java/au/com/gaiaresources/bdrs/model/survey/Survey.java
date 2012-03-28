@@ -79,6 +79,9 @@ public class Survey extends PortalPersistentImpl implements Comparable<Survey> {
     private static final boolean DEFAULT_RECORD_VISIBILITY_MODIFIABLE = false;
     
     private static final boolean DEFAULT_CENSUS_METHOD_PROVIDED_FOR_SURVEY = false;
+
+    /** Commenting on records is disabled by default */
+    private static final boolean DEFAULT_ENABLE_RECORD_COMMENTS = false;
     
     public static final SurveyFormSubmitAction DEFAULT_SURVEY_FORM_SUBMIT_ACTION = SurveyFormSubmitAction.MY_SIGHTINGS;
 
@@ -656,7 +659,81 @@ public class Survey extends PortalPersistentImpl implements Comparable<Survey> {
     public void removeMetadata(Metadata md) {
         metadata.remove(md);
     }
-    
+
+    /**
+     *
+     * @return true if users can comment on Records created using this Survey.
+     */
+    @Transient
+    public boolean getRecordCommentsEnabled() {
+
+        Metadata metadata = getMetadataByKey(Metadata.COMMENTS_ENABLED_FOR_SURVEY);
+        return metadata == null ? DEFAULT_ENABLE_RECORD_COMMENTS : Boolean.parseBoolean(metadata.getValue());
+    }
+
+    /**
+     * Configures whether users can comment on Records created using this Survey.
+     * @param recordCommentsEnabled true if comments can be made.
+     * @param metadataDAO the property is stored as Metadata so this DAO is used to access and save it.
+     * @return the Metadata object that stores the value of this property.
+     */
+    @Transient
+    public Metadata setRecordCommentsEnabled(boolean recordCommentsEnabled, MetadataDAO metadataDAO) {
+        if (metadataDAO == null) {
+            throw new IllegalArgumentException("metadataDAO cannot be null");
+        }
+
+        Metadata md = getMetadataByKey(Metadata.COMMENTS_ENABLED_FOR_SURVEY);
+
+        // Find the metadata or create it.
+        if(md == null) {
+            md = new Metadata();
+            md.setKey(Metadata.COMMENTS_ENABLED_FOR_SURVEY);
+            // default value: full public (as it is for the Atlas).
+            md.setValue(Boolean.valueOf(DEFAULT_ENABLE_RECORD_COMMENTS).toString());
+        }
+
+        // Set the value and add it to the set.
+        md.setValue(recordCommentsEnabled ? Boolean.TRUE.toString() : Boolean.FALSE.toString());
+
+        if (!metadataContainsKey(md)) {
+            metadata.add(md);
+        }
+
+        return metadataDAO.save(md);
+    }
+
+    /**
+     * Returns true if the supplied User has access to this survey.  If a User has access to a Survey it means
+     * they are allowed to Record observations using the Survey.  Records created using a Survey are still
+     * visible to Users who do not have access to the Survey.
+     *
+     * @param user the User to be checked for access.
+     * @return true if the supplied User has access to this survey.
+     */
+    @Transient
+    public boolean hasAccess(User user) {
+
+        // Anonymous access is not allowed.
+        if (user == null || user.getId() == null) {
+            return false;
+        }
+        if (isPublic() || user.isAdmin()) {
+            return true;
+        }
+        if (users.contains(user)) {
+            return true;
+        }
+
+        for (Group group : getGroups()) {
+            if (group.contains(user)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * Get the default map center for this survey.
      * @return
@@ -669,7 +746,7 @@ public class Survey extends PortalPersistentImpl implements Comparable<Survey> {
         }
         return null;
     }
-    
+
     /**
      * Get the default map zoom level for the survey.
      * @return
@@ -691,7 +768,7 @@ public class Survey extends PortalPersistentImpl implements Comparable<Survey> {
     public List<BaseMapLayer> getBaseMapLayers() {
         return baseMapLayers;
     }
-    
+
     /**
      * Set the {@link BaseMapLayer} for this survey
      * @param newLayers
@@ -699,7 +776,7 @@ public class Survey extends PortalPersistentImpl implements Comparable<Survey> {
     public void setBaseMapLayers(List<BaseMapLayer> newLayers) {
         baseMapLayers = newLayers;
     }
-    
+
     /**
      * Get the {@link GeoMapLayer} linked to this survey.
      * @return
@@ -708,7 +785,7 @@ public class Survey extends PortalPersistentImpl implements Comparable<Survey> {
     public List<SurveyGeoMapLayer> getGeoMapLayers() {
         return geoMapLayers;
     }
-    
+
     /**
      * Set the {@link GeoMapLayer} for this survey
      * @param newLayers the layers for the survey

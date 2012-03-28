@@ -219,9 +219,14 @@
             
         </put-list-attribute>
     </definition>
-    
+
+    <!-- Record Comments -->
+    <definition name="comment" template="/WEB-INF/jsp/bdrs/user/record/render/comment.jsp"/>
+    <definition name="addComment" template="/WEB-INF/jsp/bdrs/user/record/render/addComment.jsp"/>
+    <definition name="commentsRenderer" template="/WEB-INF/jsp/bdrs/user/record/render/commentsRenderer.jsp"/>
+
     <!-- No Script Message -->
-    <definition name="noscriptMessage" template="/WEB-INF/jsp/bdrs/user/record/render/noscript.jsp"></definition>
+    <definition name="noscriptMessage" template="/WEB-INF/jsp/bdrs/user/record/render/noscript.jsp"/>
 
     <!-- Bulk Data -->
     <definition name="bulkdata" extends="user-template">

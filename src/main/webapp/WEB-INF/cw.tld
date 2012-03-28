@@ -313,6 +313,21 @@
       <body-content>empty</body-content>
   </tag>
 
+  <tag>
+      <description>
+          Writes the full name of the User identified by a supplied id.
+      </description>
+      <name>userFullName</name>
+      <tag-class>au.com.gaiaresources.bdrs.servlet.jsp.tag.UserNameTag</tag-class>
+      <body-content>empty</body-content>
+      <attribute>
+          <description>The id of the User</description>
+          <name>userId</name>
+          <required>true</required>
+          <rtexprvalue>true</rtexprvalue>
+      </attribute>
+  </tag>
+
   <function>
     <name>hasCsvValue</name>
     <function-class>au.com.gaiaresources.bdrs.util.CSVUtils</function-class>

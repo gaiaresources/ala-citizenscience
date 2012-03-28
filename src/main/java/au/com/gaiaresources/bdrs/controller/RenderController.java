@@ -42,17 +42,20 @@ public class RenderController extends AbstractController {
     public static final String SURVEY_RENDER_REDIRECT_URL = "/bdrs/user/surveyRenderRedirect.htm";
     public static final String PARAM_RECORD_ID = BdrsWebConstants.PARAM_RECORD_ID;
     public static final String PARAM_SURVEY_ID = BdrsWebConstants.PARAM_SURVEY_ID;
+    public static final String PARAM_COMMENT_ID = BdrsWebConstants.PARAM_COMMENT_ID;
+    
+    /** The prefix of the page anchors that identify the position of comments on the Record page */
+    private static final String COMMENT_ANCHOR_PREFIX = "#comment";
 
     /**
      * Redirects the request to the appropriate survey renderer depending upon
      * the <code>SurveyFormRendererType</code> of the survey.
      * 
-     * @param request
-     *            the http request.
-     * @param response
-     *            the http response.
-     * @param surveyId
-     *            the primary key of the survey in question.
+     * @param request the http request.
+     * @param response the http response.
+     * @param recordId the ID of the Record to be displayed.
+     * @param surveyPk the primary key of the survey in question.
+     * @param commentId identifies the comment that should be displayed (this is done by specifying an anchor).
      * @return redirected view to the survey renderer.
      */
     @SuppressWarnings("unchecked")
@@ -60,7 +63,8 @@ public class RenderController extends AbstractController {
     public ModelAndView surveyRendererRedirect(HttpServletRequest request,
             HttpServletResponse response,
             @RequestParam(value=PARAM_RECORD_ID, required=false) String recordId,
-            @RequestParam(value=PARAM_SURVEY_ID, required=false) String surveyPk) {
+            @RequestParam(value=PARAM_SURVEY_ID, required=false) String surveyPk,
+            @RequestParam(value=PARAM_COMMENT_ID, required=false) String commentId) {
 
         int surveyId = 0;
         
@@ -78,7 +82,7 @@ public class RenderController extends AbstractController {
             }
         } 
 
-	if (surveyId == 0) {
+	    if (surveyId == 0) {
             try {
                 surveyId = Integer.parseInt(surveyPk);
             } catch (NumberFormatException nfe) {
@@ -123,6 +127,9 @@ public class RenderController extends AbstractController {
             redirectURL = TrackerController.EDIT_URL;
         }
 
+        if (StringUtils.hasLength(commentId)) {
+            redirectURL = redirectURL + COMMENT_ANCHOR_PREFIX+commentId;
+        }
         ModelAndView mv = this.redirect(redirectURL);
         
         mv.addAllObjects(request.getParameterMap());

@@ -118,6 +118,16 @@ public class PreferenceDAOImpl extends AbstractDAOImpl implements PreferenceDAO 
         return super.getByID(Preference.class, pk);
     }
 
+    /**
+     * Returns the Preference identified by the supplied primary key using the supplied Session.
+     * @param session the Session to use for database access.
+     * @param pk the primary key of the Preference to retrieve.
+     * @return the Preference object with the supplied primary key.
+     */
+    private Preference getPreference(Session session, Integer pk) {
+        return super.getByID(session, Preference.class, pk);
+    }
+
     private PreferenceCategory getCategoryByName(Session sesh, String name) {
 
         if (sesh == null) {
@@ -149,6 +159,9 @@ public class PreferenceDAOImpl extends AbstractDAOImpl implements PreferenceDAO 
      */
     @Override
     public Preference getPreferenceByKey(Session sesh, String key) {
+        if (sesh == null) {
+            sesh = getSessionFactory().getCurrentSession();
+        }
         Portal portal = RequestContextHolder.getContext().getPortal();
         if (prefCache.containsKey(portal)) {
             Preference pref = prefCache.get(portal).get(key);
@@ -159,8 +172,7 @@ public class PreferenceDAOImpl extends AbstractDAOImpl implements PreferenceDAO 
             if (pref == null) {
                 log.warn(String.format("Cannot find preference with key \"%s\". Returning null.", key));
             } else {
-                // pref = (Preference) sesh.merge(pref);
-                pref = this.getPreference(pref.getId());
+                pref = this.getPreference(sesh, pref.getId());
             }
             return pref;
         } else {

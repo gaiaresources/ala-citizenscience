@@ -2,19 +2,18 @@ package au.com.gaiaresources.bdrs.service.web;
 
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import au.com.gaiaresources.bdrs.controller.HomePageController;
 import au.com.gaiaresources.bdrs.controller.RenderController;
 import au.com.gaiaresources.bdrs.controller.admin.AdminHomePageController;
 import au.com.gaiaresources.bdrs.controller.admin.EditUsersController;
-import au.com.gaiaresources.bdrs.controller.admin.users.UserController;
 import au.com.gaiaresources.bdrs.controller.file.DownloadFileController;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
+import org.springframework.util.StringUtils;
 
 // The idea was to reduce the amount of times there were redirection urls as string literals in the controllers.
 // Also with the addition of GET parameters things just got more hairy. Wanted to make it type safe as well as
@@ -55,6 +54,16 @@ public class RedirectionService {
     }
     
     public String getViewRecordUrl(Record record) {
+        return getViewRecordUrl(record, -1);
+    }
+
+    /**
+     * Returns a URL that will display the supplied Record.
+     * @param record the Record to display.
+     * @param commentId if > 0, the commentId will be used to add an anchor to the created URL.
+     * @return a String containing a URL that can be used to display the supplied Record.
+     */
+    public String getViewRecordUrl(Record record, int commentId) {
         if (record == null) {
             throw new IllegalArgumentException("record cannot be null");
         }
@@ -67,9 +76,15 @@ public class RedirectionService {
         if (record.getSurvey().getId() == null) {
             throw new IllegalArgumentException("record.survey.id cannot be null");
         }
-        return RenderController.SURVEY_RENDER_REDIRECT_URL + "?" + 
-            RenderController.PARAM_SURVEY_ID + "=" + record.getSurvey().getId().toString() + "&" +
-            RenderController.PARAM_RECORD_ID + "=" + record.getId().toString();
+        StringBuilder url = new StringBuilder();
+        url.append(RenderController.SURVEY_RENDER_REDIRECT_URL);
+
+        url.append("?").append(RenderController.PARAM_SURVEY_ID).append("=").append(Integer.toString(record.getSurvey().getId()));
+        url.append("&").append(RenderController.PARAM_RECORD_ID).append("=").append(Integer.toString(record.getId()));
+        if (commentId > 0) {
+            url.append("&").append("commentId").append("=").append(Integer.toString(commentId));
+        }
+        return url.toString();
     }
     
     public String getAdminHomeUrl() {

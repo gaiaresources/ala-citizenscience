@@ -92,6 +92,12 @@ public class RecordWebFormContext {
     private Integer recordId;
     private Integer surveyId;
     private boolean moderateOnly;
+
+    /** True if the current User can comment on the Record being accessed */
+    private boolean commentable;
+    
+    /** True if the Record is being accessed by an anonymous user */
+    private boolean anonymous;
     
     private JSONArray mapBaseLayers = new JSONArray();
     private JSONArray geoMapLayers = new JSONArray();
@@ -128,7 +134,8 @@ public class RecordWebFormContext {
         surveyId = survey != null ? survey.getId() : null;
         existingRecord = recordToLoad != null && recordToLoad.getId() != null;
         unlockable = existingRecord && recordToLoad.canWrite(accessingUser);
-        
+        commentable = !editable && (recordToLoad != null) && recordToLoad.canComment(accessingUser);
+        anonymous = (accessingUser == null);
         recordAccessSecurityCheck(recordToLoad, accessingUser, editable);
         
         // add the flattened layers to the page so they can be referenced 
@@ -242,6 +249,20 @@ public class RecordWebFormContext {
      */
     public boolean isPreview() {
         return this.preview;
+    }
+
+    /**
+     * @return true if the current User can comment on the Record being accessed.
+     */
+    public boolean isCommentable() {
+        return this.commentable;
+    }
+
+    /**
+     * @return true if the Record is being accessed by an anonymous user.
+     */
+    public boolean isAnonymous() {
+        return this.anonymous;
     }
     
     /**

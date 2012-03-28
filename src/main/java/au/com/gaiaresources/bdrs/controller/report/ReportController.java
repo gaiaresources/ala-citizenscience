@@ -239,12 +239,12 @@ public class ReportController extends AbstractController {
                                 log.error("Failed to delete target report directory", ioe);
                             }
                         }
-                        
-                        boolean renameSuccess = reportDir.renameTo(targetReportDir);
-                        if(!renameSuccess) {
-                            log.warn("Failed to rename report directory: "+reportDir.getAbsolutePath());
-                        }
-                        
+
+                        // Using apache commons rather than File.renameTo because rename to cannot move the file
+                        // between two different file systems.
+                        org.apache.commons.io.FileUtils.copyDirectory(reportDir, targetReportDir);
+                        org.apache.commons.io.FileUtils.deleteDirectory(reportDir);
+
                         // Success!
                         getRequestContext().addMessage("bdrs.report.add.success", new Object[]{ report.getName() });
                         
@@ -388,6 +388,7 @@ public class ReportController extends AbstractController {
      * @throws IOException thrown if there is a problem reading or writing the files.
      */
     private File extractUploadedReport(MultipartFile uploadedReport) throws IOException {
+
         File tempReportZip = File.createTempFile("report", "zip");
         tempReportZip.deleteOnExit();
         FileUtils.writeBytesToFile(uploadedReport.getBytes(), tempReportZip);
@@ -401,7 +402,7 @@ public class ReportController extends AbstractController {
         if(!deleteSuccess) {
             log.warn("Failed to delete temporary report zip file: " + tempReportZip.getAbsolutePath());
         }
-        
+
         return tempReportDir;
     }
 }

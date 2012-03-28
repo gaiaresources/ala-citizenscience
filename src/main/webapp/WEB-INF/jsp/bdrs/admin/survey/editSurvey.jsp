@@ -18,6 +18,26 @@
 
 <cw:getContent key="admin/editProject" />
 
+<c:choose>
+    <c:when test="${survey.id != null }">
+        <div class="textright">
+            <a href="${pageContext.request.contextPath}/bdrs/admin/survey/export.htm?surveyId=${ survey.id }"
+                title="Exports Projects, Census Methods and Attributes">
+                Export Project
+            </a>
+        </div>
+    </c:when>
+    <c:otherwise>
+        <div class="buttonpanel sepBottom">
+            <form method="POST" action="${pageContext.request.contextPath}/bdrs/admin/survey/import.htm" enctype="multipart/form-data">
+                <input id="import_survey_file" name="survey_file" type="file" style="visibility:hidden"/>
+                <input id="import_survey_button" class="form_action right" type="button" value="Import Survey"/>
+            </form>
+            <div class="clear"></div>
+        </div>
+    </c:otherwise>
+</c:choose>
+
 <form method="POST" action="${pageContext.request.contextPath}/bdrs/admin/survey/edit.htm" enctype="multipart/form-data">
     <c:if test="${survey.id != null }">
         <input type="hidden" name="surveyId" value="${survey.id}"/>
@@ -209,6 +229,16 @@
 	                        />
 	                    </td>
 	                </tr>
+                    <tr>
+                        <th title="Controls if users can add comments to records created using this survey">Comments on records allowed</th>
+                        <td>
+                            <input type="checkbox" name="recordCommentsEnabled" value="True"
+                                <c:if test="${survey.recordCommentsEnabled}">
+                                    checked="checked"
+                                </c:if>
+                            />
+                        </td>
+                    </tr>
 				</tbody>
 			</table>
 		</div>
@@ -252,5 +282,7 @@
             jQuery("#advancedToggle").text(canSee ? "Click here to hide the advanced settings for your project" : "Click here to see the advanced settings for your project");
             jQuery("#advancedSettings").slideToggle();
         });
+
+        bdrs.survey.listing.init();
     });
 </script>

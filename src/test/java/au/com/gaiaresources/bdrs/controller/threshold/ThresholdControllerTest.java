@@ -72,7 +72,7 @@ public class ThresholdControllerTest extends AbstractControllerTest {
         Map<Threshold, String> thresholdDisplayNameMap = (Map<Threshold, String>) mv.getModel().get("displayNameThresholdMap");
 
         // add one to account for the default threshold created on portal initialization
-        Assert.assertEquals(ThresholdService.THRESHOLD_CLASSES.length+1, thresholdDisplayNameMap.size());
+        Assert.assertEquals(ThresholdService.THRESHOLD_CLASSES.size()+1, thresholdDisplayNameMap.size());
     }
 
     @Test
@@ -223,7 +223,7 @@ public class ThresholdControllerTest extends AbstractControllerTest {
         login("admin", "password", new String[] { Role.ADMIN });
 
         Map<String, String> params = new HashMap<String, String>();
-        Map<Class<?>, Threshold> expectedThresholdMap = new HashMap<Class<?>, Threshold>(ThresholdService.THRESHOLD_CLASSES.length);
+        Map<Class<?>, Threshold> expectedThresholdMap = new HashMap<Class<?>, Threshold>(ThresholdService.THRESHOLD_CLASSES.size());
         for (Class<?> klass : ThresholdService.THRESHOLD_CLASSES) {
             List<Threshold> existingThresholdList = thresholdDAO.getEnabledThresholdByClassName(klass.getCanonicalName());
             // delete any existing thresholds

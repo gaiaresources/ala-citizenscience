@@ -54,7 +54,11 @@
             #for $taxon in $taxa_array:
                 <tr>
                     <td>$taxon.taxonGroup.name</td>
-                    <td>$taxon.taxonRank.title</td>
+                    #if $taxon.taxonRank
+                        <td>$taxon.taxonRank.identifier</td>
+                    #else
+                        <td></td>
+                    #end if
                     <td class="scientificName">$taxon.scientificName</td>
                     <td>$taxon.commonName</td>
                     <td>$taxon.author</td>
