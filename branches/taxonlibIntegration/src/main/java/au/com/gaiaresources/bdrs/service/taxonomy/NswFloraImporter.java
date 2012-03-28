@@ -545,7 +545,7 @@ public class NswFloraImporter {
     private void redefineConcept(ITaxonConcept oldTc, ITaxonConcept newTc) {
         Set<ITaxonConcept> srcSet = new HashSet<ITaxonConcept>();
         srcSet.add(oldTc);
-        temporalContext.join(srcSet, newTc);
+        temporalContext.lump(srcSet, newTc);
     }
 
     private enum NswFloraRowType {

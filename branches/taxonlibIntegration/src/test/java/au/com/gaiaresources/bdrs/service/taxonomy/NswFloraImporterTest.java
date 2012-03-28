@@ -106,7 +106,7 @@ public class NswFloraImporterTest extends TaxonomyImportTest {
             Assert.assertNotNull("tc1 end date should be set", tc1.getEndDate());
             
             // context.
-            List<ITaxonConcept> synList = context.selectSynonymConcepts(tc2);
+            List<ITaxonConcept> synList = context.selectOldSynonyms(tc2);
             Assert.assertEquals("wrong size", 1, synList.size());
             Assert.assertNotNull("expect contains tc1", TaxonTestUtils.getTaxonConceptById(synList, tc1.getId()));
         }
@@ -121,7 +121,7 @@ public class NswFloraImporterTest extends TaxonomyImportTest {
             Assert.assertNull("tc3 end date should NOT be set", tc3.getEndDate());
             
             // context.
-            List<ITaxonConcept> synList = context.selectSynonymConcepts(tc3);
+            List<ITaxonConcept> synList = context.selectOldSynonyms(tc3);
             Assert.assertEquals("wrong size", 2, synList.size());
             Assert.assertNotNull("expect contains tc1", TaxonTestUtils.getTaxonConceptById(synList, tc1.getId()));
             Assert.assertNotNull("expect contains tc2", TaxonTestUtils.getTaxonConceptById(synList, tc2.getId()));
@@ -199,7 +199,7 @@ public class NswFloraImporterTest extends TaxonomyImportTest {
             ITaxonConcept tc3 = context.selectConceptByNameSourceId(NswFloraImporter.NSW_FLORA_SOURCE, "970");
 
             // context.
-            List<ITaxonConcept> synList = context.selectSynonymConcepts(tc3);
+            List<ITaxonConcept> synList = context.selectOldSynonyms(tc3);
             Assert.assertEquals("wrong size", 2, synList.size());
             Assert.assertNotNull("expect contains tc1", TaxonTestUtils.getTaxonConceptById(synList, tc1.getId()));
             Assert.assertNotNull("expect contains tc2", TaxonTestUtils.getTaxonConceptById(synList, tc2.getId()));
