@@ -979,6 +979,10 @@
                 <bdrs.recaptcha.private.key>6LfbwwQAAAAAAF5wVuk8nLcOanKCwvA_-rmtvNIL</bdrs.recaptcha.private.key>
                 <!-- File storage location -->
                 <bdrs.file.store.location>/tmp</bdrs.file.store.location>
+				<!-- Taxonlib properties -->
+				<taxonlib.db.username>postgres</taxonlib.db.username>
+				<taxonlib.db.password>postgres</taxonlib.db.password>
+				<taxonlib.db.url>localhost:5432/mybatistest</taxonlib.db.url>
             </properties>
         </profile>
         <profile>
