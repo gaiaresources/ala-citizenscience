@@ -1,6 +1,6 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="/WEB-INF/cw.tld" prefix="cw" %>
-<h1>Import Taxonomy to TaxonLib</h1>
+<h1>Import Taxon Information From Files</h1>
 <h3 style="color:red">WARNING</h3>
 <div>
 	<p>
@@ -39,6 +39,7 @@
         </div>
     </form>
 </div>
+<div style="height:1em"></div>
 <div class="input_container">
     <h2>MAX</h2>
 	<p>Required format: CSV</p>
@@ -96,6 +97,7 @@
         </div>
     </form>
 </div>
+<div style="height:1em"></div>
 <div class="input_container">
 	<h2>AFD</h2>
 	<p>Required format: CSV</p>
