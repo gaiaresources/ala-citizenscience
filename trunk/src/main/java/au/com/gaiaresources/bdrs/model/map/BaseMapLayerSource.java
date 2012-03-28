@@ -21,4 +21,11 @@ public enum BaseMapLayerSource implements MapLayerSource, Comparable<BaseMapLaye
     public String getName() {
         return this.name;
     }
+    
+    /**
+     * Determines if the source is Google by checking if the name starts with "Google"
+     */
+    public static boolean isGoogleLayerSource(BaseMapLayerSource source) {
+        return source.getName().startsWith("Google");
+    }
 }

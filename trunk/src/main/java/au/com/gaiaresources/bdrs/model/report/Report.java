@@ -3,6 +3,7 @@ package au.com.gaiaresources.bdrs.model.report;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
 import au.com.gaiaresources.bdrs.model.report.impl.ReportView;
 import org.hibernate.annotations.*;
+import org.hibernate.annotations.Cache;
 
 import javax.persistence.*;
 import javax.persistence.Entity;

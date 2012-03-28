@@ -8,15 +8,13 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import au.com.gaiaresources.bdrs.json.JSONArray;
-import au.com.gaiaresources.bdrs.json.JSONObject;
-
-import au.com.gaiaresources.bdrs.util.TransactionHelper;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import au.com.gaiaresources.bdrs.config.AppContext;
+import au.com.gaiaresources.bdrs.json.JSONArray;
+import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.portal.Portal;
 import au.com.gaiaresources.bdrs.model.portal.PortalDAO;
 import au.com.gaiaresources.bdrs.model.portal.PortalEntryPoint;
@@ -25,11 +23,13 @@ import au.com.gaiaresources.bdrs.model.theme.Theme;
 import au.com.gaiaresources.bdrs.model.theme.ThemeDAO;
 import au.com.gaiaresources.bdrs.model.user.RegistrationService;
 import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.search.SearchService;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.content.ContentService;
 import au.com.gaiaresources.bdrs.service.detect.BDRSWurflLoadService;
 import au.com.gaiaresources.bdrs.service.theme.ThemeService;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
+import au.com.gaiaresources.bdrs.util.TransactionHelper;
 
 // non autowired class...
 public class PortalInitialiser implements ServletContextListener {
@@ -72,6 +72,11 @@ public class PortalInitialiser implements ServletContextListener {
         
         try {
             Transaction tx = sesh.beginTransaction();
+            
+            // create Search indexes
+            SearchService service = AppContext.getBean(SearchService.class);
+            service.createIndexes(sesh);
+            
             BDRSWurflLoadService loadService = AppContext.getBean(BDRSWurflLoadService.class);
             List<Portal> portalList = portalDAO.getPortals();
             if (!portalList.isEmpty()) {

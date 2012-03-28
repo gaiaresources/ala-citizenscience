@@ -1,10 +1,10 @@
 package au.com.gaiaresources.bdrs.model.taxa;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.lucene.queryParser.ParseException;
 import org.hibernate.Session;
 
 import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
@@ -150,6 +150,8 @@ public interface TaxaDAO {
      * @param searchInResult the sub-query parameter
      * @param filter the PaginationFilter
      * @return a PagedQueryResult of IndicatorSpecies
+     * 
+     * @deprecated Use searchTaxa() instead.
      */
     PagedQueryResult<IndicatorSpecies> getIndicatorSpeciesByQueryString(Integer groupId, String searchInGroups, String searchInResult, PaginationFilter filter);
 
@@ -264,4 +266,18 @@ public interface TaxaDAO {
      * @return a List of IndicatorSpecies that are in a group matching the supplied <code>groupName</code>
      */
     List<IndicatorSpecies> searchIndicatorSpeciesByGroupName(String groupName, String taxonName);
+
+    /**
+     * Returns a {@link PagedQueryResult} of {@link IndicatorSpecies} for the {@link TaxonGroup}
+     * with groupId and matching the search terms: searchInGroups and searchInResult
+     * @param groupId (optional) id of the {@link TaxonGroup} to search in
+     * @param searchInGroups (optional) a string to search for
+     * @param searchInResult (optional) a second string to search for once the results have been narrowed by searchInGroups
+     * @param filter A {@link PaginationFilter} to apply to the query to implement paging
+     * @return a {@link PagedQueryResult} of {@link IndicatorSpecies} for the {@link TaxonGroup}
+     * with groupId and matching the search terms: searchInGroups and searchInResult
+     * @throws ParseException if there is an error in the search terms
+     */
+    PagedQueryResult<IndicatorSpecies> searchTaxa(
+            Integer groupId, String searchInGroups, String searchInResult, PaginationFilter filter) throws ParseException;
 }
