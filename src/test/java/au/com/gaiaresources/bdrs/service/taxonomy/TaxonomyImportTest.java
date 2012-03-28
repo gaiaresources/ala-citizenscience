@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Properties;
 import java.util.Scanner;
 
 import org.apache.log4j.Logger;
@@ -15,6 +16,7 @@ import org.junit.Before;
 
 import au.com.gaiaresources.bdrs.test.AbstractTransactionalTest;
 import au.com.gaiaresources.taxonlib.TaxonLibSession;
+import au.com.gaiaresources.taxonlib.TestUtils;
 
 public abstract class TaxonomyImportTest extends AbstractTransactionalTest {
 
@@ -24,14 +26,35 @@ public abstract class TaxonomyImportTest extends AbstractTransactionalTest {
 
     @Before
     public void taxonomyImportTestSetup() throws Exception {
-        taxonLibSession = TaxonLibSessionFactory.getSession("localhost:5432/taxonlib", "postgres", "postgres");
+    	
+    	Properties props = new Properties();
+		
+		InputStream propStream = null;
+		try {
+			propStream = TaxonomyImportTest.class.getResourceAsStream("taxonlib.properties"); 
+			props.load(propStream);	
+		} catch (Exception e) {
+			log.error("Could not load taxonlib properties", e);
+			throw e;
+		} finally {
+			if (propStream != null) {
+				try {
+					propStream.close();
+				} catch (IOException ioe) {
+					log.error("Failed to close stream", ioe);
+				}
+			}
+		}
+		String DB_CONN_STRING = props.getProperty("db.url");
+		String USER_NAME = props.getProperty("db.username");
+		String PASSWORD = props.getProperty("db.password");
+        taxonLibSession = TaxonLibSessionFactory.getSession(DB_CONN_STRING, USER_NAME, PASSWORD);
     }
 
     @After
     public void taxonomyImportTestTeardown() throws SQLException, IOException {
     	
     	if (dropDatabase) {
-    		log.debug("taxonomy import test drop database");
 			InputStream sqlStream = null;
 			try {
 				sqlStream = TaxonLibSession.class.getResourceAsStream("taxonlib.sql");
