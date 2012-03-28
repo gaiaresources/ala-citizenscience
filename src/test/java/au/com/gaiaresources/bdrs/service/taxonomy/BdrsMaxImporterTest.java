@@ -30,6 +30,21 @@ public class BdrsMaxImporterTest extends TaxonomyImportTest {
 	private TaxaDAO taxaDAO;
 	@Autowired
 	private SpeciesProfileDAO spDAO;
+	
+	@Test
+	public void testDoubleImport() throws Exception {
+		runImport("MAX_PlantFamilies_TEST.csv", "MAX_PlantGenera_TEST.csv",
+				"MAX_PlantNames_TEST.csv", "MAX_PlantCrossRef_TEST.csv");
+		
+		Integer indicatorSpeciesCount = taxaDAO.countAllSpecies();
+		
+		runImport("MAX_PlantFamilies_TEST.csv", "MAX_PlantGenera_TEST.csv",
+				"MAX_PlantNames_TEST.csv", "MAX_PlantCrossRef_TEST.csv");
+		
+		assertImport();
+		
+		Assert.assertEquals("wrong species count", indicatorSpeciesCount, taxaDAO.countAllSpecies());
+	}
 
 	@Test
 	public void testImport() throws Exception {
@@ -75,9 +90,6 @@ public class BdrsMaxImporterTest extends TaxonomyImportTest {
 	}
 
 	private void assertImport() {
-		// ITemporalContext temporalContext =
-		// taxonLibSession.getTemporalContext(now);
-
 		// check ancestor branch
 		{
 			IndicatorSpecies species = taxaDAO

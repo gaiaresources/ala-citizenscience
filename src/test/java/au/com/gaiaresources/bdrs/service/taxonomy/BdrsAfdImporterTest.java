@@ -1,0 +1,150 @@
+package au.com.gaiaresources.bdrs.service.taxonomy;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import junit.framework.Assert;
+
+import org.apache.log4j.Logger;
+import org.hibernate.Session;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
+import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfileDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TaxonRank;
+import au.com.gaiaresources.taxonlib.importer.afd.AfdImporter;
+
+public class BdrsAfdImporterTest extends TaxonomyImportTest {
+
+	private Date now = getDate(2011, 12, 31);
+
+	private Logger log = Logger.getLogger(getClass());
+
+	@Autowired
+	private TaxaDAO taxaDAO;
+	@Autowired
+	private SpeciesProfileDAO spDAO;
+	
+	@Before
+	public void setup() {
+		requestTaxonomyImportTestDropDatabase();
+	}
+	
+	@Test
+	public void testMollusca() throws Exception {
+		runImport("Mollusca.csv");
+	}
+	
+	@Test
+	public void testDoubleImport() throws Exception {
+		runImport("AFD_TEST.csv");
+		
+		Integer indicatorSpeciesCount = taxaDAO.countAllSpecies();
+		
+		runImport("AFD_TEST.csv");
+		
+		assertImport();
+		
+		Assert.assertEquals("wrong species count", indicatorSpeciesCount, taxaDAO.countAllSpecies());
+	}
+
+	@Test
+	public void testImport() throws Exception {
+		runImport("AFD_TEST.csv");
+		assertImport();
+	}
+
+	private void runImport(String afdFile) throws Exception {
+		
+		this.commit();
+		
+		Session sesh = null;
+		try {
+			sesh = sessionFactory.openSession();
+			BdrsAfdImporter importer = new BdrsAfdImporter(taxonLibSession, now, sesh,
+					taxaDAO, spDAO);
+
+			List<InputStream> streamsToClose = new ArrayList<InputStream>();
+			try {
+				InputStream afdStream = AfdImporter.class
+						.getResourceAsStream(afdFile);
+				
+				streamsToClose.add(afdStream);
+
+				importer.runImport(afdStream);
+
+			} finally {
+				for (InputStream is : streamsToClose) {
+					try {
+						if (is != null) {
+							is.close();
+						}
+					} catch (IOException ioe) {
+						log.error("Could not close stream", ioe);
+					}
+				}
+			}	
+		} finally {
+			if (sesh != null) {
+				sesh.getTransaction().commit();
+				sesh.close();
+			}
+		}
+	}
+
+	private void assertImport() {
+		// check ancestor branch
+		{
+			IndicatorSpecies species = taxaDAO.getIndicatorSpeciesBySourceDataID(null,
+					AfdImporter.SOURCE, "50b888b7-4a6e-43d5-80ae-ef929f36f486");
+			assertIndicatorSpecies(species, "50b888b7-4a6e-43d5-80ae-ef929f36f486", "Fritillaria borealis Lohmann, 1896",
+					"", "Lohmann", "1896", TaxonRank.SPECIES, true, true);
+			IndicatorSpecies genus = species.getParent();
+			assertIndicatorSpecies(genus, "aad6d11e-3309-466f-99af-eb3274a64d78", "Fritillaria Fol, 1872",
+					"", "Fol", "1872", TaxonRank.GENUS, true, true);
+		}
+		
+		// check deprecated
+		{
+			IndicatorSpecies deprecated = taxaDAO.getIndicatorSpeciesBySourceDataID(null,
+					AfdImporter.SOURCE, "763a9c68-8b19-4f82-b1de-69a0bcabcecb");
+			assertIndicatorSpecies(deprecated, "763a9c68-8b19-4f82-b1de-69a0bcabcecb", "Fritillaria Fol, 1872",
+					"", "Fol", "1872", TaxonRank.GENUS, false, false);
+		}
+		
+		// check common name
+		{
+			IndicatorSpecies chordata = taxaDAO.getIndicatorSpeciesBySourceDataID(null,
+					AfdImporter.SOURCE, "ec3c5304-8f9c-4a2a-ad08-38bb712f5edb");
+			assertIndicatorSpecies(chordata, "ec3c5304-8f9c-4a2a-ad08-38bb712f5edb", "CHORDATA", 
+					"Chordates", "", "", TaxonRank.PHYLUM, false, true);
+		}
+	}
+
+	// returns the parent if it exists
+	private void assertIndicatorSpecies(IndicatorSpecies is,
+			String sourceId, String sciName, String commonName, String author, String year,
+			TaxonRank rank, boolean hasParent, Boolean isCurrent) {
+		Assert.assertNotNull("Indicator species cannot be null", is);
+		Assert.assertEquals("wrong rank", rank, is.getTaxonRank());
+		Assert.assertEquals("wrong source", AfdImporter.SOURCE,
+				is.getSource());
+		Assert.assertEquals("wrong sci name", sciName, is.getScientificName());
+		Assert.assertEquals("wrong common name", commonName, is.getCommonName());
+		Assert.assertEquals("wrong author", author, is.getAuthor());
+		if (hasParent) {
+			Assert.assertNotNull("parent cannot be null", is.getParent());
+		} else {
+			Assert.assertNull("parent should be null", is.getParent());
+		}
+		Assert.assertEquals("wrong current status", isCurrent, is.getCurrent());
+	}
+	
+}
