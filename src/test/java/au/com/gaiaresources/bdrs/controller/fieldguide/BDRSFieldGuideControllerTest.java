@@ -54,7 +54,7 @@ public class BDRSFieldGuideControllerTest extends AbstractControllerTest {
     // keywords to use for building profiles and testing keyword search
     private static final String[] PROFILE_KEYWORDS = new String[] {
         "habitat", "australia", "water", "land", "trees", "reefs", "reef", 
-        "diet", "leaves", "insects", "small mammals", 
+        "diet", "leaves", "insects", "eggs", 
         "activity", "swim", "walk", "run", "hunt",
         "features", "gills", 
         "status", "endangered", "threatened",
@@ -283,15 +283,24 @@ public class BDRSFieldGuideControllerTest extends AbstractControllerTest {
     
     private void createTestData() throws Exception {
         ApplicationContext appContext = getRequestContext().getApplicationContext();
-        TestDataCreator testDataCreator = new TestDataCreator(appContext);
+        TaxonGroup group = new TaxonGroup();
+        group.setName("Mammals");
+        taxaDAO.save(group);
+        group = new TaxonGroup();
+        group.setName("Reptiles");
+        taxaDAO.save(group);
         
-        testDataCreator.createTaxonGroups(2, 0, true);
-        testDataCreator.createTaxa(3, 0);
-        testDataCreator.createTaxonProfile();
+        String[] colors = new String[]{"Green", "Purple", "Blue", "Black", "White", "Yellow", "Red"};
+        String[] latinColors = new String[]{"Pratinus", "Purpureus", "Caeruleus", "Fuscus", "Albus", "Flavus", "Roseus"};
         
         for (TaxonGroup taxonGroup : taxaDAO.getTaxonGroups()) {
-            List<IndicatorSpecies> speciesList = taxaDAO.getIndicatorSpecies(taxonGroup);
-            for (IndicatorSpecies species : speciesList) {
+            String animal = taxonGroup.getName().equals("Mammals") ? "Monkey" : "Dragon";
+            String latinAnimal = taxonGroup.getName().equals("Mammals") ? "Alouatta" : "Ctenophorus";
+            
+            for (int i = 0; i < colors.length; i++) {
+                IndicatorSpecies species = new IndicatorSpecies();
+                species.setScientificName(latinColors[i] + " " + latinAnimal);
+                species.setCommonName(colors[i] + " " + animal);
                 List<SpeciesProfile> profileItems = new ArrayList<SpeciesProfile>();
                 SpeciesProfile description = speciesProfileDAO.createSpeciesProfile(
                                                 "description_db", "description", 
@@ -300,8 +309,8 @@ public class BDRSFieldGuideControllerTest extends AbstractControllerTest {
                 
                 species.setRunThreshold(false);
                 species.setInfoItems(profileItems);
+                species.setTaxonGroup(taxonGroup);
                 
-                taxaDAO.save(taxonGroup);
                 taxaDAO.save(species);
             }
         }
