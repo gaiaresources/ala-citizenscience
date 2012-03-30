@@ -245,6 +245,7 @@
                 open: dialogOpen,
                 close: dialogClose,
                 resizeStop : handleDialogResize,
+                zIndex: bdrs.MODAL_DIALOG_Z_INDEX,
                 buttons: [
                     {
                         id: "selectFileCancel",
