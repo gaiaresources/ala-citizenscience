@@ -76,7 +76,7 @@ public class BdrsAfdImporterRowHandler implements AfdImporterRowHandler {
 	@Override
 	public void addRow(AfdRow row, ITaxonConcept concept) {
 		ITaxonName tn = concept.getName();
-		IndicatorSpecies iSpecies = taxaDAO.getIndicatorSpeciesBySourceDataID(sesh, AfdImporter.SOURCE, tn.getSourceId());
+		IndicatorSpecies iSpecies = taxaDAO.getIndicatorSpeciesBySourceDataID(sesh, AfdImporter.SOURCE, getSourceId(tn));
 		if (iSpecies == null) {
 			iSpecies = new IndicatorSpecies();
             iSpecies.setScientificName(tn.getDisplayName());
@@ -84,7 +84,7 @@ public class BdrsAfdImporterRowHandler implements AfdImporterRowHandler {
             iSpecies.setAuthor(tn.getAuthor());
             iSpecies.setTaxonGroup(group);
             iSpecies.setSource(AfdImporter.SOURCE);
-            iSpecies.setSourceId(tn.getSourceId());
+            iSpecies.setSourceId(tn.getId().toString());
             iSpecies.setCommonName("");
             
             // do teh funky cast....
@@ -102,7 +102,7 @@ public class BdrsAfdImporterRowHandler implements AfdImporterRowHandler {
 	@Override
 	public void linkRow(AfdRow row, ITaxonConcept concept) {
 		String nameType = row.getValue(AfdRow.ColumnName.NAME_TYPE);
-		IndicatorSpecies iSpecies = taxaDAO.getIndicatorSpeciesBySourceDataID(sesh, AfdImporter.SOURCE, concept.getName().getSourceId());
+		IndicatorSpecies iSpecies = taxaDAO.getIndicatorSpeciesBySourceDataID(sesh, AfdImporter.SOURCE, getSourceId(concept.getName()));
 		
 		if (iSpecies != null) {
 			if (AfdImporter.COMMON.equals(nameType)) {
@@ -118,20 +118,24 @@ public class BdrsAfdImporterRowHandler implements AfdImporterRowHandler {
 				}
 			} else if (AfdImporter.VALID.equals(nameType)) {
 				if (concept.getParent() != null) {
-		        	IndicatorSpecies iSpeciesParent = taxaDAO.getIndicatorSpeciesBySourceDataID(sesh, AfdImporter.SOURCE, concept.getParent().getName().getSourceId());
+		        	IndicatorSpecies iSpeciesParent = taxaDAO.getIndicatorSpeciesBySourceDataID(sesh, AfdImporter.SOURCE, getSourceId(concept.getParent().getName()));
 		        	iSpecies.setParent(iSpeciesParent);
 		        } else {
 		        	iSpecies.setParent(null);
 		        }
 			} else if (AfdImporter.SYNONYM.equals(nameType) || AfdImporter.LIT_SYNONYM.equals(nameType)) {
-				IndicatorSpecies species = taxaDAO.getIndicatorSpeciesBySourceDataID(sesh, AfdImporter.SOURCE, concept.getName().getSourceId());
+				IndicatorSpecies species = taxaDAO.getIndicatorSpeciesBySourceDataID(sesh, AfdImporter.SOURCE, getSourceId(concept.getName()));
 				if (species != null) {
 					species.setCurrent(false);
 				}
 			}	
 		} else {
-			throw new IllegalStateException("Can't find Indicator species with source id : " + concept.getName().getSourceId());
+			throw new IllegalStateException("Can't find Indicator species with source id : " + getSourceId(concept.getName()));
 		}
+	}
+	
+	private String getSourceId(ITaxonName tn) {
+		return tn.getId().toString();
 	}
 
 	@Override
