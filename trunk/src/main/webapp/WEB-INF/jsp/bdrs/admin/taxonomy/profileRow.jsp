@@ -10,7 +10,7 @@
     <c:choose>
         <c:when test="${ profile.id == null }">
             <td class="drag_handle">
-                <input type="hidden" class="sort_weight" name="new_profile_weight_${index}" value="${ profile.weight }"/>
+                <input type="hidden" class="sort_weight" name="new_profile_weight_${index}" value="0"/>
             </td>
             <td>
                 <input type="hidden" name="new_profile" value="${ index }"/>
@@ -38,7 +38,7 @@
         </c:when>
         <c:otherwise>
             <td class="drag_handle">
-                <input type="hidden" value="0" class="sort_weight" name="profile_weight_${ profile.id }" value="${ profile.weight }"/>
+                <input type="hidden" class="sort_weight" name="profile_weight_${ profile.id }" value="${ profile.weight }"/>
             </td>
             <td>
                 <input type="hidden" name="profile_pk" value="${ profile.id }"/>
