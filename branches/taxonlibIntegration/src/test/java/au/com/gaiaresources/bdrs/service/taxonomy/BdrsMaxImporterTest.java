@@ -9,6 +9,7 @@ import java.util.List;
 import junit.framework.Assert;
 
 import org.apache.log4j.Logger;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -19,10 +20,12 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonRank;
 import au.com.gaiaresources.taxonlib.ITemporalContext;
 import au.com.gaiaresources.taxonlib.importer.max.MaxImporter;
+import au.com.gaiaresources.taxonlib.model.ITaxonName;
 
 public class BdrsMaxImporterTest extends TaxonomyImportTest {
 
 	private Date now = getDate(2011, 12, 31);
+	private ITemporalContext temporalContext;
 
 	private Logger log = Logger.getLogger(getClass());
 
@@ -30,6 +33,11 @@ public class BdrsMaxImporterTest extends TaxonomyImportTest {
 	private TaxaDAO taxaDAO;
 	@Autowired
 	private SpeciesProfileDAO spDAO;
+	
+	@Before
+	public void setup() {
+		temporalContext = taxonLibSession.getTemporalContext(now);
+	}
 	
 	@Test
 	public void testDoubleImport() throws Exception {
@@ -90,12 +98,11 @@ public class BdrsMaxImporterTest extends TaxonomyImportTest {
 	}
 
 	private void assertImport() {
+		
+		temporalContext.dumpDatabase();
 		// check ancestor branch
 		{
-			IndicatorSpecies species = taxaDAO
-					.getIndicatorSpeciesBySourceDataID(null,
-							MaxImporter.MAX_SOURCE, MaxImporter.getId(
-									MaxImporter.SPECIES_ID_PREFIX, "12783"));
+			IndicatorSpecies species = getIndicatorSpecies(MaxImporter.getId(MaxImporter.SPECIES_ID_PREFIX, "12783"));
 			IndicatorSpecies genus = assertIndicatorSpecies(species,
 					"SPECIES_12783", "Lycopodiella serpentina", "",
 					"(Kunze) B.Ollg.", TaxonRank.SPECIES, true, true);
@@ -120,9 +127,7 @@ public class BdrsMaxImporterTest extends TaxonomyImportTest {
 
 		// check species profile
 		{
-			IndicatorSpecies species = taxaDAO
-					.getIndicatorSpeciesBySourceDataID(null,
-							MaxImporter.MAX_SOURCE, MaxImporter.getId(
+			IndicatorSpecies species = getIndicatorSpecies(MaxImporter.getId(
 									MaxImporter.SPECIES_ID_PREFIX, "12783"));
 			List<SpeciesProfile> infoItems = species.getInfoItems();
 
@@ -148,14 +153,19 @@ public class BdrsMaxImporterTest extends TaxonomyImportTest {
 		}
 		
 		// check deprecated indicator species and common name
-		{
-			IndicatorSpecies species = taxaDAO
-					.getIndicatorSpeciesBySourceDataID(null,
-							MaxImporter.MAX_SOURCE, MaxImporter.getId(
-									MaxImporter.SPECIES_ID_PREFIX, "3"));
+		{			
+			IndicatorSpecies species = getIndicatorSpecies(MaxImporter.getId(MaxImporter.SPECIES_ID_PREFIX, "3"));
+			
 			assertIndicatorSpecies(species, "SPECIES_3", "Lycopodium serpentinum", "Bog Clubmoss", "Kunze", 
 					TaxonRank.SPECIES, true, false);
 		}
+	}
+	
+	private IndicatorSpecies getIndicatorSpecies(String sourceId) {
+		ITaxonName tn = temporalContext.selectNameBySourceId(MaxImporter.MAX_SOURCE, sourceId);
+		Assert.assertNotNull("Taxon name cannot be null", tn);
+		return taxaDAO.getIndicatorSpeciesBySourceDataID(null,
+				MaxImporter.MAX_SOURCE, tn.getId().toString());
 	}
 
 	// returns the parent if it exists

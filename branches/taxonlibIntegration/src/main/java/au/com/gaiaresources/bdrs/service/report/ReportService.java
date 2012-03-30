@@ -8,13 +8,16 @@ import au.com.gaiaresources.bdrs.file.FileService;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
 import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
+import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
 import au.com.gaiaresources.bdrs.model.report.Report;
 import au.com.gaiaresources.bdrs.model.report.ReportCapability;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.service.taxonomy.TaxonLibSessionFactory;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
+import au.com.gaiaresources.taxonlib.ITaxonLibSession;
 import jep.Jep;
 import jep.JepException;
 import org.apache.log4j.Logger;
@@ -83,6 +86,8 @@ public class ReportService {
     private RecordDAO recordDAO;
     @Autowired
     private LocationDAO locationDAO;
+    @Autowired
+    private PreferenceDAO prefDAO;
 
     /**
      * Renders the specified report.
@@ -111,7 +116,10 @@ public class ReportService {
                                      HttpServletResponse response,
                                      Report report,
                                      ScrollableRecords sc) {
+    	
+    	ITaxonLibSession taxonLibSession = null;
         try {
+        	taxonLibSession = TaxonLibSessionFactory.getSessionFromPreferences(prefDAO);
             // Find the Python report code.
             File reportDir = fileService.getTargetDirectory(report, Report.REPORT_DIR, true);
 
@@ -120,7 +128,7 @@ public class ReportService {
                     fileService, report, RequestContextHolder.getContext().getUser(),
                     surveyDAO, censusMethodDAO,
                     taxaDAO, recordDAO,
-                    locationDAO);
+                    locationDAO, taxonLibSession);
             JSONObject jsonParams = toJSONParams(request);
 
             // Fire up a new Python interpreter
@@ -197,6 +205,14 @@ public class ReportService {
             log.error("Unable to render report with PK: " + report.getId(), e);
             RequestContextHolder.getContext().addMessage("bdrs.report.render.error");
             return new ModelAndView(new RedirectView(ReportController.REPORT_LISTING_URL, true));
+        } catch (Exception e) {
+        	log.error("Exception thrown when attempting to render report", e);
+        	RequestContextHolder.getContext().addMessage(e.getMessage());
+        	return new ModelAndView(new RedirectView(ReportController.REPORT_LISTING_URL, true));
+        } finally {
+        	if (taxonLibSession != null) {
+        		taxonLibSession.close();
+        	}
         }
     }
 

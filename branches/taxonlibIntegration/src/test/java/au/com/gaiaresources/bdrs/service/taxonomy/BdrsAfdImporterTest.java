@@ -19,11 +19,14 @@ import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfileDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonRank;
+import au.com.gaiaresources.taxonlib.ITemporalContext;
 import au.com.gaiaresources.taxonlib.importer.afd.AfdImporter;
+import au.com.gaiaresources.taxonlib.model.ITaxonName;
 
 public class BdrsAfdImporterTest extends TaxonomyImportTest {
 
 	private Date now = getDate(2011, 12, 31);
+	private ITemporalContext temporalContext;
 
 	private Logger log = Logger.getLogger(getClass());
 
@@ -34,6 +37,7 @@ public class BdrsAfdImporterTest extends TaxonomyImportTest {
 	
 	@Before
 	public void setup() {
+		temporalContext = taxonLibSession.getTemporalContext(now);
 		requestTaxonomyImportTestDropDatabase();
 	}
 	
@@ -97,8 +101,7 @@ public class BdrsAfdImporterTest extends TaxonomyImportTest {
 	private void assertImport() {
 		// check ancestor branch
 		{
-			IndicatorSpecies species = taxaDAO.getIndicatorSpeciesBySourceDataID(null,
-					AfdImporter.SOURCE, "50b888b7-4a6e-43d5-80ae-ef929f36f486");
+			IndicatorSpecies species = getIndicatorSpecies("50b888b7-4a6e-43d5-80ae-ef929f36f486");
 			assertIndicatorSpecies(species, "50b888b7-4a6e-43d5-80ae-ef929f36f486", "Fritillaria borealis Lohmann, 1896",
 					"", "Lohmann", "1896", TaxonRank.SPECIES, true, true);
 			IndicatorSpecies genus = species.getParent();
@@ -108,25 +111,31 @@ public class BdrsAfdImporterTest extends TaxonomyImportTest {
 		
 		// check deprecated
 		{
-			IndicatorSpecies deprecated = taxaDAO.getIndicatorSpeciesBySourceDataID(null,
-					AfdImporter.SOURCE, "763a9c68-8b19-4f82-b1de-69a0bcabcecb");
+			IndicatorSpecies deprecated = getIndicatorSpecies("763a9c68-8b19-4f82-b1de-69a0bcabcecb");
 			assertIndicatorSpecies(deprecated, "763a9c68-8b19-4f82-b1de-69a0bcabcecb", "Fritillaria Fol, 1872",
 					"", "Fol", "1872", TaxonRank.GENUS, false, false);
 		}
 		
 		// check common name
 		{
-			IndicatorSpecies chordata = taxaDAO.getIndicatorSpeciesBySourceDataID(null,
-					AfdImporter.SOURCE, "ec3c5304-8f9c-4a2a-ad08-38bb712f5edb");
+			IndicatorSpecies chordata = getIndicatorSpecies("ec3c5304-8f9c-4a2a-ad08-38bb712f5edb");
 			assertIndicatorSpecies(chordata, "ec3c5304-8f9c-4a2a-ad08-38bb712f5edb", "CHORDATA", 
 					"Chordates", "", "", TaxonRank.PHYLUM, false, true);
 		}
+	}
+	
+	private IndicatorSpecies getIndicatorSpecies(String sourceId) {
+		ITaxonName tn = temporalContext.selectNameBySourceId(AfdImporter.SOURCE, sourceId);
+		Assert.assertNotNull("Taxon name cannot be null", tn);
+		return taxaDAO.getIndicatorSpeciesBySourceDataID(null,
+				AfdImporter.SOURCE, tn.getId().toString());
 	}
 
 	// returns the parent if it exists
 	private void assertIndicatorSpecies(IndicatorSpecies is,
 			String sourceId, String sciName, String commonName, String author, String year,
 			TaxonRank rank, boolean hasParent, Boolean isCurrent) {
+		
 		Assert.assertNotNull("Indicator species cannot be null", is);
 		Assert.assertEquals("wrong rank", rank, is.getTaxonRank());
 		Assert.assertEquals("wrong source", AfdImporter.SOURCE,

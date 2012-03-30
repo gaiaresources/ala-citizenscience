@@ -11,7 +11,6 @@ import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,7 +19,6 @@ import org.springframework.web.servlet.ModelAndView;
 
 import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.db.SessionFactory;
-import au.com.gaiaresources.bdrs.model.preference.Preference;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
 import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfileDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
@@ -49,10 +47,6 @@ public class TaxonLibImportController extends AbstractController {
 	
 	private Logger log = Logger.getLogger(getClass());
 	
-	private static final String TAXON_LIB_DB_URL_KEY = "taxonlib.database.url";
-	private static final String TAXON_LIB_DB_USER_KEY = "taxonlib.database.username";
-	private static final String TAXON_LIB_DB_PASS_KEY = "taxonlib.database.password";
-	
 	public enum TaxonLibImportSource {
 		NSW_FLORA,
 		MAX,
@@ -74,29 +68,9 @@ public class TaxonLibImportController extends AbstractController {
 		
 		ModelAndView mv = this.redirect(TAXON_LIB_IMPORT_URL);
 		
-		Preference urlPref = prefDAO.getPreferenceByKey(TAXON_LIB_DB_URL_KEY);
-		Preference userPref = prefDAO.getPreferenceByKey(TAXON_LIB_DB_USER_KEY);
-		Preference passPref = prefDAO.getPreferenceByKey(TAXON_LIB_DB_PASS_KEY);
-		
-		if (urlPref == null || userPref == null || passPref == null) {
-			getRequestContext().addMessage("taxonlib.badTaxonLibConfig");
-			return mv;
-		}
-		if (!StringUtils.hasLength(urlPref.getValue().trim()) || !StringUtils.hasLength(userPref.getValue().trim()) 
-				|| !StringUtils.hasLength(passPref.getValue().trim())) {
-			getRequestContext().addMessage("taxonlib.badTaxonLibConfig");
-			return mv;
-		}
-			
-		// looks ok, lets go!
-		
-		String url = urlPref.getValue().trim();
-		String username = userPref.getValue().trim();
-		String password = userPref.getValue().trim();
-		
 		log.debug("TAXONOMY IMPORT START");
 		try {
-			ITaxonLibSession taxonLibSession = TaxonLibSessionFactory.getSession(url, username, password);
+			ITaxonLibSession taxonLibSession = TaxonLibSessionFactory.getSessionFromPreferences(prefDAO);
 			
 			TaxonLibImportSource importSource = TaxonLibImportSource.valueOf(request.getParameter("importSource"));
 			
