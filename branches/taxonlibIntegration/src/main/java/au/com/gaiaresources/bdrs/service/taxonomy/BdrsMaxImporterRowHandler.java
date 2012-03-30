@@ -131,7 +131,6 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
                 	if (concept.getParent().getName() == null) {
                 		log.debug("parent concept name is null");
                 	}
-                	//IndicatorSpecies iSpeciesParent = getIndicatorSpecies(getSourceId(concept.getParent().getName()));
                 	IndicatorSpecies iSpeciesParent = taxaDAO.getIndicatorSpeciesBySourceDataID(null, MaxImporter.MAX_SOURCE, 
                 			getSourceId(concept.getParent().getName()));
                 	iSpecies.setParent(iSpeciesParent);
