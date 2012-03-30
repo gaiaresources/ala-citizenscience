@@ -1,0 +1,158 @@
+<link rel="stylesheet" type="text/css" href="static.htm?fileName=media/css/report.css"/>
+
+#if not $getVar('junctions', []) and $varExists('generateReport')
+    <div class="messages">
+        #if $len($junctions) == 0:
+            <p class="message">
+                No taxonomy changes found.
+            </p>
+        #end if
+    </div>
+#end if
+
+<h2>Taxonomy Change Report</h2>
+
+<p>
+    This report displays the changes to the taxonomy between the two specified dates.
+</p>
+
+<form method="get">
+
+    <div class="input_container">
+        <h3>Report Parameters</h3>
+        <table>
+            <tr>
+                <th><label for="startDate">Start Date:</label></th>
+                <td><input class="datepicker validate(required)" id="startDate" type="text" name="startDate" 
+                    #if $varExists('startDate')
+                        value="$startDate"
+                    #end if
+                /></td>
+            </tr>
+            <tr>
+                <th><label for="endDate">End Date:</label></th>
+                <td><input class="datepicker validate(required)" id="endDate" type="text" name="endDate" 
+                    #if $varExists('endDate')
+                        value="$endDate"
+                    #end if
+                /></td>
+            </tr>
+            <tr>
+                <th><label>Items Per Page:</label></th>
+                <td>
+                    <select name="itemsPerPage">
+                        <option value="10" 
+                            #if $itemsPerPage == 10
+                                selected="selected"
+                            #end if
+                        >10</option>
+                        <option value="20"
+                            #if $itemsPerPage == 20
+                                selected="selected"
+                            #end if
+                        >20</option>
+                        <option value="30"
+                            #if $itemsPerPage == 30
+                                selected="selected"
+                            #end if
+                        >30</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+
+        <div class="textright buttonpanel">
+            <input id="submitButton" type="submit" class="form_action" value="Create Report" name="submitReportParams" />
+        </div>
+    </div>
+
+    #if $varExists('generateReport') and $getVar('junctions', [])
+
+        <h3>Taxonomy changes between ${startDate} and ${endDate}</h3>
+        <p>
+            The following name changes have been found between the requested dates.
+        </p>
+
+        <table class="datatable">
+            <thead>
+                <tr>
+                    <th>Change Date</th>
+                    <th>Old Name</th>
+                    <th>New Name</th>
+                    <!--
+                    <th>Type</th>
+                    -->
+                </tr>
+            </thead>
+            <tbody>
+                #for $junc in $junctions:
+                    <tr>
+                        <td>$junc.changeDate</td>
+                        <td>
+                            #if $junc.oldConcept.name
+                                <a href="$contextPath/fieldguide/taxon.htm?id=$junc.oldSpecies.id">
+                                $junc.oldConcept.name.displayName
+                                </a>
+                            #else
+                                no name found
+                            #end if
+                        </td>
+                        <td>
+                            #if $junc.newConcept.name
+                                <a href="$contextPath/fieldguide/taxon.htm?id=$junc.newSpecies.id">
+                                $junc.newConcept.name.displayName
+                                </a>
+                            #else
+                                no name found
+                            #end if
+                        </td>
+                        <!--
+                        <td>$junc.type</td>
+                        -->
+                    </tr>
+                #end for
+            </tbody>
+        </table>
+
+        #set $paginationRange = 4
+        #set $maxPaginationItems = 9
+        #set $minPage = max($pageNumber - $paginationRange , 1)
+        #set $maxPage = min($minPage + $maxPaginationItems - 1, $pageCount)
+
+        <div class="textcenter">
+            <div id="searchNavBar">
+                <input id="pageNumber" type="hidden" value="${ pageNumber }" name="pageNumber" id="pageNumber"/>
+                <ul>
+                #if $pageNumber == 1
+                    <li id="prevPage">&#171;&nbsp;Previous</li>
+                #else
+                    <li id="prevPage"><a class="pageLink" href="javascript:TaxonomyChangeReport.pageSelected(${pageNumber-1});">&#171;&nbsp;Previous</a></li>
+                #end if
+
+                #for $i in $range($minPage, $maxPage)
+                    #if $pageNumber == $i
+                        <li class="currentPage">${i}</li>
+                    #else
+                        <li><a class="pageLink" href="javascript:TaxonomyChangeReport.pageSelected(${i});">${i}</a></li>
+                    #end if
+                #end for
+
+                #if $pageNumber == $pageCount
+                    <li id="nextPage">Next&nbsp;&#187;</li>
+                #else
+                    <li id="nextPage"><a class="pageLink" href="javascript:TaxonomyChangeReport.pageSelected(${pageNumber+1});">Next&nbsp;&#187;</a></li>
+                #end if
+             </ul>
+           </div>
+        </div>
+    #end if
+</form>
+
+<script type="text/javascript">
+    var TaxonomyChangeReport = {
+        pageSelected: function(pageNum) {
+            jQuery('#pageNumber').val(pageNum);
+            jQuery('#submitButton').click();
+        }
+    };
+</script>

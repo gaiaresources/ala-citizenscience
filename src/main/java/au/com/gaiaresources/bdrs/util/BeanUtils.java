@@ -110,10 +110,10 @@ public final class BeanUtils {
                                 } else if (clazz.isAssignableFrom(raw.getClass())) {
                                     Object val;
                                     if(depth > 0) {
-                                    	log.debug("recursive flatten iterable item");
+                                    	log.debug("recursive flatten iterable item : " + name);
                                         val = BeanUtils.flatten(clazz, raw, depth-1, compact, mobileFields);
                                     } else {
-                                    	log.debug("depth = 0 flatten iterable item");
+                                    	log.debug("depth = 0 flatten iterable item : " + name);
                                         val = raw != null ? raw.toString() : null;
                                     }
                                     list.add(val);

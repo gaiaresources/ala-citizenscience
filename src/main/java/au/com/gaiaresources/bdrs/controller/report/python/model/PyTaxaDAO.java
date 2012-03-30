@@ -92,4 +92,10 @@ public class PyTaxaDAO {
         List<IndicatorSpecies> taxaList = taxaDAO.getDistinctRecordedTaxaForSurvey(surveyId);
         return PyDAOUtil.toJSON(taxaList).toString();
     }
+    
+    public String getTaxaBySourceId(String source, String sourceId) {
+    	IndicatorSpecies result = taxaDAO.getIndicatorSpeciesBySourceDataID(null,  source, sourceId); 
+    	log.debug("indicator species : " + result);
+    	return PyDAOUtil.toJSON(result).toString();
+    }
 }
