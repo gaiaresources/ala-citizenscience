@@ -20,7 +20,7 @@ import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyGeoMapLayer;
 
 /**
- * Represents a layer to use as the base layer for all project maps.
+ * Represents a layer to use as the base layer for record entry maps.
  * 
  * @author stephanie
  */
@@ -44,10 +44,41 @@ public class BaseMapLayer extends PortalPersistentImpl implements MapLayer {
     private boolean isDefault;
     /**
      * Boolean flag indicating if the layer is "selected", meaning whether or not it 
-     * will show in the layer switcher or not
+     * will show in the layer switcher
      */
     private boolean showOnMap;
     
+    /**
+     * Default constructor
+     */
+    public BaseMapLayer() {
+        
+    }
+    
+    /**
+     * Constructor that sets the fields for the object
+     * @param survey The survey the layer will be used for
+     * @param layerSrc The {@link BaseMapLayerSource} that defines the source of the map images
+     * @param isDefault boolean flag indicating if this one is shown by default
+     * @param showOnMap boolean flag indicating if this one shows in the layer switcher
+     */
+    public BaseMapLayer(Survey survey, BaseMapLayerSource layerSrc, boolean isDefault, boolean showOnMap) {
+        this.survey = survey;
+        this.layerSrc = layerSrc;
+        this.isDefault = isDefault;
+        this.showOnMap = showOnMap;
+    }
+    
+    /**
+     * Constructor that sets the fields for the object.  Note that this calls 
+     * {@code BaseMapLayer(Survey survey, BaseMapLayerSource layerSrc, boolean isDefault, boolean showOnMap)}
+     * and sets isDefault and showOnMap to false
+     * @param survey The survey the layer will be used for
+     * @param layerSrc The {@link BaseMapLayerSource} that defines the source of the map images
+     */
+    public BaseMapLayer(Survey survey, BaseMapLayerSource layerSource) {
+        this(survey, layerSource, false, false);
+    }
     /**
      * Gets the {@link Survey} to apply the map settings to.
      */

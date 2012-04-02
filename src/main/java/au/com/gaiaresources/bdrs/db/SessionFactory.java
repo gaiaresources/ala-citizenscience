@@ -14,6 +14,7 @@ import org.hibernate.Interceptor;
 import org.hibernate.StatelessSession;
 import org.hibernate.classic.Session;
 import org.hibernate.engine.FilterDefinition;
+import org.hibernate.impl.SessionFactoryImpl;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.metadata.CollectionMetadata;
 import org.hibernate.stat.Statistics;
@@ -110,7 +111,7 @@ public class SessionFactory implements org.hibernate.SessionFactory {
     public Session getCurrentSession() throws HibernateException {
         Session sesh = this.rawSessionFactory.getCurrentSession();
         if(!(sesh instanceof au.com.gaiaresources.bdrs.db.Session)) {
-            sesh = new au.com.gaiaresources.bdrs.db.Session(sesh);
+            sesh = new au.com.gaiaresources.bdrs.db.Session(sesh, (SessionFactoryImpl) this.rawSessionFactory);
         }
         return sesh;
     }
@@ -138,23 +139,23 @@ public class SessionFactory implements org.hibernate.SessionFactory {
 
     @Override
     public org.hibernate.classic.Session openSession() throws HibernateException {
-        return new au.com.gaiaresources.bdrs.db.Session(this.rawSessionFactory.openSession());
+        return new au.com.gaiaresources.bdrs.db.Session(this.rawSessionFactory.openSession(), (SessionFactoryImpl) this.rawSessionFactory);
     }
 
     @Override
     public org.hibernate.classic.Session openSession(Connection connection) {
-        return new au.com.gaiaresources.bdrs.db.Session(this.rawSessionFactory.openSession(connection));
+        return new au.com.gaiaresources.bdrs.db.Session(this.rawSessionFactory.openSession(connection), (SessionFactoryImpl) this.rawSessionFactory);
     }
 
     @Override
     public org.hibernate.classic.Session openSession(Interceptor interceptor)
             throws HibernateException {
-        return new au.com.gaiaresources.bdrs.db.Session(this.rawSessionFactory.openSession(interceptor));
+        return new au.com.gaiaresources.bdrs.db.Session(this.rawSessionFactory.openSession(interceptor), (SessionFactoryImpl) this.rawSessionFactory);
     }
 
     @Override
     public org.hibernate.classic.Session openSession(Connection connection, Interceptor interceptor) {
-        return new au.com.gaiaresources.bdrs.db.Session(this.rawSessionFactory.openSession(connection, interceptor));
+        return new au.com.gaiaresources.bdrs.db.Session(this.rawSessionFactory.openSession(connection, interceptor), (SessionFactoryImpl) this.rawSessionFactory);
     }
 
     @Override

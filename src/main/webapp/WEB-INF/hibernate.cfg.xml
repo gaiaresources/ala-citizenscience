@@ -14,6 +14,8 @@
         <property name="hibernate.cache.use_second_level_cache">true</property>
         <property name="hibernate.connection.release_mode">after_transaction</property>
         <property name="current_session_context_class">thread</property>
+        <property name="hibernate.search.default.directory_provider">filesystem</property>
+        <property name="hibernate.search.default.indexBase">${bdrs.lucene.index.location}</property>
 
         <mapping class="au.com.gaiaresources.bdrs.model.user.User"/>
         <mapping class="au.com.gaiaresources.bdrs.model.group.Group"/>
@@ -22,7 +24,7 @@
         <mapping class="au.com.gaiaresources.bdrs.model.taxa.TaxonGroup"/>
         <mapping class="au.com.gaiaresources.bdrs.model.taxa.Attribute"/>
         <mapping class="au.com.gaiaresources.bdrs.model.taxa.AttributeOption"/>
-		<mapping class="au.com.gaiaresources.bdrs.model.taxa.AttributeValue"/>
+        <mapping class="au.com.gaiaresources.bdrs.model.taxa.AttributeValue"/>
         <mapping class="au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies"/>
         <mapping class="au.com.gaiaresources.bdrs.model.taxa.IndicatorSpeciesAttribute"/>
         <mapping class="au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile"/>
@@ -58,10 +60,10 @@
         
         <mapping class="au.com.gaiaresources.bdrs.model.method.CensusMethod"/>
         
-		<mapping class="au.com.gaiaresources.bdrs.model.map.GeoMapFeature"/>
+        <mapping class="au.com.gaiaresources.bdrs.model.map.GeoMapFeature"/>
         <mapping class="au.com.gaiaresources.bdrs.model.map.GeoMapLayer"/>
         <mapping class="au.com.gaiaresources.bdrs.model.map.GeoMap"/>
-		<mapping class="au.com.gaiaresources.bdrs.model.map.AssignedGeoMapLayer"/>
+        <mapping class="au.com.gaiaresources.bdrs.model.map.AssignedGeoMapLayer"/>
         <mapping class="au.com.gaiaresources.bdrs.model.map.BaseMapLayer"/>
         <mapping class="au.com.gaiaresources.bdrs.model.survey.SurveyGeoMapLayer"/>
 
