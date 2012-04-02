@@ -97,7 +97,6 @@ public final class BeanUtils {
                     Class<?> returnType = readMethod.getReturnType();
                     value = readMethod.invoke(objToFlatten);
                     if (Iterable.class.isAssignableFrom(returnType)) {
-                    	log.debug("flatten iterable : " + name);
                     	List<Object> list = new ArrayList<Object>();
                         if (value != null) {
                             Iterator<?> iterator = ((Iterable<?>) value).iterator();
@@ -106,19 +105,15 @@ public final class BeanUtils {
                                 raw = iterator.next();
                                 if(raw == null) {
                                     list.add(null);
-                                    
                                 } else if (clazz.isAssignableFrom(raw.getClass())) {
                                     Object val;
                                     if(depth > 0) {
-                                    	log.debug("recursive flatten iterable item : " + name);
                                         val = BeanUtils.flatten(clazz, raw, depth-1, compact, mobileFields);
                                     } else {
-                                    	log.debug("depth = 0 flatten iterable item : " + name);
                                         val = raw != null ? raw.toString() : null;
                                     }
                                     list.add(val);
                                 } else {
-                                	log.debug("wrong class to flatten iterable object : " + raw.getClass());
                                     list.add(raw.toString());
                                 }
                             }
@@ -130,41 +125,32 @@ public final class BeanUtils {
                     } else if (returnType.isArray()) {
                     	List<Object> list = new ArrayList<Object>();
                         if (value != null) {
-                        	log.debug("flatten list type : " + name);
                             for (int i = 0; i < Array.getLength(value); i++) {
                                 Object raw = Array.get(value, i);
                                 if(raw == null) {
                                     list.add(null);
                                 } else if (clazz.isAssignableFrom(raw.getClass())) {
-                                	log.debug("a");
                                     Object val;
                                     if(depth > 0) {
-                                    	log.debug("b");
                                         val = BeanUtils.flatten(clazz, raw, depth-1, compact, mobileFields);
                                     } else {
-                                    	log.debug("c");
                                     	val = raw != null ? raw.toString() : null;
                                     }
                                     list.add(val);
                                 } else {
-                                	log.debug("wrong type to flatten list item");
                                     list.add(raw.toString());
                                 }
                             }
                         }
                         map.put(name, list);
                     } else if (clazz.isAssignableFrom(returnType)) {
-                    	log.debug("clazz assignable from return type");
                         Object val;
                         if(value == null) {
-                        	log.debug("1 " + name);
                             val = null;
                         } else {
                             if(depth > 0) {
-                            	log.debug("2 " + name);
                                 val = BeanUtils.flatten(clazz, value, depth - 1, compact, mobileFields );
                             } else {
-                            	log.debug("3 " + name);
                             	val = value != null ? value.toString() : null;
                             }
                         }
@@ -197,7 +183,6 @@ public final class BeanUtils {
                     } else if (returnType.isPrimitive()) {
                         map.put(name, value);
                     } else {
-                    	log.debug("catch all go : " + name);
                         map.put(name, value == null ? null : value.toString());
                     }
                 }
