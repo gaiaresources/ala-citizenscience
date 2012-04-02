@@ -315,6 +315,7 @@ public class SurveyBaseController extends AbstractController {
         if (create) {
             survey.setActive(active);
             surveyDAO.save(survey);
+            createDefaultBaseLayers(survey);
         }
         
         for(Metadata delMd : metadataToDelete) {
@@ -340,6 +341,21 @@ public class SurveyBaseController extends AbstractController {
                     SURVEY_LISTING_URL, true));
         }
         return mv;
+    }
+
+    /**
+     * Creates an initial set of {@link BaseMapLayer} for a {@link Survey}.
+     * @param survey The survey to set the layers on
+     */
+    private void createDefaultBaseLayers(Survey survey) {
+        // create the default base layers
+        for (BaseMapLayerSource baseMapLayerSource : BaseMapLayerSource.values()) {
+            boolean isGoogleDefault = BaseMapLayerSource.G_HYBRID_MAP.equals(baseMapLayerSource);
+            // set the layer to visible if no values have been saved and it is a Google layer
+            // or if there is no default and it is G_HYBRID_MAP (for the default)
+            BaseMapLayer layer = new BaseMapLayer(survey, baseMapLayerSource, isGoogleDefault, BaseMapLayerSource.isGoogleLayerSource(baseMapLayerSource) || isGoogleDefault);
+            survey.addBaseMapLayer(layer);
+        }
     }
 
     // -------------------------------
@@ -699,14 +715,11 @@ public class SurveyBaseController extends AbstractController {
         
         // create fake base layers for any remaining enum values
         for (BaseMapLayerSource baseMapLayerSource : enumKeys) {
-            BaseMapLayer layer = new BaseMapLayer();
-            layer.setLayerSource(baseMapLayerSource);
             boolean isGoogleDefault = defaultLayer == null && BaseMapLayerSource.G_HYBRID_MAP.equals(baseMapLayerSource);
             boolean isDefault = defaultLayer != null && baseMapLayerSource.equals(defaultLayer.getLayerSource());
             // set the layer to visible if no values have been saved and it is a Google layer
             // or if there is no default and it is G_HYBRID_MAP (for the default)
-            layer.setShowOnMap((showDefaults && baseMapLayerSource.getName().startsWith("Google")) || isGoogleDefault || isDefault);
-            layer.setDefault(isGoogleDefault || isDefault);
+            BaseMapLayer layer = new BaseMapLayer(null, baseMapLayerSource, isGoogleDefault || isDefault, (showDefaults && BaseMapLayerSource.isGoogleLayerSource(baseMapLayerSource)) || isGoogleDefault || isDefault);
             baseLayers.add(layer);
         }
         
@@ -776,9 +789,7 @@ public class SurveyBaseController extends AbstractController {
                     throw new NullPointerException("Null object returned for layer with id "+layerId);
                 }
             } else {
-                layer = new BaseMapLayer();
-                layer.setLayerSource(layerSource);
-                layer.setSurvey(survey);
+                layer = new BaseMapLayer(survey, layerSource);
             }
             
             String selected = request.getParameter("selected_"+layerSource);

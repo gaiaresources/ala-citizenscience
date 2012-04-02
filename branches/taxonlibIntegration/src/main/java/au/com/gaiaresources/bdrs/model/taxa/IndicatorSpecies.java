@@ -24,6 +24,7 @@ import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CollectionOfElements;
 import org.hibernate.annotations.Filter;
@@ -31,6 +32,12 @@ import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.ParamDef;
+import org.hibernate.search.annotations.Analyzer;
+import org.hibernate.search.annotations.Field;
+import org.hibernate.search.annotations.Fields;
+import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.annotations.IndexedEmbedded;
+import org.hibernate.search.annotations.Store;
 
 import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
@@ -44,6 +51,7 @@ import au.com.gaiaresources.bdrs.util.CollectionUtils;
 @Filter(name=PortalPersistentImpl.PORTAL_FILTER_NAME, condition=":portalId = PORTAL_ID")
 @Table(name = "INDICATOR_SPECIES")
 @AttributeOverride(name = "id", column = @Column(name = "INDICATOR_SPECIES_ID"))
+@Indexed
 public class IndicatorSpecies extends PortalPersistentImpl implements Attributable<IndicatorSpeciesAttribute> {
     
     public static final String FIELD_SPECIES_NAME = "Field Species";
@@ -73,6 +81,7 @@ public class IndicatorSpecies extends PortalPersistentImpl implements Attributab
     @CollectionOfElements(fetch = FetchType.LAZY)
     @JoinColumn(name = "INDICATOR_SPECIES_ID")
     @OrderBy("weight")
+    @IndexedEmbedded
     public List<SpeciesProfile> getInfoItems() {
         return infoItems;
     }
@@ -109,6 +118,10 @@ public class IndicatorSpecies extends PortalPersistentImpl implements Attributab
     @CompactAttribute
     @Column(name = "SCIENTIFIC_NAME", nullable = false)
     @Index(name="species_scientific_name_index")
+    @Fields( {
+        @Field(index = org.hibernate.search.annotations.Index.TOKENIZED, store = Store.YES, analyzer=@Analyzer(impl=StandardAnalyzer.class)),
+        @Field(name = "scientificName_sort", index = org.hibernate.search.annotations.Index.UN_TOKENIZED, store = Store.YES)
+        } )
     public String getScientificName() {
         return scientificName;
     }
@@ -123,6 +136,10 @@ public class IndicatorSpecies extends PortalPersistentImpl implements Attributab
     @CompactAttribute
     @Column(name = "COMMON_NAME", nullable = false)
     @Index(name="species_common_name_index")
+    @Fields( {
+        @Field(index = org.hibernate.search.annotations.Index.TOKENIZED, store = Store.YES, analyzer=@Analyzer(impl=StandardAnalyzer.class)),
+        @Field(name = "commonName_sort", index = org.hibernate.search.annotations.Index.UN_TOKENIZED, store = Store.YES)
+        } )
     public String getCommonName() {
         return commonName;
     }
@@ -138,6 +155,7 @@ public class IndicatorSpecies extends PortalPersistentImpl implements Attributab
     @ManyToOne
     @JoinColumn(name = "TAXON_GROUP_ID", nullable = false)
     @ForeignKey(name = "IND_SPECIES_TAXON_GROUP_FK")
+    @IndexedEmbedded
     public TaxonGroup getTaxonGroup() {
         return taxonGroup;
     }

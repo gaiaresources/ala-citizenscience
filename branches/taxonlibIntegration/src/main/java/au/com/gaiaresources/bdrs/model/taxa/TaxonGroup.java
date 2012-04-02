@@ -13,12 +13,16 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.IndexColumn;
 import org.hibernate.annotations.ParamDef;
+import org.hibernate.search.annotations.Analyzer;
+import org.hibernate.search.annotations.Field;
+import org.hibernate.search.annotations.Store;
 
 import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
@@ -33,7 +37,6 @@ import au.com.gaiaresources.bdrs.file.FileService;
 public class TaxonGroup extends PortalPersistentImpl {
     
     public static final String FIELD_NAMES_GROUP_NAME = "Field Names";
-    
     private String name;
     private String image;
     private String thumbNail;
@@ -55,6 +58,7 @@ public class TaxonGroup extends PortalPersistentImpl {
      * Get the name of this taxon group.
      * @return <code>String</code>.
      */
+    @Field(index = org.hibernate.search.annotations.Index.TOKENIZED, store = Store.YES, analyzer=@Analyzer(impl=StandardAnalyzer.class))
     public String getName() {
         return name;
     }

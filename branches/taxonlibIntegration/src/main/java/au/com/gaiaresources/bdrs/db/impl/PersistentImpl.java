@@ -19,6 +19,7 @@ import javax.persistence.MappedSuperclass;
 import javax.persistence.Transient;
 
 import org.apache.log4j.Logger;
+import org.hibernate.search.annotations.Field;
 import org.springframework.beans.BeanUtils;
 
 import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
@@ -40,6 +41,7 @@ public abstract class PersistentImpl implements Persistent,
 
     private Logger log = Logger.getLogger(getClass());
 
+    @Field(index=org.hibernate.search.annotations.Index.UN_TOKENIZED)
     private Integer id;
     private Date createdAt;
     private Date updatedAt;

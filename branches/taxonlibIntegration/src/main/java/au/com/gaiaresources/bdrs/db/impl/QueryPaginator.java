@@ -5,12 +5,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.lucene.search.Sort;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.CriteriaSpecification;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
+import org.hibernate.search.FullTextQuery;
 import org.hibernatespatial.GeometryUserType;
 import org.springframework.util.StringUtils;
 
@@ -84,7 +86,7 @@ public class QueryPaginator<T> {
                 + HqlUtil.removeSelect(HqlUtil.removeOrders(hql));
 
         @SuppressWarnings("rawtypes")
-		List countlist = argArray != null ? find(session, countHql, argArray) : find(session, countHql, argMap); 
+	List countlist = argArray != null ? find(session, countHql, argArray) : find(session, countHql, argMap); 
 
         int totalCount = ((Long) countlist.get(0)).intValue();
         if (totalCount < 1) {
@@ -191,6 +193,35 @@ public class QueryPaginator<T> {
         }
         // assumes that you are going to be casting correctly.....
         result.setList(crit.list());
+        return result;
+    }
+
+    /**
+     * Pages a hibernate search text query.
+     * @param hibQuery the query
+     * @param filter the pagination filter
+     * @return A paged set of results for the query.
+     */
+    public PagedQueryResult<T> page(FullTextQuery hibQuery, PaginationFilter filter) {
+        PagedQueryResult<T> result = new PagedQueryResult<T>();
+
+        result.setCount(hibQuery.getResultSize());
+
+        if (filter != null) {
+            // only set the max results if they are less than the actual results
+            if (filter.getMaxResult() < hibQuery.getResultSize()) {
+                hibQuery.setMaxResults(filter.getMaxResult());
+            }
+            hibQuery.setFirstResult(filter.getFirstResult());
+            for (SortingCriteria sc : filter.getSortingCriterias()) {
+                // if you want to use a column for sorting for hibernate search 
+                // queries, you must have an untokenized one named [columnname]_sort
+                // defined in order to sort by it
+                hibQuery.setSort(new Sort(sc.getColumn()+"_sort", sc.getOrder() != SortOrder.ASCENDING));
+            }
+        }
+        // assumes that you are going to be casting correctly.....
+        result.setList(hibQuery.list());
         return result;
     }
 }
