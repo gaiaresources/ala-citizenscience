@@ -38,7 +38,7 @@ public class BdrsNswFloraImporterTest extends TaxonomyImportTest {
     private void doImport(String file) throws Exception {
         InputStream csvStream = null;
         try {
-            csvStream = getClass().getResourceAsStream(file);
+            csvStream = NswFloraImporter.class.getResourceAsStream(file);
             now = getDate(2000, 12, 12);
 
             BdrsNswFloraImporter importer = new BdrsNswFloraImporter(
