@@ -83,7 +83,7 @@ public class TaxonLibImportController extends AbstractController {
 		
 		ModelAndView mv = this.redirect(TAXON_LIB_IMPORT_URL);
 		
-		log.debug("TAXONOMY IMPORT START");
+		log.info("TAXONOMY IMPORT START");
 		try {
 			ITaxonLibSession taxonLibSession = taxonLibSessionFactory.getSession();
 			
@@ -110,7 +110,7 @@ public class TaxonLibImportController extends AbstractController {
 			getRequestContext().addMessage("taxonlib.importError", new Object[] { e.getMessage() });
 			log.error("Error during taxon lib import : ", e);
 		}
-		log.debug("TAXONOMY IMPORT END");
+		log.info("TAXONOMY IMPORT END");
 		
 		return mv;
 	}
