@@ -86,6 +86,71 @@ If you want to use taxon lib functionality (currently limited to certain reports
 
 Note that you want to make your test database and your production database different as the test database is dropped after every test run!
 
+The taxon lib external repository isn't set up yet so here is the taxonlib.sql file contents:
+{{{
+CREATE TABLE taxon_concept
+(
+    taxon_concept_id serial NOT NULL, 
+    -- is taxon_concept temporal ??
+    start_date timestamp, 
+    end_date timestamp,
+    source_id text NOT NULL, -- aka holo_type id ?
+    source text,
+    author text,
+    year text,
+    citation text,
+    PRIMARY KEY(taxon_concept_id)
+);
+
+CREATE TABLE taxon_name
+(
+    taxon_name_id serial not null,
+    taxon_rank text,
+    taxon_name_type text not null,
+    name text NOT NULL,
+    start_date timestamp,
+    end_date timestamp,
+    source_id text,
+    author text,
+    year text,
+    citation text,
+    taxon_concept_id integer not null,
+    display_name text,
+    primary key(taxon_name_id)
+);
+alter table taxon_name add constraint TAXON_NAME_TAXON_CONCEPT_FK foreign key (taxon_concept_id) references taxon_concept;
+
+CREATE TABLE taxon_concept_relation
+(
+    taxon_concept_relation_id serial NOT NULL,
+    taxon_concept_parent_id integer NOT NULL,
+    taxon_concept_child_id integer NOT NULL,
+    start_date timestamp,
+    end_date timestamp,
+    author text,
+    year text,
+    citation text
+);
+alter table taxon_concept_relation add constraint TAXON_CONCEPT_PARENT_FK foreign key (taxon_concept_parent_id) references taxon_concept;
+alter table taxon_concept_relation add constraint TAXON_CONCEPT_CHILD_FK foreign key (taxon_concept_child_id) references taxon_concept;
+
+CREATE TABLE taxon_concept_junction
+(
+    taxon_concept_junction_id serial not null,
+    taxon_concept_old_id integer not null,
+    taxon_concept_new_id integer not null,
+    change_type text,
+    change_date timestamp,
+    author text,
+    year text,
+    citation text
+);
+alter table taxon_concept_junction add constraint TAXON_CONCEPT_JUNCTION_OLD_TAXON_CONCEPT_FK foreign key (taxon_concept_old_id) references taxon_concept;
+alter table taxon_concept_junction add constraint TAXON_CONCEPT_JUNCTION_NEW_TAXON_CONCEPT_FK foreign key (taxon_concept_new_id) references taxon_concept;
+
+create index taxon_concept_source_id_index on taxon_concept(source, source_id);
+}}}
+
 = Source Code =
 
 Next we will check out the BDRS source code from the public repository.
