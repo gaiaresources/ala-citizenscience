@@ -98,8 +98,7 @@ public class BdrsMaxImporterTest extends TaxonomyImportTest {
 	}
 
 	private void assertImport() {
-		
-		temporalContext.dumpDatabase();
+
 		// check ancestor branch
 		{
 			IndicatorSpecies species = getIndicatorSpecies(MaxImporter.getId(MaxImporter.SPECIES_ID_PREFIX, "12783"));

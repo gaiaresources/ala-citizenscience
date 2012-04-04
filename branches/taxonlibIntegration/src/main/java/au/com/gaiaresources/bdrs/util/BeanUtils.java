@@ -71,6 +71,16 @@ public final class BeanUtils {
 		return flatten(clazz, objToFlatten, depth, false, false);
 	}
 	
+	/**
+	 * Flattens an object of an arbitrary base type to a map.
+	 * 
+	 * @param clazz The class to traverse.
+	 * @param objToFlatten Object to flatten.
+	 * @param depth Depth to stop flattening.
+	 * @param compact Compact flag.
+	 * @param mobileFields Mobile flag.
+	 * @return Flattened map.
+	 */
 	public static Map<String, Object> flatten(Class<?> clazz, Object objToFlatten, int depth, boolean compact, boolean mobileFields) {
     	Map<String, Object> map = new HashMap<String, Object>();
         try {

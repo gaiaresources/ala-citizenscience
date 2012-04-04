@@ -546,7 +546,7 @@
 		<dependency>
 			<groupId>org.gbif</groupId>
             <artifactId>dwca-reader</artifactId>
-            <version>1.9</version>
+            <version>1.9.0</version>
             <scope>compile</scope>
 	    </dependency>
         <!-- JTidy for HTML validation -->

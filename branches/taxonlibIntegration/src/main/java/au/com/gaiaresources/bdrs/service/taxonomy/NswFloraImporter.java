@@ -164,7 +164,6 @@ public class NswFloraImporter {
             taxonGroup = taxaDAO.save(taxonGroup);
         }
 
-        log.debug("START NSW FLORA IMPORT");
         int rowCount = 0;
         while (reader.readRecord()) {
             NswFloraRow r = new NswFloraRow();

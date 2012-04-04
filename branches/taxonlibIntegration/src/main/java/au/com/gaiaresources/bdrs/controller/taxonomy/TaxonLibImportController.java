@@ -68,7 +68,7 @@ public class TaxonLibImportController extends AbstractController {
 		
 		ModelAndView mv = this.redirect(TAXON_LIB_IMPORT_URL);
 		
-		log.debug("TAXONOMY IMPORT START");
+		log.info("TAXONOMY IMPORT START");
 		try {
 			ITaxonLibSession taxonLibSession = TaxonLibSessionFactory.getSessionFromPreferences(prefDAO);
 			
@@ -95,18 +95,20 @@ public class TaxonLibImportController extends AbstractController {
 			getRequestContext().addMessage("taxonlib.importError", new Object[] { e.getMessage() });
 			log.error("Error during taxon lib import : ", e);
 		}
-		log.debug("TAXONOMY IMPORT END");
+		log.info("TAXONOMY IMPORT END");
 		
 		return mv;
 	}
 	
 	private void runNswFloraImport(MultipartHttpServletRequest request, ITaxonLibSession tls) throws IOException, Exception {
+		// Should run in a single transaction
 		MultipartFile file = request.getFile("taxonomyFile");
 		NswFloraImporter importer = new NswFloraImporter(tls, new Date(), taxaDAO, spDAO);
 		importer.runImport(file.getInputStream());
 	}
 	
 	private void runMaxImport(MultipartHttpServletRequest request, ITaxonLibSession tls) throws IOException, Exception {
+		// Should run in a single transaction
 		MultipartFile familyFile = request.getFile("maxFamilyFile");
 		MultipartFile generaFile = request.getFile("maxGeneraFile");
 		MultipartFile nameFile = request.getFile("maxNameFile");
@@ -119,6 +121,8 @@ public class TaxonLibImportController extends AbstractController {
 	private void runAfdImport(MultipartHttpServletRequest request, ITaxonLibSession tls) throws IOException, Exception {
 		MultipartFile file = request.getFile("taxonomyFile");
 		Session sesh = null;
+		// The AFD dataset is too large to run the insert queries in a single transaction.
+		// Because of this, we do manual hibernate session management.
 		try {
 			sesh = sessionFactory.openSession();
 			BdrsAfdImporter importer = new BdrsAfdImporter(tls, new Date(), sesh, taxaDAO, spDAO);

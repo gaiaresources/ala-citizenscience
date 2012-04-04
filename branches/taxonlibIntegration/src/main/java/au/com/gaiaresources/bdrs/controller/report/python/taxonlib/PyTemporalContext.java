@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.json.JSON;
@@ -26,6 +27,11 @@ public class PyTemporalContext {
 		this.context = context;
 	}
 	
+	/**
+	 * Get ITaxonConcept by Id
+	 * @param conceptId
+	 * @return Json representation of ITaxonConcept object
+	 */
 	public String getConceptById(int conceptId) {
 		ITaxonConcept result = context.selectConcept(conceptId);
 		return toJSON(result, 1).toString();
@@ -36,7 +42,9 @@ public class PyTemporalContext {
 	 * 
 	 * @param startDate start date as an ISO date string
 	 * @param sndDate end date as an ISO date string
-	 * @return
+	 * @param offset offset to start pagination
+	 * @param limit max number of paginated results
+	 * @return Json array of ITaxonConceptJunction objects
 	 * @throws ParseException 
 	 */
 	public String getJunctionByDate(String startDateString, String endDateString, int offset, int limit) throws ParseException {
@@ -49,7 +57,11 @@ public class PyTemporalContext {
 		return toJSON(pagedResult, 2).toString();
 	}
 	
-	private static JSON toJSON(Collection list, int depth) {
+	private static JSONArray toJSON(Collection list, int depth) {
+		if (list instanceof Map) {
+			// only list, arrays, sets are supported
+			throw new IllegalStateException("Collection cannot be an instance of Map");
+		}
         JSONArray array = new JSONArray();
         if(list != null) {
             for(Object item : list) {
