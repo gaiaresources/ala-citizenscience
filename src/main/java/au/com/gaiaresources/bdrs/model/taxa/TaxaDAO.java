@@ -155,8 +155,18 @@ public interface TaxaDAO {
      */
     PagedQueryResult<IndicatorSpecies> getIndicatorSpeciesByQueryString(Integer groupId, String searchInGroups, String searchInResult, PaginationFilter filter);
 
+    /**
+     * Gets indicator species by id.
+     * @param id ID of the species.
+     * @return The IndicatorSpecies result.
+     */
     IndicatorSpecies getIndicatorSpecies(Integer id);
     
+    /**
+     * Gets species profile by id
+     * @param id ID of the species profile.
+     * @return The SpeciesProfile result. 
+     */
     SpeciesProfile getSpeciesProfileById(Integer id);
     
     /**
@@ -167,57 +177,206 @@ public interface TaxaDAO {
      */
     IndicatorSpecies getIndicatorSpeciesByGuid(String guid);
 
+    /**
+     * Gets IndicatorSpecies by common name.
+     * @param commonName Common name to match on. This method does not add wildcards.
+     * @return List of matching IndicatorSpecies.
+     */
     List<IndicatorSpecies> getIndicatorSpeciesByCommonName(String commonName);
 
+    /**
+     * Refreshes the IndicatorSpecies object
+     * @param s IndicatorSpecies to refresh.
+     * @return Refreshed IndicatorSpecies
+     */
     IndicatorSpecies refresh(IndicatorSpecies s);
 
+    /**
+     * Get IndicatorSpecies by taxon group ID's.
+     * @param taxonGroupIds TaxonGroup ID's to match on.
+     * @return List of matching IndicatorSpecies.
+     */
     List<IndicatorSpecies> getIndicatorSpecies(
             Integer[] taxonGroupIds);
     
+    /**
+     * Count IndicatorSpecies belonging to the specified TaxonGroups
+     * @param taxonGroupIds TaxonGroup ID's to match on.
+     * @return Count of matching IndicatorSpecies.
+     */
     Integer countIndicatorSpecies(Integer[] taxonGroupIds);
 
+    /**
+     * Count all IndicatorSpecies.
+     * @return Count of all IndicatorSpecies.
+     */
     Integer countAllSpecies();
 
+    /**
+     * Get IndicatorSpecies by scientific name. Search is case insensitive.
+     * Method does not add wildcards.
+     * @param scientificName Scientific name to search for. 
+     * @return IndicatorSpecies result.
+     */
     IndicatorSpecies getIndicatorSpeciesByScientificName(String scientificName);
     
+    /**
+     * Get IndicatorSpecies by scientific name and other parameters. Search is case insensitive.
+     * Method does not add wildcards.
+     * @param sesh Hibernate session.
+     * @param source Source of IndicatorSpecies.
+     * @param scientificName Scientific name of IndicatorSpecies.
+     * @param rank Rank of IndicatorSpecies.
+     * @param parentId ID of the parent of the IndicatorSpecies.
+     * @return IndicatorSpecies result.
+     */
     IndicatorSpecies getIndicatorSpeciesByScientificNameAndParent(Session sesh, String source, String scientificName, TaxonRank rank, Integer parentId);
 
+    /**
+     * Get IndicatorSpecies by scientific name. Search is case insensitive.
+     * Method does not add wildcards.
+     * @param sesh Hibernate session.
+     * @param scientificName Scientific name to search for.
+     * @return IndicatorSpecies result.
+     */
     IndicatorSpecies getIndicatorSpeciesByScientificName(Session sesh,
             String scientificName);
     
+    /**
+     * Get IndicatorSpecies by scientific name and rank. Search is case insensitive.
+     * Method does not add wildcards.
+     * @param scientificName Scientific name to search for.
+     * @param rank TaxonRank to search for.
+     * @return IndicatorSpecies result.
+     */
     IndicatorSpecies getIndicatorSpeciesByScientificNameAndRank(String scientificName, TaxonRank rank);
     
+    /**
+     * Get IndicatorSpecies by scientific name and rank. Search is case insensitive.
+     * Method does not add wildcards.
+     * @param sesh Hibernate session.
+     * @param scientificName Scientific name to search for.
+     * @param rank TaxonRank to search for.
+     * @return IndicatorSpecies result.
+     */
     IndicatorSpecies getIndicatorSpeciesByScientificNameAndRank(Session sesh,
             String scientificName, TaxonRank rank);
 
+    /**
+     * Get taxon groups by name. Search is case insensitive.
+     * Method adds wildcards on the beginning and end of nameFragment.
+     * @param nameFragment Name fragment to search for.
+     * @return List of matching TaxonGroups
+     */
     List<TaxonGroup> getTaxonGroupSearch(String nameFragment);
 
+    /**
+     * Save an attribute.
+     * @param attribute Attribute to save.
+     * @return Saved Attribute.
+     */
     Attribute save(Attribute attribute);
     
+    /**
+     * Save an IndicatorSpecies.
+     * @param species IndicatorSpecies to save.
+     * @return Saved IndicatorSpecies.
+     */
     IndicatorSpecies save(IndicatorSpecies species);
     
+    /**
+     * Save an IndicatorSpecies.
+     * @param sesh Hibernate session.
+     * @param species IndicatorSpecies to save.
+     * @return Saved IndicatorSpecies.
+     */
     IndicatorSpecies save(Session sesh, IndicatorSpecies species);
 
+    /**
+     * Save an AttributeOption.
+     * @param opt AttributeOption to save.
+     * @return Saved AttributeOption.
+     */
     AttributeOption save(AttributeOption opt);
     
+    /**
+     * Save a TaxonGroup.
+     * @param taxongroup TaxonGroup to save.
+     * @return Saved TaxonGroup.
+     */
     TaxonGroup save(TaxonGroup taxongroup);
 
+    /**
+     * Update an IndicatorSpecies.
+     * @param is IndicatorSpecies to update.
+     * @return Updated IndicatorSpecies.
+     */
     IndicatorSpecies updateIndicatorSpecies(IndicatorSpecies is);
 
+    /**
+     * Count the species assigned to a survey.
+     * @param survey Survey to search for.
+     * @return Count of species assigned to the survey.
+     */
     int countSpeciesForSurvey(Survey survey);
 
+    /**
+     * Get IndicatorSpecies by common name. Search is case sensitive.
+     * Wild cards not allowed. Search requires exact match.
+     * @param sesh Hibernate session.
+     * @param commonName Common name to search for.
+     * @return
+     */
     IndicatorSpecies getIndicatorSpeciesByCommonName(Session sesh,
             String commonName);
 
+    /**
+     * Get taxon group by name. Search is case sensitive.
+     * Wildcards not allowed. Search requires exact match.
+     * @param sesh Hibernate session.
+     * @param name TaxonGroup name to match.
+     * @return TaxonGroup result.
+     */
     TaxonGroup getTaxonGroup(Session sesh, String name);
 
+    /**
+     * Save a TaxonGroup.
+     * @param sesh Hibernate session.
+     * @param taxongroup TaxonGroup to save.
+     * @return Saved TaxonGroup.
+     */
     TaxonGroup save(Session sesh, TaxonGroup taxongroup);
     
+    /**
+     * Save IndicatorSpeciesAttribute.
+     * @param taxonAttribute IndicatorSpeciesAttribute to save.
+     * @return Saved IndicatorSpeciesAttribute
+     */
     IndicatorSpeciesAttribute save(IndicatorSpeciesAttribute taxonAttribute);
+    
+    /**
+     * Save IndicatorSpeciesAttribute.
+     * @param sesh Hibernate Session.
+     * @param taxonAttribute IndicatorSpeciesAttribute to save.
+     * @return Saved IndicatorSpeciesAttribute
+     */
     IndicatorSpeciesAttribute save(Session sesh, IndicatorSpeciesAttribute taxonAttribute);
 
+    /**
+     * Get IndicatorSpecies by source data id.
+     * @param sesh Hibernate session.
+     * @param sourceDataId Source data id.
+     * @return IndicatorSpecies result.
+     */
     IndicatorSpecies getIndicatorSpeciesBySourceDataID(Session sesh, String sourceDataId);
     
+    /**
+     * Get IndicatorSpecies by source data id.
+     * @param sesh Hibernate session.
+     * @param source Data source.
+     * @param sourceDataId Source data id.
+     * @return IndicatorSpecies result.
+     */
     IndicatorSpecies getIndicatorSpeciesBySourceDataID(Session sesh, String source, String sourceDataId);
     
     /**
@@ -232,20 +391,55 @@ public interface TaxaDAO {
      */
     List<IndicatorSpecies> getIndicatorSpeciesBySurvey(Session sesh, Survey survey, int start, int maxSize);
 
+    /**
+     * Get IndicatorSpecies by scientific name. Case sensitive.
+     * Wild cards not allowed. Requires exact match.
+     * @param scientificName Scientific name to match.
+     * @return List of matching IndicatorSpecies.
+     */
     List<IndicatorSpecies> getIndicatorSpeciesListByScientificName(
             String scientificName);
     
+    /**
+     * Gets the most frequently used IndicatorSpecies in records.
+     * @param userPk Records belong to this user ID.
+     * @param limit Number of pair objects to return.
+     * @return List of the top occuring IndicatorSpecies and the amount of times they occur.
+     */
     List<Pair<IndicatorSpecies, Integer>> getTopSpecies(int userPk, int limit);
 
+    /**
+     * Get all taxon groups sorted by name.
+     * @return List of taxon groups sorted by name.
+     */
     List<TaxonGroup> getTaxonGroupsSortedByName();
 
+    /**
+     * Get Paginated IndicatorSpecies
+     * @param taxonGroup TaxonGroup to filter by.
+     * @param filter Pagination details.
+     * @return Paginated seach result.
+     */
     PagedQueryResult<IndicatorSpecies> getIndicatorSpecies(
             TaxonGroup taxonGroup, PaginationFilter filter);
 
+    /**
+     * Get the child taxa for an IndicatorSpecies.
+     * @param taxon Parent IndicatorSpecies.
+     * @return All child IndicatorSpecies.
+     */
     List<IndicatorSpecies> getChildTaxa(IndicatorSpecies taxon);
 
+    /**
+     * Delete an IndicatorSpecies.
+     * @param taxon IndicatorSpecies to delete.
+     */
     void delete(IndicatorSpecies taxon);
 
+    /**
+     * Dlete a TaxonGroup.
+     * @param taxonGroup TaxonGroup to delete.
+     */
     void delete(TaxonGroup taxonGroup);
     
     /**

@@ -34,8 +34,20 @@ public class BdrsAfdImporterRowHandler implements AfdImporterRowHandler {
 	
 	private Logger log = Logger.getLogger(getClass());
 	
+	/**
+	 * Taxon group name
+	 */
 	public static final String AFD_GROUP_NAME = "AFD";
 	
+	/**
+	 * Create a new row handler
+	 * 
+	 * @param taxonLibSession TaxonLibSession.
+	 * @param now Date the import occurs.
+	 * @param sesh Hibernate session. Note that we do our own hibernate session management.
+	 * @param taxaDAO TaxaDAO.
+	 * @param spDAO SpeciesProfileDAO.
+	 */
 	public BdrsAfdImporterRowHandler(ITaxonLibSession taxonLibSession, Date now, Session sesh, TaxaDAO taxaDAO, SpeciesProfileDAO spDAO) {
 		if (taxonLibSession == null) {
 			throw new IllegalArgumentException("TaxonLibSession cannot be null");
@@ -134,6 +146,11 @@ public class BdrsAfdImporterRowHandler implements AfdImporterRowHandler {
 		}
 	}
 	
+	/**
+	 * Get the source ID to assign to the matching IndicatorSpecies object.
+	 * @param tn ITaxonName.
+	 * @return Source ID
+	 */
 	private String getSourceId(ITaxonName tn) {
 		return tn.getId().toString();
 	}

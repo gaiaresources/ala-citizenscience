@@ -15,6 +15,11 @@ import au.com.gaiaresources.taxonlib.model.TaxonConcept;
 import au.com.gaiaresources.taxonlib.model.TaxonConceptRelation;
 import au.com.gaiaresources.taxonlib.model.TaxonName;
 
+/**
+ * Helpers for testing. Most of these operate to extract a particular object out
+ * of a list.
+ *
+ */
 public class TaxonTestUtils {
 	
 	public static SpeciesProfile getProfileItemByType(List<SpeciesProfile> spList,

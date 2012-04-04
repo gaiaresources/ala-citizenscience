@@ -25,7 +25,7 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.taxonomy.BdrsAfdImporter;
 import au.com.gaiaresources.bdrs.service.taxonomy.BdrsMaxImporter;
-import au.com.gaiaresources.bdrs.service.taxonomy.NswFloraImporter;
+import au.com.gaiaresources.bdrs.service.taxonomy.BdrsNswFloraImporter;
 import au.com.gaiaresources.bdrs.service.taxonomy.TaxonLibSessionFactory;
 import au.com.gaiaresources.taxonlib.ITaxonLibSession;
 
@@ -44,6 +44,8 @@ public class TaxonLibImportController extends AbstractController {
 	private SpeciesProfileDAO spDAO;
 	@Autowired
     private SessionFactory sessionFactory;
+	@Autowired
+	private TaxonLibSessionFactory taxonLibSessionFactory;
 	
 	private Logger log = Logger.getLogger(getClass());
 	
@@ -53,6 +55,13 @@ public class TaxonLibImportController extends AbstractController {
 		AFD
 	}
 
+	/**
+	 * Renders the taxon lib importer page.
+	 * 
+	 * @param request Request.
+	 * @param response Response.
+	 * @return ModelAndView to render the page.
+	 */
 	@RolesAllowed({Role.ADMIN})
 	@RequestMapping(value=TAXON_LIB_IMPORT_URL, method = RequestMethod.GET)
 	public ModelAndView renderSelectImportPage(HttpServletRequest request, HttpServletResponse response) {
@@ -60,7 +69,13 @@ public class TaxonLibImportController extends AbstractController {
 		return mv;
 	}
 	
-	// hacked up the front end....
+	/**
+	 * Handles the taxon lib upload.
+	 * 
+	 * @param request Request.
+	 * @param response Response.
+	 * @return ModelAndView to display result.
+	 */
 	@RolesAllowed({Role.ADMIN})
 	@RequestMapping(value=TAXON_LIB_IMPORT_URL, method = RequestMethod.POST)
 	public ModelAndView runImport(MultipartHttpServletRequest request,
@@ -68,9 +83,9 @@ public class TaxonLibImportController extends AbstractController {
 		
 		ModelAndView mv = this.redirect(TAXON_LIB_IMPORT_URL);
 		
-		log.info("TAXONOMY IMPORT START");
+		log.debug("TAXONOMY IMPORT START");
 		try {
-			ITaxonLibSession taxonLibSession = TaxonLibSessionFactory.getSessionFromPreferences(prefDAO);
+			ITaxonLibSession taxonLibSession = taxonLibSessionFactory.getSession();
 			
 			TaxonLibImportSource importSource = TaxonLibImportSource.valueOf(request.getParameter("importSource"));
 			
@@ -95,18 +110,34 @@ public class TaxonLibImportController extends AbstractController {
 			getRequestContext().addMessage("taxonlib.importError", new Object[] { e.getMessage() });
 			log.error("Error during taxon lib import : ", e);
 		}
-		log.info("TAXONOMY IMPORT END");
+		log.debug("TAXONOMY IMPORT END");
 		
 		return mv;
 	}
 	
+	/**
+	 * Runs the NSW flora import.
+	 * 
+	 * @param request The request object that contains the uploaded files
+	 * @param tls The TaxonLibSession.
+	 * @throws IOException 
+	 * @throws Exception
+	 */
 	private void runNswFloraImport(MultipartHttpServletRequest request, ITaxonLibSession tls) throws IOException, Exception {
 		// Should run in a single transaction
 		MultipartFile file = request.getFile("taxonomyFile");
-		NswFloraImporter importer = new NswFloraImporter(tls, new Date(), taxaDAO, spDAO);
+		BdrsNswFloraImporter importer = new BdrsNswFloraImporter(tls, new Date(), taxaDAO, spDAO);
 		importer.runImport(file.getInputStream());
 	}
 	
+	/**
+	 * Runs the Max import
+	 * 
+	 * @param request The request object that contains the uploaded files
+	 * @param tls The TaxonLibSession.
+	 * @throws IOException 
+	 * @throws Exception
+	 */
 	private void runMaxImport(MultipartHttpServletRequest request, ITaxonLibSession tls) throws IOException, Exception {
 		// Should run in a single transaction
 		MultipartFile familyFile = request.getFile("maxFamilyFile");
@@ -118,6 +149,14 @@ public class TaxonLibImportController extends AbstractController {
 		importer.runImport(familyFile.getInputStream(), generaFile.getInputStream(), nameFile.getInputStream(), xrefFile.getInputStream());
 	}
 	
+	/**
+	 * Runs the AFD import
+	 * 
+	 * @param request The request object that contains the uploaded files
+	 * @param tls The TaxonLibSession.
+	 * @throws IOException 
+	 * @throws Exception
+	 */
 	private void runAfdImport(MultipartHttpServletRequest request, ITaxonLibSession tls) throws IOException, Exception {
 		MultipartFile file = request.getFile("taxonomyFile");
 		Session sesh = null;
