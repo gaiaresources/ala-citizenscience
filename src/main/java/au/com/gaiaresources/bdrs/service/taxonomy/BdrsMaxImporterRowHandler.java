@@ -207,13 +207,6 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
 	}
 	
 	private String getSourceId(ITaxonName tn) {
-		if (tn == null) {
-			log.debug("taxon name is null");
-		}
-		if (tn.getId() == null) {
-			log.debug("taxon name id is null");
-		}
-		
 		return tn.getId().toString();
 	}
 	
@@ -231,7 +224,6 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
     }
 	
 	private IndicatorSpecies getIndicatorSpecies(String sourceId) {
-		log.debug("get indicator species by taxon name source id : " + sourceId);
 		ITaxonName tn = temporalContext.selectNameBySourceId(MaxImporter.MAX_SOURCE, sourceId);
 		
 		String iSpeciesSourceId = getSourceId(tn);
