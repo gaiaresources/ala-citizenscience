@@ -74,6 +74,18 @@ pip install xlwt
 pip install xlutils
 }}}
 
+== Taxon Lib ==
+The taxon lib jar should download automatically from the gaiaresources maven repository. If you do not use any features from taxon lib this is all that you need to do. However if you run all of the unit tests (which is recommended) - you will need to do some additional setup.
+
+  * Create a new database for taxonlib - must be postgresql.
+  * Run taxonlib.sql from the taxonlib project to create relations in your new database.
+
+Set the taxonlib test database properties in the dev profile (or another profile of your creation) in the pom file. The tests will fail due being unable to connect to the database.
+
+If you want to use taxon lib functionality (currently limited to certain reports and taxonomy importing) via the BDRS front end you need to set your taxon lib database preference on the admin -> portal -> preferences page. 
+
+Note that you want to make your test database and your production database different as the test database is dropped after every test run!
+
 = Source Code =
 
 Next we will check out the BDRS source code from the public repository.
