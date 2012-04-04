@@ -27,6 +27,7 @@ import au.com.gaiaresources.bdrs.model.report.Report;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.service.taxonomy.TaxonLibSessionFactory;
 import au.com.gaiaresources.taxonlib.ITaxonLibSession;
 import au.com.gaiaresources.taxonlib.ITemporalContext;
 
@@ -52,6 +53,7 @@ public class PyBDRS {
     private PyCensusMethodDAO pyCensusMethodDAO;
     private PyLocationDAO pyLocationDAO;
 
+    private TaxonLibSessionFactory taxonLibSessionFactory;
     private ITaxonLibSession taxonLibSession;
     
     private FileService fileService;
@@ -72,7 +74,7 @@ public class PyBDRS {
                   FileService fileService, Report report, User user,
                   SurveyDAO surveyDAO, CensusMethodDAO censusMethodDAO,
                   TaxaDAO taxaDAO, RecordDAO recordDAO,
-                  LocationDAO locationDAO, ITaxonLibSession taxonLibSession) {
+                  LocationDAO locationDAO, TaxonLibSessionFactory taxonLibSessionFactory) {
         this.request = request;
         this.fileService = fileService;
         this.report = report;
@@ -86,7 +88,7 @@ public class PyBDRS {
         this.pyRecordDAO = new PyRecordDAO(user, recordDAO);
         this.pyCensusMethodDAO = new PyCensusMethodDAO(censusMethodDAO);
         this.pyLocationDAO = new PyLocationDAO(surveyDAO);
-        this.taxonLibSession = taxonLibSession;
+        this.taxonLibSessionFactory = taxonLibSessionFactory;
     }
 
     /**
@@ -226,5 +228,15 @@ public class PyBDRS {
      */
     public Logger getLogger() {
         return log;
+    }
+    
+    /**
+     * Cleans up any open sessions that may have been open in the lifetime of this
+     * PyBDRS object.
+     */
+    public void close() {
+    	if (taxonLibSession != null) {
+    		taxonLibSession.close();
+    	}
     }
 }

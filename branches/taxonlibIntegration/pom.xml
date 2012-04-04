@@ -13,6 +13,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <repositories>
+    	<repository>
+    		<id>maven.gaiaresources</id>
+			<url>http://maven.gaiaresources.com.au</url>
+		</repository>
         <repository>
             <id>GeoTools repo</id>
             <url>http://download.osgeo.org/webdav/geotools/</url>
@@ -363,6 +367,12 @@
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
+            <artifactId>gt-jai-tools</artifactId>
+            <version>2.5.5-jai-tools</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
             <artifactId>gt-shapefile</artifactId>
             <version>2.5.3</version>
             <scope>compile</scope>
@@ -543,12 +553,12 @@
             <version>1.1.3</version>
             <scope>compile</scope>
         </dependency>
-		<dependency>
-			<groupId>org.gbif</groupId>
+        <dependency>
+            <groupId>org.gbif</groupId>
             <artifactId>dwca-reader</artifactId>
             <version>1.9.0</version>
             <scope>compile</scope>
-	    </dependency>
+        </dependency>
         <!-- JTidy for HTML validation -->
         <dependency>
             <groupId>net.sf.jtidy</groupId>
@@ -562,7 +572,7 @@
             <artifactId>jep</artifactId>
             <version>2.4</version>
             <scope>provided</scope>
-        </dependency> 
+        </dependency>
         <!-- Simple is a high performance asynchronous HTTP server for Java -->
         <dependency>
             <groupId>org.simpleframework</groupId>
@@ -993,6 +1003,8 @@
                 <bdrs.default.mail.from>bdrs-core@gaiaresources.com.au</bdrs.default.mail.from>
                 <bdrs.error.mail.to>aaron@gaiaresources.com.au</bdrs.error.mail.to>
                 <bdrs.mail.subject.prefix>[BDRS-Core - Dev]</bdrs.mail.subject.prefix>
+                <!-- Application address properties -->
+                <bdrs.application.url>http://localhost:8080/BDRS</bdrs.application.url>
                 <!-- Google Maps API Key. Good for http://localhost:8080/* -->
                 <bdrs.google.maps.key>ABQIAAAAVf-yI1VYl3fsYYNGwKOfGBT2yXp_ZAY8_ufC3CFXhHIE1NvwkxQTUAIK7KnqImTPI8drRbqfl1uq7A</bdrs.google.maps.key>
                 <!-- Database properties -->
@@ -1010,10 +1022,10 @@
                 <bdrs.recaptcha.private.key>6LfbwwQAAAAAAF5wVuk8nLcOanKCwvA_-rmtvNIL</bdrs.recaptcha.private.key>
                 <!-- File storage location -->
                 <bdrs.file.store.location>/tmp</bdrs.file.store.location>
-                <!-- Taxonlib properties -->
+                <!-- Taxonlib test properties -->
                 <taxonlib.db.username>postgres</taxonlib.db.username>
                 <taxonlib.db.password>postgres</taxonlib.db.password>
-                <taxonlib.db.url>localhost:5432/mybatistest</taxonlib.db.url>
+                <taxonlib.db.url>localhost:5432/taxonlib-test</taxonlib.db.url>
                 <bdrs.lucene.index.location>/tmp/bdrs/lucene</bdrs.lucene.index.location>
                 <!-- Logging Properties -->
                 <bdrs.logfile>logs/bdrs-core.log</bdrs.logfile>

@@ -1,25 +1,19 @@
 package au.com.gaiaresources.bdrs.service.report;
 
-import au.com.gaiaresources.bdrs.controller.report.ReportController;
-import au.com.gaiaresources.bdrs.controller.report.python.PyBDRS;
-import au.com.gaiaresources.bdrs.controller.report.python.PyResponse;
-import au.com.gaiaresources.bdrs.controller.report.python.model.PyScrollableRecords;
-import au.com.gaiaresources.bdrs.file.FileService;
-import au.com.gaiaresources.bdrs.json.JSONObject;
-import au.com.gaiaresources.bdrs.model.location.LocationDAO;
-import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
-import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
-import au.com.gaiaresources.bdrs.model.record.RecordDAO;
-import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
-import au.com.gaiaresources.bdrs.model.report.Report;
-import au.com.gaiaresources.bdrs.model.report.ReportCapability;
-import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
-import au.com.gaiaresources.bdrs.service.taxonomy.TaxonLibSessionFactory;
-import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
-import au.com.gaiaresources.taxonlib.ITaxonLibSession;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import jep.Jep;
 import jep.JepException;
+
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.codec.Base64;
@@ -29,15 +23,22 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import au.com.gaiaresources.bdrs.controller.report.ReportController;
+import au.com.gaiaresources.bdrs.controller.report.python.PyBDRS;
+import au.com.gaiaresources.bdrs.controller.report.python.PyResponse;
+import au.com.gaiaresources.bdrs.controller.report.python.model.PyScrollableRecords;
+import au.com.gaiaresources.bdrs.file.FileService;
+import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.model.location.LocationDAO;
+import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
+import au.com.gaiaresources.bdrs.model.record.RecordDAO;
+import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
+import au.com.gaiaresources.bdrs.model.report.Report;
+import au.com.gaiaresources.bdrs.model.report.ReportCapability;
+import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.service.taxonomy.TaxonLibSessionFactory;
+import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 
 /**
  * The <code>ReportService</code> handles the rendering of reports from candidate views (such as the
@@ -87,7 +88,7 @@ public class ReportService {
     @Autowired
     private LocationDAO locationDAO;
     @Autowired
-    private PreferenceDAO prefDAO;
+    private TaxonLibSessionFactory taxonLibSessionFactory;
 
     /**
      * Renders the specified report.
@@ -117,18 +118,17 @@ public class ReportService {
                                      Report report,
                                      ScrollableRecords sc) {
     	
-    	ITaxonLibSession taxonLibSession = null;
+    	PyBDRS bdrs = null;
         try {
-        	taxonLibSession = TaxonLibSessionFactory.getSessionFromPreferences(prefDAO);
             // Find the Python report code.
             File reportDir = fileService.getTargetDirectory(report, Report.REPORT_DIR, true);
 
             // Setup the parameters to send to the Python report.
-            PyBDRS bdrs = new PyBDRS(request,
+            bdrs = new PyBDRS(request,
                     fileService, report, RequestContextHolder.getContext().getUser(),
                     surveyDAO, censusMethodDAO,
                     taxaDAO, recordDAO,
-                    locationDAO, taxonLibSession);
+                    locationDAO, taxonLibSessionFactory);
             JSONObject jsonParams = toJSONParams(request);
 
             // Fire up a new Python interpreter
@@ -210,8 +210,8 @@ public class ReportService {
         	RequestContextHolder.getContext().addMessage(e.getMessage());
         	return new ModelAndView(new RedirectView(ReportController.REPORT_LISTING_URL, true));
         } finally {
-        	if (taxonLibSession != null) {
-        		taxonLibSession.close();
+        	if (bdrs != null) {
+        		bdrs.close();
         	}
         }
     }

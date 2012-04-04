@@ -33,25 +33,65 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
 	private SpeciesProfileDAO spDAO;
 	private ITemporalContext temporalContext;
 	
+	/**
+	 * Taxon group name
+	 */
 	public static final String MAX_GROUP_NAME = "MAX";
 	
+	/**
+	 * Species profile item
+	 */
 	public static final String INFO_ITEM_IS_CURRENT = "IS_CURRENT";
+	/**
+	 * Species profile item
+	 */
 	public static final String INFO_ITEM_NATURALISED = "NATURALISED";
+	/**
+	 * Species profile item
+	 */
 	public static final String INFO_ITEM_NATURALISED_STATUS = "NATURALISED_STATUS";
+	/**
+	 * Species profile item
+	 */
 	public static final String INFO_ITEM_COMMENT = "COMMENT";
+	/**
+	 * Species profile item
+	 */
 	public static final String INFO_ITEM_NATURALISED_CERTAINTY = "NATURALISED_CERTAINTY";
+	/**
+	 * Species profile item
+	 */
 	public static final String INFO_ITEM_IS_ERADICATED = "IS_ERADICATED";
+	/**
+	 * Species profile item
+	 */
 	public static final String INFO_ITEM_NATURALISED_COMMENTS = "NATURALISED_COMMENTS";
+	/**
+	 * Species profile item
+	 */
 	public static final String INFO_ITEM_INFORMAL = "INFORMAL";
+	/**
+	 * Species profile item
+	 */
 	public static final String INFO_ITEM_CONSV_CODE = "CONSV_CODE";
 	
 	private TaxonGroup group;
 	
 	private Logger log = Logger.getLogger(getClass());
 	
+	/**
+	 * Create a new row handler.
+	 * @param taxonLibSession TaxonLibSession.
+	 * @param now The date we are running the import.
+	 * @param taxaDAO TaxaDAO.
+	 * @param spDAO SpeciesProfileDAO.
+	 */
 	public BdrsMaxImporterRowHandler(ITaxonLibSession taxonLibSession, Date now, TaxaDAO taxaDAO, SpeciesProfileDAO spDAO) {
 		if (taxonLibSession == null) {
 			throw new IllegalArgumentException("TaxonLibSession cannot be null");
+		}
+		if (now == null) {
+			throw new IllegalArgumentException("Date cannot be null");
 		}
 		if (taxaDAO == null) {
 			throw new IllegalArgumentException("TaxaDAO cannot be null");
@@ -98,12 +138,16 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
 		saveIndicatorSpecies(species, row);
 	}
 	
+	/**
+	 * Attempt to save the indicator species. If the species already exists
+	 * we will not create it again.
+	 * 
+	 * @param concept ITaxonConcept to create IndicatorSpecies from.
+	 * @param nameRow MaxNameRow Raw row from CSV file.
+	 */
 	private void saveIndicatorSpecies(ITaxonConcept concept, MaxNameRow nameRow) {
 		if (concept != null) {
 			ITaxonName tn = concept.getName();
-			if (tn == null) {
-				log.debug("save indicator species : tn is null");
-			}
 			IndicatorSpecies iSpecies = taxaDAO.getIndicatorSpeciesBySourceDataID(null, MaxImporter.MAX_SOURCE, getSourceId(tn));
 			if (iSpecies == null) {
 				iSpecies = new IndicatorSpecies();
@@ -206,10 +250,23 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
 		}
 	}
 	
-	private String getSourceId(ITaxonName tn) {
+	/**
+	 * Get the source ID to assign to the matching IndicatorSpecies object.
+	 * @param tn ITaxonName.
+	 * @return Source ID
+	 */
+	private String getSourceId(ITaxonName tn) {		
 		return tn.getId().toString();
 	}
 	
+	/**
+	 * Helper for creating SpeciesProfile items.
+	 * @param infoItems List of info items.
+	 * @param type Type of info item.
+	 * @param header Header of info item.
+	 * @param description Description of info item.
+	 * @param content Content of info item.
+	 */
     private void addProfileInfoItem(List<SpeciesProfile> infoItems,
             String type, String header, String description,
             String content) {
@@ -223,6 +280,11 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
         infoItems.add(sp);
     }
 	
+    /**
+     * Get indicator species by source ID.
+     * @param sourceId Source ID to match on.
+     * @return IndicatorSpecies result.
+     */
 	private IndicatorSpecies getIndicatorSpecies(String sourceId) {
 		ITaxonName tn = temporalContext.selectNameBySourceId(MaxImporter.MAX_SOURCE, sourceId);
 		

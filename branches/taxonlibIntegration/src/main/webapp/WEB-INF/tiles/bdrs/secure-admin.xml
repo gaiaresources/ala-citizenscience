@@ -488,5 +488,4 @@
         <put-attribute name="bdrsLayer" type="object"/>
         <put-attribute name="index"/>
     </definition>
-
 </tiles-definitions>
