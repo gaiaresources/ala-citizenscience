@@ -390,7 +390,7 @@ public class ApplicationService extends AbstractController {
         
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("id", clientID);
-        map.put("server_id", loc.getId().intValue());
+        map.put("server_id", loc.getId());
         map.put("klass", Location.class.getSimpleName());
         syncResponseList.add(map);
     }
@@ -582,7 +582,7 @@ public class ApplicationService extends AbstractController {
         
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("id", clientID);
-        map.put("server_id", rec.getId().intValue());
+        map.put("server_id", rec.getId());
         map.put("klass", Record.class.getSimpleName());
         
         syncResponseList.add(map);
@@ -684,7 +684,7 @@ public class ApplicationService extends AbstractController {
         
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("id", id);
-        map.put("server_id", attrVal.getId().intValue());
+        map.put("server_id", attrVal.getId());
         map.put("klass", AttributeValue.class.getSimpleName());
         
         syncResponseList.add(map);
