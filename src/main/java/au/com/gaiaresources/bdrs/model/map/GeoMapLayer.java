@@ -13,7 +13,6 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
@@ -166,7 +165,7 @@ public class GeoMapLayer extends PortalPersistentImpl implements Comparable<GeoM
     }
     @Override
     public int compareTo(GeoMapLayer other) {
-        int compareVal = Integer.valueOf(this.getWeight()).compareTo(((GeoMapLayer)other).getWeight());
+        int compareVal = this.getWeight().compareTo(((GeoMapLayer)other).getWeight());
         // if they are equal, compare the names
         if (compareVal == 0) {
             compareVal = this.getName().compareTo(((GeoMapLayer)other).getName());

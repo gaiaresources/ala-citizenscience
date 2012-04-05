@@ -68,7 +68,7 @@ public class PyBDRS {
      * @param surveyDAO   retrieves survey related data.
      * @param taxaDAO     retrieves taxon and taxon group related data.
      * @param recordDAO   retrieves record related data.
-     * @param taxonLibSession provides access to taxonlib functionality
+     * @param taxonLibSessionFactory provides access to taxonlib functionality.
      */
     public PyBDRS(HttpServletRequest request,
                   FileService fileService, Report report, User user,
@@ -168,10 +168,10 @@ public class PyBDRS {
         return pyLocationDAO;
     }
     
-    public PyTemporalContext getTaxonLibTemporalContext(String dateString) throws ParseException {
+    public PyTemporalContext getTaxonLibTemporalContext(String dateString) throws Exception {
     	SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd");
     	Date date = isoFormat.parse(dateString);
-    	ITemporalContext temporalContext = taxonLibSession.getTemporalContext(date);
+    	ITemporalContext temporalContext = getTaxonLibSession().getTemporalContext(date);
     	return new PyTemporalContext(temporalContext);
     }
 
@@ -238,5 +238,12 @@ public class PyBDRS {
     	if (taxonLibSession != null) {
     		taxonLibSession.close();
     	}
+    }
+    
+    private ITaxonLibSession getTaxonLibSession() throws Exception {
+    	if (taxonLibSession == null) {
+    		taxonLibSession = taxonLibSessionFactory.getSession();
+    	}
+    	return taxonLibSession;
     }
 }

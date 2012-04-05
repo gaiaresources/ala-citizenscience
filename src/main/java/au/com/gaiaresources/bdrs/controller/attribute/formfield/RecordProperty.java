@@ -118,7 +118,7 @@ public class RecordProperty extends PersistentImpl {
 	 */
 	@CompactAttribute
 	public Integer getWeight() {
-		 return Integer.valueOf(getMetadataValue(RecordPropertySetting.WEIGHT)).intValue();
+		 return Integer.valueOf(getMetadataValue(RecordPropertySetting.WEIGHT));
 	}
 	
 	/**
