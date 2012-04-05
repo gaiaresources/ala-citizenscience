@@ -189,9 +189,6 @@ public final class BeanUtils {
                     } else {
                         map.put(name, value == null ? null : value.toString());
                     }
-                    if (value != null) {
-                    	log.debug(value.getClass().getCanonicalName());	
-                    }
                 }
             }
         } catch (InvocationTargetException e) {
