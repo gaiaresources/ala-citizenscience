@@ -94,6 +94,7 @@ public enum TaxonRank implements JSONEnum {
     SPECIES_GROUP("species group","http://vocabularies.gbif.org/rank/species-group","","http://www.ubio.org"),
     AGGREGATE("aggregate","http://vocabularies.gbif.org/rank/aggregate","","http://www.ubio.org"),
     SPECIES("Species","http://vocabularies.gbif.org/rank/Species","sp.","http://rs.tdwg.org/ontology/voc/TaxonRank"),
+    SPECIESINQUIRENDA("Species Inquirenda", "http://vocabularies.gbif.org/rank/SpeciesInquirenda", "", "http://vocabularies.gbif.org/rank/SpeciesInquirenda"),
     HYBRID("hybrid","http://vocabularies.gbif.org/rank/hybrid","","http://www.ubio.org"),
     MONSTER("monster","http://vocabularies.gbif.org/rank/monster","","http://www.ubio.org"),
     MICROSPECIES("microspecies","http://vocabularies.gbif.org/rank/microspecies","","http://www.ubio.org"),

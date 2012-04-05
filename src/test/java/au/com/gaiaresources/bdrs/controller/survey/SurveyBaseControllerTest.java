@@ -242,7 +242,7 @@ public class SurveyBaseControllerTest extends AbstractGridControllerTest {
         Assert.assertEquals(1, baseLayers.size());
         BaseMapLayer layer = baseLayers.get(0);
         Assert.assertEquals(BaseMapLayerSource.G_HYBRID_MAP, layer.getLayerSource());
-        Assert.assertEquals(1, layer.getWeight());
+        Assert.assertEquals(1, layer.getWeight().intValue());
         Assert.assertEquals(true, layer.isDefault());
     }
 }

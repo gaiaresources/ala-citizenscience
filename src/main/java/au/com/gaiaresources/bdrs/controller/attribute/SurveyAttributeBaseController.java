@@ -297,7 +297,7 @@ public class SurveyAttributeBaseController extends AbstractController {
                 returnAtts.put("scope_"+pk, attribute.getScope());
                 returnAtts.put("weight_"+pk, attribute.getWeight());
                 // set the options
-                returnAtts.put("option_"+pk, StringUtils.join(attribute.getOptions(), ","));
+                returnAtts.put("option_"+pk, StringUtils.join(attribute.getOptions().toArray(), ","));
             } else {
                 returnAtts.put("add_attribute", index);
                 returnAtts.put("add_name_"+index, attribute.getName());
@@ -308,7 +308,7 @@ public class SurveyAttributeBaseController extends AbstractController {
                 returnAtts.put("add_scope_"+index, attribute.getScope());
                 returnAtts.put("add_weight_"+index, attribute.getWeight());
                 // set the options
-                returnAtts.put("add_option_"+index, StringUtils.join(attribute.getOptions(), ","));
+                returnAtts.put("add_option_"+index, StringUtils.join(attribute.getOptions().toArray(), ","));
             }
         }
         

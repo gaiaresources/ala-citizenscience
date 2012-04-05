@@ -117,7 +117,7 @@ public class RecordProperty extends PersistentImpl {
 	 * @return the weight for this <code>RecordPropertType</code>
 	 */
 	@CompactAttribute
-	public int getWeight() {
+	public Integer getWeight() {
 		 return Integer.valueOf(getMetadataValue(RecordPropertySetting.WEIGHT)).intValue();
 	}
 	
@@ -125,7 +125,7 @@ public class RecordProperty extends PersistentImpl {
 	 * Sets the metadata value for the <code>RecordPropertySetting</code> weight, which indicates the order in which the fields appear.
 	 * @param weight for this <code>RecordPropertType</code>
 	 */
-	public void setWeight(int weight) {
+	public void setWeight(Integer weight) {
 		setMetadataValue(RecordPropertySetting.WEIGHT, String.valueOf(weight));
 	}
 	

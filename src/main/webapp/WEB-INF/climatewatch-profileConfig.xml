@@ -9,5 +9,7 @@
 	<bean id="profileConfig" class="au.com.gaiaresources.bdrs.config.ProfileConfig">
         <property name="xmlConfigFilename" value="/WEB-INF/profileConfig.xml"/>
     </bean>
-           
+
+	<bean id="taxonLibSessionfactory" class="au.com.gaiaresources.bdrs.service.taxonomy.PreferenceTaxonLibSessionFactory">
+	</bean>
 </beans>

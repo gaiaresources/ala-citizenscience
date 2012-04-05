@@ -1,0 +1,8 @@
+{
+    "name" : "Taxonomy Change Report",
+    "description" : "The taxonomy change report gives a list of name changes between two dates.",
+    "icon" : "diff.png",
+    "report" : "report",
+    "capabilities":  [],
+    "views": ["REPORT_LISTING"]
+}

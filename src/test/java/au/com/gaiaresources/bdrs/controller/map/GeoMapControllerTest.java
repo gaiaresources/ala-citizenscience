@@ -183,7 +183,7 @@ public class GeoMapControllerTest extends AbstractControllerTest {
         Assert.assertEquals(true, gm.isAnonymousAccess());
         Assert.assertEquals(true, gm.isHidePrivateDetails());
         Assert.assertEquals(true, gm.isPublish());
-        Assert.assertEquals(12, gm.getWeight());
+        Assert.assertEquals(12, gm.getWeight().intValue());
         
         List<AssignedGeoMapLayer> layerList = layerDAO.getForMap(gm.getId());
         Assert.assertEquals(2, layerList.size());
@@ -243,7 +243,7 @@ public class GeoMapControllerTest extends AbstractControllerTest {
         Assert.assertEquals(true, gm.isAnonymousAccess());
         Assert.assertEquals(true, gm.isHidePrivateDetails());
         Assert.assertEquals(true, gm.isPublish());
-        Assert.assertEquals(10, gm.getWeight());
+        Assert.assertEquals(10, gm.getWeight().intValue());
         
         List<AssignedGeoMapLayer> layerList = layerDAO.getForMap(gm.getId());
         Assert.assertEquals(2, layerList.size());

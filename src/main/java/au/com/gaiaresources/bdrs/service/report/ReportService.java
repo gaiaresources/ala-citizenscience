@@ -1,5 +1,28 @@
 package au.com.gaiaresources.bdrs.service.report;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import jep.Jep;
+import jep.JepException;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.codec.Base64;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
+
 import au.com.gaiaresources.bdrs.controller.report.ReportController;
 import au.com.gaiaresources.bdrs.controller.report.python.PyBDRS;
 import au.com.gaiaresources.bdrs.controller.report.python.PyResponse;
@@ -14,27 +37,8 @@ import au.com.gaiaresources.bdrs.model.report.Report;
 import au.com.gaiaresources.bdrs.model.report.ReportCapability;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.service.taxonomy.TaxonLibSessionFactory;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
-import jep.Jep;
-import jep.JepException;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.codec.Base64;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
-
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * The <code>ReportService</code> handles the rendering of reports from candidate views (such as the
@@ -83,6 +87,8 @@ public class ReportService {
     private RecordDAO recordDAO;
     @Autowired
     private LocationDAO locationDAO;
+    @Autowired
+    private TaxonLibSessionFactory taxonLibSessionFactory;
 
     /**
      * Renders the specified report.
@@ -111,16 +117,18 @@ public class ReportService {
                                      HttpServletResponse response,
                                      Report report,
                                      ScrollableRecords sc) {
+    	
+    	PyBDRS bdrs = null;
         try {
             // Find the Python report code.
             File reportDir = fileService.getTargetDirectory(report, Report.REPORT_DIR, true);
 
             // Setup the parameters to send to the Python report.
-            PyBDRS bdrs = new PyBDRS(request,
+            bdrs = new PyBDRS(request,
                     fileService, report, RequestContextHolder.getContext().getUser(),
                     surveyDAO, censusMethodDAO,
                     taxaDAO, recordDAO,
-                    locationDAO);
+                    locationDAO, taxonLibSessionFactory);
             JSONObject jsonParams = toJSONParams(request);
 
             // Fire up a new Python interpreter
@@ -197,6 +205,14 @@ public class ReportService {
             log.error("Unable to render report with PK: " + report.getId(), e);
             RequestContextHolder.getContext().addMessage("bdrs.report.render.error");
             return new ModelAndView(new RedirectView(ReportController.REPORT_LISTING_URL, true));
+        } catch (Exception e) {
+        	log.error("Exception thrown when attempting to render report", e);
+        	RequestContextHolder.getContext().addMessage(e.getMessage());
+        	return new ModelAndView(new RedirectView(ReportController.REPORT_LISTING_URL, true));
+        } finally {
+        	if (bdrs != null) {
+        		bdrs.close();
+        	}
         }
     }
 

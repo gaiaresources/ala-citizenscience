@@ -2,6 +2,9 @@ package au.com.gaiaresources.bdrs.controller.report.python;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -14,6 +17,7 @@ import au.com.gaiaresources.bdrs.controller.report.python.model.PyLocationDAO;
 import au.com.gaiaresources.bdrs.controller.report.python.model.PyRecordDAO;
 import au.com.gaiaresources.bdrs.controller.report.python.model.PySurveyDAO;
 import au.com.gaiaresources.bdrs.controller.report.python.model.PyTaxaDAO;
+import au.com.gaiaresources.bdrs.controller.report.python.taxonlib.PyTemporalContext;
 import au.com.gaiaresources.bdrs.file.FileService;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
@@ -23,6 +27,9 @@ import au.com.gaiaresources.bdrs.model.report.Report;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.service.taxonomy.TaxonLibSessionFactory;
+import au.com.gaiaresources.taxonlib.ITaxonLibSession;
+import au.com.gaiaresources.taxonlib.ITemporalContext;
 
 /**
  * Represents the bridge between the Java Virtual Machine and the
@@ -46,6 +53,9 @@ public class PyBDRS {
     private PyCensusMethodDAO pyCensusMethodDAO;
     private PyLocationDAO pyLocationDAO;
 
+    private TaxonLibSessionFactory taxonLibSessionFactory;
+    private ITaxonLibSession taxonLibSession;
+    
     private FileService fileService;
 
     /**
@@ -58,12 +68,13 @@ public class PyBDRS {
      * @param surveyDAO   retrieves survey related data.
      * @param taxaDAO     retrieves taxon and taxon group related data.
      * @param recordDAO   retrieves record related data.
+     * @param taxonLibSession provides access to taxonlib functionality
      */
     public PyBDRS(HttpServletRequest request,
                   FileService fileService, Report report, User user,
                   SurveyDAO surveyDAO, CensusMethodDAO censusMethodDAO,
                   TaxaDAO taxaDAO, RecordDAO recordDAO,
-                  LocationDAO locationDAO) {
+                  LocationDAO locationDAO, TaxonLibSessionFactory taxonLibSessionFactory) {
         this.request = request;
         this.fileService = fileService;
         this.report = report;
@@ -77,6 +88,7 @@ public class PyBDRS {
         this.pyRecordDAO = new PyRecordDAO(user, recordDAO);
         this.pyCensusMethodDAO = new PyCensusMethodDAO(censusMethodDAO);
         this.pyLocationDAO = new PyLocationDAO(surveyDAO);
+        this.taxonLibSessionFactory = taxonLibSessionFactory;
     }
 
     /**
@@ -155,6 +167,13 @@ public class PyBDRS {
     public PyLocationDAO getLocationDAO() {
         return pyLocationDAO;
     }
+    
+    public PyTemporalContext getTaxonLibTemporalContext(String dateString) throws ParseException {
+    	SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd");
+    	Date date = isoFormat.parse(dateString);
+    	ITemporalContext temporalContext = taxonLibSession.getTemporalContext(date);
+    	return new PyTemporalContext(temporalContext);
+    }
 
     /**
      * Returns a json serialized representation of the logged in {@link User}
@@ -209,5 +228,15 @@ public class PyBDRS {
      */
     public Logger getLogger() {
         return log;
+    }
+    
+    /**
+     * Cleans up any open sessions that may have been open in the lifetime of this
+     * PyBDRS object.
+     */
+    public void close() {
+    	if (taxonLibSession != null) {
+    		taxonLibSession.close();
+    	}
     }
 }

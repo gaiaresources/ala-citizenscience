@@ -70,6 +70,7 @@ public class IndicatorSpecies extends PortalPersistentImpl implements Attributab
     private String year;
     private String source;
     private String sourceId;
+    private Boolean current = true;
     
     private Set<Metadata> metadata = new HashSet<Metadata>();
     // Cache of metadata mapped against the key. This is not a database 
@@ -329,4 +330,13 @@ public class IndicatorSpecies extends PortalPersistentImpl implements Attributab
     public IndicatorSpeciesAttribute createAttribute() {
         return new IndicatorSpeciesAttribute();
     }
+
+    @Column(name = "is_current", nullable = false)
+	public Boolean getCurrent() {
+		return current;
+	}
+
+	public void setCurrent(Boolean current) {
+		this.current = current;
+	}
 }
