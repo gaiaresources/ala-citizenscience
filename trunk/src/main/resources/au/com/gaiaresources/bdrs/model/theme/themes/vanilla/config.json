@@ -382,6 +382,11 @@
 			"key"   : "style.table.highlight.color",
 			"value" : "#FFECA3"
 		},
+		        {
+            "type"  : "COLOR",
+            "key"   : "style.table.altrow.color",
+            "value" : "#E0E8F0"
+        },
         {
             "type"  : "TEMPLATE",
             "key"   : "template.dashboard",

@@ -13,6 +13,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <repositories>
+    	<repository>
+    		<id>maven.gaiaresources</id>
+			<url>http://maven.gaiaresources.com.au</url>
+		</repository>
         <repository>
             <id>GeoTools repo</id>
             <url>http://download.osgeo.org/webdav/geotools/</url>
@@ -407,10 +411,10 @@
         </dependency>
         <!-- PostGIS JDBC -->
         <dependency>
-            <groupId>postgresql</groupId>
+			<groupId>postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>8.1-407.jdbc3</version>
-            <scope>provided</scope>
+            <version>8.4-702.jdbc4</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.postgis</groupId>
@@ -559,6 +563,12 @@
             <artifactId>simple</artifactId>
             <version>4.1.21</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>au.com.gaiaresources</groupId>
+            <artifactId>taxonlib</artifactId>
+			<version>0.1</version>
+            <scope>compile</scope>
         </dependency>
         <!-- Adding here to ensure the correct version.  Many prior 
              dependencies download different versions of this library which 
@@ -785,7 +795,7 @@
                     <dependency>
                         <groupId>postgresql</groupId>
                         <artifactId>postgresql</artifactId>
-                        <version>8.1-407.jdbc3</version>
+                        <version>8.4-702.jdbc4</version>
                         <scope>provided</scope>
                     </dependency>
                     <dependency>
@@ -813,7 +823,7 @@
                     <dependency>
                         <groupId>postgresql</groupId>
                         <artifactId>postgresql</artifactId>
-                        <version>8.1-407.jdbc3</version>
+                        <version>8.4-702.jdbc4</version>
                     </dependency>
                 </dependencies>
                 <!-- common configuration shared by all executions -->
@@ -996,6 +1006,10 @@
                 <bdrs.recaptcha.private.key>6LfbwwQAAAAAAF5wVuk8nLcOanKCwvA_-rmtvNIL</bdrs.recaptcha.private.key>
                 <!-- File storage location -->
                 <bdrs.file.store.location>/tmp</bdrs.file.store.location>
+                <!-- Taxonlib test properties -->
+                <taxonlib.db.username>postgres</taxonlib.db.username>
+                <taxonlib.db.password>postgres</taxonlib.db.password>
+                <taxonlib.db.url>localhost:5432/taxonlib-test</taxonlib.db.url>
                 <bdrs.lucene.index.location>/tmp/bdrs/lucene</bdrs.lucene.index.location>
                 <!-- Logging Properties -->
                 <bdrs.logfile>logs/bdrs-core.log</bdrs.logfile>

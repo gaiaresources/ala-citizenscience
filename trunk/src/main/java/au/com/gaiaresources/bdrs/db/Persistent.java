@@ -31,7 +31,7 @@ public interface Persistent {
      * first.
      * @param weight the sorted weight of this object.
      */
-    void setWeight(int weight);
+    void setWeight(Integer weight);
 
     /**
      * Returns the sorted weight of this object. Objects with a lower weight
@@ -39,6 +39,6 @@ public interface Persistent {
      * 
      * @return the sorted weight of this object.
      */
-    int getWeight();
+    Integer getWeight();
 
 }

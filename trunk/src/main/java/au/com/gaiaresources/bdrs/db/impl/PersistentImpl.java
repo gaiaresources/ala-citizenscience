@@ -50,7 +50,7 @@ public abstract class PersistentImpl implements Persistent,
     
     private boolean runThreshold = true;
     
-    private int weight = DEFAULT_WEIGHT;
+    private Integer weight = DEFAULT_WEIGHT;
 
     /**
      * {@inheritDoc}
@@ -314,7 +314,7 @@ public abstract class PersistentImpl implements Persistent,
      */
     @Column(name = "WEIGHT")
     @CompactAttribute
-    public int getWeight() {
+    public Integer getWeight() {
         return weight;
     }
 
@@ -322,7 +322,7 @@ public abstract class PersistentImpl implements Persistent,
      * 
      * {@inheritDoc}
      */
-    public void setWeight(int weight) {
+    public void setWeight(Integer weight) {
         this.weight = weight;
     }
     

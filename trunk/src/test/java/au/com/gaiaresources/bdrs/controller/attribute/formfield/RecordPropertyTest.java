@@ -152,7 +152,7 @@ public class RecordPropertyTest extends AbstractControllerTest{
 		for (RecordPropertyType type : RecordPropertyType.values()) {
 			 RecordProperty recordProperty =  recordProperties.get(type);
 			 recordProperty.setWeight(5);
-			 Assert.assertEquals(5, recordProperty.getWeight());
+			 Assert.assertEquals(5, recordProperty.getWeight().intValue());
 		 }
 	}
 

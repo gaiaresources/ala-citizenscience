@@ -13,4 +13,6 @@ AbstractBDRSTest.java does not fail.  -->
         <property name="xmlConfigFilename" value="/../../src/main/webapp/WEB-INF/profileConfig-test.xml"/>
     </bean>
            
+	<bean id="taxonLibSessionfactory" class="au.com.gaiaresources.bdrs.service.taxonomy.FileTaxonLibSessionFactory">
+	</bean>
 </beans>

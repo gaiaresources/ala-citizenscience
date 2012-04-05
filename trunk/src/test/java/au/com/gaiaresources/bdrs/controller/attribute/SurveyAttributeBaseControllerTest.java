@@ -316,7 +316,7 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
 
         index = 0;
         for (Attribute attribute : actualSurvey.getAttributes()) {
-            Assert.assertEquals(Integer.parseInt(params.get(String.format("add_weight_%d", index))), attribute.getWeight());
+            Assert.assertEquals(Integer.parseInt(params.get(String.format("add_weight_%d", index))), attribute.getWeight().intValue());
             String expectedName = params.get(String.format("add_name_%d", index)); 
             // Name and description are treated differently. Description was previously nullable
             // while name is not. In order not to introduce new null pointer errors when operating
@@ -458,7 +458,7 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
         Assert.assertEquals(survey.getId(), actualSurvey.getId());
 
         for (Attribute attribute : actualSurvey.getAttributes()) {
-            Assert.assertEquals(Integer.parseInt(params.get(String.format("weight_%d", attribute.getId()))), attribute.getWeight());
+            Assert.assertEquals(Integer.parseInt(params.get(String.format("weight_%d", attribute.getId()))), attribute.getWeight().intValue());
             // Name and description are treated differently. Description was previously nullable
             // while name is not. In order not to introduce new null pointer errors when operating
             // on the name of an attribute, keeping the attribute name non nullable. However it means
