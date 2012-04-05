@@ -475,3 +475,15 @@ alter table RECORD_COMMENT add constraint FK2A21A0516771C7A9 foreign key (RECORD
 ROLLBACK;
 
 </code>
+
+= r230 =
+<code language="sql">
+begin;
+
+alter table indicator_species add column is_current boolean;
+update indicator_species set is_current=true;
+alter table indicator_species alter is_current set default true;
+alter table indicator_species alter is_current set not null;
+
+rollback;
+</code>
