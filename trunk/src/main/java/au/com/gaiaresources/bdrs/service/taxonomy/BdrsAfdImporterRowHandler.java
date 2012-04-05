@@ -26,7 +26,6 @@ public class BdrsAfdImporterRowHandler implements AfdImporterRowHandler {
 	private ITemporalContext temporalContext;
 	private Session sesh;
 	private TaxaDAO taxaDAO;
-	private SpeciesProfileDAO spDAO;
 	
 	private Transaction tx;
 	
@@ -68,7 +67,6 @@ public class BdrsAfdImporterRowHandler implements AfdImporterRowHandler {
 		temporalContext = taxonLibSession.getTemporalContext(now);
 		this.sesh = sesh;
 		this.taxaDAO = taxaDAO;
-		this.spDAO = spDAO;
 		
 		tx = sesh.beginTransaction();
 		

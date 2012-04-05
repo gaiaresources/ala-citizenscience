@@ -17,7 +17,6 @@ import org.hibernate.annotations.ParamDef;
 
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.model.survey.SurveyGeoMapLayer;
 
 /**
  * Represents a layer to use as the base layer for record entry maps.
@@ -143,7 +142,7 @@ public class BaseMapLayer extends PortalPersistentImpl implements MapLayer {
     @Override
     public int compareTo(MapLayer other) {
         if (other instanceof BaseMapLayer) {
-            int compareVal = Integer.valueOf(this.getWeight()).compareTo(((BaseMapLayer)other).getWeight());
+            int compareVal = this.getWeight().compareTo(((BaseMapLayer)other).getWeight());
             // if they are equal, compare the layer sources
             if (compareVal == 0) {
                 compareVal = this.getLayerSource().getName().compareTo(((BaseMapLayer)other).getLayerSource().getName());

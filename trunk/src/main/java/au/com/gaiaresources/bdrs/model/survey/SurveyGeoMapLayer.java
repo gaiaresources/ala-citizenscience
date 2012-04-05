@@ -16,7 +16,6 @@ import org.hibernate.annotations.ParamDef;
 
 import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
-import au.com.gaiaresources.bdrs.model.map.BaseMapLayer;
 import au.com.gaiaresources.bdrs.model.map.GeoMapLayer;
 import au.com.gaiaresources.bdrs.model.map.MapLayer;
 import au.com.gaiaresources.bdrs.model.map.MapLayerSource;
@@ -137,7 +136,7 @@ public class SurveyGeoMapLayer extends PortalPersistentImpl implements MapLayer 
     @Override
     public int compareTo(MapLayer other) {
         // compare the weights
-        int compareVal = Integer.valueOf(this.getWeight()).compareTo(((SurveyGeoMapLayer)other).getWeight());
+        int compareVal = this.getWeight().compareTo(((SurveyGeoMapLayer)other).getWeight());
         // if they are equal, use the names for sorting
         if (compareVal == 0) {
             compareVal = this.getLayer().compareTo(((SurveyGeoMapLayer)other).getLayer());

@@ -57,6 +57,8 @@ public class PyTemporalContext {
 		return toJSON(pagedResult, 2).toString();
 	}
 	
+	/*
+	 * Unused at the moment. Will be required if we ever jsonify collections.
 	private static JSONArray toJSON(Collection list, int depth) {
 		if (list instanceof Map) {
 			// only list, arrays, sets are supported
@@ -72,6 +74,7 @@ public class PyTemporalContext {
         }
         return array;
     }
+    */
 
     /**
      * JSON serializes a single {@link PersistentImpl} to a {@link JSONObject}.

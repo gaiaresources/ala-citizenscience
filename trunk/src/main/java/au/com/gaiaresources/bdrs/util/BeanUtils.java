@@ -120,7 +120,7 @@ public final class BeanUtils {
                                     if(depth > 0) {
                                         val = BeanUtils.flatten(clazz, raw, depth-1, compact, mobileFields);
                                     } else {
-                                        val = raw != null ? raw.toString() : null;
+                                        val = raw.toString();
                                     }
                                     list.add(val);
                                 } else {
@@ -144,7 +144,7 @@ public final class BeanUtils {
                                     if(depth > 0) {
                                         val = BeanUtils.flatten(clazz, raw, depth-1, compact, mobileFields);
                                     } else {
-                                    	val = raw != null ? raw.toString() : null;
+                                    	val = raw.toString();
                                     }
                                     list.add(val);
                                 } else {
@@ -161,39 +161,36 @@ public final class BeanUtils {
                             if(depth > 0) {
                                 val = BeanUtils.flatten(clazz, value, depth - 1, compact, mobileFields );
                             } else {
-                            	val = value != null ? value.toString() : null;
+                            	val = value.toString();
                             }
                         }
                         
                         map.put(name, val);
+                        
                     } else if (Integer.class.isAssignableFrom(returnType)) {
-                        map.put(name, value == null ? null
-                                : ((Integer) value).intValue());
+                    	map.put(name, (Integer)value);
                     } else if (Long.class.isAssignableFrom(returnType)) {
-                        map.put(name, value == null ? null
-                                : ((Long) value).longValue());
+                    	map.put(name, (Long)value);
                     } else if (Date.class.isAssignableFrom(returnType)) {
-                        map.put(name, value == null ? null
+                    	map.put(name, value == null ? null
                                 : ((Date) value).getTime());
                     } else if (Byte.class.isAssignableFrom(returnType)) {
-                        map.put(name, value == null ? null
-                                : ((Byte) value).byteValue());
+                    	map.put(name, (Byte)value);
                     } else if (Double.class.isAssignableFrom(returnType)) {
-                        map.put(name, value == null ? null
-                                : ((Double) value).doubleValue());
+                    	map.put(name, (Double)value);
                     } else if (Float.class.isAssignableFrom(returnType)) {
-                        map.put(name, value == null ? null
-                                : ((Float) value).floatValue());
+                    	map.put(name, (Float)value);
                     }  else if (Short.class.isAssignableFrom(returnType)) {
-                        map.put(name, value == null ? null
-                                : ((Short) value).shortValue());
+                    	map.put(name, (Short)value);
                     } else if (Boolean.class.isAssignableFrom(returnType)) {
-                        map.put(name, value == null ? null
-                                : ((Boolean) value).booleanValue());
+                    	map.put(name, (Boolean)value);
                     } else if (returnType.isPrimitive()) {
                         map.put(name, value);
                     } else {
                         map.put(name, value == null ? null : value.toString());
+                    }
+                    if (value != null) {
+                    	log.debug(value.getClass().getCanonicalName());	
                     }
                 }
             }
