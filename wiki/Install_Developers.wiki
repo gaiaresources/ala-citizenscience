@@ -82,6 +82,13 @@ The taxon lib jar should download automatically from the gaiaresources maven rep
 
 Set the taxonlib test database properties in the dev profile (or another profile of your creation) in the pom file. The tests will fail due being unable to connect to the database.
 
+An example of the settings and the format they are required in are below (Probably url is the only significant one, note there is no protocol specified):
+{{{
+username : postgres
+password : postgres
+url      : localhost:5432/taxonlib
+}}}
+
 If you want to use taxon lib functionality (currently limited to certain reports and taxonomy importing) via the BDRS front end you need to set your taxon lib database preference on the admin -> portal -> preferences page. 
 
 Note that you want to make your test database and your production database different as the test database is dropped after every test run!
