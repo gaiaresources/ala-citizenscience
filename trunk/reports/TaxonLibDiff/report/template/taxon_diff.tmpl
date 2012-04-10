@@ -13,17 +13,17 @@
 <h2>Taxonomy Change Report</h2>
 
 <p>
-    This report displays the changes to the taxonomy between the two specified dates.
+    This report displays the changes to the taxonomy between the two specified dates. The start and end dates are inclusive.
 </p>
 
 <form method="get">
 
     <div class="input_container">
-        <h3>Report Parameters</h3>
+        <h3>Search Criteria</h3>
         <table>
             <tr>
                 <th><label for="startDate">Start Date:</label></th>
-                <td><input class="datepicker validate(required)" id="startDate" type="text" name="startDate" 
+                <td><input class="datepicker_historical validate(required)" id="startDate" type="text" name="startDate" 
                     #if $varExists('startDate')
                         value="$startDate"
                     #end if
@@ -31,7 +31,7 @@
             </tr>
             <tr>
                 <th><label for="endDate">End Date:</label></th>
-                <td><input class="datepicker validate(required)" id="endDate" type="text" name="endDate" 
+                <td><input class="datepicker_historical validate(required)" id="endDate" type="text" name="endDate" 
                     #if $varExists('endDate')
                         value="$endDate"
                     #end if

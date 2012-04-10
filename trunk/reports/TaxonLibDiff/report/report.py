@@ -1,8 +1,8 @@
 import os
 import json
 from Cheetah.Template import Template
-from datetime import date
 from datetime import datetime
+from datetime import timedelta
 import time
 
 class Report:
@@ -50,6 +50,8 @@ class Report:
             # convert to datetime objects so we can use isoformat()
             startDate = datetime(*(startDate[0:6]))
             endDate = datetime(*(endDate[0:6]))
+            # move the end date so the end date is inclusive
+            endDate = endDate + timedelta(days=1)
 
             context1 = bdrs.getTaxonLibTemporalContext(startDate.isoformat())
             context2 = bdrs.getTaxonLibTemporalContext(endDate.isoformat())
