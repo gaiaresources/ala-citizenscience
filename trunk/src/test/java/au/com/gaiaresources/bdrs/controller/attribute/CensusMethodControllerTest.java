@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import au.com.gaiaresources.bdrs.model.taxa.AttributeVisibility;
 import junit.framework.Assert;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
@@ -253,6 +254,7 @@ public class CensusMethodControllerTest extends AbstractControllerTest {
             if (AttributeType.STRING_WITH_VALID_VALUES.equals(attrType)) {
                 request.setParameter(String.format("add_option_%d", index), attributeOptions);
             }
+            request.setParameter(String.format("add_visibility_%d", index), AttributeVisibility.ALWAYS.toString());
 
             index = index + 1;
             curWeight = curWeight + 100;
@@ -287,6 +289,7 @@ public class CensusMethodControllerTest extends AbstractControllerTest {
             Assert.assertEquals(request.getParameter(String.format("add_typeCode_%d", index)), attribute.getTypeCode());
             Assert.assertEquals(Boolean.parseBoolean(request.getParameter(String.format("add_tag_%d", index))), attribute.isTag());
             Assert.assertEquals(null, attribute.getScope());
+            Assert.assertEquals(request.getParameter(String.format("add_visibility_%d", index)), attribute.getVisibility().toString());
         
             if (AttributeType.STRING_WITH_VALID_VALUES.getCode().equals(attribute.getTypeCode())) {
                 String[] options = attributeOptions.split(",");

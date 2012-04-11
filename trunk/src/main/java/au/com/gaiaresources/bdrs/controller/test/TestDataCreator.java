@@ -26,6 +26,7 @@ import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import au.com.gaiaresources.bdrs.model.taxa.AttributeVisibility;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.log4j.Logger;
 import org.springframework.context.ApplicationContext;
@@ -302,6 +303,7 @@ public class TestDataCreator implements TestDataConstants {
                         	
                         	request.setParameter(String.format("add_option_%d", index), rangeIntOptions);
                         }
+                        request.setParameter(String.format("add_visibility_%d", index), AttributeVisibility.ALWAYS.toString());
                         
             
                         index = index + 1;

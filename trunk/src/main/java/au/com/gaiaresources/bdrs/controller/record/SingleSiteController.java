@@ -141,8 +141,7 @@ public abstract class SingleSiteController extends AbstractController {
     private SurveyDAO surveyDAO;
     @Autowired
     private TaxaDAO taxaDAO;
-    @Autowired
-    private LocationDAO locationDAO;
+
     @Autowired
     private CensusMethodDAO cmDAO;
     @Autowired
@@ -333,11 +332,14 @@ public abstract class SingleSiteController extends AbstractController {
             formFieldList.add(formFieldFactory.createRecordFormField(record, recordProperty, null, null, prefix));
         }
         Collections.sort(formFieldList);
+        
+        RecordWebFormContext context = new RecordWebFormContext(request, record, getRequestContext().getUser(), survey);
+        context.addFormFields("formFieldList", formFieldList);
 
         ModelAndView mv = new ModelAndView(ROW_VIEW);
         mv.addObject("record", record);
         mv.addObject("survey", survey);
-        mv.addObject("formFieldList", formFieldList);
+        mv.addObject(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT, context);
         mv.addObject("sightingIndex", prefix);
         // by definition editing must be enabled for items to be added to the
         // sightings table.
@@ -405,19 +407,10 @@ public abstract class SingleSiteController extends AbstractController {
         Map<String, RecordProperty> recordScopedRecordPropertyList = new TreeMap<String, RecordProperty>();
         boolean showMap = createAttributeLists(survey, accessor, record, sightingRowFormFieldList, formFieldList, recordScopedAttributeList, recordScopedRecordPropertyList);
 
-        Metadata predefinedLocationsMD = survey.getMetadataByKey(Metadata.PREDEFINED_LOCATIONS_ONLY);
-        boolean predefinedLocationsOnly = predefinedLocationsMD != null
-                && Boolean.parseBoolean(predefinedLocationsMD.getValue());
+        Set<Location> locations = locationService.locationsForSurvey(survey, getRequestContext().getUser());
 
-        Set<Location> locations = new TreeSet<Location>(
-                new LocationNameComparator());
-        locations.addAll(survey.getLocations());
-        if (!predefinedLocationsOnly) {
-            locations.addAll(locationDAO.getUserLocations(getRequestContext().getUser()));
-        }
         ModelAndView mv = new ModelAndView(viewName);
-        
-        
+
         // modify the list
         // note we need to reassign as it is a new list instance...
         recordsForFormInstance = modifyRecordDisplayList(recordsForFormInstance, survey);
@@ -519,17 +512,17 @@ public abstract class SingleSiteController extends AbstractController {
         // form field list is the survey scoped attributes.
         // contains the form field and the data (optional).
         // note: NON record scoped attributes only!
-        mv.addObject(MODEL_SURVEY_FORM_FIELD_LIST, formFieldList);
+        context.addFormFields(MODEL_SURVEY_FORM_FIELD_LIST, formFieldList);
         
         // sightings row form field list is the record scoped attributes
         // this is used to create the sightings table header row - no values!
         // note: record scoped attributes only!
-        mv.addObject(MODEL_SIGHTING_ROW_LIST, sightingRowFormFieldList);
+        context.addFormFields(MODEL_SIGHTING_ROW_LIST, sightingRowFormFieldList);
         
         // form field collections used to poplate the body of the sightings
         // table. i.e., data is in here!
         // note: record scoped attributes only!
-        mv.addObject(MODEL_RECORD_ROW_LIST, recFormFieldCollectionList);
+        context.addRecordCollection(MODEL_RECORD_ROW_LIST, recFormFieldCollectionList);
         
         mv.addObject(MODEL_RECORD, record);
         

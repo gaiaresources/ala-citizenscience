@@ -8,14 +8,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import au.com.gaiaresources.bdrs.model.record.RecordService;
-import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -41,10 +39,7 @@ import au.com.gaiaresources.bdrs.deserialization.record.RecordEntry;
 import au.com.gaiaresources.bdrs.deserialization.record.RecordKeyLookup;
 import au.com.gaiaresources.bdrs.message.Message;
 import au.com.gaiaresources.bdrs.model.location.Location;
-import au.com.gaiaresources.bdrs.model.location.LocationDAO;
-import au.com.gaiaresources.bdrs.model.location.LocationNameComparator;
 import au.com.gaiaresources.bdrs.model.location.LocationService;
-import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
@@ -260,8 +255,7 @@ public class TrackerController extends AbstractController {
     private SurveyDAO surveyDAO;
     @Autowired
     private TaxaDAO taxaDAO;
-    @Autowired
-    private LocationDAO locationDAO;
+
     @Autowired
     private CensusMethodDAO cmDAO;
     
@@ -325,32 +319,8 @@ public class TrackerController extends AbstractController {
             // set survey specific record defaults
             record.setRecordVisibility(survey.getDefaultRecordVisibility());
         }
-        
-        IndicatorSpecies species = null;
-        
-        // check for the speciesId first
-        if (speciesId > 0) {
-            species = taxaDAO.getIndicatorSpecies(speciesId);
-        }
-        // first attempt to assign to the species from the form fields....
-        if (species == null && guid != null && !guid.isEmpty()) {
-            species = taxaDAO.getIndicatorSpeciesByGuid(guid);
-        } 
-        if (species == null && taxonSearch != null && !taxonSearch.isEmpty()) {
-            List<IndicatorSpecies> speciesList = surveyDAO.getSpeciesForSurveySearch(surveyId, taxonSearch);
-            if (speciesList.isEmpty()) {
-                species = null;
-            } else if (speciesList.size() == 1) {
-                species = speciesList.get(0);
-            } else {
-                log.warn("Multiple species found for survey " + surveyId
-                        + " and taxon search \"" + taxonSearch
-                        + "\". Using the first.");
-                species = speciesList.get(0);
-            }
-        }
-        // if the species is still null, use the species from the record.
-        species = species != null ? species : record.getSpecies();
+
+        IndicatorSpecies species = determineSpecies(surveyId, taxonSearch, guid, speciesId, record);
         
 
         // Add all attribute form fields
@@ -452,28 +422,22 @@ public class TrackerController extends AbstractController {
         getRequestContext().removeSessionAttribute("valueMap");
         String wktString = (String)getRequestContext().getSessionAttribute(MV_WKT);
         getRequestContext().removeSessionAttribute(MV_WKT);
-        
-        Metadata predefinedLocationsMD = survey.getMetadataByKey(Metadata.PREDEFINED_LOCATIONS_ONLY);
-        boolean predefinedLocationsOnly = predefinedLocationsMD != null && 
-            Boolean.parseBoolean(predefinedLocationsMD.getValue());
-        
-        Set<Location> locations = new TreeSet<Location>(new LocationNameComparator());
-        locations.addAll(survey.getLocations());
-        if(!predefinedLocationsOnly) {
-            locations.addAll(locationDAO.getUserLocations(getRequestContext().getUser()));
-        }
+
+        Set<Location> locations = locationService.locationsForSurvey(survey, getRequestContext().getUser());
 
         User updatedByUser = recordService.getUpdatedByUser(record);
-        
+
+        // Add the form fields to the form
+        context.addFormFields("surveyFormFieldList", surveyFormFieldList);
+        context.addFormFields("taxonGroupFormFieldList", taxonGroupFormFieldList);
+        context.addFormFields("censusMethodFormFieldList", censusMethodFormFieldList);
+
         ModelAndView mv = new ModelAndView(TRACKER_VIEW_NAME);
         mv.addObject("censusMethod", censusMethod);
         mv.addObject("record", record);
         mv.addObject(BdrsWebConstants.PARAM_RECORD_ID, record.getId());
         mv.addObject("survey", survey);
         mv.addObject("locations", locations);
-        mv.addObject("surveyFormFieldList", surveyFormFieldList);
-        mv.addObject("taxonGroupFormFieldList", taxonGroupFormFieldList);
-        mv.addObject("censusMethodFormFieldList", censusMethodFormFieldList);
         mv.addObject("preview", request.getParameter("preview") != null);
         mv.addObject("taxonomic", taxonomic);
         mv.addObject(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT, context);
@@ -503,6 +467,44 @@ public class TrackerController extends AbstractController {
         mv.addObject("displayMap", showMap);
         
         return mv;
+    }
+
+    /**
+     * Determines the IndicatorSpecies to use when displaying the form.
+     * @param surveyId the id of the survey to be displayed.
+     * @param taxonSearch the value of the taxonSearch http parameter, can be used to identify the species.
+     * @param guid the guid of the species to use.
+     * @param speciesId the id of the species to use.
+     * @param record the Record to be displayed.
+     * @return the most appropriate IndicatorSpecies based on the supplied data.
+     */
+    private IndicatorSpecies determineSpecies(int surveyId, String taxonSearch, String guid, Integer speciesId, Record record) {
+        IndicatorSpecies species = null;
+
+        // check for the speciesId first
+        if (speciesId > 0) {
+            species = taxaDAO.getIndicatorSpecies(speciesId);
+        }
+        // first attempt to assign to the species from the form fields....
+        if (species == null && guid != null && !guid.isEmpty()) {
+            species = taxaDAO.getIndicatorSpeciesByGuid(guid);
+        }
+        if (species == null && taxonSearch != null && !taxonSearch.isEmpty()) {
+            List<IndicatorSpecies> speciesList = surveyDAO.getSpeciesForSurveySearch(surveyId, taxonSearch);
+            if (speciesList.isEmpty()) {
+                species = null;
+            } else if (speciesList.size() == 1) {
+                species = speciesList.get(0);
+            } else {
+                log.warn("Multiple species found for survey " + surveyId
+                        + " and taxon search \"" + taxonSearch
+                        + "\". Using the first.");
+                species = speciesList.get(0);
+            }
+        }
+        // if the species is still null, use the species from the record.
+        species = species != null ? species : record.getSpecies();
+        return species;
     }
 
     /**

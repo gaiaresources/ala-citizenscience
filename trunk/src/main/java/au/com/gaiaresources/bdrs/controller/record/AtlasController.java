@@ -12,6 +12,7 @@ import java.util.TreeSet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.record.RecordService;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,6 +87,9 @@ public class AtlasController extends AbstractController {
     private RecordService recordService;
     @Autowired
     private TrackerController tc;
+    @Autowired
+    private LocationService locationService;
+    
     private FormFieldFactory formFieldFactory = new FormFieldFactory();
 
     /**
@@ -205,16 +209,8 @@ public class AtlasController extends AbstractController {
             getRequestContext().removeSessionAttribute("errorMap");
             Map<String, String> valueMap = (Map<String, String>)getRequestContext().getSessionAttribute("valueMap");
             getRequestContext().removeSessionAttribute("valueMap");
-            
-            Metadata predefinedLocationsMD = survey.getMetadataByKey(Metadata.PREDEFINED_LOCATIONS_ONLY);
-            boolean predefinedLocationsOnly = predefinedLocationsMD != null && 
-                Boolean.parseBoolean(predefinedLocationsMD.getValue());
-            
-            Set<Location> locations = new TreeSet<Location>(new LocationNameComparator());
-            locations.addAll(survey.getLocations());
-            if(!predefinedLocationsOnly) {
-                locations.addAll(locationDAO.getUserLocations(getRequestContext().getUser()));
-            }
+
+            Set<Location> locations = locationService.locationsForSurvey(survey, getRequestContext().getUser());
             
             // if there is no logged in user there can be no default location id for that user...
             Metadata defaultLocId = loggedInUser != null ? loggedInUser.getMetadataObj(Metadata.DEFAULT_LOCATION_ID) : null;

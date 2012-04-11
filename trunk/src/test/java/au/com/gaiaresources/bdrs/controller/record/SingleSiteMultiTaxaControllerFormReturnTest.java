@@ -51,7 +51,9 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
         
         ModelAndView mv = this.handle(request, response);
         
-        List<RecordFormFieldCollection> rffcList = (List<RecordFormFieldCollection>)mv.getModel().get(SingleSiteController.MODEL_RECORD_ROW_LIST);
+        RecordWebFormContext formContext = (RecordWebFormContext)mv.getModel().get(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT);
+
+        List<RecordFormFieldCollection> rffcList = formContext.getNamedCollections().get(SingleSiteController.MODEL_RECORD_ROW_LIST);
         Assert.assertNotNull("record form field collection list should exist in model", rffcList);
         Assert.assertEquals("Only expect 2 items", 2, rffcList.size());
 
@@ -72,7 +74,7 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
         this.assertFormFieldList(rf1.getFormFields(), refRecord1, true, RECORD_SCOPES);
         this.assertFormFieldList(rf2.getFormFields(), refRecord2, true, RECORD_SCOPES);
         
-        List<FormField> formFieldList = (List<FormField>)mv.getModel().get(SingleSiteController.MODEL_SURVEY_FORM_FIELD_LIST);
+        List<FormField> formFieldList = formContext.getNamedFormFields().get(SingleSiteController.MODEL_SURVEY_FORM_FIELD_LIST);
         
         // check survey scoped attribute values and record properties
         List<AttributeScope> SURVEY_SCOPES = new ArrayList<AttributeScope>();
@@ -81,7 +83,7 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
         assertFormFieldList(formFieldList, refRecord1, true, SURVEY_SCOPES);
         
         // check the list used to generate the sightings table header (Record scope)
-        List<FormField> tableHeaderList = (List<FormField>)mv.getModel().get(SingleSiteController.MODEL_SIGHTING_ROW_LIST);
+        List<FormField> tableHeaderList = formContext.getNamedFormFields().get(SingleSiteController.MODEL_SIGHTING_ROW_LIST);
         Assert.assertNotNull("table header form field list should exist in model", tableHeaderList);
         
         assertFormFieldList(tableHeaderList, refRecord1, false, RECORD_SCOPES);
@@ -111,8 +113,10 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
         request.setParameter(SingleSiteMultiTaxaController.PARAM_SURVEY_ID, refRecord1.getSurvey().getId().toString());
         
         ModelAndView mv = this.handle(request, response);
-        
-        List<RecordFormFieldCollection> rffcList = (List<RecordFormFieldCollection>)mv.getModel().get(SingleSiteController.MODEL_RECORD_ROW_LIST);
+
+        RecordWebFormContext formContext = (RecordWebFormContext)mv.getModel().get(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT);
+
+        List<RecordFormFieldCollection> rffcList = formContext.getNamedCollections().get(SingleSiteController.MODEL_RECORD_ROW_LIST);
         Assert.assertNotNull("record form field collection list should exist in model", rffcList);
         Assert.assertEquals("Only expect 2 items", 2, rffcList.size());
 
@@ -133,7 +137,7 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
         this.assertFormFieldList(rf1.getFormFields(), refRecord1, true, RECORD_SCOPES);
         this.assertFormFieldList(rf2.getFormFields(), refRecord2, true, RECORD_SCOPES);
         
-        List<FormField> formFieldList = (List<FormField>)mv.getModel().get(SingleSiteController.MODEL_SURVEY_FORM_FIELD_LIST);
+        List<FormField> formFieldList = formContext.getNamedFormFields().get(SingleSiteController.MODEL_SURVEY_FORM_FIELD_LIST);
         
         // check survey scoped attribute values and record properties
         List<AttributeScope> SURVEY_SCOPES = new ArrayList<AttributeScope>();
@@ -142,7 +146,7 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
         assertFormFieldList(formFieldList, refRecord1, true, SURVEY_SCOPES);
         
         // check the list used to generate the sightings table header (Record scope)
-        List<FormField> tableHeaderList = (List<FormField>)mv.getModel().get(SingleSiteController.MODEL_SIGHTING_ROW_LIST);
+        List<FormField> tableHeaderList = formContext.getNamedFormFields().get(SingleSiteController.MODEL_SIGHTING_ROW_LIST);
         Assert.assertNotNull("table header form field list should exist in model", tableHeaderList);
         
         assertFormFieldList(tableHeaderList, refRecord1, false, RECORD_SCOPES);
@@ -163,8 +167,9 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
         request.setParameter(SingleSiteMultiTaxaController.PARAM_SURVEY_ID, refRecord1.getSurvey().getId().toString());
         
         ModelAndView mv = this.handle(request, response);
-        
-        List<RecordFormFieldCollection> rffcList = (List<RecordFormFieldCollection>)mv.getModel().get(SingleSiteController.MODEL_RECORD_ROW_LIST);
+        RecordWebFormContext formContext = (RecordWebFormContext)mv.getModel().get(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT);
+
+        List<RecordFormFieldCollection> rffcList = formContext.getNamedCollections().get(SingleSiteController.MODEL_RECORD_ROW_LIST);
         Assert.assertNotNull("record form field collection list should exist in model", rffcList);
         Assert.assertEquals("expect an empty list", 0, rffcList.size());
     }
@@ -272,8 +277,9 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
         request.setParameter(SingleSiteMultiTaxaController.PARAM_RECORD_ID, nullRecord.getId().toString());
         
         ModelAndView mv = this.handle(request, response);
-        
-        List<RecordFormFieldCollection> rffcList = (List<RecordFormFieldCollection>)mv.getModel().get(SingleSiteController.MODEL_RECORD_ROW_LIST);
+        RecordWebFormContext formContext = (RecordWebFormContext)mv.getModel().get(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT);
+
+        List<RecordFormFieldCollection> rffcList = formContext.getNamedCollections().get(SingleSiteController.MODEL_RECORD_ROW_LIST);
         Assert.assertNotNull("record form field collection list should exist in model", rffcList);
         Assert.assertEquals("expect our one and only record in the return list", 1, rffcList.size());
     }
@@ -297,8 +303,9 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
         request.setParameter(SingleSiteMultiTaxaController.PARAM_RECORD_ID, refRecord1.getId().toString());
         
         ModelAndView mv = this.handle(request, response);
-        
-        List<RecordFormFieldCollection> rffcList = (List<RecordFormFieldCollection>)mv.getModel().get(SingleSiteController.MODEL_RECORD_ROW_LIST);
+        RecordWebFormContext formContext = (RecordWebFormContext)mv.getModel().get(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT);
+
+        List<RecordFormFieldCollection> rffcList = formContext.getNamedCollections().get(SingleSiteController.MODEL_RECORD_ROW_LIST);
         Assert.assertNotNull("record form field collection list should exist in model", rffcList);
         Assert.assertEquals("expect 2 items that match the record capture criteria", 2, rffcList.size());
         
@@ -330,8 +337,9 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
         request.setParameter(SingleSiteMultiTaxaController.PARAM_RECORD_ID, refRecord1.getId().toString());
         
         ModelAndView mv = this.handle(request, response);
-        
-        List<RecordFormFieldCollection> rffcList = (List<RecordFormFieldCollection>)mv.getModel().get(SingleSiteController.MODEL_RECORD_ROW_LIST);
+        RecordWebFormContext formContext = (RecordWebFormContext)mv.getModel().get(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT);
+
+        List<RecordFormFieldCollection> rffcList = formContext.getNamedCollections().get(SingleSiteController.MODEL_RECORD_ROW_LIST);
         Assert.assertNotNull("record form field collection list should exist in model", rffcList);
         
         // since there are no survey scoped attributes - we will actually match all the records in the survey.

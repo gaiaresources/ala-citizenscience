@@ -13,7 +13,7 @@ import au.com.gaiaresources.bdrs.json.JSONEnumUtil;
  * 
  */
 public enum RecordPropertySetting implements JSONEnum {
-    WEIGHT, DESCRIPTION, HIDDEN, SCOPE, REQUIRED;
+    WEIGHT, DESCRIPTION, HIDDEN, SCOPE, REQUIRED, VISIBILITY;
 
     @Override
     public void writeJSONString(Writer out) throws IOException {

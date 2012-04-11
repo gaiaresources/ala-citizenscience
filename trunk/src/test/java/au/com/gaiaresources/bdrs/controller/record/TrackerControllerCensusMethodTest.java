@@ -173,8 +173,8 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, m3.getId().toString());
         
         ModelAndView mv = this.handle(request, response);
-        
-        List<FormField> cmFormFields = (List<FormField>)mv.getModelMap().get("censusMethodFormFieldList");
+        RecordWebFormContext formContext = (RecordWebFormContext)mv.getModel().get(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT);
+        List<FormField> cmFormFields = formContext.getNamedFormFields().get("censusMethodFormFieldList");
         // m1 should have 2 test attributes so....
         Assert.assertEquals(1, cmFormFields.size());
         Assert.assertTrue(Taxonomic.OPTIONALLYTAXONOMIC.equals(mv.getModel().get("taxonomic")));
@@ -191,8 +191,9 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, m1.getId().toString());
         
         ModelAndView mv = this.handle(request, response);
-        
-        List<FormField> cmFormFields = (List<FormField>)mv.getModelMap().get("censusMethodFormFieldList");
+        RecordWebFormContext formContext = (RecordWebFormContext)mv.getModel().get(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT);
+
+        List<FormField> cmFormFields = formContext.getNamedFormFields().get("censusMethodFormFieldList");
         // m1 should have 2 test attributes so....
         Assert.assertEquals(2, cmFormFields.size());
         Assert.assertTrue(Taxonomic.NONTAXONOMIC.equals(mv.getModel().get("taxonomic")));
@@ -209,8 +210,9 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, m2.getId().toString());
         
         ModelAndView mv = this.handle(request, response);
-        
-        List<FormField> cmFormFields = (List<FormField>)mv.getModelMap().get("censusMethodFormFieldList");
+        RecordWebFormContext formContext = (RecordWebFormContext)mv.getModel().get(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT);
+
+        List<FormField> cmFormFields = formContext.getNamedFormFields().get("censusMethodFormFieldList");
         // m1 should have 1 test attributes so....
         Assert.assertEquals(1, cmFormFields.size());
         Assert.assertTrue(Taxonomic.TAXONOMIC.equals(mv.getModel().get("taxonomic")));
@@ -227,8 +229,9 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         request.setParameter(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, "0");
         
         ModelAndView mv = this.handle(request, response);
-        
-        List<FormField> cmFormFields = (List<FormField>)mv.getModelMap().get("censusMethodFormFieldList");
+        RecordWebFormContext formContext = (RecordWebFormContext)mv.getModel().get(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT);
+
+        List<FormField> cmFormFields = formContext.getNamedFormFields().get("censusMethodFormFieldList");
 
         Assert.assertEquals(0, cmFormFields.size());
         Assert.assertEquals(null, mv.getModel().get(BdrsWebConstants.PARAM_CENSUS_METHOD_ID));

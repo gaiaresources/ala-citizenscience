@@ -1,5 +1,7 @@
 package au.com.gaiaresources.bdrs.controller.attribute.formfield;
 
+import au.com.gaiaresources.bdrs.controller.attribute.DisplayContext;
+
 /**
  * The <code>FormField</code> binds an <code>Attribute</code> in an object that can be sorted by
  * weight for rendering by the view.
@@ -47,4 +49,11 @@ public interface FormField extends Comparable<FormField> {
      * @return
      */
     public boolean isModerationFormField();
+
+    /**
+     * Returns true if this FormField should be visible in the supplied DisplayContext.
+     * @param context the context to check the visibility in.
+     * @return true if this FormField should be visible, false otherwise.
+     */
+    public boolean isVisible(DisplayContext context);
 }

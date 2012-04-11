@@ -307,18 +307,21 @@ public class TrackerControllerTest extends RecordFormTest {
 
         ModelAndView mv = handle(request, response);
         ModelAndViewAssert.assertViewName(mv, "tracker");
+        RecordWebFormContext formContext = (RecordWebFormContext)mv.getModel().get(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT);
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "record");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "survey");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "preview");
-        ModelAndViewAssert.assertModelAttributeAvailable(mv, "surveyFormFieldList");
-        ModelAndViewAssert.assertModelAttributeAvailable(mv, "taxonGroupFormFieldList");
+        Assert.assertNotNull(formContext.getNamedFormFields().get("surveyFormFieldList"));
+        Assert.assertNotNull(formContext.getNamedFormFields().get("taxonGroupFormFieldList"));
 
         Assert.assertFalse((Boolean) mv.getModelMap().get("preview"));
-        Assert.assertEquals(survey.getAttributes().size()
-                + RecordPropertyType.values().length, ((List) mv.getModelMap().get("surveyFormFieldList")).size());
-        Assert.assertEquals(0, ((List) mv.getModelMap().get("taxonGroupFormFieldList")).size());
-        for (FormField formField : ((List<FormField>) mv.getModelMap().get("surveyFormFieldList"))) {
+        Assert.assertEquals(
+                survey.getAttributes().size()
+                + RecordPropertyType.values().length - 2 , // The - 2 is because CREATED and UPDATED are only visible in read mode by deafult.
+                formContext.getNamedFormFields().get("surveyFormFieldList").size());
+        Assert.assertEquals(0, formContext.getNamedFormFields().get("taxonGroupFormFieldList").size());
+        for (FormField formField : formContext.getNamedFormFields().get("surveyFormFieldList")) {
             if (formField.isPropertyFormField()) {
                 Assert.assertNull(((RecordPropertyFormField) formField).getSpecies());
             }
@@ -340,19 +343,21 @@ public class TrackerControllerTest extends RecordFormTest {
 
         ModelAndView mv = handle(request, response);
         ModelAndViewAssert.assertViewName(mv, "tracker");
+        RecordWebFormContext formContext = (RecordWebFormContext)mv.getModel().get(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT);
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "record");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "survey");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "preview");
-        ModelAndViewAssert.assertModelAttributeAvailable(mv, "surveyFormFieldList");
-        ModelAndViewAssert.assertModelAttributeAvailable(mv, "taxonGroupFormFieldList");
+        Assert.assertNotNull(formContext.getNamedFormFields().get("surveyFormFieldList"));
+        Assert.assertNotNull(formContext.getNamedFormFields().get("taxonGroupFormFieldList"));
 
         Assert.assertFalse((Boolean) mv.getModelMap().get("preview"));
         Assert.assertEquals(survey.getAttributes().size()
-                + RecordPropertyType.values().length, ((List) mv.getModelMap().get("surveyFormFieldList")).size());
+                + RecordPropertyType.values().length -2, // UPDATED and CREATED are visible in read mode only by default.
+                formContext.getNamedFormFields().get("surveyFormFieldList").size());
         // Half of the taxon group attributes are tags.
-        Assert.assertEquals(speciesA.getTaxonGroup().getAttributes().size() / 2, ((List) mv.getModelMap().get("taxonGroupFormFieldList")).size());
-        for (FormField formField : ((List<FormField>) mv.getModelMap().get("surveyFormFieldList"))) {
+        Assert.assertEquals(speciesA.getTaxonGroup().getAttributes().size() / 2, formContext.getNamedFormFields().get("taxonGroupFormFieldList").size());
+        for (FormField formField : formContext.getNamedFormFields().get("surveyFormFieldList")) {
             if (formField.isPropertyFormField()) {
             	RecordPropertyFormField recordPropertyFormField = (RecordPropertyFormField) formField;
                 Assert.assertEquals(speciesA, recordPropertyFormField.getSpecies());
@@ -392,16 +397,18 @@ public class TrackerControllerTest extends RecordFormTest {
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "record");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "survey");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "preview");
+        RecordWebFormContext formContext = (RecordWebFormContext)mv.getModel().get(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT);
 
         IndicatorSpecies expectedTaxon = surveyDAO.getSpeciesForSurveySearch(survey.getId(), request.getParameter("taxonSearch")).get(0);
         Assert.assertFalse((Boolean) mv.getModelMap().get("preview"));
         Assert.assertEquals(survey.getAttributes().size()
-                + RecordPropertyType.values().length, ((List) mv.getModelMap().get("surveyFormFieldList")).size());
+                + RecordPropertyType.values().length -2, // -2 is because UPDATED and CREATED are visible in read mode by default.
+                formContext.getNamedFormFields().get("surveyFormFieldList").size());
         // Half of the taxon group attributes are tags.
-        Assert.assertEquals(expectedTaxon.getTaxonGroup().getAttributes().size() / 2, ((List) mv.getModelMap().get("taxonGroupFormFieldList")).size());
+        Assert.assertEquals(expectedTaxon.getTaxonGroup().getAttributes().size() / 2, formContext.getNamedFormFields().get("taxonGroupFormFieldList").size());
         // Its an error that gets logged, but nonetheless the first species
         // should be returned
-        for (FormField formField : ((List<FormField>) mv.getModelMap().get("surveyFormFieldList"))) {
+        for (FormField formField : formContext.getNamedFormFields().get("surveyFormFieldList")) {
             if (formField.isPropertyFormField()) {
                 Assert.assertEquals(expectedTaxon, ((RecordPropertyFormField) formField).getSpecies());
             }
@@ -664,12 +671,13 @@ public class TrackerControllerTest extends RecordFormTest {
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "record");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "survey");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "preview");
-        ModelAndViewAssert.assertModelAttributeAvailable(mv, "surveyFormFieldList");
-        ModelAndViewAssert.assertModelAttributeAvailable(mv, "taxonGroupFormFieldList");
 
-        List<FormField> allFormFields = new ArrayList<FormField>(
-                (List<FormField>) mv.getModelMap().get("surveyFormFieldList"));
-        allFormFields.addAll((List<FormField>) mv.getModelMap().get("taxonGroupFormFieldList"));
+        RecordWebFormContext formContext = (RecordWebFormContext)mv.getModel().get(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT);
+        Assert.assertNotNull(formContext.getNamedFormFields().get("surveyFormFieldList"));
+        Assert.assertNotNull(formContext.getNamedFormFields().get("taxonGroupFormFieldList"));
+
+        List<FormField> allFormFields = new ArrayList<FormField>(formContext.getNamedFormFields().get("surveyFormFieldList"));
+        allFormFields.addAll(formContext.getNamedFormFields().get("taxonGroupFormFieldList"));
         for (FormField formField : allFormFields) {
             if (formField.isAttributeFormField()) {
                 RecordAttributeFormField attributeField = (RecordAttributeFormField) formField;

@@ -75,7 +75,7 @@
                     </tr>
                 </c:if>
     
-                <c:forEach items="${surveyFormFieldList}" var="formField">
+                <c:forEach items="${recordWebFormContext.namedFormFields['surveyFormFieldList']}" var="formField">
                     <tiles:insertDefinition name="formFieldRenderer">
                         <tiles:putAttribute name="formField" value="${ formField }"/>
                         <tiles:putAttribute name="locations" value="${ locations }"/>
@@ -86,7 +86,7 @@
                     </tiles:insertDefinition>
                 </c:forEach>
                 
-                <c:forEach items="${taxonGroupFormFieldList}" var="formField">
+                <c:forEach items="${recordWebFormContext.namedFormFields['taxonGroupFormFieldList']}" var="formField">
                     <tiles:insertDefinition name="formFieldRenderer">
                         <tiles:putAttribute name="formField" value="${ formField }"/>
                         <tiles:putAttribute name="locations" value="${ locations }"/>
@@ -97,7 +97,7 @@
                     </tiles:insertDefinition>
                 </c:forEach>
                 
-                <c:forEach items="${censusMethodFormFieldList}" var="formField">
+                <c:forEach items="${recordWebFormContext.namedFormFields['censusMethodFormFieldList']}" var="formField">
                     <tiles:insertDefinition name="formFieldRenderer">
                         <tiles:putAttribute name="formField" value="${ formField }"/>
                         <tiles:putAttribute name="locations" value="${ locations }"/>

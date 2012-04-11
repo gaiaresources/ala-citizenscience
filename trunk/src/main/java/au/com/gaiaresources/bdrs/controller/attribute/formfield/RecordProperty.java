@@ -1,15 +1,16 @@
 package au.com.gaiaresources.bdrs.controller.attribute.formfield;
 
-import java.util.HashMap;
-
-import org.apache.log4j.Logger;
-
 import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
 import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeVisibility;
+import au.com.gaiaresources.bdrs.util.StringUtils;
+import org.apache.log4j.Logger;
+
+import java.util.HashMap;
 
 /**
  * Contains metadata keys for each <code>RecordPropertySetting</code> of each <code>RecordPropertyType</code>.
@@ -143,12 +144,45 @@ public class RecordProperty extends PersistentImpl {
 	
 	/**
 	 * Sets the metadata value for the <code>RecordPropertySetting</code> scope to a <code>AttributeScope</code> value
-	 * @param the <code>AttributeScope</code> for this <code>RecordPropertType</code>
+	 * @param scope the <code>AttributeScope</code> for this <code>RecordPropertType</code>
 	 */
 	public void setScope(AttributeScope scope) {
 		setMetadataValue(RecordPropertySetting.SCOPE, scope.toString());
 	}
-	
+
+    /**
+     * This property defines the contexts in which this RecordProperty should be visible.
+     * The valid values are defined by the AttributeVisibility enum and are:
+     * <ul>
+     *     <li>ALWAYS - the property is always visible if the normal access rules allows it.</li>
+     *     <li>READ - the property is only visible when the Record is being viewed in read only mode.</li>
+     *     <li>EDIT - the property is only visible while the Record is being edited (or created)</li>
+     * </ul>
+     * The default is ALWAYS.
+     *
+     * Please note that this setting does not override existing access rules such as the Record visibility and
+     * moderation based visibility rules.
+     * @return the current AttributeVisibility configured for this RecordProperty.
+     */
+    public AttributeVisibility getVisibility() {
+        AttributeVisibility visibility = AttributeVisibility.ALWAYS;
+        String value = getMetadataValue(RecordPropertySetting.VISIBILITY);
+        if (StringUtils.notEmpty(value)) {
+            visibility = AttributeVisibility.valueOf(value);
+        }
+        return visibility;
+    }
+
+    /**
+     * Configures the visibility of this RecordProperty.  See getVisibility for a full description of this property.
+     * @param visibility the desired AttributeVisibility for this RecordProperty.
+     */
+    public void setVisiblity(AttributeVisibility visibility) {
+        setMetadataValue(RecordPropertySetting.VISIBILITY, visibility.toString());
+    }
+
+
+
 	public Survey getSurvey() {
 		return this.survey;
 	}
@@ -207,6 +241,12 @@ public class RecordProperty extends PersistentImpl {
              	}
              } else if (propertySetting == RecordPropertySetting.HIDDEN) {
              	value = "false";
+             } else if (propertySetting == RecordPropertySetting.VISIBILITY) {
+                if (recordPropertyType == RecordPropertyType.CREATED || recordPropertyType == RecordPropertyType.UPDATED) {
+                    value = AttributeVisibility.READ.toString();
+                } else {
+                    value = AttributeVisibility.ALWAYS.toString();
+                }
              }
 		}
 		

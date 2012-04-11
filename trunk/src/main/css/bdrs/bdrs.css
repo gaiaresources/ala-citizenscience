@@ -400,6 +400,11 @@ table.taxon_edit_form_table tbody tr td {
     word-wrap: normal;
 }
 
+#editAttributesAttributeContainer #attribute_input_table td,
+#editAttributesAttributeContainer #attribute_input_table th {
+    max-width: 100px;
+}
+
 .deleteRow {
     background-color: #F96B6A;
 }

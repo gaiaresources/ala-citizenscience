@@ -17,7 +17,7 @@
         <c:set var="highlight" value="${recordFormFieldCollection.highlight}"></c:set>
     </c:when>
     <c:otherwise>
-        <c:set var="ffList" value="${ formFieldList }"></c:set>
+        <c:set var="ffList" value="${ recordWebFormContext.namedFormFields['formFieldList'] }"></c:set>
         <c:set var="highlight" value="false"></c:set>
     </c:otherwise>
 </c:choose>

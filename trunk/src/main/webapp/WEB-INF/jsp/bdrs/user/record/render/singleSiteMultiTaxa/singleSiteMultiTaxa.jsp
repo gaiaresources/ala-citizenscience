@@ -1,12 +1,11 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
 <%@ taglib uri="http://tiles.apache.org/tags-tiles" prefix="tiles" %>
 <%@ taglib uri="/WEB-INF/cw.tld" prefix="cw" %>
 
 <jsp:useBean id="survey" scope="request" type="au.com.gaiaresources.bdrs.model.survey.Survey" />
-<jsp:useBean id="recordFieldCollectionList" scope="request" type="java.util.List" />
-
 <%@page import="au.com.gaiaresources.bdrs.model.taxa.Attribute"%>
 <%@page import="au.com.gaiaresources.bdrs.model.taxa.AttributeScope"%>
 
@@ -49,7 +48,7 @@
     <div id="tableContainer">
     <table class="form_table">
         <tbody>
-            <c:forEach items="${formFieldList}" var="formField">
+            <c:forEach items="${recordWebFormContext.namedFormFields['formFieldList']}" var="formField">
              <jsp:useBean id="formField" type="au.com.gaiaresources.bdrs.controller.attribute.formfield.AbstractRecordFormField" />
                  <c:if test="<%= formField.isPropertyFormField() %>">
                      <c:if test="${ formField.scope == 'SURVEY'}">
@@ -87,14 +86,14 @@
             <cw:getContent key="user/singleSiteMultiTaxaTable" />
             <div id="add_sighting_panel" class="buttonpanel textright">
                 <a id="maximiseLink" class="text-left" href="javascript:bdrs.util.maximise('#maximiseLink', '#sightingsContainer', 'Enlarge Table', 'Shrink Table')">Enlarge Table</a>
-                <input type="hidden" id="sighting_index" name="sightingIndex" value="<%= recordFieldCollectionList.size() %>"/>  
+                <input type="hidden" id="sighting_index" name="sightingIndex" value="${fn:length(recordWebFormContext.namedCollections['recordFieldCollectionList'])}"/>
                 <input class="form_action" type="button" value="Add Sighting" onclick="bdrs.contribute.singleSiteMultiTaxa.addSighting('#sighting_index', '[name=surveyId]', '#sightingTable tbody', false, false, ${showScientificName});"/>
             </div>
         </c:if>
         <table id="sightingTable" class="datatable">
             <thead>
                <tr>
-                   <c:forEach items="${ sightingRowFormFieldList }" var="sightingRowFormField">
+                   <c:forEach items="${ recordWebFormContext.namedFormFields['sightingRowFormFieldList'] }" var="sightingRowFormField">
                        <jsp:useBean id="sightingRowFormField" type="au.com.gaiaresources.bdrs.controller.attribute.formfield.AbstractRecordFormField" />
                        <c:if test="<%= sightingRowFormField.isPropertyFormField() %>">
                            <c:if test="${ sightingRowFormField.scope == 'RECORD' }">
@@ -122,7 +121,7 @@
             </thead>
             <tbody>
                 <%-- Insert existing records here. --%>
-                <c:forEach items="${recordFieldCollectionList}" var="recordFormFieldCollection">
+                <c:forEach items="${recordWebFormContext.namedCollections['recordFieldCollectionList']}" var="recordFormFieldCollection">
                     <tiles:insertDefinition name="singleSiteMultiTaxaRow">
                         <tiles:putAttribute name="recordFormFieldCollection" value="${recordFormFieldCollection}"/>
                         <tiles:putAttribute name="errorMap" value="${ errorMap }"/>

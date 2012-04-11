@@ -1,19 +1,12 @@
 package au.com.gaiaresources.bdrs.controller.record;
 
-import java.util.Collections;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
-
 import au.com.gaiaresources.bdrs.config.AppContext;
 import au.com.gaiaresources.bdrs.controller.RenderController;
+import au.com.gaiaresources.bdrs.controller.attribute.DisplayContext;
+import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField;
+import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordFormFieldCollection;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.model.map.BaseMapLayer;
-import au.com.gaiaresources.bdrs.model.map.GeoMapLayer;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
@@ -21,9 +14,24 @@ import au.com.gaiaresources.bdrs.model.survey.SurveyGeoMapLayer;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Helper for holding constants used across the board for record forms
+ * Helper for holding constants used across the board for record forms.
+ *
+ * The RecordWebFormContext also holds the set of FormFields that make up the form and can filter them based on
+ * the fields defined visibility.
+ *
+ * It is also responsible for determining the context in which the Record/Survey is being viewed.
  * 
  * @author aaron
  *
@@ -84,11 +92,9 @@ public class RecordWebFormContext {
     // Not refering to MySightings directly here since we may introduce
     // cyclic dependencies.
     public static final String MODEL_RECORD_ID = "record_id";
-    
-    private boolean editable;
+
     private boolean existingRecord;
     private boolean unlockable;
-    private boolean preview;
     private Integer recordId;
     private Integer surveyId;
     private boolean moderateOnly;
@@ -103,6 +109,22 @@ public class RecordWebFormContext {
     private JSONArray geoMapLayers = new JSONArray();
 
     /**
+     * The collection of FormFields that make up the form data to be displayed,  grouped by a (String) identifier
+     * determined by the controller that created this WebFormRecordContext
+     */
+    private Map<String, List<FormField>> namedFormFields = new HashMap<String, List<FormField>>();
+
+    /**
+     * The collection of RecordFormFieldCollections that make up the per Record form data to be displayed in single
+     * site multi/all taxa forms,  grouped by a (String) identifier determined by the controller that created this
+     * RecordWebFormContext.
+     */
+    private Map<String, List<RecordFormFieldCollection>> namedCollections = new HashMap<String, List<RecordFormFieldCollection>>();
+
+    /** The context in which the record form will be rendered */
+    private DisplayContext context;
+    
+    /**
      * Create a new web form context for use with the form GET handler
      * 
      * Will throw AccessDeniedExceptions if appropriate.
@@ -114,29 +136,23 @@ public class RecordWebFormContext {
      * record to edit e.g. when previewing a form
      */
     public RecordWebFormContext(HttpServletRequest request, Record recordToLoad, User accessingUser, Survey survey) {
+        determineContext(request, recordToLoad);
+        
         // if the record is non persisted, we always want to edit.
-        if (recordToLoad == null || recordToLoad.getId() == null) {
-            editable = true;
-        } else {
-            // otherwise, check whether an edit has been requested.
-            String reqString = request.getParameter(PARAM_EDIT);
-            editable = reqString != null ? Boolean.parseBoolean(reqString) : false;
+        if (recordId != null) {
+
             // set if the edit is moderation fields only
             // this is only true if the form is editable, it is not an anonymous user
             // the user is not the owner and the user is a moderator but not admin
-            moderateOnly = editable && accessingUser != null && !accessingUser.equals(recordToLoad.getUser()) && accessingUser.isModerator() && !accessingUser.isAdmin();
+            moderateOnly = isEditable() && accessingUser != null && !accessingUser.equals(recordToLoad.getUser()) && accessingUser.isModerator() && !accessingUser.isAdmin();
         }
-        
-        // check whether the form is in preview mode...
-        preview = request.getParameter(PARAM_PREVIEW) != null;
-        
-        recordId = recordToLoad != null ? recordToLoad.getId() : null;
+
         surveyId = survey != null ? survey.getId() : null;
-        existingRecord = recordToLoad != null && recordToLoad.getId() != null;
+        existingRecord = recordId != null;
         unlockable = existingRecord && recordToLoad.canWrite(accessingUser);
-        commentable = !editable && (recordToLoad != null) && recordToLoad.canComment(accessingUser);
+        commentable = (context == DisplayContext.VIEW) && recordToLoad.canComment(accessingUser);
         anonymous = (accessingUser == null);
-        recordAccessSecurityCheck(recordToLoad, accessingUser, editable);
+        recordAccessSecurityCheck(recordToLoad, accessingUser, isEditable());
         
         // add the flattened layers to the page so they can be referenced 
         // through the javascript on the map pages
@@ -153,6 +169,35 @@ public class RecordWebFormContext {
                 geoMapLayers.add(layer.flatten(2));
             }
         }
+        
+
+    }
+
+    private void determineContext(HttpServletRequest request, Record record) {
+        recordId = record != null ? record.getId() : null;
+        if (request.getParameter(PARAM_PREVIEW) != null) {
+            context = DisplayContext.PREVIEW;
+        }
+        else if (recordId == null) {
+            context = DisplayContext.CREATE;
+        }
+        else if (checkParameterValue(request, PARAM_EDIT)) {
+            context = DisplayContext.EDIT;
+        }
+        else {
+            context = DisplayContext.VIEW;
+        }
+    }
+
+    /**
+     * Helper method for dealing with boolean parameters.  A missing parameter is treated as false.
+     * @param request the HTTP request to retrieve the paramter from.
+     * @param parameterName the name of the parameter to retrieve.
+     * @return false if the parameter is missing or does not have the value "true".
+     */
+    private boolean checkParameterValue(HttpServletRequest request, String parameterName) {
+        String parameter = request.getParameter(parameterName);
+        return parameter != null ? Boolean.parseBoolean(parameter) : false;
     }
     
     /**
@@ -165,8 +210,8 @@ public class RecordWebFormContext {
      */
     public RecordWebFormContext(Record recordToSave, User writingUser) {
         // we are posting so editable must always be true.
-        editable = true;
-        recordAccessSecurityCheck(recordToSave, writingUser, editable);
+        context = DisplayContext.EDIT;
+        recordAccessSecurityCheck(recordToSave, writingUser, isEditable());
     }
     
     /**
@@ -200,7 +245,7 @@ public class RecordWebFormContext {
      * @return true if edit mode enabled, false otherwise
      */
     public boolean isEditable() {
-        return this.editable;
+        return context == DisplayContext.CREATE || context == DisplayContext.EDIT;
     }
     
     /**
@@ -248,7 +293,7 @@ public class RecordWebFormContext {
      * @return boolean
      */
     public boolean isPreview() {
-        return this.preview;
+        return context == DisplayContext.PREVIEW;
     }
 
     /**
@@ -340,4 +385,64 @@ public class RecordWebFormContext {
     public String getGeoMapLayers() {
         return geoMapLayers.toString();
     }
+
+    /**
+     * Adds a List of FormField objects to this record form, identified by a specific name.
+     * @param name the name under which the FormFields can be retrieved.
+     * @param fields the FormFields to add.
+     */
+    public void addFormFields(String name, List<FormField> fields) {
+        filterOnVisibility(fields);
+        namedFormFields.put(name, fields);
+    }
+
+    /**
+     * Exposes the FormFields owned by this record form as a Map.  This has been done to allow easy access to the
+     * FormFields using JSTL.
+     * Note that FormFields that are not visible in the current displayContext will not be returned by this
+     * method.
+     * @return a Map of String (name) to List&lt;FormField&gt;
+     */
+    public Map<String, List<FormField>> getNamedFormFields() {
+        return namedFormFields;
+    }
+
+    /**
+     * Adds a List of RecordFormFieldCollection objects to this record form, identified by a specific name.
+     * Note that FormFields contained in each RecordFormFieldCollection that are not visible in the current
+     * displayContext will not be returned by this method.
+     * @param name the name under which the RecordFormFieldCollection can be retrieved.
+     * @param fields the RecordFormFieldCollections to add.
+     */
+    public void addRecordCollection(String name, List<RecordFormFieldCollection> fields) {
+       
+        for (RecordFormFieldCollection collection : fields) {
+            filterOnVisibility(collection.getFormFields());
+        }
+        namedCollections.put(name, fields);
+    }
+
+    /**
+     * Exposes the RecordFormFieldCollections owned by this record form as a Map.  This has been done to allow easy
+     * access to the RecordFormFieldCollections using JSTL.
+     * @return a Map of String (name) to List&lt;RecordFormFieldCollection&gt;
+     */
+    public Map<String, List<RecordFormFieldCollection>> getNamedCollections() {
+        return namedCollections;
+    }
+
+    /**
+     * Removes FormFields that are not visible in the current display context from the supplied list.
+     * @param fields a List of FormFields to filter.
+     */
+    private void filterOnVisibility(List<FormField> fields) {
+        Iterator<FormField> fieldIterator = fields.iterator();
+        while (fieldIterator.hasNext()) {
+            if (!fieldIterator.next().isVisible(context)) {
+                fieldIterator.remove();
+            }
+        }
+    }
+
+
 }
