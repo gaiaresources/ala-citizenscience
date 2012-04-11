@@ -487,3 +487,13 @@ alter table indicator_species alter is_current set not null;
 
 rollback;
 </code>
+
+= r236 =
+<code language="sql">
+begin;
+
+alter table attribute add column VISIBILITY varchar(8);
+update attribute set VISIBILITY='ALWAYS';
+
+rollback;
+</code>
