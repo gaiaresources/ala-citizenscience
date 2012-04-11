@@ -13,6 +13,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import au.com.gaiaresources.bdrs.controller.attribute.DisplayContext;
 import org.hibernate.annotations.CollectionOfElements;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
@@ -46,6 +47,9 @@ public class Attribute extends PortalPersistentImpl {
 
     private List<AttributeOption> options = new ArrayList<AttributeOption>();
     private AttributeScope scope;
+
+    /** Configures the contexts in which this Attribute is visible */
+    private AttributeVisibility visibility = AttributeVisibility.ALWAYS;
     
     /**
      * {@inheritDoc}
@@ -162,5 +166,48 @@ public class Attribute extends PortalPersistentImpl {
     }
     public void setScope(AttributeScope scope) {
         this.scope = scope;
+    }
+
+    /**
+     * This property defines the contexts in which this Attribute should be visible.
+     * The valid values are defined by the AttributeVisibility enum and are:
+     * <ul>
+     *     <li>ALWAYS - the attribute is always visible if the normal access rules allows it.</li>
+     *     <li>READ - the attribute is only visible when the Record is being viewed in read only mode.</li>
+     *     <li>EDIT - the attribute is only visible while the Record is being edited (or created)</li>
+     * </ul>
+     * The default is ALWAYS.
+     *
+     * Please note that this setting does not override existing access rules such as the Record visibility and
+     * moderation based visibility rules.
+     * @return the current AttributeVisibility configured for this attribute.
+     */
+    @CompactAttribute
+    @Enumerated(EnumType.STRING)
+    @Column(name = "VISIBILITY", nullable=true)
+    public AttributeVisibility getVisibility() {
+        if (visibility == null) {
+            return AttributeVisibility.ALWAYS;
+        }
+        return visibility;
+    }
+
+    /**
+     * Configures the visibility of this Attribute.  See getVisibility for a full description of this property.
+     * @param visibility the desired AttributeVisibility for this Attribute.
+     */
+    public void setVisibility(AttributeVisibility visibility) {
+        this.visibility = visibility;
+    }
+
+    /**
+     * Returns true if this Attribute should be visible in the supplied DisplayContext.  This is a convenience
+     * method which delegates to AttributeVisibility.isVisible()
+     * @param context the context to check the visibility in.
+     * @return true if this Attribute should be visible, false otherwise.
+     */
+    @Transient
+    public boolean isVisible(DisplayContext context) {
+        return visibility.isVisible(context);
     }
 }

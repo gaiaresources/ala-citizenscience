@@ -82,7 +82,7 @@
                         </c:choose>
                     </td>
                 </tr>
-                <c:forEach items="${formFieldList}" var="formField">
+                <c:forEach items="${recordWebFormContext.namedFormFields['formFieldList']}" var="formField">
                     <tr>
                         <th>
                             <label for="attribute_${formField.attribute.id}">

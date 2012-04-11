@@ -11,6 +11,8 @@ import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeVisibility;
+import au.com.gaiaresources.bdrs.util.StringUtils;
 
 /**
  * The <code>AttributeInstanceFormField</code> represents an
@@ -45,23 +47,25 @@ public class AttributeInstanceFormField extends AbstractAttributeFormField {
 
         this.attribute = new Attribute();
         // We now can support empty names for horizontal rule attribute types.
-        String nameParam = getParameter(parameterMap, String.format("add_name_%d",index));
+        String nameParam = getParameter(index, parameterMap, "add_name_%d");
         this.attribute.setName(nameParam != null ? nameParam : EMPTY_ATTRIBUTE_NAME);
-        this.attribute.setDescription(getParameter(parameterMap, String.format("add_description_%d",index)));
-        this.attribute.setTypeCode(getParameter(parameterMap, String.format("add_typeCode_%d",index)));
-        this.attribute.setRequired(getParameter(parameterMap, String.format("add_required_%d",index)) != null);
-        this.attribute.setTag(Boolean.parseBoolean(getParameter(parameterMap, String.format("add_tag_%d",index))));
-        String attrScopeStr = getParameter(parameterMap, String.format("add_scope_%d",index));
+        this.attribute.setDescription(getParameter(index, parameterMap, "add_description_%d"));
+        this.attribute.setTypeCode(getParameter(index, parameterMap, "add_typeCode_%d"));
+        this.attribute.setRequired(getParameter(index, parameterMap, "add_required_%d") != null);
+        this.attribute.setTag(Boolean.parseBoolean(getParameter(index, parameterMap, "add_tag_%d")));
+        String attrScopeStr = getParameter(index, parameterMap, "add_scope_%d");
         if(attrScopeStr != null) {
             this.attribute.setScope(AttributeScope.valueOf(attrScopeStr));
         }
         this.attribute.setWeight(Integer.parseInt(getParameter(parameterMap, this.weightName)));
+        this.attribute.setVisibility(AttributeVisibility.valueOf(
+                getParameter(index, parameterMap, "add_visibility_%d", AttributeVisibility.ALWAYS.toString())));
 
         // Options
         AttributeOption opt;
         List<AttributeOption> optList = new ArrayList<AttributeOption>();
-        if (getParameter(parameterMap, String.format("add_option_%d",index)) != null) {
-            for (String optValue : getParameter(parameterMap, String.format("add_option_%d",index)).split(",")) {
+        if (getParameter(index, parameterMap, "add_option_%d") != null) {
+            for (String optValue : getParameter(index, parameterMap, "add_option_%d").split(",")) {
                 optValue = optValue.trim();
                 if (!optValue.isEmpty()) {
                     opt = new AttributeOption();
@@ -72,6 +76,7 @@ public class AttributeInstanceFormField extends AbstractAttributeFormField {
         }
         attribute.setOptions(optList);
     }
+
 
     /**
      * Updates the specified <code>Attribute</code> using the POST parameters
@@ -91,17 +96,19 @@ public class AttributeInstanceFormField extends AbstractAttributeFormField {
 
         int attributePk = attribute.getId();
         // We now can support empty names for horizontal rule attribute types.
-        String nameParam = getParameter(parameterMap, String.format("name_%d",attributePk));
+        String nameParam = getParameter(attributePk, parameterMap, "name_%d");
         this.attribute.setName(nameParam != null ? nameParam : EMPTY_ATTRIBUTE_NAME);
-        this.attribute.setDescription(getParameter(parameterMap, String.format("description_%d",attributePk)));
-        this.attribute.setTypeCode(getParameter(parameterMap, String.format("typeCode_%d",attributePk)));
-        this.attribute.setRequired(getParameter(parameterMap, String.format("required_%d",attributePk)) != null);
-        this.attribute.setTag(Boolean.parseBoolean(getParameter(parameterMap, String.format("tag_%d",attributePk))));
-        String attrScopeStr = getParameter(parameterMap, String.format("scope_%d",attributePk));
+        this.attribute.setDescription(getParameter(attributePk, parameterMap, "description_%d"));
+        this.attribute.setTypeCode(getParameter(attributePk, parameterMap, "typeCode_%d"));
+        this.attribute.setRequired(getParameter(attributePk, parameterMap, "required_%d") != null);
+        this.attribute.setTag(Boolean.parseBoolean(getParameter(attributePk, parameterMap, "tag_%d")));
+        String attrScopeStr = getParameter(attributePk, parameterMap, "scope_%d");
         if(attrScopeStr != null) {
             this.attribute.setScope(AttributeScope.valueOf(attrScopeStr));
         }
         this.attribute.setWeight(Integer.parseInt(getParameter(parameterMap, this.weightName)));
+        this.attribute.setVisibility(AttributeVisibility.valueOf(
+                getParameter(attributePk, parameterMap, "visibility_%d", AttributeVisibility.ALWAYS.toString())));
 
         // Options
         List<AttributeOption> optList = new ArrayList<AttributeOption>();
@@ -239,4 +246,34 @@ public class AttributeInstanceFormField extends AbstractAttributeFormField {
     public String getWeightName() {
         return this.weightName;
     }
+
+    /**
+     * Helper method to return the value of a parameter.
+     * @param index identifies the parameter from others of the same type.
+     * @param parameterMap the available parameters
+     * @param parameterName the name of the parameter to get - this name is expected to contain the position of the
+     *                      index in the form %d.
+     * @return the value of the parameter identified by name and index, or null if no such parameter exists.
+     */
+    private String getParameter(int index, Map<String, String[]> parameterMap, String parameterName) {
+        return getParameter(parameterMap, String.format(parameterName, index));
+    }
+
+    /**
+     * Helper method to return the value of a parameter, or the supplied default if the parameter was not supplied.
+     * @param index identifies the parameter from others of the same type.
+     * @param parameterMap the available parameters
+     * @param parameterName the name of the parameter to get - this name is expected to contain the position of the
+     *                      index in the form %d.
+     * @param defaultValue the value to return if the parameter is null or an empty string.
+     * @return the value of the parameter identified by name and index, or null if no such parameter exists.
+     */
+    private String getParameter(int index, Map<String, String[]> parameterMap, String parameterName, String defaultValue) {
+        String param = getParameter(index, parameterMap, parameterName);
+        if (StringUtils.nullOrEmpty(param)) {
+            param = defaultValue;
+        }
+        return param;
+    }
+
 }

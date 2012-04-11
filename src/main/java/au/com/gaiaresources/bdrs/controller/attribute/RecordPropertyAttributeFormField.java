@@ -1,14 +1,14 @@
 package au.com.gaiaresources.bdrs.controller.attribute;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.commons.lang.NotImplementedException;
-
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertySetting;
 import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeVisibility;
+import org.apache.commons.lang.NotImplementedException;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The <code>RecordPropertyAttributeFormField</code> represents a
@@ -50,6 +50,7 @@ public class RecordPropertyAttributeFormField extends
     	for (RecordPropertySetting setting : RecordPropertySetting.values()){
     		String key = mdKeys.get(setting);
     		String[] values = parameterMap.get(key);
+
 			if (values != null && values.length > 0 && setting.equals(RecordPropertySetting.WEIGHT)) {
 				this.recordProperty.setWeight(Integer.valueOf(values[0]));
     		} else if (values != null && values.length > 0 && setting.equals(RecordPropertySetting.DESCRIPTION)) {
@@ -66,7 +67,13 @@ public class RecordPropertyAttributeFormField extends
 				} else {
 					this.recordProperty.setHidden(false);
 				}
-    		}
+    		} else if (setting.equals(RecordPropertySetting.VISIBILITY)) {
+                if (values != null && values.length > 0) {
+                    this.recordProperty.setVisiblity(AttributeVisibility.valueOf(values[0]));
+                } else {
+                    this.recordProperty.setVisiblity(AttributeVisibility.ALWAYS);
+                }
+            }
     	}
     }
 
@@ -169,5 +176,22 @@ public class RecordPropertyAttributeFormField extends
      */
     public boolean isDisplayFormField() {
         return this.recordProperty.getRecordPropertyType().isReadOnly();
+    }
+
+    /**
+     * Delegates to the contained RecordProperty.getVisibility().  @see RecordProperty.getVisibility()
+     * @return the currently configured visibility of this RecordPropertyAttributeFormField.
+     */
+    public AttributeVisibility getVisibility() {
+        return recordProperty.getVisibility();
+    }
+
+    /**
+     * Sets the visibility of this RecordPropertyAttributeFormField.  @see RecordProperty.setVisibility()
+     *
+     * @param visibility the desired visibility of this RecordPropertyAttributeFormField.
+     */
+    public void setVisibility(AttributeVisibility visibility) {
+        recordProperty.setVisiblity(visibility);
     }
 }

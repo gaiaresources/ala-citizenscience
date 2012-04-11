@@ -28,11 +28,11 @@ bdrs.attribute.VALIDATION_CLASS.put(bdrs.model.taxa.attributeType.STRING_WITH_VA
 /**
  * Adds a row to the attribute table.
  */
-bdrs.attribute.addAttributeRow = function(tableSelector, showScope, isTag) {
+bdrs.attribute.addAttributeRow = function(tableSelector, showScope, isTag, showVisibility) {
     var index = bdrs.attribute.addAttributeCount++;
 
     jQuery.get(bdrs.contextPath+'/bdrs/admin/attribute/ajaxAddAttribute.htm',
-            {'index': index, 'showScope': showScope, 'isTag': isTag}, function(data) {
+            {'index': index, 'showScope': showScope, 'isTag': isTag, 'showVisibility': showVisibility}, function(data) {
 
         var table = jQuery(tableSelector); 
         var row = jQuery(data);
@@ -79,20 +79,10 @@ bdrs.attribute.rowTypeChanged = function(event) {
         (bdrs.model.taxa.attributeType.HTML_NO_VALIDATION.code  === newTypeCode) ||
         (bdrs.model.taxa.attributeType.MULTI_CHECKBOX.code  === newTypeCode) ||
         (bdrs.model.taxa.attributeType.MULTI_SELECT.code  === newTypeCode),
-        '[name=' + prefix + 'option_'+index+']', tooltip, validation); 
-        
+        '[name=' + prefix + 'option_'+index+']', tooltip, validation);
 
-    var requiredSelector = '[name=' + prefix  +'required_'+index+']';
-    if(bdrs.model.taxa.attributeType.SINGLE_CHECKBOX.code  === newTypeCode ||
-        bdrs.model.taxa.attributeType.HTML.code  === newTypeCode ||
-        bdrs.model.taxa.attributeType.HTML_NO_VALIDATION.code  === newTypeCode ||
-        bdrs.model.taxa.attributeType.HTML_COMMENT.code  === newTypeCode ||
-        bdrs.model.taxa.attributeType.HTML_HORIZONTAL_RULE.code  === newTypeCode) {
-        jQuery(requiredSelector).attr('checked',false);
-        jQuery(requiredSelector).attr('disabled','disabled');
-    } else { 
-        jQuery(requiredSelector).removeAttr('disabled'); 
-    }
+
+    bdrs.attribute.updateMandatoryFieldState(event);
     
     var descriptionSelector = '[name=' + prefix + 'description_'+index+']';
     if(bdrs.model.taxa.attributeType.HTML_HORIZONTAL_RULE.code  === newTypeCode) { 
@@ -150,7 +140,73 @@ bdrs.attribute.rowScopeChanged = function(event) {
                 }
             }
         }
+
+        var visibilitySelector = bdrs.attribute.buildSelector(event, 'visibility');
+        if (attrScope === bdrs.model.taxa.attributeScope.LOCATION) {
+            jQuery(visibilitySelector).val('ALWAYS');
+            jQuery(visibilitySelector).attr('disabled', 'disabled');
+        }
+        else {
+            jQuery(visibilitySelector).removeAttr('disabled');
+        }
+        bdrs.attribute.updateMandatoryFieldState(event);
     };
+
+/**
+ * Called when the value in the Visibility column changes.
+ * @param event the event associated with the change.
+ */
+bdrs.attribute.visibilityChanged = function(event) {
+
+   bdrs.attribute.updateMandatoryFieldState(event);
+};
+
+/**
+ * The state of the mandatory / required checkbox depends on two things:
+ * 1. The state of the visibility attribute.  Attributes visible only in read mode cannot be mandatory.
+ * 2. Read only attributes cannot be mandatory.
+ * @param event the event that triggered this update.
+ */
+bdrs.attribute.updateMandatoryFieldState = function(event) {
+    var mandatorySelector = bdrs.attribute.buildSelector(event, 'required');
+    var typeCodeSelector = bdrs.attribute.buildSelector(event, 'typeCode');
+    var typeCode = jQuery(typeCodeSelector).val();
+    var visibilitySelector = bdrs.attribute.buildSelector(event, 'visibility');
+    var visibility = jQuery(visibilitySelector).val();
+
+    if (visibility === 'READ') {
+        jQuery(mandatorySelector).attr('checked',false);
+        jQuery(mandatorySelector).attr('disabled', 'disabled');
+    }
+    else {
+        if(bdrs.model.taxa.attributeType.SINGLE_CHECKBOX.code  === typeCode ||
+            bdrs.model.taxa.attributeType.HTML.code  === typeCode ||
+            bdrs.model.taxa.attributeType.HTML_NO_VALIDATION.code  === typeCode ||
+            bdrs.model.taxa.attributeType.HTML_COMMENT.code  === typeCode ||
+            bdrs.model.taxa.attributeType.HTML_HORIZONTAL_RULE.code  === typeCode) {
+            jQuery(mandatorySelector).attr('checked',false);
+            jQuery(mandatorySelector).attr('disabled','disabled');
+        } else {
+            jQuery(mandatorySelector).removeAttr('disabled');
+        }
+    }
+}
+
+/**
+ * Builds a jQuery selector based on the naming convention used by the elements in the attribute form.
+ * @param event the change event that is being processed, contains data about the row that has changed.
+ * @param name the name of the form element to be selected, excluding any prefix and suffix.
+ * @return {String} a jQuery selector that can be used to identify an element in a changed row.
+ */
+bdrs.attribute.buildSelector = function(event, name) {
+    var index = event.data.index;
+    var bNewRow = event.data.bNewRow;
+
+    var prefix = bNewRow ? 'add_' : '';
+    var selector = '[name=' + prefix + name + '_' + index +']';
+
+    return selector;
+}
 
 /**
  * Returns a function to be attached to the onchanged event of the field type

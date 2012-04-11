@@ -1,5 +1,6 @@
 package au.com.gaiaresources.bdrs.controller.attribute.formfield;
 
+import au.com.gaiaresources.bdrs.controller.attribute.DisplayContext;
 import org.apache.log4j.Logger;
 
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
@@ -118,5 +119,15 @@ public class TaxonAttributeFormField extends AbstractFormField implements TypedA
     @Override
     public int hashCode() {
         return getTaxonAttribute().hashCode() + getAttribute().hashCode() + super.hashCode();
+    }
+
+    /**
+     * Returns true if this TaxonAttributeFormField should be visible in the supplied DisplayContext.
+     * @param context the context to check the visibility in.
+     * @return true if this TaxonAttributeFormField should be visible.
+     */
+    @Override
+    public boolean isVisible(DisplayContext context) {
+        return attribute.isVisible(context);
     }
 }

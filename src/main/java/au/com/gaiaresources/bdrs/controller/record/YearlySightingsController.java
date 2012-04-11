@@ -18,6 +18,7 @@ import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import au.com.gaiaresources.bdrs.model.location.LocationService;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -114,6 +115,8 @@ public class YearlySightingsController extends AbstractController {
     private AttributeDAO attributeDAO;
     @Autowired
     private FileService fileService;
+    @Autowired
+    private LocationService locationService;
     
     private FormFieldFactory formFieldFactory = new FormFieldFactory();
 
@@ -198,17 +201,13 @@ public class YearlySightingsController extends AbstractController {
             }
         }
         Collections.sort(formFieldList);
-        
+        context.addFormFields("formFieldList", formFieldList);
+
         Metadata predefinedLocationsMD = survey.getMetadataByKey(Metadata.PREDEFINED_LOCATIONS_ONLY);
-        boolean predefinedLocationsOnly = predefinedLocationsMD != null && 
-            Boolean.parseBoolean(predefinedLocationsMD.getValue());
-        
-        Set<Location> locations = new TreeSet<Location>(new LocationNameComparator());
-        locations.addAll(survey.getLocations());
-        if(!predefinedLocationsOnly) {
-            locations.addAll(locationDAO.getUserLocations(getRequestContext().getUser()));
-        }
-        
+        boolean predefinedLocationsOnly = predefinedLocationsMD != null &&
+                Boolean.parseBoolean(predefinedLocationsMD.getValue());
+        Set<Location> locations = locationService.locationsForSurvey(survey, getRequestContext().getUser());
+
         ModelAndView mv = new ModelAndView(YEARLY_SIGHTINGS_FORM_VIEW_NAME);
         mv.addObject("survey", survey);
         mv.addObject("preview", request.getParameter("preview") != null);
@@ -218,7 +217,6 @@ public class YearlySightingsController extends AbstractController {
         mv.addObject("dateMatrix", dateMatrix);
         mv.addObject("today", today.getTime());
         mv.addObject("location", location);
-        mv.addObject("formFieldList", formFieldList);
         mv.addObject("record", record);
         mv.addObject(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT, context);
 

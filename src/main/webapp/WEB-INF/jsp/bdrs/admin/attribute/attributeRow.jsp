@@ -6,12 +6,14 @@
 <%@page import="au.com.gaiaresources.bdrs.controller.attribute.AttributeInstanceFormField"%>
 <%@page import="au.com.gaiaresources.bdrs.model.survey.Survey"%>
 <%@page import="au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType" %>
+<%@ page import="au.com.gaiaresources.bdrs.model.taxa.AttributeVisibility" %>
 
 <tiles:useAttribute name="formField" classname="au.com.gaiaresources.bdrs.controller.attribute.AttributeFormField" ignore="true"/>
 <tiles:useAttribute name="survey" classname="au.com.gaiaresources.bdrs.model.survey.Survey" ignore="true"/>
 <tiles:useAttribute name="showScope" ignore="true"/>
 <tiles:useAttribute name="isTag" ignore="true"/>
 <tiles:useAttribute name="index" ignore="true"/>
+<tiles:useAttribute name="hideVisibilityColumn" ignore="true"/>
 
 <tr
 <c:if test="<%= formField.hasThreshold() %>">class="ui-state-highlight ui-widget-content"</c:if>
@@ -53,7 +55,7 @@
                               name="add_required_${index}"/>
                     </td>
                     <c:if test="${ showScope == true }">
-                        <td class="textcenter">
+                        <td>
                             <span class="table_input_container">
                                 <select class="attrScopeSelect" name="add_scope_${index}" >
                                     <c:forEach items="<%= AttributeScope.values() %>" var="add_scope">
@@ -71,11 +73,23 @@
                             <input type="text" name="add_option_${index}" class="attrOpt" disabled="disabled"/>
                         </span>
                     </td>
+                    <c:if test="${not hideVisibilityColumn}">
+                        <td>
+                            <select name="add_visibility_${index}">
+                                <c:forEach var="visibility" items="<%= AttributeVisibility.values() %>">
+                                    <option value="${visibility}">
+                                        <c:out value="${visibility.description}"/>
+                                    </option>
+                                </c:forEach>
+                            </select>
+                        </td>
+                    </c:if>
                     <td class="textcenter">
                         <a href="javascript: void(0);" onclick="jQuery(this).parents('tr').hide().find('select, input, textarea').attr('disabled', 'disabled').removeClass(); return false;">
                             <img src="${pageContext.request.contextPath}/images/icons/delete.png" alt="Delete" class="vertmiddle"/>
                         </a>
                     </td>
+
                     <script type="text/javascript">
                         jQuery(function() {
                             var rowTypeChanged = bdrs.attribute.getRowTypeChangedFunc();
@@ -83,6 +97,8 @@
                             var eventData = {index: ${index}, bNewRow: true};
                             jQuery("[name=add_typeCode_"+${index}+"]").change(eventData, rowTypeChanged);
                             jQuery("[name=add_scope_"+${index}+"]").change(eventData, rowScopeChanged);
+                            jQuery("[name=add_visibility_"+${index}+"]").change(eventData, bdrs.attribute.visibilityChanged);
+
                         });
                     </script>
                 </c:when>
@@ -134,7 +150,9 @@
                                 <c:if test="${formField.attribute.required}">
                                     checked="checked"
                                 </c:if>
-                                <c:if test="<%= ((AttributeInstanceFormField)formField).getAttribute() != null && 
+                                <c:if test="<%=
+                                        ((AttributeInstanceFormField)formField).getAttribute() != null &&
+                                        (((AttributeInstanceFormField)formField).getAttribute().getVisibility() == AttributeVisibility.READ) ||
                                         (AttributeType.SINGLE_CHECKBOX.getCode().equals(((AttributeInstanceFormField)formField).getAttribute().getTypeCode()) || 
                                          AttributeType.isHTMLType(((AttributeInstanceFormField)formField).getAttribute().getType())) %>">
                                     disabled="disabled"
@@ -143,7 +161,7 @@
                         </span>
                     </td>
                     <c:if test="${ showScope == true }">
-                        <td class="textcenter">
+                        <td>
                             <span class="table_input_container">
                                 <select class="attrScopeSelect" name="scope_${formField.attribute.id}" >
                                     <c:forEach items="<%= AttributeScope.values() %>" var="attr_scope">
@@ -180,12 +198,27 @@
                             />
                         </span>
                     </td>
+                    <c:if test="${not hideVisibilityColumn}">
+                        <td>
+                            <select name="visibility_${formField.attribute.id}">
+                                <c:forEach var="visibility" items="<%= AttributeVisibility.values() %>">
+                                    <option value="${visibility}"
+                                            <c:if test="${formField.attribute.visibility == visibility}">
+                                                selected="selected"
+                                            </c:if>
+                                            >
+                                        <c:out value="${visibility.description}"/>
+                                    </option>
+                                </c:forEach>
+                            </select>
+                        </td>
+                    </c:if>
                     <td class="textcenter">
                         <a href="javascript: void(0);" onclick="jQuery(this).parents('tr').hide().find('select, input, textarea').attr('disabled', 'disabled').removeClass(); return false;">
                             <img src="${pageContext.request.contextPath}/images/icons/delete.png" alt="Delete" class="vertmiddle"/>
                         </a>
                     </td>
-                    
+
                     <script type="text/javascript">
                         jQuery(function() {
                             var rowTypeChanged = bdrs.attribute.getRowTypeChangedFunc();
@@ -193,6 +226,7 @@
                             var eventData = {index: ${formField.attribute.id}, bNewRow: false};
                             jQuery("[name=typeCode_"+${formField.attribute.id}+"]").change(eventData, rowTypeChanged);
                             jQuery("[name=scope_"+${formField.attribute.id}+"]").change(eventData, rowScopeChanged);
+                            jQuery("[name=visibility_"+${formField.attribute.id}+"]").change(eventData, bdrs.attribute.visibilityChanged);
                         });
                     </script>
                 </c:otherwise>
@@ -240,6 +274,21 @@
                 </span>
              </td>
             <td></td>
+            <c:if test="${not hideVisibilityColumn}">
+                <td>
+                    <select name="RECORD.${formField.propertyName}.VISIBILITY">
+                        <c:forEach var="visibility" items="<%= AttributeVisibility.values() %>">
+                            <option value="${visibility}"
+                                    <c:if test="${formField.visibility == visibility}">
+                                        selected="selected"
+                                    </c:if>
+                                    >
+                                <c:out value="${visibility.description}"/>
+                            </option>
+                        </c:forEach>
+                    </select>
+                </td>
+            </c:if>
             <td class="textcenter">
                 <input type="checkbox" name="RECORD.${formField.propertyName}.HIDDEN" id="RECORD.${formField.propertyName}.HIDDEN" value="true" 
                     <c:choose>
@@ -249,7 +298,8 @@
                          </c:when>
                      </c:choose>
                  />
-            </td>    
+            </td>
+
         </c:when>
     </c:choose>
 </tr>

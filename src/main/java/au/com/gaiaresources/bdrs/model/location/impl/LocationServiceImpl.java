@@ -1,12 +1,12 @@
 package au.com.gaiaresources.bdrs.model.location.impl;
 
-import java.math.BigDecimal;
-
-import org.apache.log4j.Logger;
-import org.springframework.stereotype.Service;
-
+import au.com.gaiaresources.bdrs.model.location.Location;
+import au.com.gaiaresources.bdrs.model.location.LocationDAO;
+import au.com.gaiaresources.bdrs.model.location.LocationNameComparator;
 import au.com.gaiaresources.bdrs.model.location.LocationService;
-
+import au.com.gaiaresources.bdrs.model.metadata.Metadata;
+import au.com.gaiaresources.bdrs.model.survey.Survey;
+import au.com.gaiaresources.bdrs.model.user.User;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -18,6 +18,13 @@ import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.PrecisionModel;
 import com.vividsolutions.jts.io.WKTReader;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.util.Set;
+import java.util.TreeSet;
 
 @Service
 public class LocationServiceImpl implements LocationService {
@@ -29,6 +36,9 @@ public class LocationServiceImpl implements LocationService {
     
     private GeometryFactory geometryFactory;
     private WKTReader wktReader;
+
+    @Autowired
+    private LocationDAO locationDAO;
 
     /**
      * Constructor. Assumes WGS84.
@@ -101,5 +111,22 @@ public class LocationServiceImpl implements LocationService {
             geom = new MultiPolygon(new Polygon[] { poly }, geometryFactory);
         }
         return geom;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Set<Location> locationsForSurvey(Survey survey, User user) {
+        Metadata predefinedLocationsMD = survey.getMetadataByKey(Metadata.PREDEFINED_LOCATIONS_ONLY);
+        boolean predefinedLocationsOnly = predefinedLocationsMD != null &&
+                Boolean.parseBoolean(predefinedLocationsMD.getValue());
+
+        Set<Location> locations = new TreeSet<Location>(new LocationNameComparator());
+        locations.addAll(survey.getLocations());
+        if(!predefinedLocationsOnly) {
+            locations.addAll(locationDAO.getUserLocations(user));
+        }
+
+        return locations;
     }
 }

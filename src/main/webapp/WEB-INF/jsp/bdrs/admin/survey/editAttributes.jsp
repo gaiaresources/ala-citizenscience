@@ -22,12 +22,11 @@
         <input type="submit" class="form_action" name="saveAndContinue" value="Save And Continue"/>
     </div>
      
-    <div id="attributeContainer" class="input_container">
+    <div id="editAttributesAttributeContainer" class="input_container">
 	    <div class="textright buttonpanel">
 	        <a id="maximiseLinkTop" class="text-left" href="javascript:bdrs.util.maximise('[id*=maximiseLink]', '#attributeContainer', 'Enlarge Table', 'Shrink Table')">Enlarge Table</a>
-	        <input type="button" class="form_action" value="Add Another Field" onclick="bdrs.attribute.addAttributeRow('#attribute_input_table', true, false)"/>
+	        <input type="button" class="form_action" value="Add Another Field" onclick="bdrs.attribute.addAttributeRow('#attribute_input_table', true, false, true)"/>
 	    </div>
-	
 	    <table id="attribute_input_table" class="datatable attribute_input_table">
 	        <thead>
 	            <tr>
@@ -38,6 +37,7 @@
 	                <th>Mandatory</th>
 	                <th>Scope</th>
 	                <th>Options</th>
+                    <th>Visibility</th>
 	                <th>Hide&nbsp;/<br/>Delete</th>
 	            </tr>
 	        </thead>
@@ -53,7 +53,7 @@
 
         <div class="textright buttonpanel">
             <a id="maximiseLinkBottom" class="text-left" href="javascript:bdrs.util.maximise('[id*=maximiseLink]', '#attributeContainer', 'Enlarge Table', 'Shrink Table')">Enlarge Table</a>
-            <input type="button" class="form_action" value="Add Another Field" onclick="bdrs.attribute.addAttributeRow('#attribute_input_table', true, false)"/>
+            <input type="button" class="form_action" value="Add Another Field" onclick="bdrs.attribute.addAttributeRow('#attribute_input_table', true, false, true)"/>
         </div>
     </div>
     

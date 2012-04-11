@@ -1,5 +1,6 @@
 package au.com.gaiaresources.bdrs.controller.attribute.formfield;
 
+import au.com.gaiaresources.bdrs.controller.attribute.DisplayContext;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
@@ -94,5 +95,15 @@ public class RecordAttributeFormField extends AbstractRecordFormField implements
     @Override
     public boolean isModerationFormField() {
         return attribute != null && AttributeScope.isModerationScope(attribute.getScope());
+    }
+
+    /**
+     * Returns true if this RecordAttributeFormField should be visible in the supplied DisplayContext.
+     * @param context the context to check the visibility in.
+     * @return true if this RecordAttributeFormField should be visible.
+     */
+    @Override
+    public boolean isVisible(DisplayContext context) {
+        return attribute.isVisible(context);
     }
 }

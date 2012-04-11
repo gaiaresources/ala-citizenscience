@@ -84,7 +84,7 @@
         <p>Add in attributes you want to attach to this Census Method through this form</p>
         <div class="textright buttonpanel">
 	        <a id="maximiseLink" class="text-left" href="javascript:bdrs.util.maximise('#maximiseLink', '#censusMethodAttributeContainer', 'Enlarge Table', 'Shrink Table')">Enlarge Table</a>
-	        <input type="button" class="form_action" value="Add Another Field" onclick="bdrs.attribute.addAttributeRow('#attribute_input_table', false, false)"/>
+	        <input type="button" class="form_action" value="Add Another Field" onclick="bdrs.attribute.addAttributeRow('#attribute_input_table', false, false, true)"/>
 	    </div>
 	    <table id="attribute_input_table" class="datatable attribute_input_table">
 	        <thead>
@@ -95,6 +95,7 @@
 	                <th>Field Type</th>
 	                <th>Mandatory</th>
 	                <th>Options (separated by comma)</th>
+                    <th>Visibility</th>
 	                <th>Delete</th>
 	            </tr>
 	        </thead>

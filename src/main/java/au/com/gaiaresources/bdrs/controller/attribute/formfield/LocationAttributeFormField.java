@@ -1,12 +1,12 @@
 package au.com.gaiaresources.bdrs.controller.attribute.formfield;
 
-import org.apache.log4j.Logger;
-
+import au.com.gaiaresources.bdrs.controller.attribute.DisplayContext;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
+import org.apache.log4j.Logger;
 
 /**
  * The <code>LocationAttributeFormField</code> is a representation of a
@@ -109,5 +109,15 @@ public class LocationAttributeFormField extends AbstractFormField implements Typ
     @Override
     public boolean isModerationFormField() {
         return AttributeScope.isModerationScope(attribute.getScope());
+    }
+
+    /**
+     * Returns true if this LocationAttributeFormField should be visible.
+     * @param context the context to check the visibility in.
+     * @return true if this LocationAttributeFormField should be visible.
+     */
+    @Override
+    public boolean isVisible(DisplayContext context) {
+        return attribute.isVisible(context);
     }
 }

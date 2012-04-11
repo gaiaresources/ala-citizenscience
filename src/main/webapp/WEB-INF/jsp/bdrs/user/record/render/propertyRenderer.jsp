@@ -44,7 +44,7 @@
                     <%-- This is a temporary workaround to make species editable on a tracker survey without
                          breaking the single site all taxa survey.  The side effect is that the species
                          will not be editable on a single site multi taxa survey, which it should be. --%>
-                    <c:when test="${ formField.species != null && not empty formPrefix}">
+                    <c:when test="${ formField.species != null && (not empty formPrefix || not empty pageContext.request.parameterMap['speciesId'])}">
                         <input type="hidden" name="${ formPrefix }species" value="${ formField.species.id }"/>
                         <c:choose>
                             <c:when test="${showScientificName}">
@@ -66,8 +66,11 @@
                                 <c:when test="<%= valueMap != null && valueMap.containsKey(formField.getPrefix()+\"survey_species_search\") %>">
                                     value="<c:out value="<%= valueMap.get(formField.getPrefix()+\"survey_species_search\") %>"/>" 
                                 </c:when>
-                                <c:when test="${ formField.record != null }">
+                                <c:when test="${ formField.record != null && showScientificName }">
                                     value="<c:out value="${ formField.record.species.scientificName }"/>" 
+                                </c:when>
+                                <c:when test="${ formField.record != null && not showScientificName }">
+                                    value="<c:out value="${ formField.record.species.commonName }"/>"
                                 </c:when>
                             </c:choose>
                         />

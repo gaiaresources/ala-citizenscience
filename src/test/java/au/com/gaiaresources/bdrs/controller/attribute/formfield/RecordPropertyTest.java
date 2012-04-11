@@ -3,6 +3,7 @@ package au.com.gaiaresources.bdrs.controller.attribute.formfield;
 import java.util.Date;
 import java.util.HashMap;
 
+import au.com.gaiaresources.bdrs.model.taxa.AttributeVisibility;
 import junit.framework.Assert;
 
 import org.junit.Before;
@@ -95,7 +96,13 @@ public class RecordPropertyTest extends AbstractControllerTest{
 					}
 				} else if (setting == RecordPropertySetting.WEIGHT) {
 					Assert.assertEquals("0", value);
-				} else {
+				} else if (setting == RecordPropertySetting.VISIBILITY) {
+                    if (type.equals(RecordPropertyType.CREATED) || type.equals(RecordPropertyType.UPDATED)) {
+                        Assert.assertEquals(AttributeVisibility.READ.toString(), value);
+                    } else {
+                        Assert.assertEquals(AttributeVisibility.ALWAYS.toString(), value);
+                    }
+                } else {
 					Assert.fail("RecordPropertySetting " + setting + " has no test yet.");
 				}
 			}

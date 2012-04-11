@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import au.com.gaiaresources.bdrs.model.taxa.AttributeVisibility;
 import junit.framework.Assert;
 
 import org.apache.log4j.Logger;
@@ -191,27 +192,29 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
                     AttributeScope.RECORD, AttributeScope.SURVEY,
                     AttributeScope.RECORD_MODERATION, AttributeScope.SURVEY_MODERATION,
                     null }) {
-
-                attr = new Attribute();
-                attr.setRequired(true);
-                attr.setName(attrType.toString());
-                attr.setTypeCode(attrType.getCode());
-                attr.setScope(scope);
-                attr.setTag(false);
-
-                if (AttributeType.STRING_WITH_VALID_VALUES.equals(attrType)) {
-                    List<AttributeOption> optionList = new ArrayList<AttributeOption>();
-                    for (int i = 0; i < 4; i++) {
-                        AttributeOption opt = new AttributeOption();
-                        opt.setValue(String.format("Option %d", i));
-                        opt = attributeDAO.save(opt);
-                        optionList.add(opt);
+                for (AttributeVisibility visibility : AttributeVisibility.values()) {
+                    attr = new Attribute();
+                    attr.setRequired(true);
+                    attr.setName(attrType.toString());
+                    attr.setTypeCode(attrType.getCode());
+                    attr.setScope(scope);
+                    attr.setTag(false);
+                    attr.setVisibility(visibility);
+    
+                    if (AttributeType.STRING_WITH_VALID_VALUES.equals(attrType)) {
+                        List<AttributeOption> optionList = new ArrayList<AttributeOption>();
+                        for (int i = 0; i < 4; i++) {
+                            AttributeOption opt = new AttributeOption();
+                            opt.setValue(String.format("Option %d", i));
+                            opt = attributeDAO.save(opt);
+                            optionList.add(opt);
+                        }
+                        attr.setOptions(optionList);
                     }
-                    attr.setOptions(optionList);
+    
+                    attr = attributeDAO.save(attr);
+                    attributeList.add(attr);
                 }
-
-                attr = attributeDAO.save(attr);
-                attributeList.add(attr);
             }
         }
         survey.setAttributes(attributeList);
@@ -264,27 +267,29 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
         int index = 0;
         for (AttributeType attrType : AttributeType.values()) {
             for (AttributeScope scope : AttributeScope.values()) {
+                for (AttributeVisibility visibility : AttributeVisibility.values()) {
 
-                request.addParameter("add_attribute", String.valueOf(index));
-                params.put(String.format("add_weight_%d", index), String.valueOf(curWeight));
-                String name = String.format("%s_%s_%d", attrType.toString(), scope.toString(), index);
-                
-                // horizontal rules do not have a name or description parameter
-                if (!attrType.equals(AttributeType.HTML_HORIZONTAL_RULE)) {
-                    params.put(String.format("add_name_%d", index), name);
-                    params.put(String.format("add_description_%d", index), name
-                               + "_description");
+                    request.addParameter("add_attribute", String.valueOf(index));
+                    params.put(String.format("add_weight_%d", index), String.valueOf(curWeight));
+                    String name = String.format("%s_%s_%d", attrType.toString(), scope.toString(), index);
+
+                    // horizontal rules do not have a name or description parameter
+                    if (!attrType.equals(AttributeType.HTML_HORIZONTAL_RULE)) {
+                        params.put(String.format("add_name_%d", index), name);
+                        params.put(String.format("add_description_%d", index), name
+                                   + "_description");
+                    }
+
+                    params.put(String.format("add_typeCode_%d", index), attrType.getCode());
+                    params.put(String.format("add_scope_%d", index), scope.toString());
+                    params.put(String.format("add_visibility_%d", index), visibility.toString());
+                    if (AttributeType.STRING_WITH_VALID_VALUES.equals(attrType)) {
+                        params.put(String.format("add_option_%d", index), attributeOptions);
+                    }
+
+                    index = index + 1;
+                    curWeight = curWeight + 100;
                 }
-                
-                params.put(String.format("add_typeCode_%d", index), attrType.getCode());
-                params.put(String.format("add_scope_%d", index), scope.toString());
-
-                if (AttributeType.STRING_WITH_VALID_VALUES.equals(attrType)) {
-                    params.put(String.format("add_option_%d", index), attributeOptions);
-                }
-
-                index = index + 1;
-                curWeight = curWeight + 100;
             }
         }
         
@@ -311,7 +316,7 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
         Assert.assertEquals(survey.getId(), actualSurvey.getId());
 
         int expectedAttrCount = AttributeType.values().length
-                * AttributeScope.values().length;
+                * AttributeScope.values().length * AttributeVisibility.values().length;
         Assert.assertEquals(expectedAttrCount, actualSurvey.getAttributes().size());
 
         index = 0;
@@ -326,6 +331,7 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
             Assert.assertEquals(params.get(String.format("add_description_%d", index)), attribute.getDescription());
             Assert.assertEquals(params.get(String.format("add_typeCode_%d", index)), attribute.getTypeCode());
             Assert.assertEquals(AttributeScope.valueOf(params.get(String.format("add_scope_%d", index))), attribute.getScope());
+            Assert.assertEquals(AttributeVisibility.valueOf(params.get(String.format("add_visibility_%d", index))), attribute.getVisibility());
 
             if (AttributeType.STRING_WITH_VALID_VALUES.getCode().equals(attribute.getTypeCode())) {
                 String[] options = attributeOptions.split(",");
@@ -365,7 +371,7 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
         
         params.put(String.format("add_typeCode_%d", index), AttributeType.INTEGER.getCode());
         params.put(String.format("add_scope_%d", index), AttributeScope.RECORD.toString());
-
+        params.put(String.format("add_visibility_%d", index), AttributeVisibility.ALWAYS.toString());
         request.addParameters(params);
         
         ModelAndView mv = handle(request, response);
@@ -433,6 +439,8 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
             }
             params.put(String.format("typeCode_%d", attribute.getId()), attribute.getTypeCode());
             params.put(String.format("scope_%d", attribute.getId()), attribute.getScope().toString());
+            params.put(String.format("visibility_%d", attribute.getId()), attribute.getVisibility().toString());
+
             request.addParameter("attribute", attribute.getId().toString());
             
             curWeight = curWeight + 100;
@@ -468,6 +476,7 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
             Assert.assertEquals(params.get(String.format("description_%d", attribute.getId())), attribute.getDescription());
             Assert.assertEquals(params.get(String.format("typeCode_%d", attribute.getId())), attribute.getTypeCode());
             Assert.assertEquals(AttributeScope.valueOf(params.get(String.format("scope_%d", attribute.getId()))), attribute.getScope());
+            Assert.assertEquals(AttributeVisibility.valueOf(params.get(String.format("visibility_%d", attribute.getId()))), attribute.getVisibility());
         }
         
         Metadata md;
@@ -510,6 +519,7 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
         params.put(String.format("description_%d", attrToBeIgnored.getId()), attrToBeIgnored.getDescription() + " Edited");
         params.put(String.format("typeCode_%d", attrToBeIgnored.getId()), attrToBeIgnored.getTypeCode());
         params.put(String.format("scope_%d", attrToBeIgnored.getId()), attrToBeIgnored.getScope().toString());
+        params.put(String.format("visibility_%d", attrToBeIgnored.getId()), attrToBeIgnored.getVisibility().toString());
         request.addParameter("attribute", attrToBeIgnored.getId().toString());
         
         params.put(SurveyAttributeBaseController.PARAM_DEFAULT_CENSUS_METHOD_PROVIDED, "true");

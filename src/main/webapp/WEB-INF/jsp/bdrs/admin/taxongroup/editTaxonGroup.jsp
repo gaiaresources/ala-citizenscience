@@ -220,7 +220,7 @@
     <div id="attributeContainer" class="input_container">
         <div class="textright buttonpanel">
             <a id="maximiseLink" class="text-left" href="javascript:bdrs.util.maximise('#maximiseLink', '#attributeContainer', 'Enlarge Table', 'Shrink Table')">Enlarge Table</a>
-            <input type="button" class="form_action" value="Add Another Field" onclick="bdrs.attribute.addAttributeRow('#attribute_input_table', false, false)"/>
+            <input type="button" class="form_action" value="Add Another Field" onclick="bdrs.attribute.addAttributeRow('#attribute_input_table', false, false, true)"/>
         </div>
     
         <table id="attribute_input_table" class="datatable attribute_input_table">
@@ -232,6 +232,7 @@
                     <th>Field Type</th>
                     <th>Mandatory</th>
                     <th>Options (separated by comma)</th>
+                    <th>Visibility</th>
                     <th>Delete</th>
                 </tr>
             </thead>
@@ -255,7 +256,7 @@
     <div id="identificationContainer" class="input_container">
         <div class="textright buttonpanel">
             <a id="maximiseLink" class="text-left" href="javascript:bdrs.util.maximise('#maximiseLink', '#identificationContainer', 'Enlarge Table', 'Shrink Table')">Enlarge Table</a>
-            <input type="button" class="form_action" value="Add Another Field" onclick="bdrs.attribute.addAttributeRow('#identification_input_table', false, true)"/>
+            <input type="button" class="form_action" value="Add Another Field" onclick="bdrs.attribute.addAttributeRow('#identification_input_table', false, true, false)"/>
         </div>
     
         <table id="identification_input_table" class="datatable attribute_input_table">
@@ -275,6 +276,7 @@
                     <tiles:insertDefinition name="attributeRow">
                         <tiles:putAttribute name="formField" value="${ formField }"/>
                         <tiles:putAttribute name="showScope" value="false"/>
+                        <tiles:putAttribute name="hideVisibilityColumn" value="true"/>
                     </tiles:insertDefinition>
                 </c:forEach>    
             </tbody>
@@ -291,6 +293,80 @@
     <textarea id="markItUp"></textarea>
 </div>
 
+<div>
+    <h3>Group members</h3>
+    The following table displays the taxa that are members of this taxon group.
+<table id="taxaList"></table>
+<div id="pager2"></div>
+</div>
+<script type="text/javascript">
+
+    if (window.bdrs === undefined) {
+        window.bdrs = {};
+    }
+
+    if (window.bdrs.fieldGuide === undefined) {
+        window.bdrs.fieldGuide = {};
+    }
+
+    // Sets the jqGrid parameters and triggers a reload. Then updates the page header.
+    bdrs.fieldGuide.reloadTaxaGrid = function(params){
+        jQuery("#taxaList").jqGrid().setGridParam({
+            url:'${pageContext.request.contextPath}/fieldguide/listTaxa.htm' + params,
+            page:1}).trigger("reloadGrid");
+        jQuery("#searchResultHeader").html("Search results for \"" + jQuery('#search_in_result').val() + "\"");
+
+    };
+
+    jQuery(function() {
+        // Initialize the grid
+
+
+        var thumbnailFormatter = function(cellvalue, options, rowObject) {
+            if (cellvalue != undefined && cellvalue != '') {
+                return '<a href="${pageContext.request.contextPath}/fieldguide/taxon.htm?id=' + rowObject.id +'">' +
+                        '<img class="max_size_img" src="${pageContext.request.contextPath}/files/downloadByUUID.htm?uuid=' + cellvalue + '"/>' +
+                        '</a>';
+            }
+            return '';
+        };
+
+        var nameLinkFormatter = function(cellvalue, options, rowObject) {
+            return '<a href="${pageContext.request.contextPath}/fieldguide/taxon.htm?id=' + rowObject.id +'">' + cellvalue + '</a>';
+        };
+
+        var initParams = "?groupId=${taxonGroup.id}";
+
+
+        jQuery("#taxaList").jqGrid({
+            url: '${pageContext.request.contextPath}/fieldguide/listTaxa.htm' + initParams,
+            datatype: "json",
+            mtype: "GET",
+            colNames:['Scientific Name','Common Name', ''],
+            colModel:[
+                {name:'scientificName',index:'scientificName', width:150, classes:'scientificName', formatter:nameLinkFormatter},
+                {name:'commonName',index:'commonName', width:150, formatter: nameLinkFormatter},
+                {name:'thumbnail', index:'thumbnail', sortable:false, formatter:thumbnailFormatter, align:'center'}
+            ],
+            autowidth: true,
+            jsonReader : { repeatitems: false },
+            rowNum:50,
+            rowList:[10,20,30,40,50,100],
+            pager: '#pager2',
+            sortname: 'scientificName',
+            viewrecords: true,
+            sortorder: "asc",
+            width: '100%',
+            height: "100%"
+        });
+
+        jQuery('#search_in_result_button').bind('click', function(){
+            bdrs.fieldGuide.getTaxa();
+        });
+
+        jQuery(".ui-jqgrid-bdiv").css('overflow-x', 'hidden');
+    });
+</script>
 <script type="text/javascript">
     jQuery(function() {
         bdrs.dnd.attachTableDnD('#attribute_input_table');

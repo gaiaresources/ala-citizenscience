@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import au.com.gaiaresources.bdrs.model.taxa.AttributeVisibility;
 import junit.framework.Assert;
 
 import org.junit.Test;
@@ -103,6 +104,7 @@ public class TaxonGroupManagementControllerTest extends AbstractControllerTest {
                 if (AttributeType.STRING_WITH_VALID_VALUES.equals(attrType)) {
                     request.setParameter(String.format("add_option_%d", index), attributeOptions);
                 }
+                request.addParameter(String.format("add_visibility_%d", index), AttributeVisibility.ALWAYS.toString());
     
                 index = index + 1;
                 curWeight = curWeight + 100;
@@ -292,6 +294,7 @@ public class TaxonGroupManagementControllerTest extends AbstractControllerTest {
             if (AttributeType.STRING_WITH_VALID_VALUES.equals(attribute.getType())) {
                 request.setParameter(String.format("option_%d", attribute.getId()), attributeOptions);
             }
+            request.addParameter(String.format("visibility_%d", attribute.getId()), AttributeVisibility.ALWAYS.toString());
 
             curWeight = curWeight + 100;
         }

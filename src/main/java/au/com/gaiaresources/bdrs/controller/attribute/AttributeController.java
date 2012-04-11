@@ -40,13 +40,15 @@ public class AttributeController extends AbstractController {
     public ModelAndView ajaxAddAttribute(HttpServletRequest request, HttpServletResponse response,
             @RequestParam(value="index", required=true) int index,
             @RequestParam(value="showScope", required=false, defaultValue="true") boolean showScope,
-            @RequestParam(value="isTag", required=false, defaultValue="false") boolean isTag) {
+            @RequestParam(value="isTag", required=false, defaultValue="false") boolean isTag,
+            @RequestParam(value="showVisibility", required=false, defaultValue="true") boolean showVisibility) {
        
         ModelAndView mv = new ModelAndView("attributeRow");
         mv.addObject("formField", formFieldFactory.createAttributeFormField(index));
         mv.addObject("showScope", showScope);
         mv.addObject("isTag", isTag);
         mv.addObject("index", index);
+        mv.addObject("hideVisibilityColumn", !showVisibility);
         return mv;
     }
     

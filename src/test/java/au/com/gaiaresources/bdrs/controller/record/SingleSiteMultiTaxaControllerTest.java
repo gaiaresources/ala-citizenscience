@@ -158,13 +158,16 @@ public class SingleSiteMultiTaxaControllerTest extends RecordFormTest {
         ModelAndViewAssert.assertViewName(mv, viewName);
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "survey");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "preview");
-        ModelAndViewAssert.assertModelAttributeAvailable(mv, "formFieldList");
-        ModelAndViewAssert.assertModelAttributeAvailable(mv, "sightingRowFormFieldList");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, RecordWebFormContext.MODEL_WEB_FORM_CONTEXT);
+        
+        RecordWebFormContext formContext = (RecordWebFormContext)mv.getModel().get(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT);
+        Assert.assertNotNull(formContext.getNamedFormFields().get("formFieldList"));
+        Assert.assertNotNull(formContext.getNamedFormFields().get("sightingRowFormFieldList"));
 
         List<AttributeScope> SURVEY_SCOPES = new ArrayList<AttributeScope>();
         SURVEY_SCOPES.add(AttributeScope.SURVEY);
         SURVEY_SCOPES.add(AttributeScope.SURVEY_MODERATION);
-        for (FormField formField : ((List<FormField>) mv.getModelMap().get("formFieldList"))) {
+        for (FormField formField : formContext.getNamedFormFields().get("formFieldList")) {
             if (formField.isAttributeFormField()) {
                 Assert.assertTrue(SURVEY_SCOPES.contains(((RecordAttributeFormField) formField).getAttribute().getScope()));
             } else if (formField.isPropertyFormField()) {
@@ -177,7 +180,7 @@ public class SingleSiteMultiTaxaControllerTest extends RecordFormTest {
             }
         }
 
-        for (FormField formField : ((List<FormField>) mv.getModelMap().get("sightingRowFormFieldList"))) {
+        for (FormField formField : formContext.getNamedFormFields().get("sightingRowFormFieldList")) {
             if (formField.isAttributeFormField()) {
                 Assert.assertFalse(SURVEY_SCOPES.contains(((RecordAttributeFormField) formField).getAttribute().getScope()));
             } else if (formField.isPropertyFormField()) {
@@ -220,8 +223,11 @@ public class SingleSiteMultiTaxaControllerTest extends RecordFormTest {
             ModelAndViewAssert.assertViewName(mv, viewName);
 
             String expectedPrefix = String.format(SingleSiteMultiTaxaController.PREFIX_TEMPLATE, i);
-            ModelAndViewAssert.assertModelAttributeAvailable(mv, "formFieldList");
-            for (FormField formField : ((List<FormField>) mv.getModelMap().get("formFieldList"))) {
+            ModelAndViewAssert.assertModelAttributeAvailable(mv, RecordWebFormContext.MODEL_WEB_FORM_CONTEXT);
+
+            RecordWebFormContext formContext = (RecordWebFormContext)mv.getModel().get(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT);
+            Assert.assertNotNull(formContext.getNamedFormFields().get("formFieldList"));
+            for (FormField formField : formContext.getNamedFormFields().get("formFieldList")) {
                 if (formField.isAttributeFormField()) {
 
                     RecordAttributeFormField attributeField = (RecordAttributeFormField) formField;

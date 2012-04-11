@@ -1,5 +1,7 @@
 package au.com.gaiaresources.bdrs.controller.attribute.formfield;
 
+import au.com.gaiaresources.bdrs.controller.attribute.DisplayContext;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeVisibility;
 import org.apache.commons.lang.NotImplementedException;
 
 import au.com.gaiaresources.bdrs.model.method.Taxonomic;
@@ -139,5 +141,15 @@ public class RecordPropertyFormField extends AbstractRecordFormField {
     @Override
     public boolean isDisplayFormField() {
         return this.recordProperty.getRecordPropertyType().isReadOnly();
+    }
+
+    /**
+     * Returns true if this RecordAttributeFormField should be visible in the supplied DisplayContext.
+     * @param context the context to check the visibility in.
+     * @return true if this RecordAttributeFormField should be visible.
+     */
+    @Override
+    public boolean isVisible(DisplayContext context) {
+        return !isHidden() && this.recordProperty.getVisibility().isVisible(context);
     }
 }

@@ -57,6 +57,8 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
         list.add(RecordPropertyType.WHEN);
         list.add(RecordPropertyType.TIME);
         list.add(RecordPropertyType.NOTES);
+        list.add(RecordPropertyType.CREATED);
+        list.add(RecordPropertyType.UPDATED);
         NON_TAXONOMIC_RECORD_PROPERTY_NAMES = Collections.unmodifiableList(list);
     }
 
