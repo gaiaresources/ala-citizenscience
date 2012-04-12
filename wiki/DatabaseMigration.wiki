@@ -497,3 +497,26 @@ update attribute set VISIBILITY='ALWAYS';
 
 rollback;
 </code>
+
+= r240 =
+<code language="sql">
+begin;
+
+create table INDEX_SCHEDULE (
+  INDEX_ID  serial not null, 
+  WEIGHT integer, 
+  CREATED_AT timestamp, 
+  UPDATED_AT timestamp, 
+  CREATED_BY integer, 
+  UPDATED_BY integer, 
+  INDEX_TYPE varchar(255) not null, 
+  CLASS_NAME varchar(255) not null, 
+  INDEX_DATE timestamp, 
+  FULL_REBUILD bool not null default false, 
+  PORTAL_ID integer, 
+  primary key (INDEX_ID)
+);
+alter table INDEX_SCHEDULE add constraint FK44AF2B84C136AD4E foreign key (PORTAL_ID) references PORTAL;
+
+rollback;
+</code>
