@@ -1,6 +1,7 @@
 package au.com.gaiaresources.bdrs.controller.taxonomy;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Date;
 
 import javax.annotation.security.RolesAllowed;
@@ -19,16 +20,20 @@ import org.springframework.web.servlet.ModelAndView;
 
 import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.db.SessionFactory;
-import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
 import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfileDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.taxonomy.BdrsAfdImporter;
 import au.com.gaiaresources.bdrs.service.taxonomy.BdrsMaxImporter;
 import au.com.gaiaresources.bdrs.service.taxonomy.BdrsNswFloraImporter;
+import au.com.gaiaresources.bdrs.service.taxonomy.BdrsTaxonLibException;
 import au.com.gaiaresources.bdrs.service.taxonomy.TaxonLibSessionFactory;
 import au.com.gaiaresources.taxonlib.ITaxonLibSession;
 
+/**
+ * Controller for handling TaxonLib importing.
+ *
+ */
 @Controller
 public class TaxonLibImportController extends AbstractController {
 	
@@ -36,8 +41,14 @@ public class TaxonLibImportController extends AbstractController {
 	
 	public static final String TAXON_LIB_SELECT_IMPORT_VIEW = "taxonLibSelectImport";
 	
-	@Autowired
-	private PreferenceDAO prefDAO;
+	public static final String NSW_FLORA_IMPORT_URL = "/bdrs/admin/taxonomy/nswFloraImport.htm";
+	public static final String MAX_IMPORT_URL = "/bdrs/admin/taxonomy/maxImport.htm";
+	public static final String AFD_IMPORT_URL = "/bdrs/admin/taxonomy/afdImport.htm";
+	
+	public static final String NSW_IMPORT_VIEW = "taxonLibNswFloraImport";
+	public static final String MAX_IMPORT_VIEW = "taxonLibMaxImport";
+	public static final String AFD_IMPORT_VIEW = "taxonLibAfdImport";
+
 	@Autowired
 	private TaxaDAO taxaDAO;
 	@Autowired
@@ -65,8 +76,46 @@ public class TaxonLibImportController extends AbstractController {
 	@RolesAllowed({Role.ADMIN})
 	@RequestMapping(value=TAXON_LIB_IMPORT_URL, method = RequestMethod.GET)
 	public ModelAndView renderSelectImportPage(HttpServletRequest request, HttpServletResponse response) {
-		ModelAndView mv = new ModelAndView(TAXON_LIB_SELECT_IMPORT_VIEW);
-		return mv;
+		return new ModelAndView(TAXON_LIB_SELECT_IMPORT_VIEW);
+	}
+	
+	/**
+	 * Renders the NSW Flora importer page.
+	 * 
+	 * @param request Request.
+	 * @param response Response.
+	 * @return ModelAndView to render the page.
+	 */
+	@RolesAllowed({Role.ADMIN})
+	@RequestMapping(value=NSW_FLORA_IMPORT_URL, method = RequestMethod.GET)
+	public ModelAndView renderNswFloraImport(HttpServletRequest request, HttpServletResponse response) {
+		return new ModelAndView(NSW_IMPORT_VIEW);
+	}
+	
+	/**
+	 * Renders the MAX importer page.
+	 * 
+	 * @param request Request.
+	 * @param response Response.
+	 * @return ModelAndView to render the page.
+	 */
+	@RolesAllowed({Role.ADMIN})
+	@RequestMapping(value=MAX_IMPORT_URL, method = RequestMethod.GET)
+	public ModelAndView renderMaxImportPage(HttpServletRequest request, HttpServletResponse response) {
+		return new ModelAndView(MAX_IMPORT_VIEW);
+	}
+	
+	/**
+	 * Renders the AFD importer page.
+	 * 
+	 * @param request Request.
+	 * @param response Response.
+	 * @return ModelAndView to render the page.
+	 */
+	@RolesAllowed({Role.ADMIN})
+	@RequestMapping(value=AFD_IMPORT_URL, method = RequestMethod.GET)
+	public ModelAndView renderAfdImportPage(HttpServletRequest request, HttpServletResponse response) {
+		return new ModelAndView(AFD_IMPORT_VIEW);
 	}
 	
 	/**
@@ -84,8 +133,13 @@ public class TaxonLibImportController extends AbstractController {
 		ModelAndView mv = this.redirect(TAXON_LIB_IMPORT_URL);
 		
 		log.info("TAXONOMY IMPORT START");
+		
+		boolean rollback = false;
+		
+		ITaxonLibSession taxonLibSession = null;
+		
 		try {
-			ITaxonLibSession taxonLibSession = taxonLibSessionFactory.getSession();
+			taxonLibSession = taxonLibSessionFactory.getSession();
 			
 			TaxonLibImportSource importSource = TaxonLibImportSource.valueOf(request.getParameter("importSource"));
 			
@@ -105,10 +159,31 @@ public class TaxonLibImportController extends AbstractController {
 			// commit!
 			taxonLibSession.commit();
 			
-			getRequestContext().addMessage("taxonlib.importSuccess", new Object[] { importSource.toString() });
-		} catch (Exception e) {
-			getRequestContext().addMessage("taxonlib.importError", new Object[] { e.getMessage() });
+			getRequestContext().addMessage("bdrs.taxonlib.importSuccess", new Object[] { importSource.toString() });
+		} catch (MissingFileException e) {
+			getRequestContext().addMessage("bdrs.taxonlib.missingFileUpload", new Object[] { e.getMessage() });
+			rollback = true;
+		} catch (BdrsTaxonLibException e) {
+			getRequestContext().addMessage("bdrs.taxonlib.importError", new Object[] { e.getMessage() });
 			log.error("Error during taxon lib import : ", e);
+			rollback = true;
+		} catch (Exception e) {
+			getRequestContext().addMessage("bdrs.taxonlib.importError", new Object[] { e.getMessage() });
+			log.error("Error during taxon lib import : ", e);
+			rollback = true;
+		} finally {
+			if (taxonLibSession != null) {
+				if (rollback) {
+					requestRollback(request);
+					try {
+						taxonLibSession.rollback();	
+					} catch (SQLException sqle) {
+						log.error("Error attempting taxon lib session rollback", sqle);
+					}
+					
+				}
+				taxonLibSession.close();
+			}
 		}
 		log.info("TAXONOMY IMPORT END");
 		
@@ -126,6 +201,9 @@ public class TaxonLibImportController extends AbstractController {
 	private void runNswFloraImport(MultipartHttpServletRequest request, ITaxonLibSession tls) throws IOException, Exception {
 		// Should run in a single transaction
 		MultipartFile file = request.getFile("taxonomyFile");
+		if (file == null) {
+			throw new MissingFileException("NSW Flora");
+		}
 		BdrsNswFloraImporter importer = new BdrsNswFloraImporter(tls, new Date(), taxaDAO, spDAO);
 		importer.runImport(file.getInputStream());
 	}
@@ -135,15 +213,27 @@ public class TaxonLibImportController extends AbstractController {
 	 * 
 	 * @param request The request object that contains the uploaded files
 	 * @param tls The TaxonLibSession.
-	 * @throws IOException 
 	 * @throws Exception
 	 */
-	private void runMaxImport(MultipartHttpServletRequest request, ITaxonLibSession tls) throws IOException, Exception {
+	private void runMaxImport(MultipartHttpServletRequest request, ITaxonLibSession tls) throws Exception {
 		// Should run in a single transaction
 		MultipartFile familyFile = request.getFile("maxFamilyFile");
 		MultipartFile generaFile = request.getFile("maxGeneraFile");
 		MultipartFile nameFile = request.getFile("maxNameFile");
 		MultipartFile xrefFile = request.getFile("maxXrefFile");
+		
+		if (familyFile == null) {
+			throw new MissingFileException("MAX Family");
+		}
+		if (generaFile == null) {
+			throw new MissingFileException("MAX Genera");
+		}
+		if (nameFile == null) {
+			throw new MissingFileException("MAX Name");
+		}
+		if (xrefFile == null) {
+			throw new MissingFileException("MAX Xref");
+		}
 		
 		BdrsMaxImporter importer = new BdrsMaxImporter(tls, new Date(), taxaDAO, spDAO);
 		importer.runImport(familyFile.getInputStream(), generaFile.getInputStream(), nameFile.getInputStream(), xrefFile.getInputStream());
@@ -159,6 +249,11 @@ public class TaxonLibImportController extends AbstractController {
 	 */
 	private void runAfdImport(MultipartHttpServletRequest request, ITaxonLibSession tls) throws IOException, Exception {
 		MultipartFile file = request.getFile("taxonomyFile");
+		
+		if (file == null) {
+			throw new MissingFileException("AFD file");
+		}
+		
 		Session sesh = null;
 		// The AFD dataset is too large to run the insert queries in a single transaction.
 		// Because of this, we do manual hibernate session management.

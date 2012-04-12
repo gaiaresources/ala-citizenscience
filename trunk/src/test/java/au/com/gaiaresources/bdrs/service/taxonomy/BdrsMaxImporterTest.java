@@ -1,9 +1,5 @@
 package au.com.gaiaresources.bdrs.service.taxonomy;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import junit.framework.Assert;
@@ -22,23 +18,28 @@ import au.com.gaiaresources.taxonlib.ITemporalContext;
 import au.com.gaiaresources.taxonlib.importer.max.MaxImporter;
 import au.com.gaiaresources.taxonlib.model.ITaxonName;
 
-public class BdrsMaxImporterTest extends TaxonomyImportTest {
+/**
+ * Tests the BdrsMaxImporter
+ *
+ */
+public class BdrsMaxImporterTest extends AbstractBdrsMaxImporterTest {
 
-	private Date now = getDate(2011, 12, 31);
 	private ITemporalContext temporalContext;
 
 	private Logger log = Logger.getLogger(getClass());
 
 	@Autowired
 	private TaxaDAO taxaDAO;
-	@Autowired
-	private SpeciesProfileDAO spDAO;
 	
 	@Before
 	public void setup() {
 		temporalContext = taxonLibSession.getTemporalContext(now);
 	}
 	
+	/**
+	 * Tests importing the same file twice to make sure we don't have duplicate inserts.
+	 * @throws Exception
+	 */
 	@Test
 	public void testDoubleImport() throws Exception {
 		runImport("MAX_PlantFamilies_TEST.csv", "MAX_PlantGenera_TEST.csv",
@@ -54,6 +55,10 @@ public class BdrsMaxImporterTest extends TaxonomyImportTest {
 		Assert.assertEquals("wrong species count", indicatorSpeciesCount, taxaDAO.countAllSpecies());
 	}
 
+	/**
+	 * Test insert and assert taxonomy.
+	 * @throws Exception
+	 */
 	@Test
 	public void testImport() throws Exception {
 		runImport("MAX_PlantFamilies_TEST.csv", "MAX_PlantGenera_TEST.csv",
@@ -61,42 +66,9 @@ public class BdrsMaxImporterTest extends TaxonomyImportTest {
 		assertImport();
 	}
 
-	private void runImport(String familyFile, String generaFile,
-			String nameFile, String xrefFile) throws Exception {
-		BdrsMaxImporter importer = new BdrsMaxImporter(taxonLibSession, now,
-				taxaDAO, spDAO);
-
-		List<InputStream> streamsToClose = new ArrayList<InputStream>();
-		try {
-			InputStream familyStream = MaxImporter.class
-					.getResourceAsStream(familyFile);
-			streamsToClose.add(familyStream);
-			InputStream generaStream = MaxImporter.class
-					.getResourceAsStream(generaFile);
-			streamsToClose.add(generaStream);
-			InputStream nameStream = MaxImporter.class
-					.getResourceAsStream(nameFile);
-			streamsToClose.add(nameStream);
-			InputStream xrefStream = MaxImporter.class
-					.getResourceAsStream(xrefFile);
-			streamsToClose.add(xrefStream);
-
-			importer.runImport(familyStream, generaStream, nameStream,
-					xrefStream);
-
-		} finally {
-			for (InputStream is : streamsToClose) {
-				try {
-					if (is != null) {
-						is.close();
-					}
-				} catch (IOException ioe) {
-					log.error("Could not close stream", ioe);
-				}
-			}
-		}
-	}
-
+	/**
+	 * Assert taxonomy
+	 */
 	private void assertImport() {
 
 		// check ancestor branch
@@ -160,6 +132,11 @@ public class BdrsMaxImporterTest extends TaxonomyImportTest {
 		}
 	}
 	
+	/**
+	 * Helper for retreving indicator species by source id.
+	 * @param sourceId source ID
+	 * @return
+	 */
 	private IndicatorSpecies getIndicatorSpecies(String sourceId) {
 		ITaxonName tn = temporalContext.selectNameBySourceId(MaxImporter.MAX_SOURCE, sourceId);
 		Assert.assertNotNull("Taxon name cannot be null", tn);
@@ -167,7 +144,19 @@ public class BdrsMaxImporterTest extends TaxonomyImportTest {
 				MaxImporter.MAX_SOURCE, tn.getId().toString());
 	}
 
-	// returns the parent if it exists
+	/**
+	 * Assert the indicator species.
+	 * 
+	 * @param is IndicatorSpecies to assert on.
+	 * @param sourceId expected source ID.
+	 * @param sciName expected scientific name.
+	 * @param commonName expected common name.
+	 * @param author expected author.
+	 * @param rank expected rank.
+	 * @param hasParent do we expect a parent?
+	 * @param isCurrent expected current status.
+	 * @return Parent if it exists and if @hasParent is true.
+	 */
 	private IndicatorSpecies assertIndicatorSpecies(IndicatorSpecies is,
 			String sourceId, String sciName, String commonName, String author,
 			TaxonRank rank, boolean hasParent, Boolean isCurrent) {

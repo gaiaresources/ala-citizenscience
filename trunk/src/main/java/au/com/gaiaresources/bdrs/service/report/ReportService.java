@@ -37,6 +37,7 @@ import au.com.gaiaresources.bdrs.model.report.Report;
 import au.com.gaiaresources.bdrs.model.report.ReportCapability;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.service.taxonomy.BdrsTaxonLibException;
 import au.com.gaiaresources.bdrs.service.taxonomy.TaxonLibSessionFactory;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 
@@ -69,6 +70,7 @@ public class ReportService {
         builder.append("    import sys, traceback\n");
         builder.append("    response = bdrs.getResponse()\n");
         builder.append("    response.setError(True)\n");
+        builder.append("    response.setErrorMsg(str(e))\n");
         builder.append("    response.setContent(traceback.format_exc())\n");
 
         REPORT_EXEC_TMPL = builder.toString();
@@ -156,7 +158,22 @@ public class ReportService {
                 // The report had some sort of error.
                 log.error(new String(pyResponse.getContent()));
                 // Let the user know that an error has occurred.
-                RequestContextHolder.getContext().addMessage("bdrs.report.render.error");
+                
+                String errorMsg = pyResponse.getErrorMsg();
+                // Work out what kind of error it is....Note we throw away the 
+                // exception message at the moment.
+                // This is necessary to work out what java exceptions are thrown
+                // (such as from pyBDRS) within the JEP runtime. When passing
+                // through the JEP runtime all exceptions are serialized into a string
+                // with the format:
+                // classname : message
+                // e.g:
+                // au.com.gaiaresources.bdrs.service.taxonomy.BdrsTaxonLibException : An error has occured
+                if (errorMsg != null && errorMsg.startsWith(BdrsTaxonLibException.class.getCanonicalName())) {
+                	RequestContextHolder.getContext().addMessage("bdrs.report.taxonlib.initError");
+                } else {
+                	RequestContextHolder.getContext().addMessage("bdrs.report.render.error");	
+                }
                 // We can't render the page, so redirect back to the listing page.
                 return new ModelAndView(new RedirectView(ReportController.REPORT_LISTING_URL, true));
             } else {
@@ -199,21 +216,25 @@ public class ReportService {
             // Python side of the fence.
             log.error("Unable to render report with PK: " + report.getId(), je);
             RequestContextHolder.getContext().addMessage("bdrs.report.render.error");
-            return new ModelAndView(new RedirectView(ReportController.REPORT_LISTING_URL, true));
+            return redirectToListing();
         } catch (IOException e) {
             // Occurs when there has been a problem reading/writing files.
             log.error("Unable to render report with PK: " + report.getId(), e);
             RequestContextHolder.getContext().addMessage("bdrs.report.render.error");
-            return new ModelAndView(new RedirectView(ReportController.REPORT_LISTING_URL, true));
+            return redirectToListing();
         } catch (Exception e) {
         	log.error("Exception thrown when attempting to render report", e);
         	RequestContextHolder.getContext().addMessage(e.getMessage());
-        	return new ModelAndView(new RedirectView(ReportController.REPORT_LISTING_URL, true));
+        	return redirectToListing();
         } finally {
         	if (bdrs != null) {
         		bdrs.close();
         	}
         }
+    }
+    
+    private ModelAndView redirectToListing() {
+    	return new ModelAndView(new RedirectView(ReportController.REPORT_LISTING_URL, true));
     }
 
     /**

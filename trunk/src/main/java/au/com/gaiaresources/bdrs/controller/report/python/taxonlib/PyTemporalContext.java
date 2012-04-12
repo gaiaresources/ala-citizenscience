@@ -2,14 +2,10 @@ package au.com.gaiaresources.bdrs.controller.report.python.taxonlib;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
 
 import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.json.JSON;
-import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.util.BeanUtils;
 import au.com.gaiaresources.taxonlib.ITemporalContext;
@@ -19,10 +15,18 @@ import au.com.gaiaresources.taxonlib.model.IPersistent;
 import au.com.gaiaresources.taxonlib.model.ITaxonConcept;
 import au.com.gaiaresources.taxonlib.model.ITaxonConceptJunction;
 
+/**
+ * Wrapped temporal context object for use by python.
+ *
+ */
 public class PyTemporalContext {
 
 	private ITemporalContext context;
 	
+	/**
+	 * Create a new wrapped temporal context.
+	 * @param context TaxonLib temporal context.
+	 */
 	public PyTemporalContext(ITemporalContext context) {
 		this.context = context;
 	}

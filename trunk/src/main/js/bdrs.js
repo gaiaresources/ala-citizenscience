@@ -2740,8 +2740,8 @@ bdrs.initSubmitDisabler = function() {
     var disabledClickHandler = function() {
         return false;
     };
-    jQuery("form").submit(function() {
-        jQuery('form[method=post] input[type=submit]', this).bind('click.disable', disabledClickHandler);
+    jQuery("form[method=post]").submit(function() {
+        jQuery('input[type=submit]', this).bind('click.disable', disabledClickHandler);
     });
     
     // get form containing the input
@@ -2749,7 +2749,7 @@ bdrs.initSubmitDisabler = function() {
     // remove the disabled attribute when any input on the form is changed
     // to allow a form with invalid entries to be submitted once values are changed
     var unbindDisableHandler = function() {
-        jQuery('form[method=post] input[type=submit]', form).unbind('click.disable');
+        jQuery('input[type=submit]', form).unbind('click.disable');
     };
     
     jQuery(form).delegate("input", "focus", unbindDisableHandler);

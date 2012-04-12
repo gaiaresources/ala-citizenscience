@@ -11,7 +11,6 @@ import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -19,8 +18,10 @@ import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfileDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonRank;
+import au.com.gaiaresources.taxonlib.ITaxonLibSession;
 import au.com.gaiaresources.taxonlib.ITemporalContext;
 import au.com.gaiaresources.taxonlib.importer.afd.AfdImporter;
+import au.com.gaiaresources.taxonlib.importer.nswflora.NswFloraImporter;
 import au.com.gaiaresources.taxonlib.model.ITaxonName;
 
 public class BdrsAfdImporterTest extends TaxonomyImportTest {
@@ -102,17 +103,17 @@ public class BdrsAfdImporterTest extends TaxonomyImportTest {
 		// check ancestor branch
 		{
 			IndicatorSpecies species = getIndicatorSpecies("50b888b7-4a6e-43d5-80ae-ef929f36f486");
-			assertIndicatorSpecies(species, "50b888b7-4a6e-43d5-80ae-ef929f36f486", "Fritillaria borealis Lohmann, 1896",
+			assertIndicatorSpecies(species, "50b888b7-4a6e-43d5-80ae-ef929f36f486", "Fritillaria borealis",
 					"", "Lohmann", "1896", TaxonRank.SPECIES, true, true);
 			IndicatorSpecies genus = species.getParent();
-			assertIndicatorSpecies(genus, "aad6d11e-3309-466f-99af-eb3274a64d78", "Fritillaria Fol, 1872",
+			assertIndicatorSpecies(genus, "aad6d11e-3309-466f-99af-eb3274a64d78", "Fritillaria",
 					"", "Fol", "1872", TaxonRank.GENUS, true, true);
 		}
 		
 		// check deprecated
 		{
 			IndicatorSpecies deprecated = getIndicatorSpecies("763a9c68-8b19-4f82-b1de-69a0bcabcecb");
-			assertIndicatorSpecies(deprecated, "763a9c68-8b19-4f82-b1de-69a0bcabcecb", "Fritillaria Fol, 1872",
+			assertIndicatorSpecies(deprecated, "763a9c68-8b19-4f82-b1de-69a0bcabcecb", "Fritillaria",
 					"", "Fol", "1872", TaxonRank.GENUS, false, false);
 		}
 		
@@ -150,5 +151,4 @@ public class BdrsAfdImporterTest extends TaxonomyImportTest {
 		}
 		Assert.assertEquals("wrong current status", isCurrent, is.getCurrent());
 	}
-	
 }

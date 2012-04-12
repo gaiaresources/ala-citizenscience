@@ -1,5 +1,7 @@
 package au.com.gaiaresources.bdrs.controller.report.python;
 
+import org.apache.log4j.Logger;
+
 import edu.emory.mathcs.backport.java.util.Arrays;
 
 /**
@@ -8,6 +10,8 @@ import edu.emory.mathcs.backport.java.util.Arrays;
  */
 public class PyResponse {
     
+	private Logger log = Logger.getLogger(getClass());
+	
     /**
      * The content type string of a HTML document.
      */
@@ -19,6 +23,7 @@ public class PyResponse {
     private byte[] content = "".getBytes();
     private boolean isError = false;
     private boolean isStandalone = false;
+    private String errorMsg = "";
     
     /**
      * @return the headerName
@@ -97,4 +102,19 @@ public class PyResponse {
     public void setError(boolean isError) {
         this.isError = isError;
     }
+    
+    /**
+     * Returns the stringified throwable object
+     * @return stringified throwable object
+     */
+	public String getErrorMsg() {
+		return errorMsg;
+	}
+	/**
+	 * Sets the stringified throwable object (normally called from python)
+	 * @param errorMsg stringified throwable object
+	 */
+	public void setErrorMsg(String errorMsg) {
+		this.errorMsg = errorMsg;
+	}
 }
