@@ -190,7 +190,10 @@ public class YearlySightingsControllerTest extends RecordFormTest {
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "today");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "location");
         Assert.assertNull(mv.getModelMap().get("location"));
-        ModelAndViewAssert.assertModelAttributeAvailable(mv, "formFieldList");
+        RecordWebFormContext formContext = (RecordWebFormContext)mv.getModel().get(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT);
+
+        Assert.assertNotNull(formContext.getNamedFormFields().get("formFieldList"));
+
     }
     
     
@@ -350,9 +353,11 @@ public class YearlySightingsControllerTest extends RecordFormTest {
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "today");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "location");
         Assert.assertEquals(record.getLocation(), mv.getModelMap().get("location"));
-        ModelAndViewAssert.assertModelAttributeAvailable(mv, "formFieldList");
+        RecordWebFormContext formContext = (RecordWebFormContext)mv.getModel().get(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT);
+
+        Assert.assertNotNull(formContext.getNamedFormFields().get("formFieldList"));
         
-        for(FormField formField : ((List<FormField>)mv.getModelMap().get("formFieldList"))) {
+        for(FormField formField : (formContext.getNamedFormFields().get("formFieldList"))) {
             if(formField.isAttributeFormField()) {
                 RecordAttributeFormField attributeField = (RecordAttributeFormField)formField;
                 
