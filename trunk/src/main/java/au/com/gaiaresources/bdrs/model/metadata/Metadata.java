@@ -16,6 +16,7 @@ import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.ParamDef;
+import org.hibernate.search.annotations.Field;
 
 import au.com.gaiaresources.bdrs.controller.attribute.RecordPropertyAttributeFormField;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
@@ -180,6 +181,7 @@ public class Metadata extends PortalPersistentImpl {
 
     @Column(name="VALUE", nullable=false)
     @Index(name="metadata_value_index")
+    @Field
     public String getValue() {
         return value;
     }

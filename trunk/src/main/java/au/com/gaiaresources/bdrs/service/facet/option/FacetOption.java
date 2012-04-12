@@ -1,4 +1,4 @@
-package au.com.gaiaresources.bdrs.service.facet;
+package au.com.gaiaresources.bdrs.service.facet.option;
 
 import au.com.gaiaresources.bdrs.db.impl.Predicate;
 
@@ -102,4 +102,13 @@ public abstract class FacetOption {
      * query.
      */
     public abstract Predicate getPredicate();
+
+    /**
+     * Returns a query string for querying this option via a lucene-based indexed query.
+     * @return
+     */
+    public String getIndexedQueryString() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }

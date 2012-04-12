@@ -4,6 +4,7 @@ import java.util.List;
 
 import au.com.gaiaresources.bdrs.db.impl.HqlQuery;
 import au.com.gaiaresources.bdrs.db.impl.Predicate;
+import au.com.gaiaresources.bdrs.service.facet.option.FacetOption;
 
 /**
  * The <code>Facet</code> represents a selection criteria to be applied to 
@@ -149,4 +150,10 @@ public interface Facet {
      * before the predicate is applied. 
      */
     public void applyCustomJoins(HqlQuery query);
+
+    /**
+     * Returns a query string for performing a lucene-based indexed query.
+     * @return a query string for performing a lucene-based indexed query.
+     */
+    public String getIndexedQueryString();
 }

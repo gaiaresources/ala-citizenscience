@@ -247,6 +247,13 @@
                 });
             } else if (layer.layerSource === 'OSM') {
                 thisLayer = new OpenLayers.Layer.OSM();
+            } else if (layer.layerSource === 'OPEN_LAYERS_WMS') {
+                thisLayer = new OpenLayers.Layer.WMS( "OpenLayers WMS", 
+                        "http://vmap0.tiles.osgeo.org/wms/vmap0?", {layers: 'basic'});
+            } else if (layer.layerSource === 'STAMEN_TONER') {
+            	thisLayer = new OpenLayers.Layer.Stamen("toner");
+            } else if (layer.layerSource === 'STAMEN_WATERCOLOR') {
+            	thisLayer = new OpenLayers.Layer.Stamen("watercolor");
             }
 
             if (thisLayer) {

@@ -20,6 +20,7 @@ import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.service.facet.builder.FacetBuilder;
+import au.com.gaiaresources.bdrs.service.facet.record.RecordSurveyFacet;
 import au.com.gaiaresources.bdrs.test.AbstractTransactionalTest;
 import edu.emory.mathcs.backport.java.util.Collections;
 
@@ -154,7 +155,7 @@ public class FacetServiceTest extends AbstractTransactionalTest {
     public void testGetFacetByType() {
         User user = userDAO.getUser("admin");
         List<Facet> facetList = facetService.getFacetList(user, EMPTY_PARAMETER_MAP);
-        Assert.assertTrue("Expect facet to be of type SurveyFacet", facetService.getFacetByType(facetList, SurveyFacet.class) instanceof SurveyFacet);
+        Assert.assertTrue("Expect facet to be of type RecordSurveyFacet", facetService.getFacetByType(facetList, RecordSurveyFacet.class) instanceof RecordSurveyFacet);
         Assert.assertTrue("Expect facet to be of type MonthFacet", facetService.getFacetByType(facetList, MonthFacet.class) instanceof MonthFacet);
     }
     
@@ -181,7 +182,8 @@ public class FacetServiceTest extends AbstractTransactionalTest {
         User user = userDAO.getUser("admin");
         List<Facet> facetList = facetService.getFacetList(user, EMPTY_PARAMETER_MAP);
         for(Facet facet : facetList) {
-            Assert.assertEquals(facetLookup.get(facet.getClass()), facet.getDisplayName());
+            Assert.assertEquals("Names for facet of type "+facet.getClass()+" do not match.", 
+                                facetLookup.get(facet.getClass()), facet.getDisplayName());
         }
     }
     

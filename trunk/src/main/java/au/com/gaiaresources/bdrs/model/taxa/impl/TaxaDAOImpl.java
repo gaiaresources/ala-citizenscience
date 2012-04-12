@@ -11,12 +11,14 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 
 import org.apache.log4j.Logger;
+import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.PerFieldAnalyzerWrapper;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.hibernate.Hibernate;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.StaleStateException;
+import org.hibernate.search.Search;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -28,6 +30,7 @@ import au.com.gaiaresources.bdrs.db.impl.PaginationFilter;
 import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.db.impl.Predicate;
 import au.com.gaiaresources.bdrs.db.impl.QueryPaginator;
+import au.com.gaiaresources.bdrs.model.index.IndexingConstants;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.region.Region;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
@@ -994,13 +997,19 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
         String[] fields = new String[]{"commonName", "scientificName", "infoItems.content", "taxonGroup.name", "taxonGroup.id"};
         
         PerFieldAnalyzerWrapper aWrapper = new PerFieldAnalyzerWrapper(new StandardAnalyzer());
+        Analyzer customAnalyzer = Search.getFullTextSession(getSession()).getSearchFactory().getAnalyzer(IndexingConstants.FULL_TEXT_ANALYZER);
+        aWrapper.addAnalyzer("commonName", customAnalyzer);
+        aWrapper.addAnalyzer("scientificName", customAnalyzer);
+        aWrapper.addAnalyzer("infoItems.content", customAnalyzer);
+        aWrapper.addAnalyzer("taxonGroup.name", customAnalyzer);
         
         // the '+' indicates that the term must be matched, only necessary if one of 
         // searchInResults or groupId is specified, but is done implicitly anyway when there is only one term
         String searchTerm = !StringUtils.nullOrEmpty(searchInGroups) ? "+" + searchInGroups + "" : "";
         if (!StringUtils.nullOrEmpty(searchInResult)) {
-            searchTerm += " +"+searchInResult;
+            searchTerm += " +"+searchInResult + "" ;
         }
+        
         if (groupId != null) {
             // add the group to the query
             // the '+' indicates that the term must be matched, 

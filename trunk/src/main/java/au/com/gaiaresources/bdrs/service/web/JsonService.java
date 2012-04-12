@@ -13,10 +13,12 @@ import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.map.GeoMapFeature;
 import au.com.gaiaresources.bdrs.model.record.AccessControlledRecordAdapter;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
+import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 @Service
@@ -182,5 +184,33 @@ public class JsonService {
         sb.append(av.getStringValue());
         sb.append("\">Download file</a>");
         return sb.toString();
+    }
+
+    /**
+     * Returns a JSON representation of a location.  (Used for writing kml records)
+     * @param location the location to jsonify
+     * @param contextPath the contextPath of the application
+     * @return A JSONObject representing the location.
+     */
+    public JSONObject toJson(Location location, String contextPath) {
+        Map<String, Object> attrMap = new HashMap<String, Object>(16);
+        addToAttributeMap(attrMap, "name", location.getName());
+        addToAttributeMap(attrMap, "description", location.getDescription());
+        
+        User owner = location.getUser();
+        if (owner != null) {
+            addToAttributeMap(attrMap, RECORD_KEY_USER, owner.getFirstName() + " " + owner.getLastName());
+            addToAttributeMap(attrMap, RECORD_KEY_USER_ID, owner.getId());
+        } else {
+            // use the creator if the owner is null? createdBy only returns id, must retrieve entire user
+        }
+
+        if(location.getCreatedAt() != null) {
+            addToAttributeMap(attrMap, RECORD_KEY_WHEN, location.getCreatedAt().getTime());
+        }
+        
+        attrMap.put(JSON_KEY_ATTRIBUTES, getOrderedAttributes(location.getOrderedAttributes(), contextPath));
+        
+        return JSONObject.fromMapToJSONObject(attrMap);
     }
 }

@@ -1,10 +1,12 @@
 package au.com.gaiaresources.bdrs.service.facet;
 
 import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.model.facet.FacetDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.facet.option.FacetOption;
 import au.com.gaiaresources.bdrs.util.Pair;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
@@ -27,7 +29,7 @@ import java.util.Map;
 public class VisibilityFacetTest {
 
     private Mockery context = new JUnit4Mockery();
-    private RecordDAO recordDAO = context.mock(RecordDAO.class);
+    private FacetDAO recordDAO = context.mock(RecordDAO.class);
 
     private JSONObject configuration;
     

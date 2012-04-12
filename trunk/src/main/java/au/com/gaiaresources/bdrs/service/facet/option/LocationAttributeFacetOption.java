@@ -1,14 +1,13 @@
-package au.com.gaiaresources.bdrs.service.facet;
+package au.com.gaiaresources.bdrs.service.facet.option;
 
 import edu.emory.mathcs.backport.java.util.Arrays;
 import au.com.gaiaresources.bdrs.db.impl.Predicate;
 
 /**
- * Creates a {@link FacetOption} for showing records for an {@link AttributeValue} of 
- * type String. 
- * @author stephanie
+ * Creates a {@link FacetOption} for showing records with a location for 
+ * an {@link AttributeValue} of type String. 
  */
-public class StringAttributeFacetOption extends FacetOption {
+public class LocationAttributeFacetOption extends FacetOption {
 
     /**
      * The value of the attribute to show records for
@@ -24,18 +23,14 @@ public class StringAttributeFacetOption extends FacetOption {
      * @param selectedOpts options for selecting the option by attribute value
      * @param facetIndex 
      */
-    public StringAttributeFacetOption(String attrValue, Long count, String[] selectedOpts, int facetIndex) {
+    public LocationAttributeFacetOption(String attrValue, Long count, String[] selectedOpts, int facetIndex) {
         super(attrValue, attrValue, count, Arrays.binarySearch(selectedOpts, String.valueOf(attrValue)) > -1);
         this.attributeValue = attrValue;
         this.facetIndex = facetIndex;
     }
 
-    /* (non-Javadoc)
-     * @see au.com.gaiaresources.bdrs.service.facet.FacetOption#getPredicate()
-     */
     @Override
     public Predicate getPredicate() {
-        return Predicate.eq("recordAttribute"+facetIndex+".stringValue", attributeValue);
+        return Predicate.eq("locAttributeVal"+facetIndex+".stringValue", attributeValue);
     }
-
 }

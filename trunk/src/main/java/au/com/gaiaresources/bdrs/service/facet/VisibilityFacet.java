@@ -1,9 +1,11 @@
 package au.com.gaiaresources.bdrs.service.facet;
 
 import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.model.facet.FacetDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
 import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.service.facet.option.VisibilityFacetOption;
 import au.com.gaiaresources.bdrs.util.Pair;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -35,7 +37,7 @@ public class VisibilityFacet extends AbstractFacet {
      * @param user the user that is accessing the records.
      * @param facetConfiguration user configurable parameters provided in via the {@link au.com.gaiaresources.bdrs.model.preference.Preference)}.
      */
-    public VisibilityFacet(String defaultDisplayName, RecordDAO recordDAO, Map<String, String[]> parameterMap, User user, JSONObject facetConfiguration) {
+    public VisibilityFacet(String defaultDisplayName, FacetDAO recordDAO, Map<String, String[]> parameterMap, User user, JSONObject facetConfiguration) {
         super(QUERY_PARAM_NAME, defaultDisplayName, facetConfiguration);
         if (!checkUserRole(user, facetConfiguration))   {
             setActive(false);

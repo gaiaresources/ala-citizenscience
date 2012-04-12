@@ -95,6 +95,7 @@
 		        
 		        <value>au.com.gaiaresources.bdrs.model.report.Report</value>
 		        
+		        <value>au.com.gaiaresources.bdrs.model.index.IndexSchedule</value>
             </list>
         </property>
         

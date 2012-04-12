@@ -33,6 +33,7 @@ import org.opengis.feature.simple.SimpleFeatureType;
 import au.com.gaiaresources.bdrs.attribute.AttributeDictionaryFactory;
 import au.com.gaiaresources.bdrs.config.AppContext;
 import au.com.gaiaresources.bdrs.deserialization.record.RecordKeyLookup;
+import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.method.Taxonomic;
 import au.com.gaiaresources.bdrs.model.record.AccessControlledRecordAdapter;
@@ -711,5 +712,196 @@ public class ShapeFileWriter {
                 throw new IllegalStateException("An attribute type is not handled properly: " + a.getType());
             }
         }
+    }
+    
+    /**
+     * Exports the list of locations to a shapefile.
+     * @param locList
+     * @return
+     * @throws Exception
+     */
+    public File exportLocations(List<Location> locList) throws Exception {
+        Set<ShapefileType> shapefileTypeSet = new HashSet<ShapefileType>();
+        
+        for (Location r : locList) {
+            ShapefileType recordShpType = getShapefileTypefromGeometry(r.getLocation());
+            if (recordShpType != null) {
+                shapefileTypeSet.add(recordShpType);
+            }
+        }
+        
+        return createZipShapefile(shapefileTypeSet, locList);
+    }
+    
+    /**
+     * Creates a zipped shapefile set of the list of locations
+     * @param shapefileTypeSet
+     * @param locList
+     * @return
+     * @throws Exception
+     */
+    public File createZipShapefile(Set<ShapefileType> shapefileTypeSet, List<Location> locList) throws Exception {
+        
+        if (shapefileTypeSet.isEmpty()) {
+            // There are no shape file types so we will default to a point type.
+            shapefileTypeSet.add(ShapefileType.POINT);
+        }
+        
+        boolean hasLocs = !locList.isEmpty();
+        
+        RecordKeyLookup klu = new ShapefileRecordKeyLookup();
+        
+        Map<ShapefileType, ShapeFileWriterContext> contextMap = new HashMap<ShapefileType, ShapeFileWriterContext>();
+        Map<ShapefileType, ShapefileDataStore> datastoreMap = new HashMap<ShapefileType, ShapefileDataStore>();
+        Map<ShapefileType, List<ShapefileFeature>> writeFeatureMap = new HashMap<ShapefileType, List<ShapefileFeature>>();
+        
+        for (ShapefileType shpType : shapefileTypeSet) {
+            contextMap.put(shpType, new ShapeFileWriterContext(shpType));
+            writeFeatureMap.put(shpType, new LinkedList<ShapefileFeature>());
+        }
+        
+        String baseFilename;
+        if (locList.isEmpty()) {
+            // is a location import template...
+            baseFilename = "location_import_template";
+        } else {
+            // is a location export
+            baseFilename = "location_export";
+        }
+        File tempdir = FileUtils.createTempDirectory("createShp");
+        
+        ShapeFileWriterContext contextForDescriptions = null;
+        // 1 shape file for each output shapefile type
+        // at least one geom type is guaranteed. see argument checks at top of method.
+        for (Entry<ShapefileType, ShapeFileWriterContext> entry : contextMap.entrySet()) {
+            
+            // Not the greatest way to do it. I don't care which 
+            contextForDescriptions = entry.getValue();
+            
+            ShapefileType shpType = entry.getKey();
+            ShapeFileWriterContext context = entry.getValue();
+            
+            context.addInt(klu.getRecordIdKey(), null, "The location ID - leave blank if this is a new location");
+            
+            if (hasLocs) {
+                context.addString(KEY_RECORD_OWNER, null, "The owner of the location. This field is non editable");
+            }
+            
+            context.addString("name", null, "The name of the location.");
+            context.addString("desc", null, "The description of the location.");
+            
+            SimpleFeatureType myFeatureType = context.getBuilder().buildFeatureType();
+        
+            String filename = getShpFilename(hasLocs, shpType);
+            File shp = FileUtils.createFileInDir(tempdir, filename + ".shp");
+            
+            ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
+
+            Map<String, Serializable> params = new HashMap<String, Serializable>();
+            params.put("url", shp.toURI().toURL());
+            params.put("create spatial index", Boolean.TRUE);
+            
+            ShapefileDataStore newDataStore = (ShapefileDataStore) dataStoreFactory.createNewDataStore(params);
+            
+            newDataStore.createSchema(myFeatureType);
+            
+            datastoreMap.put(entry.getKey(), newDataStore);
+            
+            /*
+             * You can comment out this line if you are using the createFeatureType
+             * method (at end of class file) rather than DataUtilities.createType
+             */
+            newDataStore.forceSchemaCRS(DefaultGeographicCRS.WGS84);
+        }
+        
+        // write records, build up write maps
+        for (Location loc : locList) {
+            // will throw an exception if we find a geometry we do not expect...
+            ShapefileType recordShpType = getShapefileTypefromGeometry(loc.getLocation());
+            if (recordShpType != null) {
+             // only process the record if it is one of the requested geometry types.
+                if (shapefileTypeSet.contains(recordShpType)) {
+                    Map<String, Object> featureAttr = new LinkedHashMap<String, Object>();
+                    
+                    // add location data here!
+                    featureAttr.put(klu.getRecordIdKey(), loc.getId());
+                    if (loc.getUser() != null) {
+                        featureAttr.put(KEY_RECORD_OWNER, loc.getUser().getFirstName() + " " + loc.getUser().getLastName());
+                    }
+                    
+                    featureAttr.put("name", loc.getName());
+                    featureAttr.put("desc", loc.getDescription());
+                    
+                    ShapefileFeature feature = new ShapefileFeature(loc.getLocation(), featureAttr);
+                    writeFeatureMap.get(recordShpType).add(feature);
+                }
+            }
+        }
+        
+        for (ShapefileType shpType : shapefileTypeSet) {
+            writeFeatures(datastoreMap.get(shpType), writeFeatureMap.get(shpType));
+        }
+        
+        File outfile = new File(tempdir, baseFilename + ".zip");
+
+        // File for field descriptions
+        FileWriter descFileWriter = null;
+        try {
+            String newline = NEWLINE;
+            File fieldDescFile = new File(tempdir, FIELD_DESCRIPTION_FILE);
+            descFileWriter = new FileWriter(fieldDescFile);
+
+            descFileWriter.write("Field descriptions for " + baseFilename + ".shp");
+            descFileWriter.write(newline);
+            
+            descFileWriter.write("Survey ID" + FIELD_DESCRIPTION_FILE_DELIM + "Survey Name");
+            descFileWriter.write(newline);
+            descFileWriter.write(newline);
+            
+            descFileWriter.write("Shapefile attribute name" + FIELD_DESCRIPTION_FILE_DELIM + 
+                                 "Database name" + FIELD_DESCRIPTION_FILE_DELIM + 
+                                 "Description");
+            
+            descFileWriter.write(newline);
+            descFileWriter.write(newline);
+            
+            if (contextForDescriptions != null) {
+                for (AttributeDescriptorItem adi : contextForDescriptions.getFieldDescriptions()) {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(adi.getKey());
+                    sb.append(FIELD_DESCRIPTION_FILE_DELIM);
+                    sb.append(adi.getDatabaseName());
+                    sb.append(FIELD_DESCRIPTION_FILE_DELIM);
+                    sb.append(adi.getSurveyDescription());
+                    sb.append(FIELD_DESCRIPTION_FILE_DELIM);
+                    sb.append(adi.getCensusMethodDescription());
+                    sb.append(FIELD_DESCRIPTION_FILE_DELIM);
+                    sb.append(adi.getDescription());
+                    sb.append(newline);
+                    descFileWriter.write(sb.toString());
+                }
+            }
+        } finally {
+            if (descFileWriter != null) {
+                descFileWriter.close();    
+            }
+        }
+        
+        List<File> filesToCompress = new ArrayList<File>();
+        
+        for (ShapefileType shpType : shapefileTypeSet) {
+            String filename = getShpFilename(hasLocs, shpType);
+            filesToCompress.add(FileUtils.getFileFromDir(tempdir, filename + ".shp"));
+            filesToCompress.add(FileUtils.getFileFromDir(tempdir, filename + ".prj"));
+            filesToCompress.add(FileUtils.getFileFromDir(tempdir, filename + ".shx"));
+            filesToCompress.add(FileUtils.getFileFromDir(tempdir, filename + ".dbf"));
+        }        
+        filesToCompress.add(FileUtils.getFileFromDir(tempdir, FIELD_DESCRIPTION_FILE));
+        //filesToCompress.add(FileUtils.getFileFromDir(tempdir, HELPER_FILE));
+        //filesToCompress.add(FileUtils.getFileFromDir(tempdir, METADATA_FILE));
+        
+        ZipUtils.compress(filesToCompress, outfile);
+        
+        return outfile; 
     }
 }

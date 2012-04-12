@@ -1380,10 +1380,11 @@ bdrs.map.addLocationLayer = function(map, layerName){
     return layer;
 };
 
-bdrs.map.addVectorLayer = function(map, layerName, stylemap) {
-    var layer = new OpenLayers.Layer.Vector(layerName, {
+bdrs.map.addVectorLayer = function(map, layerName, stylemap, options) {
+	var layerOptions = jQuery.extend({
         styleMap: new OpenLayers.StyleMap(stylemap)
-    });
+    }, options);
+	var layer = new OpenLayers.Layer.Vector(layerName, layerOptions);
     return layer;
 }
 

@@ -3,10 +3,10 @@ package au.com.gaiaresources.bdrs.service.facet.builder;
 import java.util.Map;
 
 import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.model.facet.FacetDAO;
 import au.com.gaiaresources.bdrs.model.portal.Portal;
 import au.com.gaiaresources.bdrs.model.preference.Preference;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceCategory;
-import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.facet.Facet;
 
@@ -39,16 +39,17 @@ public interface FacetBuilder {
     public Preference getDefaultPreference(Portal portal, PreferenceCategory category);
 
     /**
-     * Creates a new concrete Facet.
+     * Creates a new concrete Facet that can be applied to the class applyClass.
      * 
-     * @param recordDAO the dao used to count the applicable records.
+     * @param dao the dao used to count the applicable values.
      * @param parameterMap a mapping of query parameters.
-     * @param user the user requesting the listing of records.
+     * @param user the user requesting the listing of values.
      * @param userParams the user configuration parameters to be passed to the Facet.
+     * @param applyClass the class to determine the type the facet will be applied to (one of Record or Location)
      * @return a new instance of a Facet.
      */
-    public Facet createFacet(RecordDAO recordDAO,  Map<String, String[]> parameterMap, User user, JSONObject userParams);
-
+    public Facet createFacet(FacetDAO dao,  Map<String, String[]> parameterMap, User user, JSONObject userParams, Class applyClass);
+    
     /**
      * Returns the class of the Facet represented by this builder.
      * @return the class of the Facet that is created by this builder.

@@ -4,9 +4,11 @@ import java.util.List;
 import java.util.Map;
 
 import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.model.facet.FacetDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.service.facet.option.TaxonGroupFacetOption;
 import au.com.gaiaresources.bdrs.util.Pair;
 import edu.emory.mathcs.backport.java.util.Arrays;
 
@@ -29,7 +31,7 @@ public class TaxonGroupFacet extends AbstractFacet {
      * @param user the user that is accessing the records.
      * @param userParams user configurable parameters provided in via the {@link Preference)}.
      */
-    public TaxonGroupFacet(String defaultDisplayName, RecordDAO recordDAO, Map<String, String[]> parameterMap, User user, JSONObject userParams) {
+    public TaxonGroupFacet(String defaultDisplayName, FacetDAO recordDAO, Map<String, String[]> parameterMap, User user, JSONObject userParams) {
         super(QUERY_PARAM_NAME, defaultDisplayName, userParams);
         setContainsSelected(parameterMap.containsKey(getInputName()));
         

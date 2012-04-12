@@ -12,14 +12,15 @@ import org.hibernate.Session;
 import org.hibernate.search.FullTextQuery;
 import org.hibernate.search.FullTextSession;
 import org.hibernate.search.Search;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
 import au.com.gaiaresources.bdrs.db.impl.PaginationFilter;
 import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.db.impl.QueryPaginator;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile;
+import au.com.gaiaresources.bdrs.model.index.IndexUtil;
+import au.com.gaiaresources.bdrs.model.portal.PortalDAO;
 
 /**
  * Service that implements a Hibernate Search Service.  Handles the creation and  
@@ -33,16 +34,33 @@ public class HibernateSearchService implements SearchService {
 
     private Logger log = Logger.getLogger(getClass());
     
+    @Autowired
+    private PortalDAO portalDAO;
     /**
      * {@inheritDoc}
      */
     @Override
     public void createIndexes(Session sesh) {
+        if (sesh == null) {
+            sesh = portalDAO.getSessionFactory().getCurrentSession();
+        }
         FullTextSession fullTextSession = Search.getFullTextSession(sesh);
         fullTextSession.beginTransaction();
-        
+        for (Class indexedClass : IndexUtil.getIndexedClasses()) {
+            log.info("creating index for "+indexedClass.getName());
+            buildIndex(fullTextSession, indexedClass);
+        }
+    }
+
+    /**
+     * Builds an index for the specified class.
+     * @param fullTextSession
+     * @param clazz
+     */
+    private void buildIndex(FullTextSession fullTextSession,
+            Class<?> clazz) {
         //Scrollable results will avoid loading too many objects in memory
-        ScrollableResults results = fullTextSession.createCriteria(IndicatorSpecies.class)
+        ScrollableResults results = fullTextSession.createCriteria(clazz)
             .setFetchSize(INDEX_BATCH_SIZE)
             .scroll(ScrollMode.FORWARD_ONLY);
         int index = 0;
@@ -64,8 +82,14 @@ public class HibernateSearchService implements SearchService {
      */
     @Override
     public void deleteIndexes(Session sesh) {
+        if (sesh == null) {
+            sesh = portalDAO.getSessionFactory().getCurrentSession();
+        }
         FullTextSession fullTextSession = Search.getFullTextSession(sesh);
-        fullTextSession.purgeAll(IndicatorSpecies.class);
+        for (Class indexedClass : IndexUtil.getIndexedClasses()) {
+            log.info("deleting index for "+indexedClass.getName());
+            fullTextSession.purgeAll(indexedClass);
+        }
         fullTextSession.flush();
     }
 
@@ -88,6 +112,21 @@ public class HibernateSearchService implements SearchService {
                                         String searchTerm, 
                                         PaginationFilter filter,
                                         Class<?>... entities) throws ParseException {
+         FullTextQuery hibQuery = getQuery(sesh, fields, analyzer, searchTerm, entities);
+         PagedQueryResult results = new QueryPaginator().page(hibQuery, filter);
+         log.debug("search for searchterm "+searchTerm+" into query "+hibQuery.getQueryString()+" yielded "+results.getList().size()+" results!");
+         return results;
+     }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public FullTextQuery getQuery(Session sesh, 
+                                  String[] fields,
+                                  Analyzer analyzer,
+                                  String searchTerm, 
+                                  Class<?>... entities) throws ParseException {
          FullTextSession fullTextSession = Search.getFullTextSession(sesh);
          org.hibernate.Transaction tx = fullTextSession.beginTransaction();
          MultiFieldQueryParser parser = new MultiFieldQueryParser(fields, analyzer);
@@ -95,7 +134,72 @@ public class HibernateSearchService implements SearchService {
          org.apache.lucene.search.Query query = parser.parse(searchTerm);
          
          FullTextQuery hibQuery = fullTextSession.createFullTextQuery(query, entities);
-         PagedQueryResult results = new QueryPaginator().page(hibQuery, filter);
-         return results;
+         return hibQuery;
      }
+
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.search.SearchService#deleteIndexes()
+     */
+    @Override
+    public void deleteIndexes() {
+        deleteIndexes(null);
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.search.SearchService#createIndexes()
+     */
+    @Override
+    public void createIndexes() {
+        createIndexes(null);
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.search.SearchService#deleteIndex(java.lang.Class)
+     */
+    @Override
+    public void deleteIndex(Class<?> clazz) {
+        deleteIndex(null, clazz);
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.search.SearchService#createIndex(java.lang.Class)
+     */
+    @Override
+    public void createIndex(Class<?> clazz) {
+        createIndex(null, clazz);
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.search.SearchService#deleteIndex(org.hibernate.Session, java.lang.Class)
+     */
+    @Override
+    public void deleteIndex(Session sesh, Class<?> indexedClass) {
+        if (sesh == null) {
+            sesh = portalDAO.getSessionFactory().getCurrentSession();
+        }
+        FullTextSession fullTextSession = Search.getFullTextSession(sesh);
+        log.info("deleting index for "+indexedClass.getName());
+        fullTextSession.purgeAll(indexedClass);
+        //fullTextSession.flush();
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.search.SearchService#createIndex(org.hibernate.Session, java.lang.Class)
+     */
+    @Override
+    public void createIndex(Session sesh, Class<?> indexedClass) {
+        if (sesh == null) {
+            sesh = portalDAO.getSessionFactory().getCurrentSession();
+        }
+        FullTextSession fullTextSession = Search.getFullTextSession(sesh);
+        fullTextSession.beginTransaction();
+        log.info("creating index for "+indexedClass.getName());
+        buildIndex(fullTextSession, indexedClass);
+    }
 }

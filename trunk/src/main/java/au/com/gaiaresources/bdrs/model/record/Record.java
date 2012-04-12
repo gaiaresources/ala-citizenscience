@@ -605,25 +605,31 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
         return "";
     }
 
+    /**
+     * Convenience method for getting the latitude of a Record
+     */
     @Transient
     public Double getLatitude() {
         Location loc = this.getLocation();
         if (this.getPoint() != null) {
             return this.getPoint().getY();
-        } else if (loc != null && loc.getLocation() != null) {
-            return loc.getLocation().getCentroid().getY();
+        } else if (loc != null) {
+            return loc.getLatitude();
         } else {
             return null;
         }
     }
 
+    /**
+     * Convenience method for getting the longitude of a Record.
+     */
     @Transient
     public Double getLongitude() {
         Location loc = this.getLocation();
         if (this.getPoint() != null) {
             return this.getPoint().getX();
-        } else if (loc != null && loc.getLocation() != null) {
-            return loc.getLocation().getCentroid().getX();
+        } else if (loc != null) {
+            return loc.getLongitude();
         } else {
             return null;
         }

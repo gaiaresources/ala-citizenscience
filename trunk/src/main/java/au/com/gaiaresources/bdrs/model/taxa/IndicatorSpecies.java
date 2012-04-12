@@ -42,8 +42,10 @@ import org.hibernate.search.annotations.Store;
 import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
 import au.com.gaiaresources.bdrs.model.attribute.Attributable;
+import au.com.gaiaresources.bdrs.model.index.IndexingConstants;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.region.Region;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.util.CollectionUtils;
 
 @Entity
@@ -119,7 +121,7 @@ public class IndicatorSpecies extends PortalPersistentImpl implements Attributab
     @Column(name = "SCIENTIFIC_NAME", nullable = false)
     @Index(name="species_scientific_name_index")
     @Fields( {
-        @Field(index = org.hibernate.search.annotations.Index.TOKENIZED, store = Store.YES, analyzer=@Analyzer(impl=StandardAnalyzer.class)),
+        @Field(index = org.hibernate.search.annotations.Index.TOKENIZED, store = Store.YES, analyzer=@Analyzer(definition=IndexingConstants.FULL_TEXT_ANALYZER)),
         @Field(name = "scientificName_sort", index = org.hibernate.search.annotations.Index.UN_TOKENIZED, store = Store.YES)
         } )
     public String getScientificName() {
@@ -137,7 +139,7 @@ public class IndicatorSpecies extends PortalPersistentImpl implements Attributab
     @Column(name = "COMMON_NAME", nullable = false)
     @Index(name="species_common_name_index")
     @Fields( {
-        @Field(index = org.hibernate.search.annotations.Index.TOKENIZED, store = Store.YES, analyzer=@Analyzer(impl=StandardAnalyzer.class)),
+        @Field(index = org.hibernate.search.annotations.Index.TOKENIZED, store = Store.YES, analyzer=@Analyzer(definition=IndexingConstants.FULL_TEXT_ANALYZER)),
         @Field(name = "commonName_sort", index = org.hibernate.search.annotations.Index.UN_TOKENIZED, store = Store.YES)
         } )
     public String getCommonName() {
@@ -330,7 +332,7 @@ public class IndicatorSpecies extends PortalPersistentImpl implements Attributab
     public IndicatorSpeciesAttribute createAttribute() {
         return new IndicatorSpeciesAttribute();
     }
-
+    
     @Column(name = "is_current", nullable = false)
 	public Boolean getCurrent() {
 		return current;

@@ -310,7 +310,7 @@ public class BDRSFieldGuideControllerTest extends AbstractControllerTest {
                 species.setRunThreshold(false);
                 species.setInfoItems(profileItems);
                 species.setTaxonGroup(taxonGroup);
-                
+                log.debug("Created species "+species.getScientificName()+" - "+species.getCommonName()+" in group "+taxonGroup.getName()+" with profile: "+description.getContent());
                 taxaDAO.save(species);
             }
         }

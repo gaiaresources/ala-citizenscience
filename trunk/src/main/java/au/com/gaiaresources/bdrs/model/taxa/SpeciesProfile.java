@@ -16,11 +16,15 @@ import javax.persistence.Transient;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
+import org.hibernate.search.annotations.Analyzer;
 import org.hibernate.search.annotations.Field;
+import org.hibernate.search.annotations.Store;
 
 import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
+import au.com.gaiaresources.bdrs.model.index.IndexingConstants;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 /**
  * @author timo
@@ -167,7 +171,7 @@ public class SpeciesProfile extends PortalPersistentImpl {
 
     @CompactAttribute
     @Column(name = "CONTENT", columnDefinition="TEXT")
-    @Field
+    @Field(index = org.hibernate.search.annotations.Index.TOKENIZED, store = Store.YES, analyzer=@Analyzer(definition=IndexingConstants.FULL_TEXT_ANALYZER))
     public String getContent() {
         return content;
     }

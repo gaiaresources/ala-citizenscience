@@ -5,9 +5,11 @@ import java.util.List;
 import java.util.Map;
 
 import au.com.gaiaresources.bdrs.json.JSONObject;
-import au.com.gaiaresources.bdrs.model.record.RecordDAO;
+import au.com.gaiaresources.bdrs.model.facet.FacetDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.service.facet.option.FacetOption;
+import au.com.gaiaresources.bdrs.service.facet.option.SurveyFacetOption;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.util.Pair;
 import edu.emory.mathcs.backport.java.util.Arrays;
@@ -15,7 +17,7 @@ import edu.emory.mathcs.backport.java.util.Arrays;
 /**
  * Represents records on a per survey basis.
  */
-public class SurveyFacet extends AbstractFacet {
+public abstract class SurveyFacet extends AbstractFacet {
     public static final String SURVEY_ID_QUERY_PARAM_NAME = BdrsWebConstants.PARAM_SURVEY_ID;
     
     /**
@@ -27,12 +29,12 @@ public class SurveyFacet extends AbstractFacet {
      * Creates a new instance.
      *
      * @param defaultDisplayName the default human readable name of this facet.
-     * @param recordDAO used for retrieving the count of matching records.
+     * @param list used for retrieving the count of matching records.
      * @param parameterMap the map of query parameters from the browser.
      * @param user the user that is accessing the records.
      * @param userParams user configurable parameters provided in via the {@link Preference)}.
      */
-    public SurveyFacet(String defaultDisplayName, RecordDAO recordDAO,  Map<String, String[]> parameterMap, User user, JSONObject userParams) {
+    public SurveyFacet(String defaultDisplayName, FacetDAO facetDAO,  Map<String, String[]> parameterMap, User user, JSONObject userParams) {
         super(QUERY_PARAM_NAME, defaultDisplayName, userParams);
         setContainsSelected(parameterMap.containsKey(getInputName()));
         
@@ -54,12 +56,15 @@ public class SurveyFacet extends AbstractFacet {
             }
             Arrays.sort(selectedOptions);
             
-            for(Pair<Survey, Long> pair : recordDAO.getDistinctSurveys(null)) {
-                super.addFacetOption(new SurveyFacetOption(pair.getFirst(), pair.getSecond(), selectedOptions));
+            for(Pair<Survey, Long> pair : facetDAO.getDistinctSurveys(null)) {
+                super.addFacetOption(getSurveyFacetOption(pair.getFirst(), pair.getSecond(), selectedOptions));
             }
         }
     }
     
+    protected abstract FacetOption getSurveyFacetOption(Survey first, Long second,
+            String[] selectedOptions);
+
     /**
      * 
      * @return A list of surveys that have been selected in the facet

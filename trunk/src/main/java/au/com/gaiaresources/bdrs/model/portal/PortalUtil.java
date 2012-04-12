@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,8 +17,15 @@ import au.com.gaiaresources.bdrs.json.JSONObject;
 
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import au.com.gaiaresources.bdrs.config.AppContext;
+import au.com.gaiaresources.bdrs.model.index.IndexSchedule;
+import au.com.gaiaresources.bdrs.model.index.IndexScheduleDAO;
+import au.com.gaiaresources.bdrs.model.index.IndexTask;
+import au.com.gaiaresources.bdrs.model.index.IndexType;
+import au.com.gaiaresources.bdrs.model.index.IndexUtil;
 import au.com.gaiaresources.bdrs.model.portal.impl.PortalInitialiser;
 import au.com.gaiaresources.bdrs.model.preference.Preference;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceCategory;
@@ -26,6 +34,7 @@ import au.com.gaiaresources.bdrs.model.threshold.Threshold;
 import au.com.gaiaresources.bdrs.model.threshold.ThresholdDAO;
 import au.com.gaiaresources.bdrs.model.user.RegistrationService;
 import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.search.SearchService;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.facet.FacetService;
 import au.com.gaiaresources.bdrs.util.ModerationUtil;
@@ -242,5 +251,44 @@ public class PortalUtil {
         if (modTholds == null || modTholds.isEmpty()) {
             modService.createModerationThreshold(sesh, portal);
         }
+    }
+    
+    /**
+     * Initialize the portal indexes.
+     * @param sesh
+     * @param portal
+     */
+    public static void initIndexes(Session sesh, Portal portal) {
+        // get schedule from db
+        IndexScheduleDAO indexScheduleDAO = AppContext.getBean(IndexScheduleDAO.class);
+        List<IndexSchedule> schedules = indexScheduleDAO.getIndexSchedules(portal);
+        SearchService service = AppContext.getBean(SearchService.class);
+        Map<String, String> fullClassNames = IndexUtil.getFullNamesForIndexedClasses(null);
+        
+        if (schedules != null) {
+            TaskScheduler scheduler = AppContext.getBean(TaskScheduler.class);
+            // must call initialize in order for scheduled tasks to work
+            ((ThreadPoolTaskScheduler)scheduler).initialize();
+            for (IndexSchedule indexSchedule : schedules) {
+                IndexTask task = new IndexTask(service, indexSchedule.isFullRebuild(), fullClassNames.get(indexSchedule.getClassName()));
+                
+                if (IndexType.SERVER_STARTUP.equals(indexSchedule.getType())) {
+                    // schedule the task to run now
+                    scheduler.schedule(task, new Date());
+                } else if (!(IndexType.ONCE.equals(indexSchedule.getType()) && indexSchedule.getDate().before(new Date()))) {
+                    // otherwise schedule indexes accordingly as long as it is 
+                    // not a one time only task that was scheduled for sometime 
+                    // before right now
+                    log.debug("scheduling build of index for "+indexSchedule.getClassName()+" on "+indexSchedule.getDate()+
+                              " with interval of "+indexSchedule.getPeriod());
+                    if (!IndexType.ONCE.equals(indexSchedule.getType())) {
+                        scheduler.scheduleAtFixedRate(task, indexSchedule.getDate(), indexSchedule.getPeriod());
+                    } else {
+                        scheduler.schedule(task, indexSchedule.getDate());
+                    }
+                }
+            }
+        }
+        
     }
 }

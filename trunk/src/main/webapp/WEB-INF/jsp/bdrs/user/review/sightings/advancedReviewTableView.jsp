@@ -51,48 +51,21 @@
                 <div class="right">
                     <label for="sortBy">Sort By</label>
                     <select id="sortBy" name="sortBy">
-                        <option value="record.when"
-                            <c:if test="${ 'when' == sortBy }">
-                                selected="selected"
-                            </c:if>
-                        >
-                            date
-                        </option>
-                        <option value="species.scientificName"
-                            <c:if test="${ 'species.scientificName' == sortBy }">
-                                selected="selected"
-                            </c:if>
-                        >
-                            scientific name
-                        </option>
-                        <option value="species.commonName"
-                            <c:if test="${ 'species.commonName' == sortBy }">
-                                selected="selected"
-                            </c:if>
-                        >
-                            common name
-                        </option>
-                        <option value="location.name"
-                            <c:if test="${ 'location.name' == sortBy }">
-                                selected="selected"
-                            </c:if>
-                        >
-                            location
-                        </option>
-                        <option value="censusMethod.type"
-                            <c:if test="${ 'censusMethod.type' == sortBy }">
-                                selected="selected"
-                            </c:if>
-                        >
-                            type
-                        </option>
-                        <option value="record.user"
-                            <c:if test="${ 'record.user' == sortBy }">
-                                selected="selected"
-                            </c:if>
-                        >
-                            user
-                        </option>
+                        <script>
+                            jQuery(document).ready(function() {
+                            	var selectElem = jQuery("#sortBy");
+                            	$(tableColumns).each(function(i, column) {
+                            		var opt = jQuery("<option/>");
+                            		opt.val(column.sortName);
+                            		if ((column.sortName == 'record.when' && 
+                            		     'when' == ${sortBy}) ||
+                            		     column.sortName == ${sortBy}) {
+                            			opt.attr("selected", true);
+                            		}
+                            		selectElem.append(opt);
+                            	});
+                            });
+                        </script>
                     </select>
                 </div>
             </c:when>
@@ -113,49 +86,50 @@
         <c:otherwise>
             <table id="alaSightingsTable" class="alaSightingsTable">
                 <thead id="alaSightingsTableHeader" class="columnBanner">
-                    <tr>
-                        <td class="sortBy(censusMethod.type) typeColumn">
-                            <div title="The record type" class="left alaSightingsTableHeader">Type</div>
-                        </td>
-                        <td class="sortBy(record.when) dateColumn">
-                            <div title="The date the record was taken." class="left alaSightingsTableHeader">Date</div>
-                        </td>
-                        <td class="sortBy(species.scientificName) sciNameColumn alaSightingsTableHeaderDoubleLine">
-                            <div title="The scientific name of the species recorded." class="left">Scientific<br />Name</div>
-                        </td>
-                        <td class="sortBy(species.commonName) commonNameColumn alaSightingsTableHeaderDoubleLine">
-                            <div title="The common name of the species recorded." class="left">Common<br />Name</div>
-                        </td>
-                        <td class="sortBy(location.name) locationColumn">
-                            <div title="The name of the location where the record was taken. If there was no named location, the latitude and longitude where the record was taken." class="left alaSightingsTableHeader">Location</div>
-                        </td>
-                        <td class="sortBy(record.user) userColumn">
-                            <div title="The user that logged the record." class="left alaSightingsTableHeader">User</div>
-                        </td>
-                        <sec:authorize ifAnyGranted="ROLE_ADMIN,ROLE_SUPERVISOR,ROLE_POWER_USER,ROLE_USER">
-                            <td style="width:auto">
-                                <input id="bulkSelectCheckbox" title="Select/deselect all" type="checkbox"  />
-                            </td>
+                    <tr id="headerRow">
+                        <script>
+                            jQuery(document).ready(function() {
+                            	var header = jQuery("#headerRow");
+                            	$(tableColumns).each(function(i, column) {
+                            		var col = jQuery("<td/>");
+                            		col.addClass("sortBy("+column.sortName+")");
+                            		col.addClass(column.tdClass);
+                            		var colDiv = jQuery("<div/>");
+                            		colDiv.attr("title", column.tooltip);
+                            		colDiv.addClass(column.divClass);
+                            		colDiv.html(column.title);
+                            		col.append(colDiv);
+                            		jQuery("#lastColumn").before(col);
+                            	});
+                            });
+                        </script>
+                        
+                        <td id="lastColumn" style="width:auto">
+                                <sec:authorize ifAnyGranted="ROLE_ADMIN,ROLE_SUPERVISOR,ROLE_POWER_USER,ROLE_USER">
+                            <input id="bulkSelectCheckbox" title="Select/deselect all" type="checkbox"  />
                         </sec:authorize>
+                            </td>
                     </tr>
                 </thead>
                 <tbody>
                 </tbody>
             </table>
-        </c:otherwise>        
+        </c:otherwise>
     </c:choose>
     
     <sec:authorize ifAnyGranted="ROLE_USER, ROLE_POWER_USER, ROLE_SUPERVISOR, ROLE_ADMIN">
         <div class="bulkActionContainer">
             <div class="right">
-                <span>Apply action to selected records: </span>
-                <a title="Delete the selected records" href="javascript:void(0)" onclick="bdrs.advancedReview.bulkDelete()">Delete</a>
-                <sec:authorize ifAnyGranted="ROLE_SUPERVISOR, ROLE_ADMIN">
-                   |<a title="Hold the selected records" href="javascript:void(0)" onclick="bdrs.advancedReview.bulkModerate(true)">Hold</a>
-                   |<a title="Release the selected records" href="javascript:void(0)" onclick="bdrs.advancedReview.bulkModerate(false)">Release</a>
-                </sec:authorize>
-                <c:if test="${viewStyle == 'DIV'}">
-                    <input id="bulkSelectCheckbox" title="Select/deselect all" type="checkbox" />
+                <c:if test="${viewType == 'record' }">
+	                <span>Apply action to selected records: </span>
+	                <a title="Delete the selected records" href="javascript:void(0)" onclick="bdrs.advancedReview.bulkDelete()">Delete</a>
+	                <sec:authorize ifAnyGranted="ROLE_SUPERVISOR, ROLE_ADMIN">
+	                   |<a title="Hold the selected records" href="javascript:void(0)" onclick="bdrs.advancedReview.bulkModerate(true)">Hold</a>
+	                   |<a title="Release the selected records" href="javascript:void(0)" onclick="bdrs.advancedReview.bulkModerate(false)">Release</a>
+	                </sec:authorize>
+	                <c:if test="${viewStyle == 'DIV'}">
+	                    <input id="bulkSelectCheckbox" title="Select/deselect all" type="checkbox" />
+	                </c:if>
                 </c:if>
             </div>
         </div>
