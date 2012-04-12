@@ -1,12 +1,26 @@
 package au.com.gaiaresources.bdrs.service.facet;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONException;
 import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.model.facet.FacetDAO;
+import au.com.gaiaresources.bdrs.model.location.Location;
+import au.com.gaiaresources.bdrs.model.location.LocationDAO;
 import au.com.gaiaresources.bdrs.model.portal.Portal;
 import au.com.gaiaresources.bdrs.model.preference.Preference;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceCategory;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
+import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.facet.builder.AttributeFacetBuilder;
@@ -22,15 +36,8 @@ import au.com.gaiaresources.bdrs.service.facet.builder.TaxonGroupFacetBuilder;
 import au.com.gaiaresources.bdrs.service.facet.builder.UserFacetBuilder;
 import au.com.gaiaresources.bdrs.service.facet.builder.VisibilityFacetBuilder;
 import au.com.gaiaresources.bdrs.service.facet.builder.YearFacetBuilder;
+import au.com.gaiaresources.bdrs.service.facet.option.FacetOption;
 import edu.emory.mathcs.backport.java.util.Collections;
-import org.apache.log4j.Logger;
-import org.hibernate.Session;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * The Facet Service is the one stop shop for retrieving Facets. The FacetService
@@ -50,16 +57,16 @@ public class FacetService {
      * in creating default preferences and instantiating new {@link Facet}s.
      */
     public static final List<FacetBuilder> FACET_BUILDER_REGISTRY;
-    
+    public static final Map<Class, List<FacetBuilder>> FACET_BUILDER_CLASS_REGISTRY;
     static {
         List<FacetBuilder> temp = new ArrayList<FacetBuilder>();
         
-        temp.add(new UserFacetBuilder());
+        temp.add(new UserFacetBuilder(Record.class));
         temp.add(new TaxonGroupFacetBuilder());
         temp.add(new MonthFacetBuilder());
         temp.add(new YearFacetBuilder());
         temp.add(new LocationFacetBuilder());
-        temp.add(new SurveyFacetBuilder());
+        temp.add(new SurveyFacetBuilder(Record.class));
         temp.add(new MultimediaFacetBuilder());
         temp.add(new CensusMethodTypeFacetBuilder());
         temp.add(new AttributeFacetBuilder());
@@ -68,6 +75,17 @@ public class FacetService {
         temp.add(new VisibilityFacetBuilder());
         
         FACET_BUILDER_REGISTRY = Collections.unmodifiableList(temp);
+        
+        List<FacetBuilder> locationFacets = new ArrayList<FacetBuilder>();
+        
+        locationFacets.add(new UserFacetBuilder(Location.class));
+        locationFacets.add(new SurveyFacetBuilder(Location.class));
+        locationFacets.add(new LocationAttributeFacetBuilder());
+        
+        Map<Class, List<FacetBuilder>> tmpMap = new HashMap<Class, List<FacetBuilder>>(2);
+        tmpMap.put(Record.class, temp);
+        tmpMap.put(Location.class, locationFacets);
+        FACET_BUILDER_CLASS_REGISTRY = Collections.unmodifiableMap(tmpMap);
     }
     
     private Logger log = Logger.getLogger(getClass());
@@ -75,42 +93,70 @@ public class FacetService {
     private PreferenceDAO prefDAO;
     @Autowired
     private RecordDAO recordDAO;
-    
+    @Autowired
+    private LocationDAO locationDAO;
     /**
-     * Generates the {@link List} of {@link Facet}s. Each facet will be configured
+     * Generates the {@link List} of {@link Facet}s for {@link Record}. Each facet will be configured
      * with the necessary {@link FacetOption}s and selection state.
      * @param user the user requesting the record list.
      * @param parameterMap a mapping of query parameters.
      * @return the ordered {@link List} of {@link Facet}s. 
      */
     public List<Facet> getFacetList(User user, Map<String, String[]> parameterMap) {
+        return getFacetList(user, parameterMap, Record.class);
+    }
+    /**
+     * Generates the {@link List} of {@link Facet}s for {@link Location}. Each facet will be configured
+     * with the necessary {@link FacetOption}s and selection state.
+     * @param user the user requesting the record list.
+     * @param parameterMap a mapping of query parameters.
+     * @return the ordered {@link List} of {@link Facet}s. 
+     */
+    public List<Facet> getLocationFacetList(User user, Map<String, String[]> parameterMap) {
+        return getFacetList(user, parameterMap, Location.class);
+    }
+    /**
+     * Generates the {@link List} of {@link Facet}s. Each facet will be configured
+     * with the necessary {@link FacetOption}s and selection state.
+     * @param user the user requesting the record list.
+     * @param parameterMap a mapping of query parameters.
+     * @param facetClass the Class for which to retrieve facets (Record or Location)
+     * @return the ordered {@link List} of {@link Facet}s. 
+     */
+    public List<Facet> getFacetList(User user, Map<String, String[]> parameterMap, Class facetClass) {
         List<Facet> facetList = new ArrayList<Facet>();
-        for(FacetBuilder builder : FACET_BUILDER_REGISTRY) {
-
-            Preference pref = prefDAO.getPreferenceByKey(builder.getPreferenceKey());
-            if(pref == null) {
-                log.error("Cannot create facet. Cannot find preference with key: "+builder.getPreferenceKey());
-            } else {
-                try {
-                    JSONArray configArray = JSONArray.fromString(pref.getValue());
-                    for(int i=0; i<configArray.size(); i++) {
-                        try {
-                            JSONObject configParams = configArray.getJSONObject(i);
-                            configParams.put(Facet.JSON_PREFIX_KEY, String.valueOf(i));
-                            
-                            Facet facet = builder.createFacet(recordDAO, parameterMap, user, configParams);
-                            facetList.add(facet);
-                        } catch(JSONException ex) {
-                            log.error(String.format("The configuration parameter at index %d for preference key %s is not a JSON object or is improperly configured: %s", i, pref.getKey(), pref.getValue()), ex);
+        
+        if (FACET_BUILDER_CLASS_REGISTRY.containsKey(facetClass)) {
+            FacetDAO dao = Record.class.equals(facetClass) ? recordDAO : 
+                           (Location.class.equals(facetClass) ? locationDAO : null);
+            for(FacetBuilder builder : FACET_BUILDER_CLASS_REGISTRY.get(facetClass)) {
+                Preference pref = prefDAO.getPreferenceByKey(builder.getPreferenceKey());
+                if(pref == null) {
+                    log.error("Cannot create facet. Cannot find preference with key: "+builder.getPreferenceKey());
+                } else {
+                    try {
+                        JSONArray configArray = JSONArray.fromString(pref.getValue());
+                        for(int i=0; i<configArray.size(); i++) {
+                            try {
+                                JSONObject configParams = configArray.getJSONObject(i);
+                                configParams.put(Facet.JSON_PREFIX_KEY, String.valueOf(i));
+                                
+                                Facet facet = builder.createFacet(dao, parameterMap, user, configParams, facetClass);
+                                facetList.add(facet);
+                            } catch(JSONException ex) {
+                                log.error(String.format("The configuration parameter at index %d for preference key %s is not a JSON object or is improperly configured: %s", i, pref.getKey(), pref.getValue()), ex);
+                            }
                         }
+                    } catch(JSONException je) {
+                        // Improperly configured JSON String.
+                        log.error("Improperly configured JSON String for preference key: "+pref.getKey());
                     }
-                } catch(JSONException je) {
-                    // Improperly configured JSON String.
-                    log.error("Improperly configured JSON String for preference key: "+pref.getKey());
-                }
-            } 
+                } 
+            }
+            Collections.sort(facetList, new FacetWeightComparator());
+        } else {
+            log.warn("Requested facets for class not found in registry!");
         }
-        Collections.sort(facetList, new FacetWeightComparator());
         return facetList;
     }
     
@@ -137,11 +183,13 @@ public class FacetService {
      * @params category the category that contains facet preferences.
      */
     public void initFacetPreferences(Session sesh, Portal portal, PreferenceCategory category) {
-        for(FacetBuilder builder : FACET_BUILDER_REGISTRY) {
-            Preference pref = prefDAO.getPreferenceByKey(sesh, builder.getPreferenceKey(), portal);
-            if(pref == null) {
-                pref = builder.getDefaultPreference(portal, category);
-                prefDAO.save(sesh, pref);
+        for(List<FacetBuilder> builderList : FACET_BUILDER_CLASS_REGISTRY.values()) {
+            for(FacetBuilder builder : builderList) {
+                Preference pref = prefDAO.getPreferenceByKey(sesh, builder.getPreferenceKey(), portal);
+                if(pref == null) {
+                    pref = builder.getDefaultPreference(portal, category);
+                    prefDAO.save(sesh, pref);
+                }
             }
         }
     }

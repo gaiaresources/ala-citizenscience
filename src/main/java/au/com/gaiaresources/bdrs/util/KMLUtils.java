@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 
 import au.com.gaiaresources.bdrs.config.AppContext;
 import au.com.gaiaresources.bdrs.kml.KMLWriter;
+import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.record.AccessControlledRecordAdapter;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.user.User;
@@ -92,6 +93,45 @@ public class KMLUtils {
     public static void writeRecordsToKML(User currentUser, String contextPath, String placemarkColorHex, List<Record> recordList, OutputStream outputStream) throws JAXBException {
         KMLWriter writer = createKMLWriter(contextPath, placemarkColorHex);
         writeRecords(writer, currentUser, contextPath, recordList);
+        writer.write(false, outputStream);
+    }
+    
+    /**
+     * Writes the set of locations to kml format.
+     * @param writer
+     * @param contextPath
+     * @param locationList
+     */
+    public static void writeLocations(KMLWriter writer, String contextPath, List<Location> locationList) {
+        JsonService jsonService = AppContext.getBean(JsonService.class);
+        
+        String label;
+        String description;
+        
+        for(Location location : locationList) {
+            label = String.format("Location #%d", location.getId());
+            description = jsonService.toJson(location, contextPath).toString();
+            
+            Geometry geom = location.getLocation();
+            if (geom != null) {
+                writePlacemark(writer, label, description, String.valueOf(location.getId()), geom);
+            } else {
+                log.info("Cannot find coordinate for location");
+            }
+        }
+    }
+
+    /**
+     * Writes the list of locations to kml format.
+     * @param contextPath
+     * @param placemarkColorHex
+     * @param locationList
+     * @param outputStream
+     * @throws JAXBException
+     */
+    public static void writeLocationsToKML(String contextPath, String placemarkColorHex, List<Location> locationList, OutputStream outputStream) throws JAXBException {
+        KMLWriter writer = createKMLWriter(contextPath, placemarkColorHex);
+        writeLocations(writer, contextPath, locationList);
         writer.write(false, outputStream);
     }
 }

@@ -471,7 +471,7 @@
         <put-attribute name="title" value="Edit Users"/>
         <put-attribute name="content" value="/WEB-INF/jsp/bdrs/admin/userManagement/editUsers.jsp"/>
     </definition>
-	
+    
 	<!-- Taxon lib import -->
 	<definition name="taxonLibSelectImport" extends="admin-template">
         <put-attribute name="title" value="TaxonLib Import"/>
@@ -502,5 +502,17 @@
     <definition name="bdrsLayerRow" template="/WEB-INF/jsp/bdrs/admin/map/bdrsLayerRow.jsp">
         <put-attribute name="bdrsLayer" type="object"/>
         <put-attribute name="index"/>
+    </definition>
+    
+    <!-- Index Scheduler -->
+    <definition name="dataIndexSchedule" extends="admin-template">
+        <put-attribute name="title" value="Edit Data Index Schedule"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/admin/index/dataIndexScheduler.jsp"/>
+        <put-attribute name="indexSchedule" type="object"/>
+    </definition>
+    <definition name="dataIndexScheduleList" extends="admin-template">
+        <put-attribute name="title" value="Add/Edit Data Index Schedule"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/admin/index/dataIndexListing.jsp"/>
+        <put-attribute name="indexSchedules" type="object"/>
     </definition>
 </tiles-definitions>

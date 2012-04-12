@@ -2,13 +2,16 @@ package au.com.gaiaresources.bdrs.service.facet.builder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONException;
 import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.model.facet.FacetDAO;
 import au.com.gaiaresources.bdrs.model.portal.Portal;
 import au.com.gaiaresources.bdrs.model.preference.Preference;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceCategory;
+import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.facet.Facet;
 
 /**
@@ -17,13 +20,13 @@ import au.com.gaiaresources.bdrs.service.facet.Facet;
  */
 public abstract class AbstractFacetBuilder<T extends Facet> implements FacetBuilder {
 
-    private Class<T> facetClass;
+    protected Class<? extends T> facetClass;
     
     /**
      * Creates a new instance of this class.
      * @param facetClass the class of facet that this builder shall create.
      */
-    public AbstractFacetBuilder(Class<T> facetClass) {
+    public AbstractFacetBuilder(Class<? extends T> facetClass) {
         this.facetClass = facetClass;
     }
     
@@ -104,4 +107,13 @@ public abstract class AbstractFacetBuilder<T extends Facet> implements FacetBuil
         
         return configArray;
     }
+    
+    @Override
+    public Facet createFacet(FacetDAO dao, Map<String, String[]> parameterMap,
+            User user, JSONObject userParams, Class applyClass) {
+        return createFacet(dao, parameterMap, user, userParams);
+    }
+
+    protected abstract Facet createFacet(FacetDAO dao, Map<String, String[]> parameterMap,
+            User user, JSONObject userParams);
 }

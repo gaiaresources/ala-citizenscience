@@ -426,7 +426,7 @@ public class GeoMapLayerController extends AbstractController {
         User accessingUser = getRequestContext().getUser();
         List<Record> recordList = getRecordsToDisplay(mapLayerIds, accessingUser, null);
         RecordDownloadFormat format = RecordDownloadFormat.valueOf(downloadFormat);
-        RecordDownloadWriter.write(getRequestContext().getHibernate(),
+        new RecordDownloadWriter().write(getRequestContext().getHibernate(),
                                    request, response, 
                                    new ScrollableRecordsList(recordList), 
                                    format, accessingUser);

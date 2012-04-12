@@ -1,17 +1,18 @@
 package au.com.gaiaresources.bdrs.service.facet;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import edu.emory.mathcs.backport.java.util.Arrays;
-
 import au.com.gaiaresources.bdrs.db.impl.HqlQuery;
 import au.com.gaiaresources.bdrs.db.impl.Predicate;
-import au.com.gaiaresources.bdrs.model.record.RecordDAO;
-import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.util.Pair;
 import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.model.facet.FacetDAO;
+import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.service.facet.option.LocationAttributeFacetOption;
+import au.com.gaiaresources.bdrs.util.Pair;
+import edu.emory.mathcs.backport.java.util.Arrays;
 
 /**
  * Creates a {@link Facet} for showing records by location attribute values.
@@ -34,9 +35,9 @@ public class LocationAttributeFacet extends AbstractFacet {
     /**
      * The name of the attribute that this facet will filter by.
      */
-    private String attributeName;
+    protected String attributeName;
     
-    private int facetIndex;
+    protected int facetIndex;
     
     /**
      * Creates an instance of this facet.
@@ -47,14 +48,14 @@ public class LocationAttributeFacet extends AbstractFacet {
      * @param user the user that is accessing the records.
      * @param userParams user configurable parameters provided in via the {@link Preference)}.
      */
-    public LocationAttributeFacet(String defaultDisplayName, RecordDAO recordDAO, Map<String, String[]> parameterMap, User user,
+    public LocationAttributeFacet(String defaultDisplayName, FacetDAO facetDAO, Map<String, String[]> parameterMap, User user,
             JSONObject userParams, int facetIndex) {
         // The query param name being passed to the super constructor here is
         // just a placeholder. We need to check if the 'attributeName' attribute
         // exists in the userParms. If it does not exist, the facet will be
         // deactivated.
         super(String.format(QUERY_PARAM_NAME, userParams.optString(JSON_ATTRIBUTE_NAME_KEY, "")), 
-              defaultDisplayName, userParams);
+              userParams.optString(JSON_ATTRIBUTE_NAME_KEY, defaultDisplayName), userParams);
         
         if(userParams.has(JSON_ATTRIBUTE_NAME_KEY)) {
             this.attributeName = userParams.getString(JSON_ATTRIBUTE_NAME_KEY);
@@ -72,7 +73,7 @@ public class LocationAttributeFacet extends AbstractFacet {
             // later it should retrieve attribute objects vs count
             // and determine which type of attribute options to add 
             // based on the type of the attribute
-            for(Pair<String, Long> pair : recordDAO.getDistinctLocationAttributeValues(null, this.attributeName, userParams.optInt("optionCount"))) {
+            for(Pair<String, Long> pair : facetDAO.getDistinctLocationAttributeValues(null, this.attributeName, userParams.optInt("optionCount"))) {
                 super.addFacetOption(new LocationAttributeFacetOption(pair.getFirst(), pair.getSecond(), selectedOptions, facetIndex));
             }
         } else {
@@ -81,7 +82,7 @@ public class LocationAttributeFacet extends AbstractFacet {
             log.info(String.format("Deactivating the LocationAttributeFacet because the JSON configuration is missing the \"%s\" attribute.", JSON_ATTRIBUTE_NAME_KEY));
         }
     }
-
+    
     @Override
     public Predicate getPredicate() {
         Predicate facetPredicate = super.getPredicate();

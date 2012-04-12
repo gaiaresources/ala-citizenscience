@@ -27,6 +27,8 @@ import org.hibernate.search.annotations.Store;
 import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
 import au.com.gaiaresources.bdrs.file.FileService;
+import au.com.gaiaresources.bdrs.model.index.IndexingConstants;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 @Entity
 @FilterDef(name=PortalPersistentImpl.PORTAL_FILTER_NAME, parameters=@ParamDef( name="portalId", type="integer" ) )
@@ -58,7 +60,7 @@ public class TaxonGroup extends PortalPersistentImpl {
      * Get the name of this taxon group.
      * @return <code>String</code>.
      */
-    @Field(index = org.hibernate.search.annotations.Index.TOKENIZED, store = Store.YES, analyzer=@Analyzer(impl=StandardAnalyzer.class))
+    @Field(index = org.hibernate.search.annotations.Index.TOKENIZED, store = Store.YES, analyzer=@Analyzer(definition=IndexingConstants.FULL_TEXT_ANALYZER))
     public String getName() {
         return name;
     }

@@ -19,9 +19,14 @@ import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.ParamDef;
+import org.hibernate.search.annotations.Analyzer;
+import org.hibernate.search.annotations.Field;
+import org.hibernate.search.annotations.Store;
 
 import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
+import au.com.gaiaresources.bdrs.model.index.IndexingConstants;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 
 /**
@@ -79,7 +84,7 @@ public class AttributeValue extends AbstractTypedAttributeValue implements Typed
      */
     @CompactAttribute
     @ManyToOne
-    @JoinColumn(name = "ATTRIBUTE_ID", nullable = false)    
+    @JoinColumn(name = "ATTRIBUTE_ID", nullable = false)
     public Attribute getAttribute() {
         return attribute;
     }
@@ -118,6 +123,7 @@ public class AttributeValue extends AbstractTypedAttributeValue implements Typed
     @Column(name = "STRING_VALUE")
     @Index(name="attribute_value_string_value_index")
     @Lob  // makes a 'text' type in the database
+    @Field(index = org.hibernate.search.annotations.Index.TOKENIZED, store = Store.YES, analyzer=@Analyzer(definition=IndexingConstants.FULL_TEXT_ANALYZER))
     public String getStringValue() {
         return stringValue;
     }

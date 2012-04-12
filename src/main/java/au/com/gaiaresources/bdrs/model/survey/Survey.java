@@ -12,6 +12,8 @@ import javax.persistence.AttributeOverride;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -184,6 +186,9 @@ public class Survey extends PortalPersistentImpl implements Comparable<Survey> {
     @CompactAttribute
     @ManyToMany(fetch = FetchType.LAZY)
     @IndexColumn(name = "pos")
+    @JoinTable(name = "survey_location", 
+               joinColumns = { @JoinColumn(name="survey_survey_id") },
+               inverseJoinColumns = { @JoinColumn(name="locations_location_id") } )
     public List<Location> getLocations() {
         return locations;
     }

@@ -2,7 +2,7 @@ package au.com.gaiaresources.bdrs.service.facet.builder;
 
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
-import au.com.gaiaresources.bdrs.model.record.RecordDAO;
+import au.com.gaiaresources.bdrs.model.facet.FacetDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.facet.Facet;
@@ -56,7 +56,7 @@ public class VisibilityFacetBuilder extends AbstractFacetBuilder<VisibilityFacet
     }
 
     @Override
-    public Facet createFacet(RecordDAO recordDAO,
+    public Facet createFacet(FacetDAO recordDAO,
             Map<String, String[]> parameterMap, User user, JSONObject userParams) {
         
         return new VisibilityFacet(DEFAULT_DISPLAY_NAME, recordDAO, parameterMap, user, userParams);

@@ -87,6 +87,11 @@ public class LocationAttributeSurveyCreator {
      * Total number of records created for each indicator species.
      */
     private int taxonRecordCount;
+
+    /**
+     * Total number of locations created by setup.
+     */
+    private int locationCount;
     private static final int DEFAULT_MAX_IMAGE_WIDTH = 1024;
     private static final int DEFAULT_MAX_IMAGE_HEIGHT = 768;
     private static final int DEFAULT_MIN_IMAGE_WIDTH = 800;
@@ -232,11 +237,16 @@ public class LocationAttributeSurveyCreator {
         String emailAddr = "abigail.ambrose@example.com";
         String encodedPassword = passwordEncoder.encodePassword("password", null);
         String registrationKey = passwordEncoder.encodePassword(au.com.gaiaresources.bdrs.util.StringUtils.generateRandomString(10, 50), emailAddr);
-
+        locationCount = 0;
+        
         user = userDAO.createUser("testuser", "Abigail", "Ambrose", emailAddr, encodedPassword, registrationKey, new String[]{Role.USER});
-
+        createUserLocation(user);
+        locationCount++;
+        
         admin = userDAO.getUser("admin");
-
+        createUserLocation(admin);
+        locationCount++;
+        
         int surveyIndex = 1;
         for (CensusMethod method : new CensusMethod[]{methodA, methodB, methodC, null}) {
             List<Attribute> attributeList = new ArrayList<Attribute>();
@@ -337,6 +347,14 @@ public class LocationAttributeSurveyCreator {
         mapViewDefault.setValue(Boolean.toString(true));
     }
 
+    private Location createUserLocation(User user) {
+        Location loc = new Location();
+        loc.setName(String.format("Location %s", user.getName()));
+        loc.setLocation(locationService.createPoint(-40.58, 153.1));
+        loc = locationDAO.save(loc);
+        return loc;
+    }
+
     /**
      * Creates locations for the specified survey.
      *
@@ -345,10 +363,10 @@ public class LocationAttributeSurveyCreator {
      *         * @Exception thrown if there has been an error saving image or file data for a location
      */
     private List<Location> createLocations(Survey survey) throws IOException {
-
         List<Location> locList = new ArrayList<Location>();
         for (int i = 0; i < 3; i++) {
             locList.add(createLocation(survey, i));
+            locationCount++;
         }
         return locList;
     }
@@ -808,5 +826,9 @@ public class LocationAttributeSurveyCreator {
 
     public User getUser() {
         return user;
+    }
+    
+    public int getLocationCount() {
+        return locationCount;
     }
 }

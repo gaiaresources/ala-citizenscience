@@ -22,12 +22,18 @@ import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.IndexColumn;
 import org.hibernate.annotations.ParamDef;
+import org.hibernate.search.annotations.Analyzer;
+import org.hibernate.search.annotations.Field;
+import org.hibernate.search.annotations.Fields;
+import org.hibernate.search.annotations.Store;
 
 import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
 import au.com.gaiaresources.bdrs.annotation.Sensitive;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
+import au.com.gaiaresources.bdrs.model.index.IndexingConstants;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 /**
  * A <code>User</code> can signon and access secure areas of the application.
@@ -66,6 +72,7 @@ public class User extends PortalPersistentImpl implements Comparable<User> {
      */
     @CompactAttribute
     @Column(name = "EMAIL_ADDRESS", nullable = false)
+    @Field(index = org.hibernate.search.annotations.Index.TOKENIZED, store = Store.YES, analyzer=@Analyzer(definition=IndexingConstants.FULL_TEXT_ANALYZER))
     public String getEmailAddress() {
         return emailAddress;
     }
@@ -81,6 +88,7 @@ public class User extends PortalPersistentImpl implements Comparable<User> {
      */
     @CompactAttribute
     @Column(name = "FIRST_NAME", nullable = false)
+    @Field(index = org.hibernate.search.annotations.Index.TOKENIZED, store = Store.YES, analyzer=@Analyzer(definition=IndexingConstants.FULL_TEXT_ANALYZER))
     public String getFirstName() {
         return firstName;
     }
@@ -96,6 +104,7 @@ public class User extends PortalPersistentImpl implements Comparable<User> {
      */
     @CompactAttribute
     @Column(name = "LAST_NAME", nullable = false)
+    @Field(index = org.hibernate.search.annotations.Index.TOKENIZED, store = Store.YES, analyzer=@Analyzer(definition=IndexingConstants.FULL_TEXT_ANALYZER))
     public String getLastName() {
         return lastName;
     }
@@ -126,6 +135,7 @@ public class User extends PortalPersistentImpl implements Comparable<User> {
      */
     @CompactAttribute
     @Column(name = "NAME", nullable = false)
+    @Field(index = org.hibernate.search.annotations.Index.TOKENIZED, store = Store.YES, analyzer=@Analyzer(definition=IndexingConstants.FULL_TEXT_ANALYZER))
     public String getName() {
         return name;
     }

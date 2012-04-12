@@ -3,7 +3,7 @@ package au.com.gaiaresources.bdrs.service.facet.builder;
 import java.util.Map;
 
 import au.com.gaiaresources.bdrs.json.JSONObject;
-import au.com.gaiaresources.bdrs.model.record.RecordDAO;
+import au.com.gaiaresources.bdrs.model.facet.FacetDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.facet.Facet;
 import au.com.gaiaresources.bdrs.service.facet.LocationAttributeFacet;
@@ -34,10 +34,10 @@ public class LocationAttributeFacetBuilder extends AbstractFacetBuilder<Location
     }
 
     @Override
-    public Facet createFacet(RecordDAO recordDAO, Map<String, String[]> parameterMap, User user, JSONObject userParams) {
-        return new LocationAttributeFacet(DEFAULT_DISPLAY_NAME, recordDAO, parameterMap, user, userParams, facetIndex++);
+    public Facet createFacet(FacetDAO facetDAO, Map<String, String[]> parameterMap, User user, JSONObject userParams) {
+        return new LocationAttributeFacet(DEFAULT_DISPLAY_NAME, facetDAO, parameterMap, user, userParams, facetIndex++);
     }
-
+    
     @Override
     public String getPreferenceDescription() {
         return buildPreferenceDescription(FACET_DESCRIPTION, getFacetParameterDescription());

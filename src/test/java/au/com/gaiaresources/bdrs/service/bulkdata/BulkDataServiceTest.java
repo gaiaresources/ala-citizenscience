@@ -167,9 +167,13 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 		locAttrVal.setStringValue("location attribute value");
 		locAttrVal = attrDAO.save(locAttrVal);
 		loc.getAttributes().add(locAttrVal);
+		List<Survey> surveyList = new ArrayList<Survey>(1);
+		surveyList.add(survey);
+		loc.setSurveys(surveyList);
 		loc = locationDAO.save(loc);
 		survey.getLocations().add(loc);
-
+		//survey = surveyDAO.save(survey);
+		
 		taxongroup = taxaDAO.createTaxonGroup("a taxon group", false, false,
 				false, false, false, false);
 		species = taxaDAO.createIndicatorSpecies("hectus workus",

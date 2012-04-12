@@ -27,12 +27,13 @@ import au.com.gaiaresources.bdrs.controller.report.ReportController;
 import au.com.gaiaresources.bdrs.controller.report.python.PyBDRS;
 import au.com.gaiaresources.bdrs.controller.report.python.PyResponse;
 import au.com.gaiaresources.bdrs.controller.report.python.model.PyScrollableRecords;
+import au.com.gaiaresources.bdrs.db.ScrollableResults;
 import au.com.gaiaresources.bdrs.file.FileService;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
 import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
+import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
-import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
 import au.com.gaiaresources.bdrs.model.report.Report;
 import au.com.gaiaresources.bdrs.model.report.ReportCapability;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
@@ -118,7 +119,7 @@ public class ReportService {
     public ModelAndView renderReport(HttpServletRequest request,
                                      HttpServletResponse response,
                                      Report report,
-                                     ScrollableRecords sc) {
+                                     ScrollableResults<Record> sc) {
     	
     	PyBDRS bdrs = null;
         try {

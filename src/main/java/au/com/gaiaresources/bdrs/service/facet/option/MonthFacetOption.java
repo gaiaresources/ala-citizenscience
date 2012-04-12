@@ -1,4 +1,4 @@
-package au.com.gaiaresources.bdrs.service.facet;
+package au.com.gaiaresources.bdrs.service.facet.option;
 
 import java.util.ArrayList;
 import java.util.Collections;

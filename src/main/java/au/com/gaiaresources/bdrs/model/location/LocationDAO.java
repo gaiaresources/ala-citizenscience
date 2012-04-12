@@ -3,18 +3,18 @@ package au.com.gaiaresources.bdrs.model.location;
 import java.util.Collection;
 import java.util.List;
 
-import org.hibernate.classic.Session;
+import org.hibernate.Session;
 
-import au.com.gaiaresources.bdrs.db.TransactionDAO;
 import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
 import au.com.gaiaresources.bdrs.db.impl.PaginationFilter;
+import au.com.gaiaresources.bdrs.model.facet.FacetDAO;
 import au.com.gaiaresources.bdrs.model.region.Region;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.user.User;
 
 import com.vividsolutions.jts.geom.Point;
 
-public interface LocationDAO extends TransactionDAO {
+public interface LocationDAO extends FacetDAO {
     /**
      * Get all of the <code>Location</code>s defined for a <code>User</code>.
      * @param user <code>User</code>.
@@ -133,7 +133,7 @@ public interface LocationDAO extends TransactionDAO {
     * @param sesh the session to use to retrieve the location.
     * @return the location associated with the specified primary key.
     */
-    Location getLocation(org.hibernate.Session sesh, int pk);
+    Location getLocation(Session sesh, int pk);
 
     /**
      * Retrieves a list of locations with the specified primary keys
@@ -184,5 +184,11 @@ public interface LocationDAO extends TransactionDAO {
      * @return the {@link Location} that was synchronized with the specified
      * client identifier.
      */
-    Location getLocationByClientID(org.hibernate.Session sesh, String clientID);
-    }
+    Location getLocationByClientID(Session sesh, String clientID);
+
+    /**
+     * Gets all of the locations.
+     * @return
+     */
+    public List<Location> getLocations();
+}

@@ -90,6 +90,8 @@ public class ContentService {
         /* In content package resources */
         tmp.put("admin/home", CONTENT_PACKAGE + "admin_home.vm");
         tmp.put("admin/manageUsers", CONTENT_PACKAGE + "admin_manageUsers.vm");
+        tmp.put("admin/manageIndex", CONTENT_PACKAGE + "admin_manageIndex.vm");
+        tmp.put("admin/editIndexes", CONTENT_PACKAGE + "admin_editIndex.vm");
         tmp.put("admin/approveUsers", CONTENT_PACKAGE + "admin_approveUsers.vm");
         tmp.put("admin/groupEdit/members", CONTENT_PACKAGE + "admin_groupEdit_members.vm");
         tmp.put("admin/groupEdit/groups", CONTENT_PACKAGE + "admin_groupEdit_groups.vm");

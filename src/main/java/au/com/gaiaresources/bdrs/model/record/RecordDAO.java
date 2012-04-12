@@ -9,29 +9,26 @@ import java.util.Set;
 
 import org.hibernate.Session;
 
-import au.com.gaiaresources.bdrs.db.TransactionDAO;
 import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
 import au.com.gaiaresources.bdrs.db.impl.PaginationFilter;
 import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.db.impl.SortingCriteria;
+import au.com.gaiaresources.bdrs.model.facet.FacetDAO;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.record.impl.RecordFilter;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValueDAO;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.util.Pair;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
 
-public interface RecordDAO extends TransactionDAO {
+public interface RecordDAO extends FacetDAO {
 	Record createRecord(Location userLocation, IndicatorSpecies species,
 			Date when, Long time, String notes, Boolean firstAppearance,
 			Boolean lastAppearance, String behaviour, String habitat,
@@ -322,61 +319,6 @@ public interface RecordDAO extends TransactionDAO {
     PagedQueryResult<Record> getChildRecords(PaginationFilter filter, Integer parentId, Integer censusMethodId, User accessingUser);
 
     /**
-     * Queries all records for a list of distinct taxon groups and the number of
-     * records associated with that taxon group filtered by user.
-     * @param sesh the session to use for this query.
-     * @return the list of distinct taxon groups and record counts.
-     */
-    List<Pair<TaxonGroup, Long>> getDistinctTaxonGroups(Session sesh);
-
-    /**
-     * Queries all records for a list of distinct surveys and the number of
-     * records associated with that survey filtered by user.
-     * @param sesh the session to use for this query.
-     * @return the list of distinct surveys and record counts.
-     */
-    List<Pair<Survey, Long>> getDistinctSurveys(Session sesh);
-
-    /**
-     * Queries all records for a list of distinct months and the count of records
-     * for that month filtered by user.
-     * @param sesh the session to use for this query.
-     * @return the list of distinct months and the count of records that match.
-     */
-    List<Pair<Long, Long>> getDistinctMonths(Session sesh);
-
-    /**
-     * Queries all records for a list of distinct years and the count of records
-     * for that month filtered by user.
-     * @param sesh the session to use for this query.
-     * @return the list of distinct months and the count of records that match.
-     */
-    List<Pair<Long, Long>> getDistinctYears(Session sesh);
-    
-    /**
-     * Queries all records for a list of distinct census method types
-     * and the count of records for each type filtered by user
-     * @param sesh the session to use for this query.
-     * @return the list of distinct census methods and count of records that match.
-     */
-    List<Pair<String, Long>> getDistinctCensusMethodTypes(Session sesh);
-
-    /**
-     * Counts all Records which do not have a Census Method.
-     * @return the number of records without a census method.
-     */
-    Integer countNullCensusMethodRecords();
-
-    /**
-     * Queries all records for a list of distinct attribute types
-     * and the count of records for each type
-     * @param sesh the session to use for this query.
-     * @return the list of distinct attribute types and count of records that match.
-     */
-    List<Pair<String, Long>> getDistinctAttributeTypes(Session sesh, AttributeType[] attributeTypes);
-            
-
-    /**
      * spatial query for records
      * 
      * @param mapLayerId - the map layer id
@@ -411,52 +353,6 @@ public interface RecordDAO extends TransactionDAO {
      * @return A count of all records that the user has access to.
      */
     public Integer countAllRecords(User accessor);
-
-    /**
-     * Queries all records for a list of distinct locations and the count of records
-     * for each location filtered by user.
-     * @param sesh the session to use for this query.    
-     * @param limit an optional limit to the number of results that are returned,
-     *              ignored if it is less than 0
-     * @return the list of distinct months and the count of records that match.
-     */
-    public List<Pair<Location, Long>> getDistinctLocations(Session sesh, int limit);
-
-    /**
-     * Queries all records for a list of distinct users and the count of records
-     * for each user.
-     * @param sesh the session to use for this query.
-     * @return the list of distinct users and the count of records that match.
-     */
-    public List<Pair<User, Long>> getDistinctUsers(Session sesh);
-
-    /**
-     * Queries all records for an attribute with the given attributeName.
-     * @param sesh the session to use for this query.
-     * @param attributeName the name of the attribute for the query
-     * @param limit the number of results to return
-     * @return a list of distinct attribute value names and the count of records that match each one.
-     */
-    public List<Pair<String, Long>> getDistinctAttributeValues(Session sesh, String attributeName, int limit);
-
-    /**
-     * Queries all locations for an attribute with the given attributeName.
-     * @param sesh the session to use for this query.
-     * @param attributeName the name of the attribute for the query
-     * @param limit the number of results to return
-     * @return a list of distinct attribute value names and the count of records that match each one.
-     */
-    List<Pair<String, Long>> getDistinctLocationAttributeValues(Session sesh, String attributeName, int limit);
-
-    /**
-     * Queries all records to determine how many records exist with each of the valid RecordVisibility values.
-     * <em>This method relies on an appropriate Record filter to enforce access control rules such as
-     * record visibility and held status.</em>
-     *
-     * @return a list of distinct RecordVisibilities and the count of records that have that visibility.
-     *
-     */
-    List<Pair<RecordVisibility, Long>> getDistinctRecordVisibilities();
 
     /**
      * Returns a list of public records that intersect the specified geometry.

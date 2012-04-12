@@ -3,7 +3,7 @@ package au.com.gaiaresources.bdrs.service.facet.builder;
 import java.util.Map;
 
 import au.com.gaiaresources.bdrs.json.JSONObject;
-import au.com.gaiaresources.bdrs.model.record.RecordDAO;
+import au.com.gaiaresources.bdrs.model.facet.FacetDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.facet.Facet;
 import au.com.gaiaresources.bdrs.service.facet.ModerationFacet;
@@ -35,7 +35,7 @@ public class ModerationFacetBuilder extends AbstractFacetBuilder<ModerationFacet
      * @see au.com.gaiaresources.bdrs.service.facet.builder.FacetBuilder#createFacet(au.com.gaiaresources.bdrs.model.record.RecordDAO, java.util.Map, au.com.gaiaresources.bdrs.model.user.User, net.sf.json.JSONObject)
      */
     @Override
-    public Facet createFacet(RecordDAO recordDAO, Map<String, String[]> parameterMap, User user, JSONObject userParams) {
+    public Facet createFacet(FacetDAO recordDAO, Map<String, String[]> parameterMap, User user, JSONObject userParams) {
         return new ModerationFacet(DEFAULT_DISPLAY_NAME, recordDAO, parameterMap, user, userParams);
     }
 

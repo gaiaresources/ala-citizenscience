@@ -55,14 +55,35 @@
         </put-list-attribute>
     </definition>
 
-    <!-- Advanced Review Sightings -->
-    <definition name="advancedReview" extends="user-template">
+    <!-- Advanced Review Sightings/Locations -->
+    <definition name="advancedReview" template="/WEB-INF/jsp/bdrs/user/review/sightings/advancedReview.jsp">
         <put-attribute name="title" value="Sightings"/>
-        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/review/sightings/advancedReview.jsp"/>
         <put-attribute name="maps" value="true"/>
         <put-list-attribute name="customJavaScript">
             <add-attribute>bdrs/review/downloadSightingsWidget.js</add-attribute>
+            <add-attribute>advancedReview.js</add-attribute>
+        </put-list-attribute>
+    </definition>
+    
+    <definition name="advancedReviewRecords" extends="user-template">
+        <put-attribute name="title" value="Sightings"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/review/sightings/advancedReviewRecords.jsp"/>
+        <put-attribute name="maps" value="true"/>
+        <put-list-attribute name="customJavaScript">
+            <add-attribute>bdrs/review/downloadSightingsWidget.js</add-attribute>
+            <add-attribute>advancedReview.js</add-attribute>
             <add-attribute>advancedReviewSightings.js</add-attribute>
+        </put-list-attribute>
+    </definition>
+    
+    <definition name="advancedReviewLocations" extends="user-template">
+        <put-attribute name="title" value="Sightings"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/review/sightings/advancedReviewLocations.jsp"/>
+        <put-attribute name="maps" value="true"/>
+        <put-list-attribute name="customJavaScript">
+            <add-attribute>bdrs/review/downloadSightingsWidget.js</add-attribute>
+            <add-attribute>advancedReview.js</add-attribute>
+            <add-attribute>advancedReviewLocations.js</add-attribute>
         </put-list-attribute>
     </definition>
     

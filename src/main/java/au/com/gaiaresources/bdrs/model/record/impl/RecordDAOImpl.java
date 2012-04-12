@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,6 +39,7 @@ import au.com.gaiaresources.bdrs.db.impl.Predicate;
 import au.com.gaiaresources.bdrs.db.impl.QueryPaginator;
 import au.com.gaiaresources.bdrs.db.impl.SortingCriteria;
 import au.com.gaiaresources.bdrs.geometry.GeometryBuilder;
+import au.com.gaiaresources.bdrs.model.facet.FacetDAO;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.record.Record;
@@ -806,11 +808,35 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         return results;
     }
 
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.facet.FacetDAO#getDistinctLocations(org.hibernate.Session, int)
+     */
     @Override
     public List<Pair<Location, Long>> getDistinctLocations(Session sesh, int limit) {
+        return getDistinctLocations(sesh, limit, null);
+    }
+    
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.facet.FacetDAO#getDistinctLocations(org.hibernate.Session, int, java.lang.Integer[])
+     */
+    @Override
+    public List<Pair<Location, Long>> getDistinctLocations(Session sesh, int limit, Integer[] selectedIds) {
+        // first get the matching locations for the selected ids
+        // Should get back a list of Object[]
+        // Each Object[] has 2 items. Object[0] == location, Object[1] == record count
+        List<Pair<Location, Long>> results = getSelectedLocations(sesh, selectedIds);
+        
+        // then get the locations joined to records that are not in the list of selected ids
+        // this is done so that locations that are not selected, but also have records
+        // will be listed in the count
         StringBuilder b = new StringBuilder();
         b.append(" select l, count(r)");
         b.append(" from Record as r join r.location as l");
+        if (selectedIds != null && selectedIds.length > 0) {
+            b.append(" where l.id not in (:locids)");
+        }
         b.append(" group by l.id");
         for(PropertyDescriptor pd : BeanUtils.getPropertyDescriptors(Location.class)) {
             if(!"class".equals(pd.getName()) && 
@@ -822,27 +848,82 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         }
         b.append(" order by 2 desc, l.weight asc, l.name asc");
 
-        
         if(sesh == null) {
             sesh = super.getSessionFactory().getCurrentSession();
         }
         Query q = sesh.createQuery(b.toString());
-
+        if (selectedIds != null && selectedIds.length > 0) {
+            q.setParameterList("locids", selectedIds);
+        }
         if(limit > 0) {
             q.setMaxResults(limit);
         }
         
         // Should get back a list of Object[]
         // Each Object[] has 2 items. Object[0] == location, Object[1] == record count
-        List<Pair<Location, Long>> results = 
-            new ArrayList<Pair<Location, Long>>();
         for(Object rowObj : q.list()) {
             Object[] row = (Object[])rowObj;
             results.add(new Pair<Location, Long>((Location)row[0], (Long)row[1]));
         }
+        
+        Collections.sort(results, 
+                         new Comparator<Pair<Location, Long>>() {
+                            @Override
+                            public int compare(Pair<Location, Long> o1,
+                                    Pair<Location, Long> o2) {
+                                // reverse sort the counts
+                                return o2.getSecond().compareTo(o1.getSecond());
+                            }
+                         }
+        );
         return results;
     }
     
+    /**
+     * Returns a list of Locations with the specified ids and their corresponding count of records.
+     * @param sesh
+     * @param selectedIds
+     * @return
+     */
+    private List<Pair<Location, Long>> getSelectedLocations(Session sesh,
+            Integer[] selectedIds) {
+        // first get the matching locations for the selected ids
+        // Should get back a list of Object[]
+        // Each Object[] has 2 items. Object[0] == location, Object[1] == record count
+        List<Pair<Location, Long>> results = 
+            new ArrayList<Pair<Location, Long>>();
+        if (selectedIds != null && selectedIds.length > 0) {
+            StringBuilder b = new StringBuilder();
+            b.append(" select l, count(r)");
+            b.append(" from Record as r join r.location as l where l.id in (:locids)");
+            b.append(" group by l.id");
+            for(PropertyDescriptor pd : BeanUtils.getPropertyDescriptors(Location.class)) {
+                if(!"class".equals(pd.getName()) && 
+                    !"id".equals(pd.getName()) && 
+                    (pd.getReadMethod().getAnnotation(Transient.class) == null) &&
+                    !(Iterable.class.isAssignableFrom((pd.getReadMethod().getReturnType())))) {
+                    b.append(", l."+pd.getName());
+                }
+            }
+            b.append(" order by 2 desc, l.weight asc, l.name asc");
+            
+            if(sesh == null) {
+                sesh = super.getSessionFactory().getCurrentSession();
+            }
+            Query q = sesh.createQuery(b.toString());
+            q.setParameterList("locids", selectedIds);
+            for(Object rowObj : q.list()) {
+                Object[] row = (Object[])rowObj;
+                results.add(new Pair<Location, Long>((Location)row[0], (Long)row[1]));
+            }
+        }
+        return results;
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.facet.FacetDAO#getDistinctUsers(org.hibernate.Session)
+     */
     @Override
     public List<Pair<User, Long>> getDistinctUsers(Session sesh) {
         StringBuilder b = new StringBuilder();
@@ -879,6 +960,10 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         return results;
     }
     
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.facet.FacetDAO#getDistinctSurveys(org.hibernate.Session)
+     */
     @Override
     public List<Pair<Survey, Long>> getDistinctSurveys(Session sesh) {
         StringBuilder b = new StringBuilder();
@@ -912,6 +997,10 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         return results;
     }
     
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.facet.FacetDAO#getDistinctMonths(org.hibernate.Session)
+     */
     @Override
     public List<Pair<Long, Long>> getDistinctMonths(Session sesh) {
         StringBuilder b = new StringBuilder();
@@ -938,7 +1027,10 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         return results;
     }
     
-    
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.facet.FacetDAO#getDistinctYears(org.hibernate.Session)
+     */
     @Override
     public List<Pair<Long, Long>> getDistinctYears(Session sesh) {
         StringBuilder b = new StringBuilder();
@@ -966,6 +1058,10 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         return results;
     }
 
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.facet.FacetDAO#getDistinctCensusMethodTypes(org.hibernate.Session)
+     */
     @Override
     public List<Pair<String, Long>> getDistinctCensusMethodTypes(Session sesh) {
         StringBuilder b = new StringBuilder();
@@ -989,6 +1085,10 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         return results;
     }
 
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.facet.FacetDAO#getDistinctAttributeTypes(org.hibernate.Session, au.com.gaiaresources.bdrs.model.taxa.AttributeType[])
+     */
     @Override
     public List<Pair<String, Long>> getDistinctAttributeTypes(Session sesh, AttributeType[] attributeTypes) {
         
@@ -1019,6 +1119,10 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         return results;
     }
 
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.facet.FacetDAO#getDistinctAttributeValues(org.hibernate.Session, java.lang.String, int)
+     */
     @Override
     public List<Pair<String, Long>> getDistinctAttributeValues(Session sesh, String attributeName, int limit) {
         
@@ -1050,6 +1154,10 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         return results;
     }
     
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.facet.FacetDAO#getDistinctLocationAttributeValues(org.hibernate.Session, java.lang.String, int)
+     */
     @Override
     public List<Pair<String, Long>> getDistinctLocationAttributeValues(Session sesh, String attributeName, int limit) {
         

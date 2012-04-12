@@ -34,6 +34,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import au.com.gaiaresources.bdrs.controller.map.RecordDownloadFormat;
 import au.com.gaiaresources.bdrs.controller.map.RecordDownloadWriter;
+import au.com.gaiaresources.bdrs.db.ScrollableResults;
 import au.com.gaiaresources.bdrs.db.impl.SortOrder;
 import au.com.gaiaresources.bdrs.db.impl.SortingCriteria;
 import au.com.gaiaresources.bdrs.model.record.Record;
@@ -351,7 +352,7 @@ public class MySightingsController extends SightingsController {
             array.add(rec_flatten);
             
             // evict to ensure garbage collection
-            if (++count % ScrollableRecords.RECORD_BATCH_SIZE == 0) {
+            if (++count % ScrollableResults.RESULTS_BATCH_SIZE == 0) {
                 sesh.clear();
             }
             
@@ -399,7 +400,7 @@ public class MySightingsController extends SightingsController {
         RecordFilter filter = getRecordFilter(surveyId, taxonGroupId, taxonSearch, startDate, endDate, user, userRecordsOnly, limit, false);
         ScrollableRecords sr = getScrollableRecords(filter, sortBy, sortOrder);
         
-        RecordDownloadWriter.write(getRequestContext().getHibernate(), request, response, sr, RecordDownloadFormat.KML, user);
+        new RecordDownloadWriter().write(getRequestContext().getHibernate(), request, response, sr, RecordDownloadFormat.KML, user);
     }
     
     /**

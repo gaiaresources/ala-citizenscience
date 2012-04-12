@@ -27,6 +27,9 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.facet.*;
+import au.com.gaiaresources.bdrs.service.facet.option.CensusMethodTypeFacetOption;
+import au.com.gaiaresources.bdrs.service.facet.record.RecordSurveyFacet;
+import au.com.gaiaresources.bdrs.service.facet.record.RecordUserFacet;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.util.KMLUtils;
 import junit.framework.Assert;
@@ -46,6 +49,8 @@ import java.util.*;
 public class AdvancedReviewSightingsControllerTest extends
         AbstractControllerTest {
 
+    private static final String ADVANCED_REVIEW_VIEW_NAME = "advancedReviewRecords";
+    
     @Autowired
     private SurveyDAO surveyDAO;
     @Autowired
@@ -214,7 +219,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndView mv = handle(request, response);
         getRequestContext().getHibernate().flush();
         getRequestContext().getHibernate().setFlushMode(FlushMode.AUTO);
-        ModelAndViewAssert.assertViewName(mv, "advancedReview");
+        ModelAndViewAssert.assertViewName(mv, ADVANCED_REVIEW_VIEW_NAME);
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
@@ -246,7 +251,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndView mv = handle(request, response);
         getRequestContext().getHibernate().flush();
         getRequestContext().getHibernate().setFlushMode(FlushMode.AUTO);
-        ModelAndViewAssert.assertViewName(mv, "advancedReview");
+        ModelAndViewAssert.assertViewName(mv, ADVANCED_REVIEW_VIEW_NAME);
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
@@ -266,7 +271,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndView mv = handle(request, response);
         getRequestContext().getHibernate().flush();
         getRequestContext().getHibernate().setFlushMode(FlushMode.AUTO);
-        ModelAndViewAssert.assertViewName(mv, "advancedReview");
+        ModelAndViewAssert.assertViewName(mv, ADVANCED_REVIEW_VIEW_NAME);
 
         ModelAndViewAssert.assertModelAttributeValue(mv, AdvancedReviewSightingsController.MODEL_TABLE_VIEW_SELECTED, true);
         ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
@@ -327,7 +332,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndView mv = handle(request, response);
         getRequestContext().getHibernate().flush();
         getRequestContext().getHibernate().setFlushMode(FlushMode.AUTO);
-        ModelAndViewAssert.assertViewName(mv, "advancedReview");
+        ModelAndViewAssert.assertViewName(mv, ADVANCED_REVIEW_VIEW_NAME);
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
@@ -357,7 +362,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndView mv = handle(request, response);
         getRequestContext().getHibernate().flush();
         getRequestContext().getHibernate().setFlushMode(FlushMode.AUTO);
-        ModelAndViewAssert.assertViewName(mv, "advancedReview");
+        ModelAndViewAssert.assertViewName(mv, ADVANCED_REVIEW_VIEW_NAME);
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
@@ -511,7 +516,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndView mv = handle(request, response);
         getRequestContext().getHibernate().flush();
         getRequestContext().getHibernate().setFlushMode(FlushMode.AUTO);
-        ModelAndViewAssert.assertViewName(mv, "advancedReview");
+        ModelAndViewAssert.assertViewName(mv, ADVANCED_REVIEW_VIEW_NAME);
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
@@ -538,7 +543,7 @@ public class AdvancedReviewSightingsControllerTest extends
         request.setMethod("GET");
         request.setRequestURI("/review/sightings/advancedReview.htm");
 
-        List<Facet> facets = getFacetInstancesByType(SurveyFacet.class);
+        List<Facet> facets = getFacetInstancesByType(RecordSurveyFacet.class);
         for (Facet facet : facets) {
             for (Survey survey : surveyList) {
                 request.addParameter(facet.getInputName(), survey.getId().toString());
@@ -549,7 +554,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndView mv = handle(request, response);
         getRequestContext().getHibernate().flush();
         getRequestContext().getHibernate().setFlushMode(FlushMode.AUTO);
-        ModelAndViewAssert.assertViewName(mv, "advancedReview");
+        ModelAndViewAssert.assertViewName(mv, ADVANCED_REVIEW_VIEW_NAME);
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
@@ -568,7 +573,7 @@ public class AdvancedReviewSightingsControllerTest extends
     }
 
     private void deselectMyRecordsOnly() {
-        List<Facet> facets = getFacetInstancesByType(UserFacet.class);
+        List<Facet> facets = getFacetInstancesByType(RecordUserFacet.class);
         for (Facet facet : facets) {
             request.addParameter(facet.getInputName(), String.valueOf(-1));
         }
@@ -620,7 +625,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndView mv = handle(request, response);
         getRequestContext().getHibernate().flush();
         getRequestContext().getHibernate().setFlushMode(FlushMode.AUTO);
-        ModelAndViewAssert.assertViewName(mv, "advancedReview");
+        ModelAndViewAssert.assertViewName(mv, ADVANCED_REVIEW_VIEW_NAME);
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
@@ -662,7 +667,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndView mv = handle(request, response);
         getRequestContext().getHibernate().flush();
         getRequestContext().getHibernate().setFlushMode(FlushMode.AUTO);
-        ModelAndViewAssert.assertViewName(mv, "advancedReview");
+        ModelAndViewAssert.assertViewName(mv, ADVANCED_REVIEW_VIEW_NAME);
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
@@ -689,7 +694,7 @@ public class AdvancedReviewSightingsControllerTest extends
         request.setMethod("GET");
         request.setRequestURI("/review/sightings/advancedReview.htm");
 
-        List<Facet> facets = getFacetInstancesByType(UserFacet.class);
+        List<Facet> facets = getFacetInstancesByType(RecordUserFacet.class);
         for (Facet facet : facets) {
             for (User user : userList) {
                 request.addParameter(facet.getInputName(), user.getId().toString());
@@ -699,7 +704,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndView mv = handle(request, response);
         getRequestContext().getHibernate().flush();
         getRequestContext().getHibernate().setFlushMode(FlushMode.AUTO);
-        ModelAndViewAssert.assertViewName(mv, "advancedReview");
+        ModelAndViewAssert.assertViewName(mv, ADVANCED_REVIEW_VIEW_NAME);
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
@@ -740,7 +745,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndView mv = handle(request, response);
         getRequestContext().getHibernate().flush();
         getRequestContext().getHibernate().setFlushMode(FlushMode.AUTO);
-        ModelAndViewAssert.assertViewName(mv, "advancedReview");
+        ModelAndViewAssert.assertViewName(mv, ADVANCED_REVIEW_VIEW_NAME);
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
@@ -836,7 +841,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndView mv = handle(request, response);
         getRequestContext().getHibernate().flush();
         getRequestContext().getHibernate().setFlushMode(FlushMode.AUTO);
-        ModelAndViewAssert.assertViewName(mv, "advancedReview");
+        ModelAndViewAssert.assertViewName(mv, ADVANCED_REVIEW_VIEW_NAME);
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
@@ -877,7 +882,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndView mv = handle(request, response);
         getRequestContext().getHibernate().flush();
         getRequestContext().getHibernate().setFlushMode(FlushMode.AUTO);
-        ModelAndViewAssert.assertViewName(mv, "advancedReview");
+        ModelAndViewAssert.assertViewName(mv, ADVANCED_REVIEW_VIEW_NAME);
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
@@ -898,7 +903,7 @@ public class AdvancedReviewSightingsControllerTest extends
         request.setMethod("GET");
         request.setRequestURI("/review/sightings/advancedReview.htm");
 
-        List<Facet> facets = getFacetInstancesByType(UserFacet.class);
+        List<Facet> facets = getFacetInstancesByType(RecordUserFacet.class);
         for (Facet facet : facets) {
             request.addParameter(facet.getInputName(), String.valueOf(-1));
         }
@@ -906,7 +911,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndView mv = handle(request, response);
         getRequestContext().getHibernate().flush();
         getRequestContext().getHibernate().setFlushMode(FlushMode.AUTO);
-        ModelAndViewAssert.assertViewName(mv, "advancedReview");
+        ModelAndViewAssert.assertViewName(mv, ADVANCED_REVIEW_VIEW_NAME);
 
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "mapViewSelected");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);

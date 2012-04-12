@@ -48,6 +48,10 @@ public class XlsLocationRow extends StyledRowImpl {
         this.survey = survey;
     }
     
+    public XlsLocationRow(BulkDataReadWriteService bulkDataReadWriteService) {
+        this(bulkDataReadWriteService, null);
+    }
+    
     // ---------------------------
     // Writing Methods
     // ---------------------------
@@ -64,6 +68,11 @@ public class XlsLocationRow extends StyledRowImpl {
      */
     public void writeSurveyLocations(Workbook wb) {
         Sheet locSheet = getLocationSheet(wb);
+        if (survey == null) {
+            // cannot write survey locations for null survey
+            log.warn("Cannot write survey locations for null survey");
+            return;
+        }
         List<Attribute> locationScopeAttrs = getLocationScopeAttributes(survey);
         
         int rowIndex = locSheet.getLastRowNum()+1;
@@ -107,7 +116,6 @@ public class XlsLocationRow extends StyledRowImpl {
      */
     public void writeUserLocation(Workbook wb, Location location) {
         Sheet locSheet = getLocationSheet(wb);
-        
         
         // need to add one onto the last row number else we are overwriting an existing row
         Row row = locSheet.createRow(locSheet.getLastRowNum() + 1);
@@ -298,7 +306,7 @@ public class XlsLocationRow extends StyledRowImpl {
     
     private List<Attribute> getLocationScopeAttributes(Survey survey) {
         
-        if(locationScopeAttrList == null) {
+        if(locationScopeAttrList == null && survey != null) {
             List<Attribute> attrList = new ArrayList<Attribute>(survey.getAttributes());
             Collections.sort(attrList, new ComparePersistentImplByWeight());
             
@@ -310,6 +318,8 @@ public class XlsLocationRow extends StyledRowImpl {
             }
             
             locationScopeAttrList = Collections.unmodifiableList(locationScopeAttrs);
+        } else if (survey == null) {
+            locationScopeAttrList = Collections.EMPTY_LIST;
         }
         
         return locationScopeAttrList;

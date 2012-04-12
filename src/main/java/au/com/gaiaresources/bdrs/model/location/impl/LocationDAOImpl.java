@@ -1,5 +1,7 @@
 package au.com.gaiaresources.bdrs.model.location.impl;
 
+import java.beans.PropertyDescriptor;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,10 +10,13 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.Transient;
 
 import org.apache.log4j.Logger;
 import org.hibernate.Query;
-import org.hibernate.classic.Session;
+import org.hibernate.Session;
+import org.hibernate.annotations.ForeignKey;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -24,13 +29,17 @@ import au.com.gaiaresources.bdrs.db.impl.QueryPaginator;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
-import au.com.gaiaresources.bdrs.model.record.Record;
+import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
+import au.com.gaiaresources.bdrs.model.record.impl.RecordFilter;
 import au.com.gaiaresources.bdrs.model.region.Region;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
+import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.db.DeleteCascadeHandler;
 import au.com.gaiaresources.bdrs.service.db.DeletionService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import au.com.gaiaresources.bdrs.util.Pair;
 
 import com.vividsolutions.jts.geom.Point;
 
@@ -260,5 +269,265 @@ public class LocationDAOImpl extends AbstractDAOImpl implements LocationDAO {
             argMap.put("user", user);
         }
         return new QueryPaginator<Location>().page(this.getSession(), builder.toString(), argMap, filter, "loc");
+    }
+    
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.facet.FacetDAO#getDistinctSurveys(org.hibernate.Session)
+     */
+    @Override
+    public List<Pair<Survey, Long>> getDistinctSurveys(Session sesh) {
+        StringBuilder b = new StringBuilder();
+        b.append(" select s, count(loc)");
+        b.append(" from Location as loc join loc.surveys as s");
+
+        b.append(" group by s.id");
+        for(PropertyDescriptor pd : BeanUtils.getPropertyDescriptors(Survey.class)) {
+            if(!"class".equals(pd.getName()) && 
+                !"id".equals(pd.getName()) && 
+                (pd.getReadMethod().getAnnotation(Transient.class) == null) &&
+                !(Iterable.class.isAssignableFrom((pd.getReadMethod().getReturnType())))) {
+                b.append(", s."+pd.getName());
+            }
+        }
+        b.append(" order by s.weight asc, s.name asc");
+        
+        if(sesh == null) {
+            sesh = super.getSessionFactory().getCurrentSession();
+        }
+        Query q = sesh.createQuery(b.toString());
+
+        // Should get back a list of Object[]
+        // Each Object[] has 2 items. Object[0] == taxon group, Object[1] == record count
+        List<Pair<Survey, Long>> results = 
+            new ArrayList<Pair<Survey, Long>>();
+        for(Object rowObj : q.list()) {
+            Object[] row = (Object[])rowObj;
+            results.add(new Pair<Survey, Long>((Survey)row[0], (Long)row[1]));
+        }
+        return results;
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.facet.FacetDAO#getDistinctUsers(org.hibernate.Session)
+     */
+    @Override
+    public List<Pair<User, Long>> getDistinctUsers(Session sesh) {
+        StringBuilder b = new StringBuilder();
+        b.append(" select u, count(l)");
+        b.append(" from Location as l join l.user as u");
+        b.append(" group by u.id");
+        for(PropertyDescriptor pd : BeanUtils.getPropertyDescriptors(User.class)) {
+            if(!"class".equals(pd.getName()) && 
+                !"id".equals(pd.getName()) && 
+                (pd.getReadMethod().getAnnotation(ForeignKey.class) == null) && // ignore other table joins
+                (pd.getReadMethod().getAnnotation(Transient.class) == null || // ignore transients 
+                        "active".equals(pd.getName())) &&                     // except active
+                !(Iterable.class.isAssignableFrom((pd.getReadMethod().getReturnType())))) 
+            {
+                b.append(", u."+pd.getName());
+            }
+        }
+        b.append(" order by 2 desc, u.name asc");
+
+        
+        if(sesh == null) {
+            sesh = super.getSessionFactory().getCurrentSession();
+        }
+        Query q = sesh.createQuery(b.toString());
+
+        // Should get back a list of Object[]
+        // Each Object[] has 2 items. Object[0] == location, Object[1] == record count
+        List<Pair<User, Long>> results = 
+            new ArrayList<Pair<User, Long>>();
+        for(Object rowObj : q.list()) {
+            Object[] row = (Object[])rowObj;
+            results.add(new Pair<User, Long>((User)row[0], (Long)row[1]));
+        }
+        return results;
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.facet.FacetDAO#getDistinctAttributeValues(org.hibernate.Session, java.lang.String, int)
+     */
+    @Override
+    public List<Pair<String, Long>> getDistinctAttributeValues(Session sesh,
+            String attributeName, int limit) {
+        // not applicable for location, throw an exception?
+        return Collections.emptyList();
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.facet.FacetDAO#countNullCensusMethodRecords()
+     */
+    @Override
+    public Integer countNullCensusMethodRecords() {
+        // not applicable for location, throw an exception?
+        return 0;
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.facet.FacetDAO#getDistinctCensusMethodTypes(org.hibernate.Session)
+     */
+    @Override
+    public List<Pair<String, Long>> getDistinctCensusMethodTypes(Session session) {
+        // not applicable for location, throw an exception?
+        return Collections.emptyList();
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.facet.FacetDAO#getDistinctLocations(org.hibernate.Session, int)
+     */
+    @Override
+    public List<Pair<Location, Long>> getDistinctLocations(Session session,
+            int optionsLimit) {
+        // not applicable for location, throw an exception?
+        return Collections.emptyList();
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.facet.FacetDAO#getDistinctLocations(org.hibernate.Session, int, java.lang.Integer[])
+     */
+    @Override
+    public List<Pair<Location, Long>> getDistinctLocations(Session session,
+            int optionsLimit, Integer[] selected) {
+        // not applicable for location, throw an exception?
+        return Collections.emptyList();
+    }
+    
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.facet.FacetDAO#countRecords(au.com.gaiaresources.bdrs.model.record.impl.RecordFilter)
+     */
+    @Override
+    public int countRecords(RecordFilter filter) {
+        // not applicable for location, throw an exception?
+        return 0;
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.facet.FacetDAO#getDistinctMonths(org.hibernate.Session)
+     */
+    @Override
+    public List<Pair<Long, Long>> getDistinctMonths(Session session) {
+        // not applicable for location, throw an exception?
+        return Collections.emptyList();
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.facet.FacetDAO#getDistinctAttributeTypes(org.hibernate.Session, au.com.gaiaresources.bdrs.model.taxa.AttributeType[])
+     */
+    @Override
+    public List<Pair<String, Long>> getDistinctAttributeTypes(Session sesh,
+            AttributeType[] attributeTypes) {
+        StringBuilder b = new StringBuilder();
+        b.append(" select distinct a.typeCode, count(distinct loc)");
+        b.append(" from Location as loc join loc.attributes as la join la.attribute as a");
+        b.append(" where length(trim(la.stringValue)) > 0 and (1 = 2");
+        for(AttributeType type : attributeTypes) {
+            b.append(String.format(" or a.typeCode = '%s'", type.getCode()));
+        }
+        b.append(" )");
+
+        b.append(" group by a.typeCode");
+        b.append(" order by a.typeCode asc");
+        
+        if(sesh == null) {
+            sesh = super.getSessionFactory().getCurrentSession();
+        }
+        
+        Query q = sesh.createQuery(b.toString());
+
+        // Should get back a list of Object[]
+        List<Pair<String, Long>> results =  new ArrayList<Pair<String, Long>>();
+        for(Object rowObj : q.list()) {
+            Object[] row = (Object[])rowObj;
+            results.add(new Pair<String, Long>(row[0].toString(), (Long)row[1]));
+        }
+        return results;
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.facet.FacetDAO#getDistinctTaxonGroups(org.hibernate.Session)
+     */
+    @Override
+    public List<Pair<TaxonGroup, Long>> getDistinctTaxonGroups(Session session) {
+        // not applicable for location, throw an exception?
+        return Collections.emptyList();
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.facet.FacetDAO#getDistinctRecordVisibilities()
+     */
+    @Override
+    public List<Pair<RecordVisibility, Long>> getDistinctRecordVisibilities() {
+        // not applicable for location, throw an exception?
+        return Collections.emptyList();
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.facet.FacetDAO#getDistinctYears(org.hibernate.Session)
+     */
+    @Override
+    public List<Pair<Long, Long>> getDistinctYears(Session session) {
+        // not applicable for location, throw an exception?
+        return Collections.emptyList();
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.facet.FacetDAO#getDistinctLocationAttributeValues(org.hibernate.Session, java.lang.String, int)
+     */
+    @Override
+    public List<Pair<String, Long>> getDistinctLocationAttributeValues(
+            Session sesh, String attributeName, int limit) {
+        StringBuilder b = new StringBuilder();
+        
+        b.append(" select distinct locAttrVal.stringValue, count(distinct loc)");
+        b.append(" from Location as loc join loc.attributes as locAttrVal join locAttrVal.attribute as attr");
+        b.append(" where ");
+        b.append(String.format(" attr.description = '%s'", attributeName));
+        // ignore empty string values
+        b.append(" and locAttrVal.stringValue is not null and locAttrVal.stringValue != ''");
+        b.append(" group by locAttrVal.stringValue");
+        b.append(" order by 2 desc");
+        
+        if(sesh == null) {
+            sesh = super.getSessionFactory().getCurrentSession();
+        }
+        
+        Query q = sesh.createQuery(b.toString());
+
+        if (limit > 0) {
+            q.setMaxResults(limit);
+        }
+        
+        List<Pair<String, Long>> results =  new ArrayList<Pair<String, Long>>();
+        for(Object rowObj : q.list()) {
+            Object[] row = (Object[])rowObj;
+            
+            results.add(new Pair<String, Long>(row[0].toString(), (Long)row[1]));
+        }
+        return results;
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.location.LocationDAO#getLocations()
+     */
+    @Override
+    public List<Location> getLocations() {
+        return this.find("from Location");
     }
 }

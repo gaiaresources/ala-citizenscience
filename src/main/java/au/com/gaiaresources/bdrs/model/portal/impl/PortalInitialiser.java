@@ -23,7 +23,6 @@ import au.com.gaiaresources.bdrs.model.theme.Theme;
 import au.com.gaiaresources.bdrs.model.theme.ThemeDAO;
 import au.com.gaiaresources.bdrs.model.user.RegistrationService;
 import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.search.SearchService;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.content.ContentService;
 import au.com.gaiaresources.bdrs.service.detect.BDRSWurflLoadService;
@@ -73,16 +72,12 @@ public class PortalInitialiser implements ServletContextListener {
         try {
             Transaction tx = sesh.beginTransaction();
             
-            // create Search indexes
-            SearchService service = AppContext.getBean(SearchService.class);
-            service.createIndexes(sesh);
-            
             BDRSWurflLoadService loadService = AppContext.getBean(BDRSWurflLoadService.class);
             List<Portal> portalList = portalDAO.getPortals();
             if (!portalList.isEmpty()) {
                 log.info("ROOT portal already exists, skipping initialisation");
                 // return;
-                log.info("Making sure existing portals have all of the default portal parameters and moderation thresholds");
+                log.info("Making sure existing portals have all of the default portal parameters and moderation thresholds and building indexes or scheduling index builds");
                 for (Portal p : portalList) {
                     // do lazy init of portal preferences and preference categories
                     //log.debug("initialising prefs for portal " + p.getName());
@@ -91,6 +86,8 @@ public class PortalInitialiser implements ServletContextListener {
                     // can be removed if we don't want to include this feature in 
                     // legacy portals or if we come up with a different way of managing them
                     PortalUtil.initModerationThreshold(sesh, p);
+                    // set up the indexing for each portal
+                    PortalUtil.initIndexes(sesh, p);
                 }
             } else {
                 log.info("Initialising ROOT portal");

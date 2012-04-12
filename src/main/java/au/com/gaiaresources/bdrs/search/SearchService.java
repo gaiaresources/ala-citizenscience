@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.queryParser.ParseException;
+import org.hibernate.Query;
 import org.hibernate.Session;
 import org.springframework.stereotype.Service;
 
@@ -25,11 +26,13 @@ public interface SearchService {
     
     /**
      * Creates the indexes for the search engine.
+     * @param sesh the {@link Session} to use for the query
      */
     public void createIndexes(Session sesh);
     
     /**
      * Deletes the indexes for the search engine.
+     * @param sesh the {@link Session} to use for the query
      */
     public void deleteIndexes(Session sesh);
     
@@ -38,23 +41,71 @@ public interface SearchService {
      * @param object The object index to search
      * @param searchTerm The term to search for
      * @return A list of Objects matching the search criteria
-     * 
      */
     public List search(Class<? extends PersistentImpl> object, String searchTerm);
 
     /**
-     * 
-     * @param sesh
-     * @param fields
-     * @param analyzer
-     * @param groupId
-     * @param searchTerm
-     * @param filter
-     * @param entities
+     * Returns a {@link PagedQueryResult} with the results of the query
+     * @param sesh the {@link Session} to use for the query
+     * @param fields the indexed fields to query on
+     * @param analyzer the analyzer to use for tokenizing the query string
+     * @param searchTerm the text to search for
+     * @param filter the {@link PaginationFilter} which determines how pages are created
+     * @param entities the classes to search the indexes of
      * @return
      * @throws ParseException
      */
     public PagedQueryResult searchPaged(Session sesh,
             String[] fields, Analyzer analyzer, String searchTerm, 
             PaginationFilter filter, Class<?>... entities) throws ParseException;
+
+    /**
+     * Returns a {@link Query} object for making an indexed search.
+     * @param sesh the {@link Session} to use for the query
+     * @param fields the indexed fields to query on
+     * @param analyzer the analyzer to use for tokenizing the query string
+     * @param searchTerm the text to search for
+     * @param entities the classes to search the indexes of
+     * @return a {@link Query} object for making an indexed search.
+     * @throws ParseException
+     */
+    public Query getQuery(Session sesh, String[] fields, Analyzer analyzer,
+            String searchTerm, Class<?>... entities)
+            throws ParseException;
+
+    /**
+     * Deletes all defined indexes from the system.
+     */
+    public void deleteIndexes();
+
+    /**
+     * Creates indexes for all indexed classes returned by {@link IndexUtils::getIndexedClasses()}.
+     */
+    public void createIndexes();
+
+    /**
+     * Deletes the index for the specified class.
+     * @param sesh the {@link Session} to use for the indexing
+     * @param clazz the {@link Class} to index
+     */
+    public void deleteIndex(Session sesh, Class<?> clazz);
+
+    /**
+     * Creates the index for the specified class.
+     * @param sesh the {@link Session} to use for the indexing
+     * @param clazz the {@link Class} to index
+     */
+    public void createIndex(Session sesh, Class<?> clazz);
+    
+    /**
+     * Deletes the index for the specified class.
+     * @param clazz the {@link Class} to index
+     */
+    public void deleteIndex(Class<?> clazz);
+
+    /**
+     * Creates the index for the specified class.
+     * @param clazz the {@link Class} to index
+     */
+    public void createIndex(Class<?> clazz);
 }

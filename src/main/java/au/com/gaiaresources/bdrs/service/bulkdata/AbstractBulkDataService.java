@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
 import org.springframework.security.authentication.encoding.PasswordEncoder;
 
+import au.com.gaiaresources.bdrs.db.ScrollableResults;
 import au.com.gaiaresources.bdrs.model.group.Group;
 import au.com.gaiaresources.bdrs.model.group.GroupDAO;
 import au.com.gaiaresources.bdrs.model.location.Location;
@@ -152,11 +153,11 @@ public abstract class AbstractBulkDataService {
         this.exportSurveyRecords(sesh, survey, new EmptyScrollableRecords(), outputStream);
     }
     
-    public void exportSurveyRecords(Session sesh, Survey survey, ScrollableRecords scrollableRecords, OutputStream outputStream) throws IOException {
-        this.exportSurveyRecords(sesh, survey, scrollableRecords, Long.MAX_VALUE, outputStream);
+    public void exportSurveyRecords(Session sesh, Survey survey, ScrollableResults<Record> sc, OutputStream outputStream) throws IOException {
+        this.exportSurveyRecords(sesh, survey, sc, Long.MAX_VALUE, outputStream);
     }
 
-    public void exportSurveyRecords(Session sesh, Survey survey, ScrollableRecords scrollableRecords, long limit,
+    public void exportSurveyRecords(Session sesh, Survey survey, ScrollableResults<Record> sc, long limit,
             OutputStream outputStream) throws IOException {
         if(limit < 0) {
             limit = Long.MAX_VALUE;
@@ -206,8 +207,8 @@ public abstract class AbstractBulkDataService {
             Record r;
             int recordCount = 0;
             
-            while(scrollableRecords.hasMoreElements() && recordCount < limit) {
-                r = scrollableRecords.nextElement();
+            while(sc.hasMoreElements() && recordCount < limit) {
+                r = sc.nextElement();
                 // it's not guaranteed that the scrollable records will only contain records for the
                 // requested survey.
                 if (r.getSurvey() == survey) {
@@ -234,6 +235,28 @@ public abstract class AbstractBulkDataService {
         wb.write(outputStream);
     }
 
+    /**
+     * Exports locations to a spreadsheet.
+     * @param sesh the current session
+     * @param sc the scrollable list of locations to write
+     * @param outputStream the output stream to write to
+     * @throws IOException
+     */
+    public void exportLocations(Session sesh, ScrollableResults<Location> sc,
+            OutputStream outputStream) throws IOException {
+        Workbook wb = new HSSFWorkbook();
+        
+        XlsLocationRow locationRow = new XlsLocationRow(
+                bulkDataReadWriteService);
+        locationRow.writeLocationHeader(wb);
+        Location location = null;
+        while(sc.hasMoreElements()) {
+            location = sc.nextElement();
+            locationRow.writeUserLocation(wb, location);
+        }
+        wb.write(outputStream);
+    }
+    
     public void exportUsers(List<User> userList, OutputStream outputStream)
             throws IOException {
 

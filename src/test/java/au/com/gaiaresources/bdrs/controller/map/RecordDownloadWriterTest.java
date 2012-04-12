@@ -42,6 +42,8 @@ public class RecordDownloadWriterTest extends AbstractShapefileTest {
     
     private Logger log = Logger.getLogger(getClass());
     
+    private RecordDownloadWriter downloadWriter = new RecordDownloadWriter();
+    
     // the export 'no' record case is the same as exporting a template
     @SuppressWarnings("deprecation")
     @Test 
@@ -50,7 +52,7 @@ public class RecordDownloadWriterTest extends AbstractShapefileTest {
         List<Record> recList = new LinkedList<Record>();
         recList.add(r1);
         
-        RecordDownloadWriter.write(getRequestContext().getHibernate(), 
+        downloadWriter.write(getRequestContext().getHibernate(), 
                                    request, response, 
                                    new ScrollableRecordsList(recList), 
                                    RecordDownloadFormat.SHAPEFILE, accessor);
@@ -96,7 +98,7 @@ public class RecordDownloadWriterTest extends AbstractShapefileTest {
         recList.add(r1);
         recList.add(r3);
         
-        RecordDownloadWriter.write(getRequestContext().getHibernate(),
+        downloadWriter.write(getRequestContext().getHibernate(),
                                    request, response, 
                                    new ScrollableRecordsList(recList),
                                    RecordDownloadFormat.SHAPEFILE, accessor);
@@ -126,7 +128,7 @@ public class RecordDownloadWriterTest extends AbstractShapefileTest {
         recList.add(r3);
         recList.add(r4);
         
-        RecordDownloadWriter.write(getRequestContext().getHibernate(),
+        downloadWriter.write(getRequestContext().getHibernate(),
                                    request, response, 
                                    new ScrollableRecordsList(recList), 
                                    RecordDownloadFormat.SHAPEFILE, accessor);
@@ -157,7 +159,7 @@ public class RecordDownloadWriterTest extends AbstractShapefileTest {
         recList.add(r1);
         recList.add(r2);
         recList.add(r4);
-        RecordDownloadWriter.write(getRequestContext().getHibernate(),
+        downloadWriter.write(getRequestContext().getHibernate(),
                                    request, response, 
                                    new ScrollableRecordsList(recList), 
                                    RecordDownloadFormat.SHAPEFILE, accessor);
@@ -187,7 +189,7 @@ public class RecordDownloadWriterTest extends AbstractShapefileTest {
         recList.add(r2);
         recList.add(r3);
         recList.add(r4);
-        RecordDownloadWriter.write(getRequestContext().getHibernate(),
+        downloadWriter.write(getRequestContext().getHibernate(),
                                    request, response, 
                                    new ScrollableRecordsList(recList), 
                                    RecordDownloadFormat.SHAPEFILE, accessor);
@@ -233,7 +235,7 @@ public class RecordDownloadWriterTest extends AbstractShapefileTest {
     public void testNoRecordsToWrite() throws Exception {
         User accessor = owner;
         List<Record> recList = new LinkedList<Record>();
-        RecordDownloadWriter.write(getRequestContext().getHibernate(),
+        downloadWriter.write(getRequestContext().getHibernate(),
                                    request, response,
                                    new ScrollableRecordsList(recList),  
                                    RecordDownloadFormat.SHAPEFILE, accessor);
@@ -248,7 +250,7 @@ public class RecordDownloadWriterTest extends AbstractShapefileTest {
         List<Record> recList = new LinkedList<Record>();
         recList.add(r1);
         
-        RecordDownloadWriter.write(getRequestContext().getHibernate(),
+        downloadWriter.write(getRequestContext().getHibernate(),
                                    request, response, 
                                    new ScrollableRecordsList(recList),  
                                    RecordDownloadFormat.KML, accessor);

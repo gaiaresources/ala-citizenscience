@@ -61,6 +61,7 @@ public abstract class PersistentImpl implements Persistent,
     @CompactAttribute
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "PERSISTENT_ID")
+    @Field
     public Integer getId() {
         return id;
     }

@@ -1,11 +1,26 @@
 package au.com.gaiaresources.bdrs.model.location;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
-import javax.persistence.*;
+import javax.persistence.AttributeOverride;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.Lob;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 
-import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
+import org.apache.solr.analysis.LowerCaseFilterFactory;
+import org.apache.solr.analysis.SnowballPorterFilterFactory;
+import org.apache.solr.analysis.StandardTokenizerFactory;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.Filter;
@@ -13,13 +28,28 @@ import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.ParamDef;
 import org.hibernate.annotations.Type;
+import org.hibernate.search.annotations.Analyzer;
+import org.hibernate.search.annotations.AnalyzerDef;
+import org.hibernate.search.annotations.Field;
+import org.hibernate.search.annotations.Fields;
+import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.annotations.IndexedEmbedded;
+import org.hibernate.search.annotations.Parameter;
+import org.hibernate.search.annotations.Store;
+import org.hibernate.search.annotations.TokenFilterDef;
+import org.hibernate.search.annotations.TokenizerDef;
 
 import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
 import au.com.gaiaresources.bdrs.model.attribute.Attributable;
+import au.com.gaiaresources.bdrs.model.index.IndexingConstants;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.region.Region;
+import au.com.gaiaresources.bdrs.model.survey.Survey;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValueUtil;
 import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
@@ -34,6 +64,13 @@ import com.vividsolutions.jts.geom.Point;
 @Filter(name=PortalPersistentImpl.PORTAL_FILTER_NAME, condition=":portalId = PORTAL_ID")
 @Table(name = "LOCATION")
 @AttributeOverride(name = "id", column = @Column(name = "LOCATION_ID"))
+@Indexed
+@AnalyzerDef(name = IndexingConstants.FULL_TEXT_ANALYZER,
+             tokenizer = @TokenizerDef(factory = StandardTokenizerFactory.class),
+             filters = {@TokenFilterDef(factory = LowerCaseFilterFactory.class),
+                        @TokenFilterDef(factory = SnowballPorterFilterFactory.class, 
+                                        params = {@Parameter(name="language", value="English")})
+             })
 public class Location extends PortalPersistentImpl implements Attributable<AttributeValue> {
     private Geometry location;
     private User user;
@@ -43,6 +80,8 @@ public class Location extends PortalPersistentImpl implements Attributable<Attri
     private String description;
     
     private Set<Metadata> metadata = new HashSet<Metadata>();
+    
+    private List<Survey> surveys = new ArrayList<Survey>();
     
     /**
      * Get the coordinate of the <code>Location</code>.
@@ -66,6 +105,7 @@ public class Location extends PortalPersistentImpl implements Attributable<Attri
     @ManyToOne
     @JoinColumn(name = "USER_ID", nullable = true)
     @ForeignKey(name = "LOCATION_USER_FK")
+    @IndexedEmbedded
     public User getUser() {
         return user;
     }
@@ -79,6 +119,10 @@ public class Location extends PortalPersistentImpl implements Attributable<Attri
      */
     @CompactAttribute
     @Column(name = "NAME", nullable = false)
+    @Fields( {
+        @Field(index = org.hibernate.search.annotations.Index.TOKENIZED, store = Store.YES, analyzer=@Analyzer(definition=IndexingConstants.FULL_TEXT_ANALYZER)),
+        @Field(name = "name_sort", index = org.hibernate.search.annotations.Index.UN_TOKENIZED, store = Store.YES)
+        } )
     public String getName() {
         return name;
     }
@@ -93,6 +137,10 @@ public class Location extends PortalPersistentImpl implements Attributable<Attri
     @CompactAttribute
     @Column(name = "DESCRIPTION", nullable = true)
     @Lob  // makes a 'text' type in the database
+    @Fields( {
+        @Field(index = org.hibernate.search.annotations.Index.TOKENIZED, store = Store.YES, analyzer=@Analyzer(definition=IndexingConstants.FULL_TEXT_ANALYZER)),
+        @Field(name = "description_sort", index = org.hibernate.search.annotations.Index.UN_TOKENIZED, store = Store.YES)
+        } )
     public String getDescription() {
         return description;
     }
@@ -139,6 +187,7 @@ public class Location extends PortalPersistentImpl implements Attributable<Attri
     @CompactAttribute
     @OneToMany
     @Override
+    @IndexedEmbedded
     public Set<AttributeValue> getAttributes() {
         return attributes;
     }
@@ -193,6 +242,7 @@ public class Location extends PortalPersistentImpl implements Attributable<Attri
      * @return all metdata stored against this {@link Location}
      */
     @ManyToMany
+    @IndexedEmbedded
     public Set<Metadata> getMetadata() {
         return metadata;
     }
@@ -237,5 +287,59 @@ public class Location extends PortalPersistentImpl implements Attributable<Attri
             }
         }
      return null;
+    }
+    
+    /**
+     * Returns a list of surveys which this location has been added to.
+     * This is a bidirectional link between {@link Survey} and {@link Location}.
+     * @return a list of surveys
+     */
+    @ManyToMany(mappedBy="locations", fetch = FetchType.LAZY)
+    @IndexedEmbedded
+    public List<Survey> getSurveys() {
+        return this.surveys;
+    }
+    
+    public void setSurveys(List<Survey> surveys) {
+        this.surveys = surveys;
+    }
+    
+    /**
+     * Returns a list of the AttributeValues ordered by Attribute weight
+     * @return
+     */
+    @Transient
+    public List<AttributeValue> getOrderedAttributes() {
+        return AttributeValueUtil.orderAttributeValues(attributes);
+    }
+    
+    /**
+     * Convenience method for getting the latitude of a Location.
+     * @return the latitude of the location
+     */
+    @Transient
+    public Double getLatitude() {
+        if (this.getPoint() != null) {
+            return this.getPoint().getY();
+        } else if (getY() != null) {
+            return getY();
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Convenience method for getting the longitude of a Location.
+     * @return the longitude of the location
+     */
+    @Transient
+    public Double getLongitude() {
+        if (this.getPoint() != null) {
+            return this.getPoint().getX();
+        } else if (getX() != null) {
+            return getX();
+        } else {
+            return null;
+        }
     }
 }

@@ -5,6 +5,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 
+import au.com.gaiaresources.bdrs.db.ScrollableResults;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.record.Record;
@@ -17,13 +18,13 @@ import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
  * Acts as a wrapper around {@link ScrollableRecords} returning JSON encoded
  * strings rather than {@link Record}s.
  */
-public class PyScrollableRecords implements Enumeration<String>{
+public class PyScrollableRecords implements Enumeration<String> {
 
     private boolean includeLocation;
     private boolean includeTaxon;
     private boolean includeAttributeValues;
     
-    private ScrollableRecords scrollableRecords;
+    private ScrollableResults<Record> scrollableRecords;
     
     private int count = 0;
 
@@ -34,7 +35,7 @@ public class PyScrollableRecords implements Enumeration<String>{
      * @param includeTaxon true if the serialized record should contain a serialized taxon, or false if only a primary key is required.
      * @param includeLocation true if the serialized record should contain a serialized location, or false if only a primary key is required.
      */
-    public PyScrollableRecords(ScrollableRecords scrollableRecords,
+    public PyScrollableRecords(ScrollableResults<Record> scrollableRecords,
             boolean includeTaxon, boolean includeLocation) {
         this(scrollableRecords, includeTaxon, includeLocation, false);
     }
@@ -47,7 +48,7 @@ public class PyScrollableRecords implements Enumeration<String>{
      * @param includeLocation true if the serialized record should contain a serialized location, or false if only a primary key is required.
      * @param includeAttributeValues true if the serialized record should contain serialized attribute values, or false if only a primary key is required.
      */
-    public PyScrollableRecords(ScrollableRecords scrollableRecords,
+    public PyScrollableRecords(ScrollableResults<Record> scrollableRecords,
             boolean includeTaxon, boolean includeLocation,
             boolean includeAttributeValues) {
         
@@ -99,7 +100,7 @@ public class PyScrollableRecords implements Enumeration<String>{
         String jsonStr = JSONObject.fromMapToString(recFlatten);
 
         // evict to ensure garbage collection
-        if (++count % ScrollableRecords.RECORD_BATCH_SIZE == 0) {
+        if (++count % ScrollableRecords.RESULTS_BATCH_SIZE == 0) {
             RequestContextHolder.getContext().getHibernate().clear();
         }
         

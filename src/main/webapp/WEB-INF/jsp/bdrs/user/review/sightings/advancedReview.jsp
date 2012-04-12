@@ -2,7 +2,8 @@
 <%@ taglib uri="http://tiles.apache.org/tags-tiles" prefix="tiles" %>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 
-<h1>Advanced Review</h1>
+<tiles:useAttribute name="viewType" classname="java.lang.String" ignore="true"/>
+<tiles:useAttribute name="resultCount" ignore="true"/>
 
 <!-- for handling the page description in theme -->
 <c:if test="${not empty pageDescription}">
@@ -10,6 +11,8 @@
 </c:if>
 
 <form id="facetForm" method="GET" action="">
+    <input type="hidden" name="locations" id="locations" value = "${ locations }"/>
+    <input type="hidden" name="locationArea" id="locationArea" value = "${ locationArea }"/>
     <input type="hidden" name="recordId" value = "${ recordId }"/>
 	<div class="alaSightingsContent">
 	    <div class="facetCol left">
@@ -28,10 +31,10 @@
 	           <span>
                    <c:choose>
                        <c:when test="${ recordCount == 1 }">
-                           <c:out value="${ recordCount }"/> record returned
+                           <c:out value="${ resultCount }"/> ${viewType} returned
                        </c:when>
                        <c:otherwise>
-                           <c:out value="${ recordCount }"/> records returned
+                           <c:out value="${ resultCount }"/> ${viewType}s returned
                        </c:otherwise>
                    </c:choose>
                </span>
@@ -75,7 +78,8 @@
 		           
 		           <c:when test="${ tableViewSelected }">
 		               <tiles:insertDefinition name="advancedReviewTableView">
-	                    </tiles:insertDefinition>
+    						<tiles:putAttribute name="tableColumns" value="${ tableColumns }"/>
+		               </tiles:insertDefinition>
                    </c:when>
 				   <c:when test="${ downloadViewSelected }">
 				   	    <tiles:insertDefinition name="downloadSightingsWidget" />
@@ -128,10 +132,6 @@
       
       bdrs.advancedReview.initFacets('#facetForm', '.facet');
       bdrs.advancedReview.initTabHandlers();
-	  
-	  <c:if test="${ downloadViewSelected }">
-            bdrs.review.downloadSightingsWidget.init("#facetForm", "/review/sightings/advancedReviewDownload.htm");
-       </c:if>
    });
 
    jQuery(window).load(function() {

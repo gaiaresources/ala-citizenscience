@@ -170,7 +170,7 @@ public class RecordService extends AbstractController {
         JSONArray array = new JSONArray();
         while(sr.hasMoreElements()) {
             array.add(sr.nextElement().flatten());
-            if (++recordCount % ScrollableRecords.RECORD_BATCH_SIZE == 0) {
+            if (++recordCount % ScrollableRecords.RESULTS_BATCH_SIZE == 0) {
                 sesh.clear();
             }
         }

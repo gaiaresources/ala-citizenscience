@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.service.facet.option.FacetOption;
 import au.com.gaiaresources.bdrs.db.impl.HqlQuery;
 import au.com.gaiaresources.bdrs.db.impl.Predicate;
 
@@ -163,8 +166,28 @@ public abstract class AbstractFacet implements Facet {
                 }
             }
         }
-        
         return facetPredicate;
+    }
+    
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.service.facet.Facet#getIndexedQueryString()
+     */
+    @Override
+    public String getIndexedQueryString() {
+        String facetQuery = null;
+        for(FacetOption opt : getFacetOptions()) {
+            if(opt.isSelected()) {
+                String optQuery = opt.getIndexedQueryString(); 
+                if (optQuery != null) {
+                    facetQuery = facetQuery == null ? optQuery : facetQuery + "or "+ optQuery;
+                }
+            }
+        }
+        if (facetQuery != null && !facetQuery.isEmpty()) {
+            facetQuery = "("+facetQuery+")";
+        }
+        return facetQuery;
     }
     
     @Override

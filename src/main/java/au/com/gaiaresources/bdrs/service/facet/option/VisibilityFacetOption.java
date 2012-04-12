@@ -1,4 +1,4 @@
-package au.com.gaiaresources.bdrs.service.facet;
+package au.com.gaiaresources.bdrs.service.facet.option;
 
 import au.com.gaiaresources.bdrs.db.impl.Predicate;
 import au.com.gaiaresources.bdrs.model.record.RecordVisibility;

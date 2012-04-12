@@ -95,7 +95,7 @@ public class PyRecordDAO {
             array.add(recFlatten);
 
             // evict to ensure garbage collection
-            if (++count % ScrollableRecords.RECORD_BATCH_SIZE == 0) {
+            if (++count % ScrollableRecords.RESULTS_BATCH_SIZE == 0) {
                 sesh.clear();
             }
         }
