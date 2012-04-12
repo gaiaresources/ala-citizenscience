@@ -27,6 +27,7 @@ import au.com.gaiaresources.bdrs.model.report.Report;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.service.taxonomy.BdrsTaxonLibException;
 import au.com.gaiaresources.bdrs.service.taxonomy.TaxonLibSessionFactory;
 import au.com.gaiaresources.taxonlib.ITaxonLibSession;
 import au.com.gaiaresources.taxonlib.ITemporalContext;
@@ -168,7 +169,14 @@ public class PyBDRS {
         return pyLocationDAO;
     }
     
-    public PyTemporalContext getTaxonLibTemporalContext(String dateString) throws Exception {
+    /**
+     * Returns the python wrapped {@link ITemporalContext}
+     * 
+     * @param dateString The date of the temporal context in yyyy-MM-dd format.
+     * @return the requested wrapped temporal context.
+     * @throws Exception
+     */
+    public PyTemporalContext getTaxonLibTemporalContext(String dateString) throws ParseException, BdrsTaxonLibException {
     	SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd");
     	Date date = isoFormat.parse(dateString);
     	ITemporalContext temporalContext = getTaxonLibSession().getTemporalContext(date);
@@ -240,9 +248,19 @@ public class PyBDRS {
     	}
     }
     
-    private ITaxonLibSession getTaxonLibSession() throws Exception {
+    /**
+     * Lazy initialises and returns taxonlib session
+     * 
+     * @return
+     * @throws BdrsTaxonLibException Error initialising taxon lib session
+     */
+    private ITaxonLibSession getTaxonLibSession() throws BdrsTaxonLibException {
     	if (taxonLibSession == null) {
-    		taxonLibSession = taxonLibSessionFactory.getSession();
+    		try {
+    			taxonLibSession = taxonLibSessionFactory.getSession();	
+    		} catch (Exception e) {
+    			throw new BdrsTaxonLibException("Unable to initialise TaxonLib session : " + e.getMessage(), e);
+    		}
     	}
     	return taxonLibSession;
     }

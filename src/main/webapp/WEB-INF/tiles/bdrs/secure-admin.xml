@@ -477,6 +477,21 @@
         <put-attribute name="title" value="TaxonLib Import"/>
         <put-attribute name="content" value="/WEB-INF/jsp/bdrs/admin/taxonomy/taxonLibImport.jsp" />
     </definition>
+	
+	<definition name="taxonLibNswFloraImport" extends="admin-template">
+        <put-attribute name="title" value="NSW Flora Import"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/admin/taxonomy/nswFloraImport.jsp" />
+    </definition>
+	
+	<definition name="taxonLibMaxImport" extends="admin-template">
+        <put-attribute name="title" value="Max Import"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/admin/taxonomy/maxImport.jsp" />
+    </definition>
+	
+	<definition name="taxonLibAfdImport" extends="admin-template">
+        <put-attribute name="title" value="AFD Import"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/admin/taxonomy/afdImport.jsp" />
+    </definition>
     
     <!-- Map Settings -->
     <definition name="baseLayerRow" template="/WEB-INF/jsp/bdrs/admin/map/baseLayerRow.jsp">

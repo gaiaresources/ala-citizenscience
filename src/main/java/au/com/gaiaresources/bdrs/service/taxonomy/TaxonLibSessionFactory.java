@@ -1,6 +1,7 @@
 package au.com.gaiaresources.bdrs.service.taxonomy;
 
 import au.com.gaiaresources.taxonlib.ITaxonLibSession;
+import au.com.gaiaresources.taxonlib.TaxonLibException;
 
 /**
  * Entry point for taxon lib functionality from BDRS.
@@ -8,11 +9,14 @@ import au.com.gaiaresources.taxonlib.ITaxonLibSession;
  *
  */
 public interface TaxonLibSessionFactory {
+	
 	/**
-	 * Creates a new TaxonLibSession
+	 * Get a TaxonLib session.
 	 * 
-	 * @return a new session
-	 * @throws Exception
+	 * @return A TaxonLib session.
+	 * @throws IllegalArgumentException Error in one of the arguments for connecting to TaxonLib database.
+	 * @throws BdrsTaxonLibException Error initialising TaxonLib session.
+	 * @throws TaxonLibException Error initialising TaxonLib session.
 	 */
-    public abstract ITaxonLibSession getSession() throws Exception;
+    public abstract ITaxonLibSession getSession() throws IllegalArgumentException, BdrsTaxonLibException, TaxonLibException;
 }

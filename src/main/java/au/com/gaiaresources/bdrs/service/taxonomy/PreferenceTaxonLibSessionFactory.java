@@ -8,7 +8,11 @@ import org.springframework.util.StringUtils;
 import au.com.gaiaresources.bdrs.model.preference.Preference;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
 import au.com.gaiaresources.taxonlib.ITaxonLibSession;
+import au.com.gaiaresources.taxonlib.TaxonLibException;
 
+/**
+ * Factory that creates TaxonLib sessions from settings stored in the BDRS preference table.
+ */
 public class PreferenceTaxonLibSessionFactory extends AbstractTaxonLibSessionFactory implements ApplicationContextAware {
 
 	 /**
@@ -32,13 +36,14 @@ public class PreferenceTaxonLibSessionFactory extends AbstractTaxonLibSessionFac
 	 * 
 	 * @param prefDAO PreferenceDAO for retrieving database details.
 	 * @return The created TaxonLibSession.
+	 * @throws TaxonLibException 
 	 * @throws Exception
 	 */
 	@Override
-    public ITaxonLibSession getSession() throws Exception {
+    public ITaxonLibSession getSession() throws IllegalArgumentException, BdrsTaxonLibException, TaxonLibException {
 		PreferenceDAO prefDAO = appContext.getBean(PreferenceDAO.class);
 		if (prefDAO == null) {
-			throw new Exception("PreferenceDAO cannot be null");
+			throw new IllegalArgumentException("PreferenceDAO cannot be null");
 		}
 		
     	Preference urlPref = prefDAO.getPreferenceByKey(TAXON_LIB_DB_URL_KEY);
@@ -46,11 +51,11 @@ public class PreferenceTaxonLibSessionFactory extends AbstractTaxonLibSessionFac
 		Preference passPref = prefDAO.getPreferenceByKey(TAXON_LIB_DB_PASS_KEY);
 		
 		if (urlPref == null || userPref == null || passPref == null) {
-			throw new Exception("taxonlib.badTaxonLibConfig");
+			throw new BdrsTaxonLibException("Taxonlib preferences have not been configured correctly.");
 		}
 		if (!StringUtils.hasLength(urlPref.getValue().trim()) || !StringUtils.hasLength(userPref.getValue().trim()) 
 				|| !StringUtils.hasLength(passPref.getValue().trim())) {
-			throw new Exception("taxonlib.badTaxonLibConfig");
+			throw new BdrsTaxonLibException("Taxonlib preferences have not been configured correctly.");
 		}
 		// looks ok, lets go!
 		

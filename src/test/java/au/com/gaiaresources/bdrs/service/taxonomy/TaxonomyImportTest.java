@@ -14,10 +14,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import au.com.gaiaresources.bdrs.test.AbstractTransactionalTest;
+import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.taxonlib.ITaxonLibSession;
 
-public abstract class TaxonomyImportTest extends AbstractTransactionalTest {
+public abstract class TaxonomyImportTest extends AbstractControllerTest {
 
     protected ITaxonLibSession taxonLibSession;
     

@@ -41,8 +41,7 @@ public class ReportControllerTest extends AbstractGridControllerTest {
      * Relative path to the directory containing the species list report.
      */
     public static final String SPECIES_LIST_REPORT_DIR = "reports/SpeciesList/";
-    
-    public static final String TAXON_DIFF_REPORT_DIR = "reports/TaxonLibDiff/";
+
     
     @Autowired
     private ReportDAO reportDAO;
@@ -437,51 +436,6 @@ public class ReportControllerTest extends AbstractGridControllerTest {
             request.addParameter(BdrsWebConstants.PARAM_SURVEY_ID, String.valueOf(s.getId()));
         }
         handle(request, response);
-        Assert.assertTrue(getRequestContext().getMessageContents().isEmpty());
-    }
-    
-    /**
-     * Tests the report with an empty dataset (i.e. no taxon changes to report). 
-     * The most basic test possible.
-     * 
-     * @throws Exception
-     */
-    @Test
-    public void testTaxonLibDiffReport() throws Exception {
-    	login("admin", "password", new String[] { Role.ADMIN });
-
-        String testReportName = "TaxonLibDiffReport";
-
-        // Upload the Report
-        request.setMethod("POST");
-        request.setRequestURI(ReportController.REPORT_ADD_URL);
-
-        MockMultipartHttpServletRequest req = (MockMultipartHttpServletRequest) request;
-        File reportDir = new File(TAXON_DIFF_REPORT_DIR);
-        req.addFile(ReportTestUtil.getTestReport(reportDir, testReportName));
-
-        handle(request, response);
-        Assert.assertFalse(reportDAO.getReports().isEmpty());
-        Assert.assertEquals(1, getRequestContext().getMessageContents().size());
-        
-        JSONObject config = ReportTestUtil.getConfigFile(reportDir);
-        String reportName = config.getString(ReportController.JSON_CONFIG_NAME);
-        Report report = ReportTestUtil.getReportByName(reportDAO, reportName);
-        
-        Assert.assertNotNull("Report cant be null", report);
-        
-        String renderURL = ReportTestUtil.getReportRenderURL(report);
-        
-        // Render the report start page
-        request.setMethod("GET");
-        request.setParameter("startDate", "20 Mar 2012");
-        request.setParameter("endDate", "21 Mar 2012");
-        request.setParameter("submitReportParams", "true");
-        request.setParameter("itemsPerPage", "10");
-        request.setParameter("pageNumber", "1");
-        request.setRequestURI(renderURL);
-        handle(request, response);
-        // If everything works as desired, there should be no messages
         Assert.assertTrue(getRequestContext().getMessageContents().isEmpty());
     }
     
