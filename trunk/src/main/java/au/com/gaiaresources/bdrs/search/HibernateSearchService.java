@@ -128,7 +128,7 @@ public class HibernateSearchService implements SearchService {
                                   String searchTerm, 
                                   Class<?>... entities) throws ParseException {
          FullTextSession fullTextSession = Search.getFullTextSession(sesh);
-         org.hibernate.Transaction tx = fullTextSession.beginTransaction();
+         fullTextSession.beginTransaction();
          MultiFieldQueryParser parser = new MultiFieldQueryParser(fields, analyzer);
          
          org.apache.lucene.search.Query query = parser.parse(searchTerm);
