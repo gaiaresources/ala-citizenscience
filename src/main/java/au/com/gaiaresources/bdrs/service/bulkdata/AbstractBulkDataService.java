@@ -863,7 +863,7 @@ public abstract class AbstractBulkDataService {
                 }
 
                 for (Attribute surveyAttr : survey.getAttributes()) {
-                    if (!AttributeScope.LOCATION.equals(surveyAttr)) {
+                    if (!AttributeScope.LOCATION.equals(surveyAttr.getScope())) {
                         String recAttrValue = recordUpload.getNamedAttribute(XlsRecordRow.SURVEY_ATTR_NAMESPACE, surveyAttr.getDescription());
                         if (org.springframework.util.StringUtils.hasLength(recAttrValue)) {
                             AttributeValue recAttr = createAttributeValue(sesh, recordAttributeMap, surveyAttr, recAttrValue);

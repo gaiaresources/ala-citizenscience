@@ -2,6 +2,7 @@ package au.com.gaiaresources.bdrs.service.report;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +23,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
+
+import com.sun.jna.Platform;
 
 import au.com.gaiaresources.bdrs.controller.report.ReportController;
 import au.com.gaiaresources.bdrs.controller.report.python.PyBDRS;
@@ -157,7 +160,7 @@ public class ReportService {
             PyResponse pyResponse = bdrs.getResponse();
             if (pyResponse.isError()) {
                 // The report had some sort of error.
-                log.error(new String(pyResponse.getContent()));
+                log.error(new String(pyResponse.getContent(), Charset.defaultCharset()));
                 // Let the user know that an error has occurred.
                 
                 String errorMsg = pyResponse.getErrorMsg();

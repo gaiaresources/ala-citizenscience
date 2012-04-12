@@ -184,17 +184,6 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
         return new ScrollableResultsImpl<Location>(query, pageNumber, entriesPerPage);
     }
     
-    private ScrollableResults<Location> getScrollableResults(List<Facet> facetList,
-                                                             Integer surveyId,
-                                                             String sortProperty, 
-                                                             String sortOrder, 
-                                                             String searchText,
-                                                             int pageNumber, int entriesPerPage,
-                                                             List<Location> locList) {
-        Query query = getMatchingRecordsQuery(facetList, surveyId, sortProperty, sortOrder, searchText, locList);
-        return new ScrollableResultsImpl<Location>(query, pageNumber, entriesPerPage);
-    }
-    
     /**
      * Applies the selection criteria represented by the provided {@link Facet}s
      * and the associated {@link FacetOption}s returning the matching {@link List}
@@ -278,9 +267,6 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
         String locations = request.getParameter("locations");
         List<Location> locList = getLocationsFromParameter(locations);
         List<Facet> facetList = facetService.getFacetList(currentUser, (Map<String, String[]>)request.getParameterMap());
-        
-        SurveyFacet surveyFacet = facetService.getFacetByType(facetList, RecordSurveyFacet.class);
-        
         
         ScrollableResults<Location> sc = getScrollableResults(facetList, surveyId, 
                                                               request.getParameter(SORT_BY_QUERY_PARAM_NAME), 

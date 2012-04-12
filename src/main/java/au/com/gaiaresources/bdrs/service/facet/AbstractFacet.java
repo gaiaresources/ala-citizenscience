@@ -175,19 +175,25 @@ public abstract class AbstractFacet implements Facet {
      */
     @Override
     public String getIndexedQueryString() {
-        String facetQuery = null;
+        StringBuffer facetQuery = new StringBuffer();
         for(FacetOption opt : getFacetOptions()) {
             if(opt.isSelected()) {
                 String optQuery = opt.getIndexedQueryString(); 
                 if (optQuery != null) {
-                    facetQuery = facetQuery == null ? optQuery : facetQuery + "or "+ optQuery;
+                    if (facetQuery == null) {
+                        facetQuery.append(optQuery);
+                    } else {
+                        facetQuery.append(" or ");
+                        facetQuery.append(optQuery);
+                    }
                 }
             }
         }
-        if (facetQuery != null && !facetQuery.isEmpty()) {
-            facetQuery = "("+facetQuery+")";
+        if (facetQuery != null && facetQuery.length() > 0) {
+            facetQuery.insert(0, "(");
+            facetQuery.append(")");
         }
-        return facetQuery;
+        return facetQuery.toString();
     }
     
     @Override
