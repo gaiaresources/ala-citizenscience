@@ -195,7 +195,7 @@ public class ReportService {
                     // If the report is standalone, then do not render the
                     // report with the usual header and footer.
                     if (pyResponse.isStandalone()) {
-                        response.getWriter().write(new String(pyResponse.getContent()));
+                        response.getWriter().write(new String(pyResponse.getContent(), Charset.defaultCharset()));
                     } else {
                         // Embed the report in a model and view so that it will
                         // receive the usual header, menu and footer.
