@@ -10,9 +10,7 @@ public enum BaseMapLayerSource implements MapLayerSource, Comparable<BaseMapLaye
     G_NORMAL_MAP("Google Streets"),
     G_HYBRID_MAP("Google Hybrid"),
     G_SATELLITE_MAP("Google Satellite"),
-    OSM("Open Street Maps"),
-    STAMEN_TONER("Toner"),
-    STAMEN_WATERCOLOR("Watercolor");
+    OSM("Open Street Maps");
     
     private String name;
     
