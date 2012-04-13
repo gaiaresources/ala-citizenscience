@@ -200,7 +200,7 @@ public class ReportService {
                         // Embed the report in a model and view so that it will
                         // receive the usual header, menu and footer.
                         ModelAndView mv = new ModelAndView(REPORT_RENDER_VIEW);
-                        mv.addObject("reportContent", new String(pyResponse.getContent()));
+                        mv.addObject("reportContent", new String(pyResponse.getContent(), Charset.defaultCharset()));
                         return mv;
                     }
                 } else {
@@ -304,7 +304,7 @@ public class ReportService {
             // Base 64 encode all uploaded file data
 
             for (Map.Entry<String, MultipartFile> pair : req.getFileMap().entrySet()) {
-                String data = new String(Base64.encode(pair.getValue().getBytes()));
+                String data = new String(Base64.encode(pair.getValue().getBytes()), Charset.defaultCharset());
                 params.accumulate(pair.getKey(), data);
             }
         }
