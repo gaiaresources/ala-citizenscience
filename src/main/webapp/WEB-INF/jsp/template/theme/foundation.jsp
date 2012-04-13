@@ -77,11 +77,6 @@
             <script src="${pageContext.request.contextPath}/js/ol/OpenLayers.js" type="text/javascript"></script>
             <script src="http://maps.google.com/maps?file=api&amp;v=2&amp;&amp;sensor=false&amp;key=${bdrsGoogleMapsKey}" type="text/javascript"></script>
             <script src="${pageContext.request.contextPath}/js/BdrsCluster.js" type="text/javascript"></script>
-            <!-- 
-                temporary addition for tech review 05 April 2012 
-                used for Stamen base layer types
-            -->
-            <script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js"></script>
         </c:if>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/bdrs.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js/jquery.jcollapsible.min.js"></script>
