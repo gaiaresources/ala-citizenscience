@@ -54,7 +54,9 @@ public class IndexSchedule extends PortalPersistentImpl {
     
     public IndexSchedule(String className, IndexType type, boolean fullRebuild, Date date) {
         this(className, type, fullRebuild);
-        this.date = (Date) date.clone();
+        if (date != null) {
+            this.date = (Date) date.clone();
+        }
     }
     
     /**
@@ -76,13 +78,19 @@ public class IndexSchedule extends PortalPersistentImpl {
      */
     @Column(name = "INDEX_DATE", nullable=true)
     public Date getDate() {
-        return (Date) date.clone();
+        if (date != null) {
+            return (Date) date.clone();
+        }
+        
+        return null;
     }
     /**
      * @param date the date to set
      */
     public void setDate(Date date) {
-        this.date = (Date) date.clone();
+        if (date != null) {
+            this.date = (Date) date.clone();
+        }
     }
     /**
      * @return the fullRebuild

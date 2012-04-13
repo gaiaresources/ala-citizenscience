@@ -1,9 +1,12 @@
 package au.com.gaiaresources.bdrs.spatial;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.Serializable;
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -845,11 +848,13 @@ public class ShapeFileWriter {
         File outfile = new File(tempdir, baseFilename + ".zip");
 
         // File for field descriptions
-        FileWriter descFileWriter = null;
+        OutputStreamWriter descFileWriter = null;
+        FileOutputStream fos = null;
         try {
             String newline = NEWLINE;
             File fieldDescFile = new File(tempdir, FIELD_DESCRIPTION_FILE);
-            descFileWriter = new FileWriter(fieldDescFile);
+            fos = new FileOutputStream(fieldDescFile);
+            descFileWriter = new OutputStreamWriter(fos, Charset.defaultCharset());
 
             descFileWriter.write("Field descriptions for " + baseFilename + ".shp");
             descFileWriter.write(newline);
@@ -884,6 +889,9 @@ public class ShapeFileWriter {
         } finally {
             if (descFileWriter != null) {
                 descFileWriter.close();    
+            }
+            if (fos != null) {
+                fos.close();
             }
         }
         
