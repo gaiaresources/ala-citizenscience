@@ -520,3 +520,10 @@ alter table INDEX_SCHEDULE add constraint FK44AF2B84C136AD4E foreign key (PORTAL
 
 rollback;
 </code>
+
+ = r247 =
+<code language="sql">
+begin;
+create table INDICATOR_SPECIES_TAXON_GROUP (INDICATOR_SPECIES_INDICATOR_SPECIES_ID int4 not null, secondaryGroups_TAXON_GROUP_ID int4 not null, primary key (INDICATOR_SPECIES_INDICATOR_SPECIES_ID, secondaryGroups_TAXON_GROUP_ID));
+rollback;
+</code>
