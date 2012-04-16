@@ -1,27 +1,5 @@
 package au.com.gaiaresources.bdrs.model.taxa.impl;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.annotation.PostConstruct;
-
-import org.apache.log4j.Logger;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.PerFieldAnalyzerWrapper;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.hibernate.Hibernate;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.StaleStateException;
-import org.hibernate.search.Search;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
-
 import au.com.gaiaresources.bdrs.db.QueryOperation;
 import au.com.gaiaresources.bdrs.db.impl.AbstractDAOImpl;
 import au.com.gaiaresources.bdrs.db.impl.HqlQuery;
@@ -50,6 +28,26 @@ import au.com.gaiaresources.bdrs.service.db.DeletionService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.util.Pair;
 import au.com.gaiaresources.bdrs.util.StringUtils;
+import org.apache.log4j.Logger;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.PerFieldAnalyzerWrapper;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.hibernate.Hibernate;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.StaleStateException;
+import org.hibernate.search.Search;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * 
@@ -1014,8 +1012,9 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
             // add the group to the query
             // the '+' indicates that the term must be matched, 
             // so it must be in the group and contain the term
-            searchTerm += " +taxonGroup.id:"+groupId;
+            searchTerm += " +(taxonGroup.id:"+groupId+" OR secondaryGroups.id:"+groupId+")";
         }
         return searchService.searchPaged(getSession(), fields, aWrapper, searchTerm, filter, IndicatorSpecies.class, SpeciesProfile.class);
     }
+
 }

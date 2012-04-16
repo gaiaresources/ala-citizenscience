@@ -196,6 +196,17 @@ public class BDRSFieldGuideControllerTest extends AbstractControllerTest {
         TaxonGroup expected = taxaDAO.getTaxonGroups().get(0);
         testTaxonGroupIdSearchInResultBy("\""+getRandomSpecies(expected).getScientificName()+"\"", 1, expected);
     }
+
+    /**
+     * Tests the green monkey can be searched via it's secondary group.
+     * @throws Exception if the test fails.
+     */
+    @Test
+    public void testTaxonGroupIdSearchInResultByCommonNameUsingSecondaryGroup() throws Exception {
+        TaxonGroup expected = taxaDAO.getTaxonGroups().get(2);
+        IndicatorSpecies greenMonkey = taxaDAO.getIndicatorSpeciesByCommonName("Green Monkey").get(0);
+        testTaxonGroupIdSearchInResultBy("\""+greenMonkey.getCommonName()+"\"", 1, expected);
+    }
     
     @Test
     public void testTaxonGroupIdSearchInResultByDescription() throws Exception {
@@ -289,7 +300,8 @@ public class BDRSFieldGuideControllerTest extends AbstractControllerTest {
         group = new TaxonGroup();
         group.setName("Reptiles");
         taxaDAO.save(group);
-        
+        group = new TaxonGroup();
+
         String[] colors = new String[]{"Green", "Purple", "Blue", "Black", "White", "Yellow", "Red"};
         String[] latinColors = new String[]{"Pratinus", "Purpureus", "Caeruleus", "Fuscus", "Albus", "Flavus", "Roseus"};
         
@@ -314,6 +326,12 @@ public class BDRSFieldGuideControllerTest extends AbstractControllerTest {
                 taxaDAO.save(species);
             }
         }
+
+        group.setName("Secondary Group");
+        taxaDAO.save(group);
+
+        IndicatorSpecies greenMonkey = taxaDAO.getIndicatorSpeciesByCommonName("Green Monkey").get(0);
+        greenMonkey.addSecondaryGroup(group);
     }
 
     /**

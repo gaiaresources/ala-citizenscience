@@ -1,11 +1,25 @@
 package au.com.gaiaresources.bdrs.model.taxa;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
+import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
+import au.com.gaiaresources.bdrs.model.attribute.Attributable;
+import au.com.gaiaresources.bdrs.model.index.IndexingConstants;
+import au.com.gaiaresources.bdrs.model.metadata.Metadata;
+import au.com.gaiaresources.bdrs.model.region.Region;
+import au.com.gaiaresources.bdrs.util.CollectionUtils;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CollectionOfElements;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
+import org.hibernate.annotations.ParamDef;
+import org.hibernate.search.annotations.Analyzer;
+import org.hibernate.search.annotations.Field;
+import org.hibernate.search.annotations.Fields;
+import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.annotations.IndexedEmbedded;
+import org.hibernate.search.annotations.Store;
 
 import javax.persistence.AttributeOverride;
 import javax.persistence.CascadeType;
@@ -23,30 +37,12 @@ import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.CollectionOfElements;
-import org.hibernate.annotations.Filter;
-import org.hibernate.annotations.FilterDef;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
-import org.hibernate.annotations.ParamDef;
-import org.hibernate.search.annotations.Analyzer;
-import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.Fields;
-import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.IndexedEmbedded;
-import org.hibernate.search.annotations.Store;
-
-import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
-import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
-import au.com.gaiaresources.bdrs.model.attribute.Attributable;
-import au.com.gaiaresources.bdrs.model.index.IndexingConstants;
-import au.com.gaiaresources.bdrs.model.metadata.Metadata;
-import au.com.gaiaresources.bdrs.model.region.Region;
-import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
-import au.com.gaiaresources.bdrs.util.CollectionUtils;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Entity
 @FilterDef(name=PortalPersistentImpl.PORTAL_FILTER_NAME, parameters=@ParamDef( name="portalId", type="integer" ) )
@@ -73,7 +69,8 @@ public class IndicatorSpecies extends PortalPersistentImpl implements Attributab
     private String source;
     private String sourceId;
     private Boolean current = true;
-    
+    private List<TaxonGroup> secondaryGroups = new ArrayList<TaxonGroup>();
+
     private Set<Metadata> metadata = new HashSet<Metadata>();
     // Cache of metadata mapped against the key. This is not a database 
     // column or relation.
@@ -341,4 +338,37 @@ public class IndicatorSpecies extends PortalPersistentImpl implements Attributab
 	public void setCurrent(Boolean current) {
 		this.current = current;
 	}
+
+    /**
+     * Returns the secondary TaxonGroups defined for this taxon.
+     * The TaxonGroup lifecycle is independent of the IndicatorSpecies so no operations cascade on this
+     * relationship and TaxonGroups must be persistent before being added to this Set.
+     * Secondary taxon groups are used to present alternative classifications of species in the field guide.
+     * @return a Set of TaxonGroups.
+     */
+    @ManyToMany(fetch = FetchType.LAZY)
+    @IndexedEmbedded
+    public List<TaxonGroup> getSecondaryGroups() {
+        return secondaryGroups;
+    }
+
+    /**
+     * Sets the secondary TaxonGroups of this IndicatorSpecies.  This is intended for use by Hibernate,
+     * use addSecondaryGroup instead.
+     * @param secondaryGroups the secondary groups this IndicatorSpecies belong to.
+     */
+    void setSecondaryGroups(List<TaxonGroup> secondaryGroups) {
+        this.secondaryGroups = secondaryGroups;
+    }
+
+
+    /**
+     * Marks this IndicatorSpecies as being associated with the supplied TaxonGroup.  The TaxonGroup must
+     * be associated with the Hibernate Session before this method is invoked.
+     * @param taxonGroup the TaxonGroup to add this IndicatorSpecies to.
+     */
+    public void addSecondaryGroup(TaxonGroup taxonGroup) {
+        this.secondaryGroups.add(taxonGroup);
+    }
+    
 }

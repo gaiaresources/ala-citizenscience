@@ -172,8 +172,7 @@ bdrs.taxonomy.displayTaxonProperties = function(taxon,
     rows.push('<tr><td>Rank:</td><td colspan="3">' +
                 titleCaps(taxon.taxonRank.toLowerCase()) +
                 '</td></tr>');
-    // Group
-    rows.push('<tr><td>Group:</td><td colspan="3">'+taxon.taxonGroup.name+'</td></tr>');
+
     
     if(taxon.parent !== null) {
         // Parent
@@ -182,6 +181,23 @@ bdrs.taxonomy.displayTaxonProperties = function(taxon,
                     '</a>&nbsp;<a href="javascript:void(0)" class="scientificName taxonParent">' +
                     taxon.parent.scientificName +
                     '</a></td></tr>');
+    }
+
+    // Group
+    rows.push('<tr><td>Group:</td><td colspan="3">'+taxon.taxonGroup.name+'</td></tr>');
+
+    // Secondary groups
+    if (taxon.secondaryGroups != null) {
+        var secondaryGroups = '';
+        for (group in taxon.secondaryGroups) {
+            if (secondaryGroups !== '') {
+                secondaryGroups += ', ';
+            }
+            secondaryGroups += taxon.secondaryGroups[group].name;
+
+        }
+
+        rows.push('<tr><td>Secondary Groups:</td><td colspan="3">'+secondaryGroups+'</td></tr>');
     }
     
     // Update
@@ -304,6 +320,82 @@ bdrs.taxonomy.displayTaxonProperties = function(taxon,
 };
 
 /**
+ * Provides functionality to the autocomplete that works with taxon groups.
+ * Taxon groups returned from the server based on the typed text are additionally filtered to remove groups
+ * that have already been assigned.
+ */
+bdrs.taxonomy.taxonGroupSearcher = {
+
+    primaryGroupSelector: '#taxonGroupPk',
+    secondaryGroupSelector: '.secondaryGroupId',
+    excludedGroups: [],
+
+    updateExcludedGroups : function() {
+        var groups = [];
+        groups.push(parseInt(jQuery(bdrs.taxonomy.taxonGroupSearcher.primaryGroupSelector).val()));
+
+        jQuery(bdrs.taxonomy.taxonGroupSearcher.secondaryGroupSelector).each(function() {
+            groups.push(parseInt(jQuery(this).val()));
+        });
+        return groups;
+    },
+    initSearch : function(event, ui) {
+
+        var excluded = bdrs.taxonomy.taxonGroupSearcher.updateExcludedGroups();
+        var currentElementValue = jQuery(event.target).next('input[type="text"]').val();
+        currentElementValue = parseInt(currentElementValue);
+
+        var index = jQuery.inArray(currentElementValue, excluded);
+        if (index >= 0) {
+            excluded.splice(index, 1);
+        }
+        bdrs.taxonomy.taxonGroupSearcher.excludedGroups = excluded;
+    },
+
+    searchTaxonGroups : function(request, callback) {
+
+        var params = {};
+        params.q = request.term;
+
+        jQuery.getJSON(bdrs.contextPath+'/webservice/taxon/searchTaxonGroup.htm', params, function(data, textStatus) {
+
+            var taxonGroup;
+            var resultsArray = [];
+            for(var i=0; i<data.length; i++) {
+                taxonGroup = data[i];
+
+                if (jQuery.inArray(taxonGroup.id, bdrs.taxonomy.taxonGroupSearcher.excludedGroups) < 0) {
+
+                    resultsArray.push({
+                        label: taxonGroup.name,
+                        value: taxonGroup.name,
+                        data: taxonGroup
+                    });
+                }
+            }
+
+            callback(resultsArray);
+        });
+    }
+};
+
+/**
+ * Deletes a row from the secondary groups table, making sure ketchup is happy first.
+ * @param event the click event that triggered this delete.
+ */
+bdrs.taxonomy.deleteSecondaryGroup = function(event) {
+
+    var rowSelector = 'tr:first';
+    var inputSelector = 'input[name=secondaryGroups]';
+    // Yet another crazy ketchup workaround.
+    var hiddenField = jQuery(event.target).parents(rowSelector).find(inputSelector);
+    hiddenField.val("-1");
+    hiddenField.focus();
+
+    jQuery(this).parents(rowSelector).remove();
+};
+
+/**
  * Initialises the edit taxon screen by binding autocomplete widgets to the
  * taxon parent input and the taxon group input.
  *
@@ -323,7 +415,8 @@ bdrs.taxonomy.displayTaxonProperties = function(taxon,
 bdrs.taxonomy.initEditTaxon = function(parentAutocompleteSelector, parentPkSelector,
                                        groupAutocompleteSelector, groupPkSelector,
                                        taxonPkSelector, taxonAttributeWrapperSelector,
-                                       taxonProfileTableSelector, newProfileIndexSelector) {
+                                       taxonProfileTableSelector, newProfileIndexSelector,
+                                       secondaryGroupAutocompleteSelector) {
     // Parent Taxon
     jQuery(parentAutocompleteSelector).autocomplete({
         source: function(request, callback) {
@@ -372,31 +465,11 @@ bdrs.taxonomy.initEditTaxon = function(parentAutocompleteSelector, parentPkSelec
         minLength: 2,
         delay: 300
     });
-       
-       
+
     // Taxon Group
     jQuery(groupAutocompleteSelector).autocomplete({
-        source: function(request, callback) {
-            var params = {};
-            params.q = request.term;
-
-            jQuery.getJSON(bdrs.contextPath+'/webservice/taxon/searchTaxonGroup.htm', params, function(data, textStatus) {
-                var label;
-                var result;
-                var taxonGroup;
-                var resultsArray = [];
-                for(var i=0; i<data.length; i++) {
-                    taxonGroup = data[i];
-                    resultsArray.push({
-                        label: taxonGroup.name,
-                        value: taxonGroup.name,
-                        data: taxonGroup
-                    });
-                }
-
-                callback(resultsArray);
-            });
-        },
+        search: bdrs.taxonomy.taxonGroupSearcher.initSearch,
+        source: bdrs.taxonomy.taxonGroupSearcher.searchTaxonGroups,
         select: function(event, ui) {
             var taxonGroup = ui.item.data;
             jQuery(groupPkSelector).val(taxonGroup.id);
@@ -550,7 +623,10 @@ bdrs.taxonomy.initEditTaxon = function(parentAutocompleteSelector, parentPkSelec
     
     jQuery(function() {
         bdrs.dnd.attachTableDnD(taxonProfileTableSelector);
-    });                                
+    });
+
+    bdrs.taxonomy.addSecondaryGroupControls(secondaryGroupAutocompleteSelector, '.deleteSecondaryGroup a');
+
 };
 
 bdrs.taxonomy.addNewProfile = function(newProfileIndexSelector, profileTableSelector) {
@@ -568,6 +644,46 @@ bdrs.taxonomy.addNewProfile = function(newProfileIndexSelector, profileTableSele
         // Focus the row we just added, if the table is long it can be unclear if the add function did anything.
         jQuery(profileTableSelector).find('tr:last input[type=text]:first').focus();
     });
+};
+
+/**
+ * Adds a row to the secondary group table.  It does this by selecting a row from a hidden prototype row and
+ * inserting it into the secondary groups table.
+ * @param tableSelector identifies the table to add the row to.
+ * @param rowSelector identifies the div in which the prototype of the row to add is hidden.
+ */
+bdrs.taxonomy.addSecondaryGroup = function(tableSelector, rowSelector) {
+    console.log(rowSelector);
+    console.log(jQuery(rowSelector+' tr'));
+    jQuery(tableSelector+' > tbody:last').append(jQuery(rowSelector+' tr').clone());
+    jQuery(tableSelector+' > tbody:last').ketchup();
+
+
+    var selectorPrefix = tableSelector + ' tr:last';
+    jQuery(selectorPrefix+' .secondaryGroupSearch').focus();
+    bdrs.taxonomy.addSecondaryGroupControls(selectorPrefix+' .secondaryGroupSearch', selectorPrefix + ' .deleteSecondaryGroup a');
+};
+
+/**
+ * Adds autocomplete & delete actions to a row in the secondary groups table.
+ * @param secondaryGroupAutocompleteSelector identifies the autocomplete field.
+ * @param deleteSecondaryGroupSelector identifies the delete link.
+ */
+bdrs.taxonomy.addSecondaryGroupControls = function(secondaryGroupAutocompleteSelector, deleteSecondaryGroupSelector) {
+
+    // Secondary Taxon Groups
+    jQuery(secondaryGroupAutocompleteSelector).autocomplete({
+        search: bdrs.taxonomy.taxonGroupSearcher.initSearch,
+        source: bdrs.taxonomy.taxonGroupSearcher.searchTaxonGroups,
+        select: function(event, ui) {
+            var taxonGroup = ui.item.data;
+
+            jQuery(event.target).next("input[type=text]").val(taxonGroup.id);
+        }
+    });
+    console.log(jQuery(deleteSecondaryGroupSelector));
+    jQuery(deleteSecondaryGroupSelector).click(bdrs.taxonomy.deleteSecondaryGroup);
+
 };
 
 bdrs.taxonomy.importALAProfile = function(guidListSelector, taxonGroupNameSelector, shortProfileSelector) { 
