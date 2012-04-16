@@ -1,17 +1,16 @@
 package au.com.gaiaresources.bdrs.model.taxa;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.lucene.queryParser.ParseException;
-import org.hibernate.Session;
-
 import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
 import au.com.gaiaresources.bdrs.db.impl.PaginationFilter;
 import au.com.gaiaresources.bdrs.model.region.Region;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.util.Pair;
+import org.apache.lucene.queryParser.ParseException;
+import org.hibernate.Session;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 public interface TaxaDAO {
     TaxonGroup createTaxonGroup(String name, boolean includeBehaviour, boolean includeFirstAppearance,
@@ -468,7 +467,8 @@ public interface TaxaDAO {
     /**
      * Returns a {@link PagedQueryResult} of {@link IndicatorSpecies} for the {@link TaxonGroup}
      * with groupId and matching the search terms: searchInGroups and searchInResult
-     * @param groupId (optional) id of the {@link TaxonGroup} to search in
+     * @param groupId (optional) id of the {@link TaxonGroup} to search in.  This will search primary or secondary
+     *                groups.
      * @param searchInGroups (optional) a string to search for
      * @param searchInResult (optional) a second string to search for once the results have been narrowed by searchInGroups
      * @param filter A {@link PaginationFilter} to apply to the query to implement paging
@@ -478,4 +478,5 @@ public interface TaxaDAO {
      */
     PagedQueryResult<IndicatorSpecies> searchTaxa(
             Integer groupId, String searchInGroups, String searchInResult, PaginationFilter filter) throws ParseException;
+
 }

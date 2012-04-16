@@ -1,43 +1,16 @@
 package au.com.gaiaresources.bdrs.controller.taxonomy;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.annotation.security.RolesAllowed;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import au.com.gaiaresources.bdrs.json.JSON;
-import au.com.gaiaresources.bdrs.json.JSONArray;
-import au.com.gaiaresources.bdrs.json.JSONException;
-import au.com.gaiaresources.bdrs.json.JSONObject;
-import au.com.gaiaresources.bdrs.json.JSONSerializer;
-
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
-
 import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormFieldFactory;
 import au.com.gaiaresources.bdrs.controller.insecure.taxa.ComparePersistentImplByWeight;
 import au.com.gaiaresources.bdrs.controller.record.WebFormAttributeParser;
 import au.com.gaiaresources.bdrs.file.FileService;
+import au.com.gaiaresources.bdrs.json.JSON;
+import au.com.gaiaresources.bdrs.json.JSONArray;
+import au.com.gaiaresources.bdrs.json.JSONException;
+import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.json.JSONSerializer;
 import au.com.gaiaresources.bdrs.model.file.ManagedFile;
 import au.com.gaiaresources.bdrs.model.file.ManagedFileDAO;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
@@ -57,6 +30,30 @@ import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.property.PropertyService;
 import au.com.gaiaresources.bdrs.service.web.AtlasService;
 import au.com.gaiaresources.bdrs.util.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
+
+import javax.annotation.security.RolesAllowed;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * The <code>TaxonomyManagementControllers</code> handles all view requests 
@@ -315,7 +312,8 @@ public class TaxonomyManagementController extends AbstractController {
                              @RequestParam(required=true, value="year") String year,
                              @RequestParam(required=false, value="new_profile") int[] profileIndexArray,
                              @RequestParam(required=false, value="profile_pk") int[] profilePkArray,
-                             @RequestParam(required=false, value="guid") String guid) throws ParseException, IOException {
+                             @RequestParam(required=false, value="guid") String guid,
+                             @RequestParam(required=false, value="secondaryGroups") int[] secondaryTaxonGroups) throws ParseException, IOException {
         
         IndicatorSpecies taxon;
         if(taxonPk == 0) {
@@ -409,7 +407,14 @@ public class TaxonomyManagementController extends AbstractController {
                 }
             }
         }
-        
+
+        taxon.getSecondaryGroups().clear();
+        if (secondaryTaxonGroups != null)  {
+            for (int i : secondaryTaxonGroups) {
+                taxon.addSecondaryGroup(taxaDAO.getTaxonGroup(i));
+            }
+        }
+
         taxaDAO.save(taxon);
         for(TypedAttributeValue ta : taxonAttrsToDelete) {
             // Must do a save here to sever the link in the join table.
@@ -422,6 +427,7 @@ public class TaxonomyManagementController extends AbstractController {
         for (SpeciesProfile delProf : profileMap.values()) {
             profileDAO.delete(delProf);
         }
+
         
         getRequestContext().addMessage("taxonomy.save.success", new Object[]{ taxon.getScientificName() });
         return new ModelAndView(new RedirectView("/bdrs/admin/taxonomy/listing.htm?taxonPk="+taxon.getId(), true));

@@ -27,21 +27,21 @@
     <c:if test="${ taxon.id != null }">
        <input id="taxonPk" type="hidden" name="taxonPk" value="${ taxon.id }"/>
    </c:if>
-   <div class="input_container">
+   <div class="input_container" style="float:left; width: 45%">
         <table class="form_table taxon_edit_form_table">
             <tbody>
                 <tr>
                     <th><label for="scientificName">Scientific Name</label></th>
-                    <td><input class="validate(required)" type="text" name="scientificName" value="${ taxon.scientificName }"/></td>
+                    <td><input id="scientificName" class="validate(required)" type="text" name="scientificName" value="${ taxon.scientificName }"/></td>
                 </tr>
                 <tr>
                     <th><label for="commonName">Common Name</label></th>
-                    <td><input class="validate(required)" type="text" name="commonName" value="${ taxon.commonName }"/></td>
+                    <td><input id="commonName" class="validate(required)" type="text" name="commonName" value="${ taxon.commonName }"/></td>
                 </tr>
                 <tr>
                     <th><label for="rank">Rank</label></th>
                     <td>
-                        <select name="taxonRank">
+                        <select id="rank" name="taxonRank">
                             <c:forEach var="rankEnum" items="<%= TaxonRank.values() %>">
                                 <jsp:useBean id="rankEnum" type="au.com.gaiaresources.bdrs.model.taxa.TaxonRank"/>
                                 <option value="<%= rankEnum.toString() %>"
@@ -62,29 +62,59 @@
                         <input id="parentPk" type="text" name="parentPk" value="${ taxon.parent.id }" style="visibility:hidden;width:1px;padding:2px 0 0 0;margin:0 0 0 -4px;border-width:0;"/>
                     </td>
                 </tr>
-                <tr>
-                    <th><label for="taxonGroup">Group</label></th>
-                    <td>
-                        <input id="taxonGroup" class="" type="text" name="taxonGroup" value="${ taxon.taxonGroup.name }"/>
-                        <input id="taxonGroupPk" class="validate(required)" type="text" name="taxonGroupPk" value="${ taxon.taxonGroup.id }" style="visibility:hidden;width:1px;padding:2px 0 0 0;margin:0 0 0 -4px;border-width:0;"/>
-                    </td>
-                </tr>
+
                 <tr>
                     <th><label for="author">Author</label></th>
-                    <td><input class="" type="text" name="author" value="${ taxon.author }"/></td>
+                    <td><input id="author" class="" type="text" name="author" value="${ taxon.author }"/></td>
                 </tr>
                 <tr>
                     <th><label for="year">Year</label></th>
-                    <td><input class="" type="text" name="year" value="${ taxon.year }"/></td>
+                    <td><input id="year" class="" type="text" name="year" value="${ taxon.year }"/></td>
                 </tr>
                 <tr>
                     <th><label for="guid">Guid</label></th>
                     <td><input class="" type="text" name="guid" id="guid" value="${ taxon.sourceId }"/></td>
                 </tr>
+
+            </tbody>
+          </table>
+       </div>
+       <div class="input_container" style="margin-left: 50%">
+          <table class="form_table taxon_edit_form_table">
+             <tbody>
+               <tr>
+                 <th><label for="taxonGroup">Primary Group</label></th>
+                 <td>
+                     <input id="taxonGroup" class="" type="text" name="taxonGroup" value="${ taxon.taxonGroup.name }"/>
+                     <input id="taxonGroupPk" class="hiddenTextField validate(required)" type="text" name="taxonGroupPk" value="${ taxon.taxonGroup.id }"/>
+                 </td>
+                </tr>
+                <tr>
+                    <th>Secondary Groups</th>
+                    <td>
+                        <table id="secondaryGroups">
+                            <tbody>
+                                <c:forEach var="group" items="${taxon.secondaryGroups}">
+                                   <tiles:insertDefinition name="secondaryTaxonGroupRow">
+                                       <tiles:putAttribute name="group" value="${group}"/>
+                                   </tiles:insertDefinition>
+                                </c:forEach>
+
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+               <tr id="addSecondaryGroup">
+                   <th></th>
+                   <td>
+                       <input type="button" class="form_action" style="margin: 2px 10px 10px 10px;" value="Add" onclick="bdrs.taxonomy.addSecondaryGroup('#secondaryGroups', '#secondaryTaxonGroupRow');"/>
+                   </td>
+               </tr>
             </tbody>
         </table>
     </div>
-    <h3>Taxon Profile</h3>
+
+    <h3 style="clear:both;">Taxon Profile</h3>
     <p>
        The taxon profile provides additional data about this taxon such as
        distinctive markings, identifying characteristics, habitat and biology. 
@@ -138,6 +168,12 @@
     </div>
 </form>
 
+<div id="secondaryTaxonGroupRow">
+    <table>
+        <tiles:insertDefinition name="secondaryTaxonGroupRow"/>
+    </table>
+</div>
+
 
 <jsp:include page="/WEB-INF/jsp/bdrs/admin/taxonomy/editTaxonDialogs.jsp"/>
 
@@ -147,7 +183,9 @@
         bdrs.taxonomy.initEditTaxon("#parent","#parentPk", 
                                     "#taxonGroup", "#taxonGroupPk",
                                     "#taxonPk", "#taxonAttributeTable", 
-                                    "#taxonProfileTable", "#newProfileIndex");
+                                    "#taxonProfileTable", "#newProfileIndex",
+                                    ".secondaryGroupSearch");
+
         // Render the html editor using a jquery dialog.
         $( "#htmlEditorDialog" ).dialog({
             width: 'auto',
@@ -227,6 +265,8 @@
         // two event handlers.
         jQuery('#taxonProfileTable').delegate('input[name^=profile_content_]', 'focus', 'profile_type_', contentFocusHandler);
         jQuery('#taxonProfileTable').delegate('input[name^=new_profile_content_]', 'focus', 'new_profile_type_', contentFocusHandler);
+
+        jQuery('#secondaryTaxonGroupRow').hide();
     });
 
 
@@ -281,5 +321,5 @@
     };
 
 
-    
+
 </script>

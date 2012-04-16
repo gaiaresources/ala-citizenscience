@@ -245,7 +245,7 @@ public class RecordWebFormContext {
      * @return true if edit mode enabled, false otherwise
      */
     public boolean isEditable() {
-        return context == DisplayContext.CREATE || context == DisplayContext.EDIT;
+        return context == DisplayContext.CREATE || context == DisplayContext.EDIT || context == DisplayContext.PREVIEW;
     }
     
     /**

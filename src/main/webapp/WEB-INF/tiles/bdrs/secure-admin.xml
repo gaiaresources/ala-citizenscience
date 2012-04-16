@@ -284,6 +284,9 @@
         <put-attribute name="taxonProfileList" type="object"/>
         <put-attribute name="newProfileIndex"/>
     </definition>
+
+    <definition name="secondaryTaxonGroupRow" template="/WEB-INF/jsp/bdrs/admin/taxonomy/secondaryTaxonGroupRow.jsp">
+    </definition>
     
     <!-- Taxon Groups -->
     <definition name="taxonGroupList" extends="admin-template">

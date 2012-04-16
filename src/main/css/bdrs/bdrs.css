@@ -1556,7 +1556,32 @@ table.bulkDataTableForm tbody tr th {
 
 .editTaxonGroupRightColumn {
 	padding: 10px 0 0 50px;
-} 
+}
+
+#secondaryGroups,
+#secondaryGroups tr,
+#secondaryGroups tr td,
+#addSecondaryGroup tr,
+#addSecondaryGroup td {
+    margin: 0;
+    padding: 0;
+}
+.deleteSecondaryGroup {
+    margin-left: 0;
+    padding: 0 0 0 10px;
+}
+
+.hiddenTextField[name=secondaryGroups],
+.hiddenTextField[name=taxonGroupPk] {
+    visibility:hidden;
+    width:1px;
+    padding:0;
+    margin:0;
+    border-width:0;
+}
+.hiddenTextField[name=taxonGroupPk] {
+    width:15px;
+}
 
 /*******************/
 /* Search taxonomy */
