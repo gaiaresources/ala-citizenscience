@@ -1,0 +1,11 @@
+<input  id="${ widget.widget_id }"
+        name="${ widget.widget_name }"
+        class=" #echo ' '.join($widget.widget_class)# 
+                #if $widget.widget_validation_class 
+                    validate(#echo ','.join($widget.widget_validation_class)#)
+                #end if
+            "
+        style="${ widget.widget_style }"
+        value="${ widget.widget_value }"
+        type="${ widget.widget_input_type }"
+/>

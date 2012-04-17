@@ -70,7 +70,6 @@ bdrs.advancedReview.initTableView = function(formSelector,
     });
     
     // AJAX load the content for the table
-    console.log(bdrs.advancedReview.JSON_URL);
     var url = bdrs.contextPath + bdrs.advancedReview.JSON_URL;
     var queryParams = jQuery(formSelector).serialize();
 

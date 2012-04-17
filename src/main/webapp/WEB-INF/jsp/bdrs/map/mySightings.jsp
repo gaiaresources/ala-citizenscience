@@ -338,25 +338,25 @@
                 <table id="record_table" class="datatable">
                     <thead>
                         <tr>
-                            <th>
+                            <th class="dateColumn">
                                 Date
                             </th>
-                            <th>
+                            <th class="commonNameColumn">
                                 Common&nbsp;Name
                             </th>
-                            <th>
+                            <th class="sciNameColumn">
                                 Scientific&nbsp;Name
                             </th>
-                            <th>
+                            <th class="latitudeColumn">
                                 Latitude
                             </th>
-                            <th>
+                            <th class="longitudeColumn">
                                 Longitude
                             </th>
-                            <th>
+                            <th class="numberColumn">
                                 Number
                             </th>
-                            <th>
+                            <th class="notesColumn">
                                 Notes
                             </th>
                             <th colspan="2">

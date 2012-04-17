@@ -1,5 +1,6 @@
 package au.com.gaiaresources.bdrs.model.taxa;
 
+import au.com.gaiaresources.bdrs.db.TransactionDAO;
 import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
 import au.com.gaiaresources.bdrs.db.impl.PaginationFilter;
 import au.com.gaiaresources.bdrs.model.region.Region;
@@ -12,7 +13,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-public interface TaxaDAO {
+public interface TaxaDAO extends TransactionDAO {
     TaxonGroup createTaxonGroup(String name, boolean includeBehaviour, boolean includeFirstAppearance,
                                 boolean includeLastAppearance, boolean includeHabitat, boolean includeWeather,
                                 boolean includeNumber);

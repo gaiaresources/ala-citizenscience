@@ -79,6 +79,9 @@
 	<!-- Scan for the Report DAOS -->
     <context:component-scan base-package="au.com.gaiaresources.bdrs.model.report.impl"/>
 
+    <!-- Scan for Custom Form DAOS -->
+    <context:component-scan base-package="au.com.gaiaresources.bdrs.model.form.impl"/>
+
     <!-- Scan for the Indexing DAOS -->
     <context:component-scan base-package="au.com.gaiaresources.bdrs.model.index.impl"/>
 

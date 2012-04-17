@@ -411,7 +411,7 @@ public class ApplicationService extends AbstractController {
          *      500 : { ... }
          * }
          */
-        
+
         JSONObject jsonObj = new JSONObject();
         try {
             String ident = request.getParameter("ident");
@@ -489,7 +489,7 @@ public class ApplicationService extends AbstractController {
     
     private void syncRecord(List<Map<String, Object>> syncResponseList, Object jsonRecordBean, User user) 
         throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, IOException {
-        
+
         String clientID = getJSONString(jsonRecordBean, "id", null);
         if(clientID == null) {
             throw new NullPointerException();
@@ -505,8 +505,8 @@ public class ApplicationService extends AbstractController {
         } else {
             rec = recordDAO.getRecord(recordPk);
         }
-        
-        
+
+
         String latitudeString = getJSONString(jsonRecordBean, "latitude", "");
         Double latitude = latitudeString.trim().isEmpty() ? null : Double.parseDouble(latitudeString);
         String longitudeString = getJSONString(jsonRecordBean, "longitude", "");
@@ -525,7 +525,7 @@ public class ApplicationService extends AbstractController {
             Location l = locationDAO.getLocation(locationId.intValue());
             rec.setLocation(l);
         }
-        
+
         //set other dwc values
         Date when = getJSONDate(jsonRecordBean, "when", null);
         rec.setWhen(when);
@@ -543,7 +543,7 @@ public class ApplicationService extends AbstractController {
             lastTime = lastDate.getTime();
         }
         rec.setLastTime(lastTime);
-        
+
         String notes = getJSONString(jsonRecordBean, "notes", null);
         rec.setNotes(notes);
         
@@ -554,7 +554,7 @@ public class ApplicationService extends AbstractController {
         if(censusMethodPk != null) {
             rec.setCensusMethod(censusMethodDAO.get(censusMethodPk));
         }
-        
+
         Integer surveyPk = getJSONInteger(jsonRecordBean, "survey_id", null);
         
         String scientificName = getJSONString(jsonRecordBean, "scientificName", null);
@@ -572,7 +572,7 @@ public class ApplicationService extends AbstractController {
             }
             rec.setSpecies(taxon);
         }
-        
+
         rec.setUser(user);
         if(surveyPk != null) {
             rec.setSurvey(surveyDAO.getSurvey(surveyPk));
@@ -584,7 +584,7 @@ public class ApplicationService extends AbstractController {
         map.put("id", clientID);
         map.put("server_id", rec.getId());
         map.put("klass", Record.class.getSimpleName());
-        
+
         syncResponseList.add(map);
         
         List<Object> recAttrBeanList = (List<Object>) PropertyUtils.getProperty(jsonRecordBean, "attributeValues");
@@ -592,13 +592,13 @@ public class ApplicationService extends AbstractController {
             AttributeValue recAttr = syncAttributeValue(syncResponseList, jsonRecAttrBean);
             rec.getAttributes().add(recAttr);
         }
-        
+
         // Save the client ID.
         Metadata md = recordDAO.getRecordMetadataForKey(rec, Metadata.RECORD_CLIENT_ID_KEY);
         md.setValue(clientID);
         md = metadataDAO.save(md);
         rec.getMetadata().add(md);
-        
+
         recordDAO.saveRecord(rec);
     }
     
@@ -608,7 +608,7 @@ public class ApplicationService extends AbstractController {
         if(id == null) {
             throw new NullPointerException();
         }
-        
+
         Integer attrValPk = getJSONInteger(jsonRecAttrBean, "server_id", 0);
         Integer attrPk = getJSONInteger(jsonRecAttrBean, "attribute_id", null);
         String value = getJSONString(jsonRecAttrBean, "value", "");
@@ -677,7 +677,7 @@ public class ApplicationService extends AbstractController {
                 throw new UnsupportedOperationException("Unsupported Attribute Type: "+attr.getType().toString());
         }
         attrVal = attributeValueDAO.save(attrVal);
-        
+
         if(filename != null && base64 != null) {
             fileService.createFile(attrVal.getClass(), attrVal.getId(), filename, Base64.decode(base64));
         }
@@ -686,7 +686,7 @@ public class ApplicationService extends AbstractController {
         map.put("id", id);
         map.put("server_id", attrVal.getId());
         map.put("klass", AttributeValue.class.getSimpleName());
-        
+
         syncResponseList.add(map);
         return attrVal;
     }

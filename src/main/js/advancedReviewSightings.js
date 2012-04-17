@@ -16,7 +16,7 @@ bdrs.advancedReview.TABLE_ROW_TMPL = '\
     <td>${ censusMethod ? censusMethod.type : "Observation" }</td>\
     <td><a href="${ contextPath }/bdrs/user/surveyRenderRedirect.htm?surveyId=${ survey.id }&recordId=${ id }">${ _when }</a></td>\
     <td class=\"scientificName\">${ species ? species.scientificName : "N/A" }</td>\
-    <td>${ species ? species.commonName : "N/A" }</td>\
+    <td class=\"commonName\">${ species ? species.commonName : "N/A" }</td>\
     <td>${ geometry ? latitude : "N/A" }, ${ geometry ? longitude : "N/A" }</td>\
     <td>${ user.name }</td>\
     {{if authenticated}}\

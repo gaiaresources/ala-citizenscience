@@ -1,20 +1,5 @@
 package au.com.gaiaresources.bdrs.controller.review;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.JAXBException;
-
-import org.apache.log4j.Logger;
-import org.hibernate.FlushMode;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.servlet.ModelAndView;
-
 import au.com.gaiaresources.bdrs.controller.review.sightings.SightingsController;
 import au.com.gaiaresources.bdrs.db.FilterManager;
 import au.com.gaiaresources.bdrs.db.ScrollableResults;
@@ -37,10 +22,23 @@ import au.com.gaiaresources.bdrs.service.facet.Facet;
 import au.com.gaiaresources.bdrs.service.facet.FacetService;
 import au.com.gaiaresources.bdrs.service.facet.SurveyFacet;
 import au.com.gaiaresources.bdrs.service.facet.option.FacetOption;
-import au.com.gaiaresources.bdrs.service.report.ReportService;
+import au.com.gaiaresources.bdrs.service.python.report.ReportService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.servlet.RequestContext;
 import au.com.gaiaresources.bdrs.util.KMLUtils;
+import org.apache.log4j.Logger;
+import org.hibernate.FlushMode;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.JAXBException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * An advanced review view has a group of facets and 3 views: table, map, download.
@@ -264,7 +262,7 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
      * Creates a {@link Query} object based on the selections in the {@link Facet}s.
      * @param facetList The list of {@link Facet} to filter by
      * @param surveyId surveyId (optional) surveyId to filter by
-     * @param the HQL property that should be used for sorting. 
+     * @param sortProperty the HQL property that should be used for sorting.
      * The sortProperty may be null if no sorting is necessary.
      * @param sortOrder the sorting order
      * @param searchText textual restriction to be applied to matching results
@@ -307,7 +305,7 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
     protected abstract String getCountSelect();
 
     /**
-     * Adds the {@link Query} {@link Predicate}s from the facets to the 
+     * Adds the {@link Query} {@link au.com.gaiaresources.bdrs.db.impl.Predicate}s from the facets to the
      * {@link HqlQuery} parameter.
      * @param hqlQuery the query to apply the facet predicates to
      * @param facetList the list of facets to apply to the query

@@ -22,7 +22,7 @@ class Report:
 
         log = bdrs.getLogger()
 
-        params = json.loads(json_params)
+        params = json.loads(json_params, strict=False)
 
         tmpl_params = {}
 

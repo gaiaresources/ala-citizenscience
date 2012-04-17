@@ -16,8 +16,6 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
  */
 public class SingleSiteFormAttributeDictionaryFactory extends
         AbstractAttributeDictionaryFactory {
-    public SingleSiteFormAttributeDictionaryFactory(String[] rowIds) {
-    }
 
     /**
      * These methods are not supported in the single site form input. At the moment it is impossible

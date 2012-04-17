@@ -172,6 +172,23 @@
 	                                    </label>
 	                                </div>
 	                            </c:forEach>
+
+	                            <c:forEach items="${ customforms }" var="customform">
+	                                <jsp:useBean id="customform" type="au.com.gaiaresources.bdrs.model.form.CustomForm" />
+                                    <div title="${ customform.description }">
+                                        <input onchange="editSurveyPage.rendererTypeChanged(jQuery(this));"
+                                                id="customform_${ customform.id }"
+                                                type="radio"
+                                                class="vertmiddle"
+                                                name="rendererType"
+                                                value="${ customform.id }"
+                                                <c:if test="<%= customform.equals(survey.getCustomForm()) %>">
+                                                    checked="checked"
+                                                </c:if>
+                                        />
+                                        <label for="customform_${ customform.id }">${ customform.name }</label>
+                                    </div>
+	                            </c:forEach>
 	                        </fieldset>
 	                    </td>
 	                </tr>
@@ -258,17 +275,30 @@
        rendererTypeChanged: function() {
            var value = $('input:radio[name=rendererType]:checked').val();
            var recordVisCheckBox = jQuery('input[name=recordVisModifiable]');
+           var isRecordVisEnabled = false;
            if (value === 'DEFAULT') {
-              recordVisCheckBox.removeAttr('disabled');
+              isRecordVisEnabled = true;
            } else if (value === 'SINGLE_SITE_MULTI_TAXA') {
-              recordVisCheckBox.attr('disabled', 'disabled');
+              isRecordVisEnabled = false;
            } else if (value === 'SINGLE_SITE_ALL_TAXA') {
-              recordVisCheckBox.attr('disabled', 'disabled');
+              isRecordVisEnabled = false;
            } else if (value === 'ATLAS') {
-              recordVisCheckBox.attr('disabled', 'disabled');
+              isRecordVisEnabled = false;
            } else {
-              // not expected value. default to disable the control.
-              recordVisCheckBox.attr('disabled', 'disabled');
+              // If it is a custom form then allow the record visibility to be modifiable.
+              // It is the responsibility of the custom form to provide this facility.
+              if(!isNaN(value, 10)) {
+                  isRecordVisEnabled = true;
+              } else {
+                  // not expected value. default to disable the control.
+                  isRecordVisEnabled = false;
+              }
+           }
+
+           if(isRecordVisEnabled) {
+               recordVisCheckBox.removeAttr("disabled");
+           } else {
+               recordVisCheckBox.attr('disabled', 'disabled');
            }
        }    
     };

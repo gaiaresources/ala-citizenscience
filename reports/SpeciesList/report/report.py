@@ -11,7 +11,7 @@ class Report:
     been recorded in a survey.
     """
     def content(self, json_params, *args, **kwargs):
-        params = json.loads(json_params)
+        params = json.loads(json_params, strict=False)
         tmpl_params = {}
 
         survey_array = json.loads(bdrs.getSurveyDAO().getActiveSurveys())

@@ -1657,6 +1657,13 @@ table.preference_table {
 }
 
 /************************************/
+/* Custom Forms Styling             */
+/************************************/
+.delete_customform_container {
+    padding: 0.5em 0em 0.5em 0em;
+}
+
+/************************************/
 /* Menu Layout Styling              */
 /************************************/
 

@@ -5,6 +5,8 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import au.com.gaiaresources.bdrs.controller.customform.CustomFormController;
+import au.com.gaiaresources.bdrs.model.form.CustomForm;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -43,6 +45,7 @@ public class RenderController extends AbstractController {
     public static final String PARAM_RECORD_ID = BdrsWebConstants.PARAM_RECORD_ID;
     public static final String PARAM_SURVEY_ID = BdrsWebConstants.PARAM_SURVEY_ID;
     public static final String PARAM_COMMENT_ID = BdrsWebConstants.PARAM_COMMENT_ID;
+    public static final String PARAM_REDIRECT_URL = "redirectUrl";
     
     /** The prefix of the page anchors that identify the position of comments on the Record page */
     private static final String COMMENT_ANCHOR_PREFIX = "#comment";
@@ -64,7 +67,8 @@ public class RenderController extends AbstractController {
             HttpServletResponse response,
             @RequestParam(value=PARAM_RECORD_ID, required=false) String recordId,
             @RequestParam(value=PARAM_SURVEY_ID, required=false) String surveyPk,
-            @RequestParam(value=PARAM_COMMENT_ID, required=false) String commentId) {
+            @RequestParam(value=PARAM_COMMENT_ID, required=false) String commentId,
+            @RequestParam(value=PARAM_REDIRECT_URL, required=false) String redirectURL) {
 
         int surveyId = 0;
         
@@ -104,36 +108,41 @@ public class RenderController extends AbstractController {
 		}
 
         Survey survey = surveyDAO.getSurvey(surveyId);
-        SurveyFormRendererType renderer = survey.getFormRendererType();
+        if(redirectURL == null) {
+            if(survey.getCustomForm() == null) {
+                SurveyFormRendererType renderer = survey.getFormRendererType();
+                renderer = renderer == null ? SurveyFormRendererType.DEFAULT : renderer;
 
-        renderer = renderer == null ? SurveyFormRendererType.DEFAULT : renderer;
-        String redirectURL;
-        switch (renderer) {
-        case YEARLY_SIGHTINGS:
-            redirectURL = YearlySightingsController.YEARLY_SIGHTINGS_URL;
-            break;
-        case SINGLE_SITE_MULTI_TAXA:
-            redirectURL = SingleSiteMultiTaxaController.SINGLE_SITE_MULTI_TAXA_URL;
-            break;
-        case SINGLE_SITE_ALL_TAXA:
-            redirectURL = SingleSiteAllTaxaController.SINGLE_SITE_ALL_TAXA_URL;
-            break;
-        case ATLAS:
-            redirectURL = AtlasController.ATLAS_URL;
-            break;
-        case DEFAULT:
-            // Fall through
-        default:
-            redirectURL = TrackerController.EDIT_URL;
-        }
+                switch (renderer) {
+                case YEARLY_SIGHTINGS:
+                    redirectURL = YearlySightingsController.YEARLY_SIGHTINGS_URL;
+                    break;
+                case SINGLE_SITE_MULTI_TAXA:
+                    redirectURL = SingleSiteMultiTaxaController.SINGLE_SITE_MULTI_TAXA_URL;
+                    break;
+                case SINGLE_SITE_ALL_TAXA:
+                    redirectURL = SingleSiteAllTaxaController.SINGLE_SITE_ALL_TAXA_URL;
+                    break;
+                case ATLAS:
+                    redirectURL = AtlasController.ATLAS_URL;
+                    break;
+                case DEFAULT:
+                    // Fall through
+                default:
+                    redirectURL = TrackerController.EDIT_URL;
+                }
+            } else {
+                CustomForm form = survey.getCustomForm();
+                redirectURL = CustomFormController.FORM_RENDER_URL.replace("{formId}", String.valueOf(form.getId()));
+            }
 
-        if (StringUtils.hasLength(commentId)) {
-            redirectURL = redirectURL + COMMENT_ANCHOR_PREFIX+commentId;
+            if (StringUtils.hasLength(commentId)) {
+                redirectURL = redirectURL + COMMENT_ANCHOR_PREFIX+commentId;
+            }
         }
         ModelAndView mv = this.redirect(redirectURL);
-        
         mv.addAllObjects(request.getParameterMap());
-        
+
         if (!StringUtils.hasLength(request.getParameter(PARAM_SURVEY_ID))) {
             mv.addObject(PARAM_SURVEY_ID, Integer.toString(surveyId));    
         }
