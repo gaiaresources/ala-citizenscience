@@ -73,6 +73,11 @@ public class SpeciesProfileDAOImpl extends AbstractDAOImpl implements
     
     @Override
     public void delete(SpeciesProfile delProf) {
+        // Delete any associated metadata. The flush is required because the delete is done via query,
+        // not Session.delete().
+        delProf.getMetadata().clear();
+        getSession().flush();
+
         super.deleteByQuery(delProf);
     }
     
