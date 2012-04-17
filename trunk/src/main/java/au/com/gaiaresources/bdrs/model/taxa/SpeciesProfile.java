@@ -6,6 +6,7 @@ package au.com.gaiaresources.bdrs.model.taxa;
 import java.util.*;
 
 import javax.persistence.AttributeOverride;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -13,6 +14,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
@@ -200,7 +202,8 @@ public class SpeciesProfile extends PortalPersistentImpl {
     
     // Many to many is a work around (read hack) to prevent a unique
     // constraint being applied on the metadata id.
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE_ORPHAN)
     public Set<Metadata> getMetadata() {
         return metadata;
     }
