@@ -167,18 +167,6 @@ public abstract class SingleSiteController extends AbstractController {
      *            the server response
      * @param surveyId
      *            the primary key of the survey where the record shall be added
-     * @param latitude
-     *            the latitude of the sighting
-     * @param longitude
-     *            the longitude of the sighting
-     * @param date
-     *            the calendar date of the sighting
-     * @param time
-     *            the time when the sighting occurred
-     * @param notes
-     *            additional notes to be attached to all records
-     * @param sightingIndex
-     *            the number of records to be saved.
      * @return
      * @throws ParseException
      *             throws if the date cannot be parsed
@@ -196,7 +184,7 @@ public abstract class SingleSiteController extends AbstractController {
         
         RecordKeyLookup lookup = new TrackerFormRecordKeyLookup();
         SingleSiteFormToRecordEntryTransformer transformer = new SingleSiteFormToRecordEntryTransformer(locationService);
-        SingleSiteFormAttributeDictionaryFactory adf = new SingleSiteFormAttributeDictionaryFactory(rowIds);
+        SingleSiteFormAttributeDictionaryFactory adf = new SingleSiteFormAttributeDictionaryFactory();
         AttributeParser parser = new WebFormAttributeParser();
 
         RecordDeserializer rds = new RecordDeserializer(lookup, adf, parser);

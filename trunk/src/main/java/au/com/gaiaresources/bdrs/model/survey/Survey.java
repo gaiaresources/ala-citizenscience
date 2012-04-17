@@ -1,33 +1,8 @@
 package au.com.gaiaresources.bdrs.model.survey;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.persistence.AttributeOverride;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.Filter;
-import org.hibernate.annotations.FilterDef;
-import org.hibernate.annotations.IndexColumn;
-import org.hibernate.annotations.ParamDef;
-
 import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
+import au.com.gaiaresources.bdrs.model.form.CustomForm;
 import au.com.gaiaresources.bdrs.model.group.Group;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.map.BaseMapLayer;
@@ -39,6 +14,12 @@ import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.util.DateUtils;
+import org.hibernate.annotations.*;
+
+import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import java.util.*;
 
 @Entity
 @FilterDef(name=PortalPersistentImpl.PORTAL_FILTER_NAME, parameters=@ParamDef( name="portalId", type="integer" ) )
@@ -53,6 +34,8 @@ public class Survey extends PortalPersistentImpl implements Comparable<Survey> {
     private Date startDate;
     private Date endDate;
     private boolean publik = true;
+
+    private CustomForm customForm;
 
     private List<Location> locations = new ArrayList<Location>();
     private Set<User> users = new HashSet<User>();
@@ -783,7 +766,7 @@ public class Survey extends PortalPersistentImpl implements Comparable<Survey> {
     }
 
     /**
-     * Get the {@link GeoMapLayer} linked to this survey.
+     * Get the {@link au.com.gaiaresources.bdrs.model.map.GeoMapLayer} linked to this survey.
      * @return
      */
     @OneToMany(mappedBy="survey", fetch = FetchType.LAZY)
@@ -792,7 +775,7 @@ public class Survey extends PortalPersistentImpl implements Comparable<Survey> {
     }
 
     /**
-     * Set the {@link GeoMapLayer} for this survey
+     * Set the {@link au.com.gaiaresources.bdrs.model.map.GeoMapLayer} for this survey
      * @param newLayers the layers for the survey
      */
     public void setGeoMapLayers(List<SurveyGeoMapLayer> newLayers) {
@@ -800,7 +783,7 @@ public class Survey extends PortalPersistentImpl implements Comparable<Survey> {
     }
 
     /**
-     * Add a {@link GeoMapLayer} to the survey
+     * Add a {@link au.com.gaiaresources.bdrs.model.map.GeoMapLayer} to the survey
      * @param thisLayer the {@link SurveyGeoMapLayer} to add to the survey
      */
     public void addGeoMapLayer(SurveyGeoMapLayer thisLayer) {
@@ -808,7 +791,7 @@ public class Survey extends PortalPersistentImpl implements Comparable<Survey> {
     }
 
     /**
-     * Remove this {@link GeoMapLayer} from the Survey.
+     * Remove this {@link au.com.gaiaresources.bdrs.model.map.GeoMapLayer} from the Survey.
      * @param thisLayer the {@link SurveyGeoMapLayer} to remove from the survey
      */
     public void removeGeoMapLayer(SurveyGeoMapLayer thisLayer) {
@@ -829,5 +812,21 @@ public class Survey extends PortalPersistentImpl implements Comparable<Survey> {
      */
     public void removeBaseMapLayer(BaseMapLayer layer) {
         baseMapLayers.remove(layer);
+    }
+
+    /**
+     * @return the custom form renderer for this survey, or null if one does not exist.
+     */
+    @ManyToOne
+    @JoinColumn(name = "CUSTOMFORM_ID", nullable = true)
+    public CustomForm getCustomForm() {
+        return this.customForm;
+    }
+
+    /**
+     * @param customForm the customized form renderer for this survey.
+     */
+    public void setCustomForm(CustomForm customForm) {
+        this.customForm = customForm;
     }
 }

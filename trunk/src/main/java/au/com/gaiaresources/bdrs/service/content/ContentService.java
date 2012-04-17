@@ -118,8 +118,12 @@ public class ContentService {
         
         tmp.put("user/profile/editProfile", CONTENT_PACKAGE + "user_profile_editProfile.vm");
         tmp.put("user/locations/edit.vm", CONTENT_PACKAGE + "user_locations_edit.vm");
-        
+
+        // Reports
         tmp.put("user/report/listing", CONTENT_PACKAGE + "user_report_listing.vm");
+
+        // Custom Forms
+        tmp.put("user/customform/listing", CONTENT_PACKAGE + "user_customform_listing.vm");
         
         /* In email package resources */
         tmp.put("email/ExpertConfirmation", "/au/com/gaiaresources/bdrs/email/ExpertConfirmation.vm");

@@ -393,14 +393,25 @@
             <add-attribute>bdrs/report.js</add-attribute>
         </put-list-attribute>
     </definition>
-    <definition name="reportRender" extends="user-template">
-        <put-attribute name="title" value="Report Listing"/>
-        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/report/render.jsp"/>
+    <!-- CustomForm -->
+    <definition name="customFormListing" extends="user-template">
+        <put-attribute name="title" value="Custom Form Listing"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/customform/listing.jsp"/>
+        <put-attribute name="maps" value="false"/>
+        <put-list-attribute name="customJavaScript">
+            <add-attribute>bdrs/customform.js</add-attribute>
+        </put-list-attribute>
+    </definition>
+
+    <!-- Python Render View -->
+    <definition name="pythonRender" extends="user-template">
+        <put-attribute name="title" value="Report"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/python/render.jsp"/>
         <put-attribute name="maps" value="false"/>
         <put-list-attribute name="customJavaScript">
         </put-list-attribute>
     </definition>
-    
+
     <!-- Contribute landing page -->
     <definition name="contribute" extends="user-template">
         <put-attribute name="title" value="Contribute" />

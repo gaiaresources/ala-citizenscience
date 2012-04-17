@@ -1,0 +1,81 @@
+.layout_table {
+    width: 100%;
+
+}
+
+.layout_table td {
+    vertical-align: top;
+    background-color: #E5E5E5;
+    width: 50%;
+    border: 0.5em solid #FFFFFF;
+}
+
+.element_group {
+    padding: 0.5em;
+}
+
+.element_set {
+    padding-bottom: 0.75em;
+    margin-left: 0.75em;
+}
+
+#notes {
+    height: 8em;
+    width: 95%;
+}
+
+.multi_checkbox_option {
+    float: left;
+    padding-right: 2em;
+}
+
+.group_title {
+    font-size: 1.4em;
+    font-weight: bold;
+    padding-bottom: 0.75em;
+}
+
+
+/* Form Structure */
+.vertical_form input {
+    resize: none;
+}
+
+p,
+a.cancel_action,
+.vertical_form label,
+.vertical_form input, 
+.vertical_form select, 
+.vertical_form textarea {
+    font-size: 1.2em;
+}
+
+a.cancel_action:visited,
+a.cancel_action:link {
+    color: red;
+}
+
+input[type="submit"] {
+    padding: 0.5em 1.5em 0.5em 1.5em;
+    margin: 0px;
+}
+
+.vertical_form input[type=text], 
+.vertical_form input[type=checkbox], 
+.vertical_form input[type=password], 
+.vertical_form input[type=radio], 
+.vertical_form select, 
+.vertical_form textarea {
+    padding: 0.25em;
+}
+
+.button_panel {
+    float: left;
+    width: 100%;
+    padding: 0.5em 0em 2em 0em;
+}
+
+p.error {
+    margin-bottom: 0em;
+}
+

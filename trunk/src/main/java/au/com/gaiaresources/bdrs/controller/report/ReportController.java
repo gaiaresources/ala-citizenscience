@@ -12,7 +12,7 @@ import au.com.gaiaresources.bdrs.model.report.ReportCapability;
 import au.com.gaiaresources.bdrs.model.report.ReportDAO;
 import au.com.gaiaresources.bdrs.model.report.impl.ReportView;
 import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.service.report.ReportService;
+import au.com.gaiaresources.bdrs.service.python.report.ReportService;
 import au.com.gaiaresources.bdrs.util.FileUtils;
 import au.com.gaiaresources.bdrs.util.ImageUtil;
 import au.com.gaiaresources.bdrs.util.ZipUtils;
@@ -349,15 +349,11 @@ public class ReportController extends AbstractController {
                                      @PathVariable(REPORT_ID_PATH_VAR) int reportId,
                                      @RequestParam(required = true, value=FILENAME_QUERY_PARAM) String fileName) {
         ModelAndView mv = null;
-        Report report = reportDAO.getReport(reportId);
-        if(report == null) {
+        try {
+            Report report = reportDAO.getReport(reportId);
+            mv = reportService.downloadStaticFile(report, fileName);
+        } catch(NullPointerException npe) {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-        } else {
-            File target = new File(Report.REPORT_DIR, fileName);
-            mv = new ModelAndView(new RedirectView(DownloadFileController.FILE_DOWNLOAD_URL, true));
-            mv.addObject(DownloadFileController.CLASS_NAME_QUERY_PARAM, report.getClass().getCanonicalName());
-            mv.addObject(DownloadFileController.INSTANCE_ID_QUERY_PARAM, report.getId());
-            mv.addObject(DownloadFileController.FILENAME_QUERY_PARAM, target.getPath());
         }
         return mv;
     }

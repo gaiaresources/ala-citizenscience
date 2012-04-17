@@ -1,0 +1,14 @@
+<select id="${ widget.widget_id }" 
+        name="${ widget.widget_name }" 
+        class=" #echo ' '.join($widget.widget_class)# 
+                #if $widget.widget_validation_class 
+                    validate(#echo ','.join($widget.widget_validation_class)#)
+                #end if
+            "
+        style="${ widget.widget_style }">
+    #for $opt in $widget.options
+        <option value="${ opt }" #if $opt == $widget.widget_value then 'selected="selected"' else '' #>
+            ${ opt }
+        </option>
+    #end for
+</select>

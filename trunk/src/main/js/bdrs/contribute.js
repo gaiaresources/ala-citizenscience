@@ -425,7 +425,9 @@ bdrs.contribute.initSpeciesAutocomplete = function(args) {
             
             // Load Taxon Group Attributes
             // Clear the group attribute rows
-            jQuery(taxonAttrRowSelector).parents("tr").remove();
+            if(taxonAttrRowSelector !== undefined && taxonAttrRowSelector !== null) {
+                jQuery(taxonAttrRowSelector).parents("tr").remove();
+            }
             
             // Build GET request parameters
             var params = {};
@@ -435,16 +437,20 @@ bdrs.contribute.initSpeciesAutocomplete = function(args) {
             params.editForm = editable;
 
             // Issue Request
-            jQuery.get(bdrs.contextPath+"/bdrs/user/ajaxTrackerTaxonAttributeTable.htm", params, function(data) {
-                jQuery(attributeTbodySelector).append(data);
-            });
+            if(attributeTbodySelector !== null && attributeTbodySelector !== undefined) {
+                jQuery.get(bdrs.contextPath+"/bdrs/user/ajaxTrackerTaxonAttributeTable.htm", params, function(data) {
+                    jQuery(attributeTbodySelector).append(data);
+                });
+            }
         },
         change: function(event, ui) {
             if(jQuery(event.target).val().length === 0) {
                 jQuery(speciesIdSelector).val("").trigger("blur");
             
                 // Clear the group attribute rows
-                jQuery(taxonAttrRowSelector).parents("tr").remove();
+                if(taxonAttrRowSelector !== undefined && taxonAttrRowSelector !== null) {
+                    jQuery(taxonAttrRowSelector).parents("tr").remove();
+                }
             }
         },
         minLength: 2,

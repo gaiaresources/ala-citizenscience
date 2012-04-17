@@ -62,7 +62,7 @@ bdrs.review.mysightings.CRITERIA_COLLAPSE_LABEL = "Collapse";
 bdrs.review.mysightings.TABLE_ROW_TMPL = '\
 <tr id="record_row_${ id }">\
     <td class="textcenter"><a href="${ contextPath }/bdrs/user/surveyRenderRedirect.htm?surveyId=${ survey }&recordId=${ id }">${ _when }</a></td>\
-    <td>${ species.commonName }</td>\
+    <td class=\"commonName\">${ species.commonName }</td>\
     <td class=\"scientificName\">${ species.scientificName }</td>\
     <td class=\"nowrap\">${ latitude }</td>\
     <td class=\"nowrap\">${ longitude }</td>\

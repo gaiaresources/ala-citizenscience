@@ -1,0 +1,21 @@
+<textarea   
+            id="${ widget.widget_id }"
+            name="${ widget.widget_name }"
+            class=" #echo ' '.join($widget.widget_class)# 
+                #if $widget.widget_validation_class 
+                    validate(#echo ','.join($widget.widget_validation_class)#)
+                #end if
+            "
+            style="${ widget.widget_style }"
+            ></textarea>
+
+#*
+    This workaround is put in place because for some unfathomable reason,
+    Cheetah is inserting newlines into the text content if the widget_value
+    is merely inserted as a child text node of the text area. 
+*#
+<script type="text/javascript">
+    jQuery(function() {
+        jQuery("#${ widget.widget_id }").val('${ widget.widget_value }');
+    });
+</script>

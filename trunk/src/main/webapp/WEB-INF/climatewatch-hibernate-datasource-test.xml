@@ -25,4 +25,13 @@
         <property name="testOnReturn" value="true"/>
         <property name="validationQuery" value="select 1"/>
     </bean>
+
+    <!-- The abstract parent bean can be found in climatewatch-hibernate.xml -->
+    <bean id="sessionFactory" parent="abstractSessionFactory">
+        <property name="hibernateProperties">
+            <props merge="true">
+                <prop key="hibernate.search.default.indexBase">/tmp/bdrs-test/lucene</prop>
+            </props>
+        </property>
+    </bean>
 </beans>

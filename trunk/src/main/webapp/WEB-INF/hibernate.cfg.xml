@@ -74,7 +74,10 @@
         
         <mapping class="au.com.gaiaresources.bdrs.model.report.Report"/>
 
+        <mapping class="au.com.gaiaresources.bdrs.model.form.CustomForm"/>
+
         <mapping class="au.com.gaiaresources.bdrs.model.index.IndexSchedule"/>
+
         <class-cache usage="read-write" class="au.com.gaiaresources.bdrs.model.region.Region"/>
         <class-cache usage="read-write" class="au.com.gaiaresources.bdrs.model.taxa.TaxonGroup"/>
     </session-factory>

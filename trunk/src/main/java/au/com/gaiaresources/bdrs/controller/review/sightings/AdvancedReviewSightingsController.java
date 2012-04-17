@@ -18,6 +18,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 
 import au.com.gaiaresources.bdrs.controller.review.AdvancedReviewController;
@@ -234,7 +235,7 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
      * @throws Exception thrown if there is an error running the report.
      */
     @RequestMapping(value = ADVANCED_REVIEW_REPORT_URL, method = RequestMethod.GET)
-    public ModelAndView advancedReviewReport(HttpServletRequest request,
+    public ModelAndView advancedReviewReport(MultipartHttpServletRequest request,
                                              HttpServletResponse response,
                                              @RequestParam(value = QUERY_PARAM_REPORT_ID, required = true) int reportId) throws Exception {
         configureHibernateSession();

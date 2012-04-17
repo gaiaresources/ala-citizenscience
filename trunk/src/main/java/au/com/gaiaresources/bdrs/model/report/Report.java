@@ -1,6 +1,7 @@
 package au.com.gaiaresources.bdrs.model.report;
 
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
+import au.com.gaiaresources.bdrs.model.python.AbstractPythonRenderable;
 import au.com.gaiaresources.bdrs.model.report.impl.ReportView;
 import org.hibernate.annotations.*;
 import org.hibernate.annotations.Cache;
@@ -20,7 +21,7 @@ import java.util.Set;
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Table(name = "REPORT")
 @AttributeOverride(name = "id", column = @Column(name = "REPORT_ID"))
-public class Report extends PortalPersistentImpl {
+public class Report extends AbstractPythonRenderable {
     /**
      * The target directory that will contain the report after extraction.
      */
@@ -160,5 +161,11 @@ public class Report extends PortalPersistentImpl {
      */
     public void setViews(Set<ReportView> views) {
         this.views = views;
+    }
+
+    @Transient
+    @Override
+    public String getContentDir() {
+        return Report.REPORT_DIR;
     }
 }

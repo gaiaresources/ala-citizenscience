@@ -4,6 +4,8 @@ import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.file.FileService;
 import au.com.gaiaresources.bdrs.json.JSONException;
 import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.model.form.CustomForm;
+import au.com.gaiaresources.bdrs.model.form.CustomFormDAO;
 import au.com.gaiaresources.bdrs.model.group.Group;
 import au.com.gaiaresources.bdrs.model.group.GroupDAO;
 import au.com.gaiaresources.bdrs.model.map.*;
@@ -127,6 +129,12 @@ public class SurveyBaseController extends AbstractController {
 
     @Autowired
     private TaxaDAO taxaDAO;
+
+    /**
+     *  Performs database operations on Custom Form objects.
+     */
+    @Autowired
+    private CustomFormDAO formDAO;
     
     @Autowired
     private FileService fileService;
@@ -184,6 +192,7 @@ public class SurveyBaseController extends AbstractController {
         ModelAndView mv = new ModelAndView("surveyEdit");
         mv.addObject("survey", survey);
         mv.addObject("publish", toPublish);
+        mv.addObject("customforms", formDAO.getCustomForms());
         return mv;
     }
 
@@ -196,7 +205,7 @@ public class SurveyBaseController extends AbstractController {
      * @param name Name of the survey
      * @param description Description of the survey
      * @param active Is the survey active?
-     * @param rendererType SurveyFormRendererType
+     * @param rendererType either the SurveyFormRendererType or the primary key to a CustomForm.
      * @param surveyDate Start date for the survey
      * @param surveyEndDate End date for the survey
      * @param defaultRecordVis Default record visibility for the survey
@@ -254,14 +263,35 @@ public class SurveyBaseController extends AbstractController {
         // metadata can be deleted.
         List<Metadata> metadataToDelete = new ArrayList<Metadata>();
 
-        Metadata md;
-        SurveyFormRendererType formRenderType = SurveyFormRendererType.valueOf(rendererType);
-        if(formRenderType.isEligible(survey)) {
-            md = survey.setFormRendererType(formRenderType);
-        } else {
-            md = survey.setFormRendererType(SurveyFormRendererType.DEFAULT);
+        // ---- Form Renderer Type
+        // Initially assume the renderer type is a CustomForm primary key.
+        CustomForm form = null;
+        try {
+            int formPk = Integer.parseInt(rendererType); 
+            form = formDAO.getCustomForm(formPk);
+        } catch(NumberFormatException nfe) {
         }
-        metadataDAO.save(md);
+
+        survey.setCustomForm(form);
+
+        // If we have failed to link to a custom form,
+        if(form == null) {
+            Metadata md;
+            SurveyFormRendererType formRenderType = SurveyFormRendererType.valueOf(rendererType);
+            if(formRenderType.isEligible(survey)) {
+                md = survey.setFormRendererType(formRenderType);
+            } else {
+                md = survey.setFormRendererType(SurveyFormRendererType.DEFAULT);
+            }
+            metadataDAO.save(md);
+        } else {
+            // Remove any existing form renderer types
+            Metadata md = survey.getMetadataByKey(Metadata.FORM_RENDERER_TYPE);
+            if(md != null) {
+                survey.getMetadata().remove(md);
+            }
+        }
+        // ----------------------
         
         // Survey Logo
         String logoFileStr = request.getParameter(Metadata.SURVEY_LOGO);

@@ -2,6 +2,7 @@ package au.com.gaiaresources.bdrs.model.taxa;
 
 import java.util.List;
 
+import au.com.gaiaresources.bdrs.db.TransactionDAO;
 import org.hibernate.Session;
 
 /**
@@ -10,7 +11,7 @@ import org.hibernate.Session;
  * @author anthony
  * 
  */
-public interface AttributeDAO {
+public interface AttributeDAO extends TransactionDAO {
     /**
      * Returns a list of all the values that have been set for a given attribute
      * 

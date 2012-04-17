@@ -176,19 +176,14 @@ public class Attribute extends PortalPersistentImpl {
      *     <li>READ - the attribute is only visible when the Record is being viewed in read only mode.</li>
      *     <li>EDIT - the attribute is only visible while the Record is being edited (or created)</li>
      * </ul>
-     * The default is ALWAYS.
-     *
      * Please note that this setting does not override existing access rules such as the Record visibility and
      * moderation based visibility rules.
      * @return the current AttributeVisibility configured for this attribute.
      */
     @CompactAttribute
     @Enumerated(EnumType.STRING)
-    @Column(name = "VISIBILITY", nullable=true)
+    @Column(name = "VISIBILITY", nullable=false)
     public AttributeVisibility getVisibility() {
-        if (visibility == null) {
-            return AttributeVisibility.ALWAYS;
-        }
         return visibility;
     }
 
