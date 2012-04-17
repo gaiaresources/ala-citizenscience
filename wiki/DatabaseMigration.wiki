@@ -527,3 +527,18 @@ begin;
 create table INDICATOR_SPECIES_TAXON_GROUP (INDICATOR_SPECIES_INDICATOR_SPECIES_ID int4 not null, secondaryGroups_TAXON_GROUP_ID int4 not null, primary key (INDICATOR_SPECIES_INDICATOR_SPECIES_ID, secondaryGroups_TAXON_GROUP_ID));
 rollback;
 </code>
+
+ = r250 =
+<code language="sql">
+begin;
+
+create table CUSTOMFORM (CUSTOMFORM_ID  serial not null, WEIGHT int4, CREATED_AT timestamp, UPDATED_AT timestamp, CREATED_BY int4, UPDATED_BY int4, NAME varchar(255) not null, DESCRIPTION text not null, PORTAL_ID int4, primary key (CUSTOMFORM_ID));
+alter table CUSTOMFORM add constraint FKBEAB63B5C136AD4E foreign key (PORTAL_ID) references PORTAL;
+
+alter table SURVEY add column CUSTOMFORM_ID int4 default NULL;
+alter table SURVEY add constraint FK92769B5AE1E4FFF6 foreign key (CUSTOMFORM_ID) references CUSTOMFORM;
+
+alter table attribute alter visibility set not null;
+
+rollback;
+</code>
