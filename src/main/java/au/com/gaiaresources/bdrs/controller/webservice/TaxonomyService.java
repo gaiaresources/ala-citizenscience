@@ -1,15 +1,14 @@
 package au.com.gaiaresources.bdrs.controller.webservice;
 
-import java.io.IOException;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
-
+import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
+import au.com.gaiaresources.bdrs.util.Pair;
 import au.com.gaiaresources.bdrs.util.StringUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -17,11 +16,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import au.com.gaiaresources.bdrs.controller.AbstractController;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
-import au.com.gaiaresources.bdrs.util.Pair;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * The Taxon Service provides a web API for Taxonomy and Taxonomy Group
@@ -179,4 +178,85 @@ public class TaxonomyService extends AbstractController {
         }
         writeJson(request, response, array.toString());
     }
+
+    /**
+     * Updates the primary group of the taxa identified by the supplied ids.
+     * Additionally, the TaxonGroup will no longer be a secondary group of any of the supplied taxa.
+     * @param taxonIds Identifies the IndicatorSpecies to update.
+     * @param taxonGroupId The id of the new primary TaxonGroup for the identified species.
+     * @param request the HTTP request to process
+     * @param response the HTTP response.
+     * @throws IOException if there is an error writing the response.
+     */
+    @RequestMapping(value = "/webservice/taxon/updatePrimaryGroup", method = RequestMethod.POST)
+    public void reassignPrimaryGoup(
+            @RequestParam(value="taxonId[]", required=true) int[] taxonIds,
+            @RequestParam(value="taxonGroupId", required=true) int taxonGroupId,
+            HttpServletRequest request, HttpServletResponse response) throws IOException {
+
+        TaxonGroup group = taxaDAO.getTaxonGroup(taxonGroupId);
+        List<Integer> idsList = Arrays.asList(ArrayUtils.toObject(taxonIds));
+        taxaDAO.bulkUpdatePrimaryGroup(idsList, group);
+
+        success(response);
+    }
+
+    /**
+     * Adds the identified TaxonGroup to the list of configured secondary groups of the IndicatorSpecies identified
+     * by the supplied array of ids.
+     * IndicatorSpecies that have the supplied TaxonGroup as their primary group will not be updated.
+     * @param taxonIds Identifies the IndicatorSpecies to update.
+     * @param taxonGroupId The id of the new secondary TaxonGroup for the identified species.
+     * @param request the HTTP request to process
+     * @param response the HTTP response.
+     * @throws IOException if there is an error writing the response.
+     */
+    @RequestMapping(value = "/webservice/taxon/addSecondaryGroup", method = RequestMethod.POST)
+    public void addSecondaryGroup(
+            @RequestParam(value="taxonId[]", required=true) int[] taxonIds,
+            @RequestParam(value="taxonGroupId", required=true) int taxonGroupId,
+            HttpServletRequest request, HttpServletResponse response) throws IOException {
+
+        TaxonGroup group = taxaDAO.getTaxonGroup(taxonGroupId);
+        List<Integer> idsList = Arrays.asList(ArrayUtils.toObject(taxonIds));
+        taxaDAO.bulkAssignSecondaryGroup(idsList, group);
+
+        success(response);
+    }
+
+    /**
+     * Removes the identified TaxonGroup from the list of configured secondary groups of the IndicatorSpecies identified
+     * by the supplied array of ids.
+     * @param taxonIds Identifies the IndicatorSpecies to update.
+     * @param taxonGroupId The id of the TaxonGroup to be removed from the identified IndicatorSpecies.
+     * @param request the HTTP request to process
+     * @param response the HTTP response.
+     * @throws IOException if there is an error writing the response.
+     */
+    @RequestMapping(value = "/webservice/taxon/removeSecondaryGroup", method = RequestMethod.POST)
+    public void removeSecondaryGroup(
+            @RequestParam(value="taxonId[]", required=true) int[] taxonIds,
+            @RequestParam(value="taxonGroupId", required=true) int taxonGroupId,
+            HttpServletRequest request, HttpServletResponse response) throws IOException {
+
+        TaxonGroup group = taxaDAO.getTaxonGroup(taxonGroupId);
+        List<Integer> idsList = Arrays.asList(ArrayUtils.toObject(taxonIds));
+        taxaDAO.bulkRemoveSecondaryGroup(idsList, group);
+
+        success(response);
+    }
+
+    /**
+     * Helper method that writes a JSON response of the form {success:"true"}
+     * @param response the HTTP response to write the JSON to.
+     * @throws IOException if there is an error writing to the HTTP response.
+     */
+    private void success(HttpServletResponse response) throws IOException {
+        response.setContentType("application/json");
+        JSONObject result = new JSONObject();
+        result.put("success", "true");
+        response.getWriter().write(result.toJSONString());
+    }
+
+
 }

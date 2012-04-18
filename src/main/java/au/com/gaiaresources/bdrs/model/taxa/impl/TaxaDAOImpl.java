@@ -2,6 +2,7 @@ package au.com.gaiaresources.bdrs.model.taxa.impl;
 
 import au.com.gaiaresources.bdrs.db.QueryOperation;
 import au.com.gaiaresources.bdrs.db.impl.AbstractDAOImpl;
+import au.com.gaiaresources.bdrs.db.impl.BatchUpdateHelper;
 import au.com.gaiaresources.bdrs.db.impl.HqlQuery;
 import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
 import au.com.gaiaresources.bdrs.db.impl.PaginationFilter;
@@ -26,6 +27,7 @@ import au.com.gaiaresources.bdrs.search.SearchService;
 import au.com.gaiaresources.bdrs.service.db.DeleteCascadeHandler;
 import au.com.gaiaresources.bdrs.service.db.DeletionService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 import au.com.gaiaresources.bdrs.util.Pair;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 import org.apache.log4j.Logger;
@@ -990,7 +992,8 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
      */
     @Override
     public PagedQueryResult<IndicatorSpecies> searchTaxa(
-            Integer groupId, String searchInGroups, String searchInResult, PaginationFilter filter) throws org.apache.lucene.queryParser.ParseException {
+            Integer groupId, TaxonGroupSearchType searchType,
+            String searchInGroups, String searchInResult, PaginationFilter filter) throws org.apache.lucene.queryParser.ParseException {
         // the fields to search on
         String[] fields = new String[]{"commonName", "scientificName", "infoItems.content", "taxonGroup.name", "taxonGroup.id"};
         
@@ -1007,14 +1010,92 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
         if (!StringUtils.nullOrEmpty(searchInResult)) {
             searchTerm += " +"+searchInResult + "" ;
         }
-        
+
         if (groupId != null) {
             // add the group to the query
-            // the '+' indicates that the term must be matched, 
-            // so it must be in the group and contain the term
-            searchTerm += " +(taxonGroup.id:"+groupId+" OR secondaryGroups.id:"+groupId+")";
+            // the '+' indicates that the term must be matched, so it must be in the group and contain the term
+            switch (searchType) {
+                case PRIMARY:
+                    searchTerm += " +(taxonGroup.id:"+groupId+ ")";
+                    break;
+                case SECONDARY:
+                    searchTerm += " +(secondaryGroups.id:"+groupId+ ")";
+                    break;
+                case PRIMARY_OR_SECONDARY:
+                    searchTerm += " +(taxonGroup.id:"+groupId+" OR secondaryGroups.id:"+groupId+ ")";
+                    break;
+            }
         }
         return searchService.searchPaged(getSession(), fields, aWrapper, searchTerm, filter, IndicatorSpecies.class, SpeciesProfile.class);
     }
 
+    /**
+     * Implementation Note: a DML update may be a more appropriate technique, however this will prevent the
+     * lucene index from being updated which in turn will prevent these changes from being reflected in the field guide.
+     * {@inheritDoc}
+     */
+    @Override
+    public void bulkUpdatePrimaryGroup(List<Integer> taxonIds, TaxonGroup group) {
+
+        // First ensure none of the taxa have the new primary group as a secondary group.
+        bulkRemoveSecondaryGroup(taxonIds, group);
+
+        List<IndicatorSpecies> taxa = getIndicatorSpeciesById(taxonIds.toArray(new Integer[taxonIds.size()]));
+        final TaxonGroup primaryGroup = group;
+        new BatchUpdateHelper<IndicatorSpecies>() {
+            public void invoke(IndicatorSpecies taxon) {
+                taxon.setTaxonGroup(primaryGroup);
+            }
+        }.doBatched(taxa);
+    }
+
+    /**
+     * Implementation Note: a DML update may be a more appropriate technique, however this will prevent the
+     * lucene index from being updated which in turn will prevent these changes from being reflected in the field guide.
+     * {@inheritDoc}
+     */
+    @Override
+    public void bulkRemoveSecondaryGroup(List<Integer> taxonIds, TaxonGroup group) {
+
+        Session session = RequestContextHolder.getContext().getHibernate();
+
+        // Now remove any secondary groups.
+        String hql = "from IndicatorSpecies where :taxonGroup in elements(secondaryGroups) and id in (:taxonIds)";
+
+        Query query = session.createQuery(hql);
+        query.setParameter("taxonGroup", group);
+        query.setParameterList("taxonIds", taxonIds);
+        List<IndicatorSpecies> taxa = query.list();
+        for (IndicatorSpecies taxon : taxa) {
+            taxon.getSecondaryGroups().remove(group);
+        }
+    }
+
+
+    /**
+     * Implementation Note: a DML update may be a more appropriate technique, however this will prevent the
+     * lucene index from being updated which in turn will prevent these changes from being reflected in the field guide.
+     * {@inheritDoc}
+     */
+    @Override
+    public void bulkAssignSecondaryGroup(List<Integer> taxonIds, TaxonGroup group) {
+
+        Session session = RequestContextHolder.getContext().getHibernate();
+
+        // In theory we should be batching this, but the current use case is limited by the page size of
+        // the jqGrid used to present the taxa so shouldn't be more than 100 at a time.
+        String hql = "from IndicatorSpecies where not :taxonGroup in elements(secondaryGroups) and :taxonGroup != taxonGroup and id in (:taxonIds)";
+        Query query = session.createQuery(hql);
+        query.setParameter("taxonGroup", group);
+        query.setParameterList("taxonIds", taxonIds);
+        List<IndicatorSpecies> taxa = query.list();
+
+        final TaxonGroup secondaryGroup = group;
+        new BatchUpdateHelper<IndicatorSpecies>() {
+            public void invoke(IndicatorSpecies taxon) {
+                taxon.addSecondaryGroup(secondaryGroup);
+            }
+        }.doBatched(taxa);
+
+    }
 }

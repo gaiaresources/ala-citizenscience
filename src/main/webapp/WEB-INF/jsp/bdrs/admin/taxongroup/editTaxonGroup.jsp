@@ -295,78 +295,36 @@
 
 <div>
     <h3>Group members</h3>
-    The following table displays the taxa that are members of this taxon group.
-<table id="taxaList"></table>
-<div id="pager2"></div>
+    The following table displays the taxa that have this Taxon Group as their primary group.
+    <div id="taxonGroupMembers" class="input_container">
+
+        <div id="searchTaxa">
+          <label for="search_in_result" class="heading">Search group members:</label>
+          <input name="search_in_result" id="search_in_result" type="text"/>
+          <input id="search_in_result_button" class="form_action" type="button" value="Search">
+        </div>
+
+        <div id="bulkTaxaActions" class="buttonpanel">
+          <span class="heading">Bulk change selected taxa:</span>
+
+          <label for="groupAction">Action:</label>
+          <select id="groupAction">
+            <option value="updatePrimaryGroup">Reassign primary group</option>
+            <option value="addSecondaryGroup">Assign secondary group</option>
+            <option value="removeSecondaryGroup">Unassign secondary group</option>
+
+          </select>
+          <label for="actionGroup" style="margin-left: 1em;">Group:</label>  <input id="actionGroup" class="" type="text" name="taxonGroup" value=""/>
+          <input id="actionGroupId" class="hiddenTextField validate(required)" type="text" name="taxonGroupPk" value=""/>
+          <input type="button" id="performGroupAction" class="form_action" value="Assign Groups"/>
+
+        </div>
+    <div>
+      <table id="taxaList"></table>
+      <div id="pager2"></div>
+    </div>
 </div>
-<script type="text/javascript">
 
-    if (window.bdrs === undefined) {
-        window.bdrs = {};
-    }
-
-    if (window.bdrs.fieldGuide === undefined) {
-        window.bdrs.fieldGuide = {};
-    }
-
-    // Sets the jqGrid parameters and triggers a reload. Then updates the page header.
-    bdrs.fieldGuide.reloadTaxaGrid = function(params){
-        jQuery("#taxaList").jqGrid().setGridParam({
-            url:'${pageContext.request.contextPath}/fieldguide/listTaxa.htm' + params,
-            page:1}).trigger("reloadGrid");
-        jQuery("#searchResultHeader").html("Search results for \"" + jQuery('#search_in_result').val() + "\"");
-
-    };
-
-    jQuery(function() {
-        // Initialize the grid
-
-
-        var thumbnailFormatter = function(cellvalue, options, rowObject) {
-            if (cellvalue != undefined && cellvalue != '') {
-                return '<a href="${pageContext.request.contextPath}/fieldguide/taxon.htm?id=' + rowObject.id +'">' +
-                        '<img class="max_size_img" src="${pageContext.request.contextPath}/files/downloadByUUID.htm?uuid=' + cellvalue + '"/>' +
-                        '</a>';
-            }
-            return '';
-        };
-
-        var nameLinkFormatter = function(cellvalue, options, rowObject) {
-            return '<a href="${pageContext.request.contextPath}/fieldguide/taxon.htm?id=' + rowObject.id +'">' + cellvalue + '</a>';
-        };
-
-        var initParams = "?groupId=${taxonGroup.id}";
-
-
-        jQuery("#taxaList").jqGrid({
-            url: '${pageContext.request.contextPath}/fieldguide/listTaxa.htm' + initParams,
-            datatype: "json",
-            mtype: "GET",
-            colNames:['Scientific Name','Common Name', ''],
-            colModel:[
-                {name:'scientificName',index:'scientificName', width:150, classes:'scientificName', formatter:nameLinkFormatter},
-                {name:'commonName',index:'commonName', width:150, formatter: nameLinkFormatter},
-                {name:'thumbnail', index:'thumbnail', sortable:false, formatter:thumbnailFormatter, align:'center'}
-            ],
-            autowidth: true,
-            jsonReader : { repeatitems: false },
-            rowNum:50,
-            rowList:[10,20,30,40,50,100],
-            pager: '#pager2',
-            sortname: 'scientificName',
-            viewrecords: true,
-            sortorder: "asc",
-            width: '100%',
-            height: "100%"
-        });
-
-        jQuery('#search_in_result_button').bind('click', function(){
-            bdrs.fieldGuide.getTaxa();
-        });
-
-        jQuery(".ui-jqgrid-bdiv").css('overflow-x', 'hidden');
-    });
-</script>
 <script type="text/javascript">
     jQuery(function() {
         bdrs.dnd.attachTableDnD('#attribute_input_table');
@@ -393,5 +351,10 @@
         });
         bdrs.fixJqDialog("#htmlEditorDialog");
         jQuery('#markItUp').markItUp(bdrs.admin.myHtmlSettings);
+
+        bdrs.taxonomy.initEditTaxonGroupMembers('${pageContext.request.contextPath}', '${taxonGroup.id}');
+
     });
+
+
 </script>
