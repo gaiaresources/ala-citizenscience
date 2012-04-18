@@ -142,10 +142,8 @@ public class ReportService extends PythonService {
                     metadataDAO, locationDAO, taxonLibSessionFactory);
             JSONObject jsonParams = toJSONParams(request);
             // Fire up a new Python interpreter
-            // Fire up a new Python interpreter
-            File pythonLibPath = new File(PyBDRS.class.getResource("pybdrs").toURI()).getParentFile();
             StringBuilder pythonPath = new StringBuilder();
-            pythonPath.append(pythonLibPath);
+            pythonPath.append(getProvidedPythonContentDir());
             pythonPath.append(File.pathSeparatorChar);
             pythonPath.append(reportDir.getAbsolutePath());
 

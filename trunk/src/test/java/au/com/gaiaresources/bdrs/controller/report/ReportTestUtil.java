@@ -3,7 +3,7 @@
  */
 package au.com.gaiaresources.bdrs.controller.report;
 
-import au.com.gaiaresources.bdrs.controller.customform.PythonTestUtil;
+import au.com.gaiaresources.bdrs.python.PythonTestUtil;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.report.Report;
 import au.com.gaiaresources.bdrs.model.report.ReportDAO;
@@ -60,7 +60,7 @@ public class ReportTestUtil {
     }
 
     /**
-     * @see PythonTestUtil#readFileAsString(String)
+     * @see au.com.gaiaresources.bdrs.python.PythonTestUtil#readFileAsString(String)
      */
     public static String readFileAsString(String filePath) throws IOException {
         return PythonTestUtil.readFileAsString(filePath);

@@ -4,9 +4,12 @@ import au.com.gaiaresources.bdrs.controller.file.DownloadFileController;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.python.AbstractPythonRenderable;
+import au.com.gaiaresources.bdrs.python.PyBDRS;
 import au.com.gaiaresources.bdrs.python.PyResponse;
 import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import org.apache.commons.codec.binary.Base64;
+import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
@@ -16,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +34,8 @@ public class PythonService {
      * Tile definition name for rendering reports.
      */
     public static final String RENDER_VIEW = "pythonRender";
+
+    private String providedPythonContentDir = null;
 
     /**
      * Provides static files such as media or javascript
@@ -102,5 +108,16 @@ public class PythonService {
             }
         }
         return params;
+    }
+
+    public String getProvidedPythonContentDir() throws URISyntaxException {
+        if(this.providedPythonContentDir == null) {
+            this.providedPythonContentDir = new File(PyBDRS.class.getResource("pybdrs").toURI()).getParentFile().getAbsolutePath();
+        }
+        return providedPythonContentDir;
+    }
+
+    public void setProvidedPythonContentDir(String providedPythonContentDir) {
+        this.providedPythonContentDir = providedPythonContentDir;
     }
 }
