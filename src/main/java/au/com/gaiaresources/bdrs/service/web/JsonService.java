@@ -97,7 +97,8 @@ public class JsonService {
         	addToAttributeMap(attrMap, RECORD_KEY_WHEN, record.getWhen().getTime());
 
             String k = String.format(PersistentImpl.FLATTENED_FORMATTED_DATE_TMPL, RECORD_KEY_WHEN);
-            String v = PersistentImpl.DATE_FORMAT.format(record.getWhen());
+            SimpleDateFormat formatter = new SimpleDateFormat(PersistentImpl.DATE_FORMAT_PATTERN);
+            String v = formatter.format(record.getWhen());
             addToAttributeMap(attrMap, k, v);
         }
         

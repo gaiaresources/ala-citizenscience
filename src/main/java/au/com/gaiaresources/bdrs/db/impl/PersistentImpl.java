@@ -33,7 +33,8 @@ import au.com.gaiaresources.bdrs.annotation.Sensitive;
 @MappedSuperclass
 public abstract class PersistentImpl implements Persistent,
         DataInterchangeSerializable {
-    public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd MMM yyyy");
+    public static final String DATE_FORMAT_PATTERN = "dd MMM yyyy";
+
     public static final String FLATTEN_KEY_CLASS = "_class";
     public static final String FLATTENED_FORMATTED_DATE_TMPL = "_%s_formatted";
     public static final int DEFAULT_WEIGHT = 0;
@@ -182,6 +183,7 @@ public abstract class PersistentImpl implements Persistent,
     @Override
     @Transient
     public Map<String, Object> flatten(int depth, boolean compact, boolean mobileFields) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_PATTERN);
     	Map<String, Object> map = new HashMap<String, Object>();
         try {
             Object value;
@@ -276,7 +278,7 @@ public abstract class PersistentImpl implements Persistent,
                     } else if (Date.class.isAssignableFrom(returnType)) {
                         Date d = (Date) value;
                     	map.put(name, value == null ? null : (d).getTime());
-                        map.put(String.format(FLATTENED_FORMATTED_DATE_TMPL, name), formatDate(d));
+                        map.put(String.format(FLATTENED_FORMATTED_DATE_TMPL, name), formatDate(dateFormat, d));
                     } else if (Byte.class.isAssignableFrom(returnType)) {
                     	map.put(name, (Byte)value);
                     } else if (Double.class.isAssignableFrom(returnType)) {
@@ -333,11 +335,11 @@ public abstract class PersistentImpl implements Persistent,
         runThreshold = value;
     }
 
-    private String formatDate(Date d) {
+    private String formatDate(SimpleDateFormat formatter, Date d) {
         if(d == null) {
             return null;
         } else {
-            return DATE_FORMAT.format(d);
+            return formatter.format(d);
         }
     }
 }
