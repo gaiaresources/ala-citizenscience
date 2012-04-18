@@ -86,11 +86,10 @@ bdrs.contribute.tracker.getTrackerUrl = function(selectedTab, surveyId, censusMe
  * @param {Object} rowObject - the record object
  */
 bdrs.contribute.tracker.whenFormatter = function(cellvalue, options, record) {
-    if (record.when === null || record.when === undefined) {
+    if (record._when_formatted === null || record._when_formatted === undefined) {
         return "N/A";
     }
-    var date = new Date(record.when);
-    return bdrs.util.formatDate(date);
+    return record._when_formatted;
 };
     
 /**

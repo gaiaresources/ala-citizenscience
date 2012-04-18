@@ -75,7 +75,7 @@ bdrs.advancedReview.getInitViewStyleDivFcn = function(tableSelector) {
                 html.push(record.id);
                 html.push('">');
             }
-            html.push(bdrs.util.formatDate(new Date(record.when)));
+            html.push(record._when_formatted);
             if (bdrs.isAdmin || bdrs.authenticatedUserId == record.user.id) {
                 html.push('</a>');
             }
