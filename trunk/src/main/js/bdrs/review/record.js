@@ -41,7 +41,7 @@ bdrs.review.record.displayRecordInfo = function(record) {
     
     // When
     if(record.when !== null && record.when !== undefined) {
-        tmpl_params = {'header': 'Date', '_stringValue': bdrs.util.formatDate(new Date(record.when))};
+        tmpl_params = {'header': 'Date', '_stringValue': record._when_formatted};
         body.append(jQuery.tmpl(compiled_content_row, tmpl_params));
     }
     

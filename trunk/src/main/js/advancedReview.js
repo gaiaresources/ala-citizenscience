@@ -146,9 +146,9 @@ bdrs.advancedReview.getInitViewStyleTableFcn = function(tableSelector) {
                 record.authenticatedRole = bdrs.authenticatedRole;
             }
             if (record.when) {
-            	record._when = bdrs.util.formatDate(new Date(record.when));
+            	record._when = record._when_formatted;
             } else {
-            	record.created_at = bdrs.util.formatDate(new Date(record.created_at));
+            	record.created_at = record._createdAt_formatted;
             }
             var row = jQuery.tmpl(compiled_row_tmpl, record);
             // style the odd rows

@@ -201,8 +201,7 @@ bdrs.taxonomy.displayTaxonProperties = function(taxon,
     }
     
     // Update
-    var date = new Date(parseInt(taxon.updatedAt,10));
-    var datestr = bdrs.util.formatDate(date);
+    var datestr = taxon._updatedAt_formatted;
     rows.push('<tr><td>Update:</td><td colspan="3">'+datestr+'</td></tr>');
     
     var propertiesTable = jQuery("<table><tbody>"+rows.join('')+"</tbody></table>");

@@ -304,10 +304,10 @@ bdrs.review.mysightings.table_tab_display_change_handler = function(event, is_se
 	        var compiled_tmpl = jQuery.template(bdrs.review.mysightings.TABLE_ROW_TMPL);
 	        for(var i=0; i<data.length; i++) {
 	            rec = data[i];
-	            
+
 	            // Preprocessing and Formatting
 	            rec.contextPath = bdrs.contextPath;
-	            rec._when = bdrs.util.formatDate(new Date(rec.when)).replace(/ /gi, "&nbsp;");
+	            rec._when = rec._when_formatted.replace(/ /gi, "&nbsp;");
 	            if(rec.species === null || rec.species === undefined) {
 	                rec.species = bdrs.review.mysightings.NON_TAXONOMIC_SPECIES_PLACEHOLDER;
 	            }
@@ -641,7 +641,7 @@ bdrs.review.mysightings.init = function(portal_id) {
         search_button.prop("disabled", date === null);
         
         if(date !== null) {
-            // Clean the value. This will conver something like 31 Feb 2011 to 03 Mar 2011
+            // Clean the value. This will convert something like 31 Feb 2011 to 03 Mar 2011
             // which is the same behaviour as javascript.
             elem.val(bdrs.util.formatDate(date));
         }

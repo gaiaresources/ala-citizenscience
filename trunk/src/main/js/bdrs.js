@@ -1893,10 +1893,9 @@ bdrs.map.createContentState = function(itemArray, popup, mapServerQueryManager){
                 if (key === 'when') {
                     // Only show the date if non null else we get 'NaN' in the formatted
                     // date string. The following actually omits the 'when' row
-                    var dateTicks = item.when;
-                    if (dateTicks !== null && dateTicks !== undefined) {
-                        value = new Date(parseInt(dateTicks, 10));
-                        value = bdrs.util.formatDate(value);
+                    var formatted_date = item._when_formatted;
+                    if (formatted_date !== undefined && formatted_date !== null) {
+                        value = item._when_formatted;
                     } else {
                         value = "";
                     }

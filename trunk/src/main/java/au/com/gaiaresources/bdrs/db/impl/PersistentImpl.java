@@ -4,6 +4,7 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -32,12 +33,15 @@ import au.com.gaiaresources.bdrs.annotation.Sensitive;
 @MappedSuperclass
 public abstract class PersistentImpl implements Persistent,
         DataInterchangeSerializable {
+    public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd MMM yyyy");
+    public static final String FLATTEN_KEY_CLASS = "_class";
+    public static final String FLATTENED_FORMATTED_DATE_TMPL = "_%s_formatted";
     public static final int DEFAULT_WEIGHT = 0;
 
     /**
      * The key name indicating the class of the flattened instance.
      */
-    public static final String FLATTEN_KEY_CLASS = "_class";
+
 
     private Logger log = Logger.getLogger(getClass());
 
@@ -264,15 +268,15 @@ public abstract class PersistentImpl implements Persistent,
                                 val = persistImpl.getId();
                             }
                         }
-                        
                         map.put(name, val);
                     } else if (Integer.class.isAssignableFrom(returnType)) {
                     	map.put(name, (Integer)value);
                     } else if (Long.class.isAssignableFrom(returnType)) {
                     	map.put(name, (Long)value);
                     } else if (Date.class.isAssignableFrom(returnType)) {
-                    	map.put(name, value == null ? null
-                                : ((Date) value).getTime());
+                        Date d = (Date) value;
+                    	map.put(name, value == null ? null : (d).getTime());
+                        map.put(String.format(FLATTENED_FORMATTED_DATE_TMPL, name), formatDate(d));
                     } else if (Byte.class.isAssignableFrom(returnType)) {
                     	map.put(name, (Byte)value);
                     } else if (Double.class.isAssignableFrom(returnType)) {
@@ -327,5 +331,13 @@ public abstract class PersistentImpl implements Persistent,
     
     public void setRunThreshold(boolean value) {
         runThreshold = value;
+    }
+
+    private String formatDate(Date d) {
+        if(d == null) {
+            return null;
+        } else {
+            return DATE_FORMAT.format(d);
+        }
     }
 }

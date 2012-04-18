@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 
@@ -94,6 +95,10 @@ public class JsonService {
         
         if(record.getWhen() != null) {
         	addToAttributeMap(attrMap, RECORD_KEY_WHEN, record.getWhen().getTime());
+
+            String k = String.format(PersistentImpl.FLATTENED_FORMATTED_DATE_TMPL, RECORD_KEY_WHEN);
+            String v = PersistentImpl.DATE_FORMAT.format(record.getWhen());
+            addToAttributeMap(attrMap, k, v);
         }
         
         
