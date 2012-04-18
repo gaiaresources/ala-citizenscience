@@ -1,15 +1,16 @@
 package au.com.gaiaresources.bdrs.controller.report;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.List;
-
+import au.com.gaiaresources.bdrs.controller.AbstractGridControllerTest;
 import au.com.gaiaresources.bdrs.json.JSONArray;
+import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.model.report.Report;
 import au.com.gaiaresources.bdrs.model.report.ReportCapability;
+import au.com.gaiaresources.bdrs.model.report.ReportDAO;
 import au.com.gaiaresources.bdrs.model.report.impl.ReportView;
+import au.com.gaiaresources.bdrs.model.survey.Survey;
+import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import junit.framework.Assert;
-
 import org.apache.commons.io.FilenameUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,13 +21,10 @@ import org.springframework.test.web.ModelAndViewAssert;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
-import au.com.gaiaresources.bdrs.controller.AbstractGridControllerTest;
-import au.com.gaiaresources.bdrs.json.JSONObject;
-import au.com.gaiaresources.bdrs.model.report.Report;
-import au.com.gaiaresources.bdrs.model.report.ReportDAO;
-import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.List;
 
 /**
  * Tests all aspects of the <code>ReportController</code>.
@@ -42,7 +40,6 @@ public class ReportControllerTest extends AbstractGridControllerTest {
      */
     public static final String SPECIES_LIST_REPORT_DIR = "reports/SpeciesList/";
 
-    
     @Autowired
     private ReportDAO reportDAO;
 
