@@ -307,6 +307,7 @@
             <add-attribute>../js/markitup/skins/markitup/style.css</add-attribute>
         </put-list-attribute>
         <put-list-attribute name="customJavaScript">
+            <add-attribute>taxonomy.js</add-attribute>
             <add-attribute>markitup/jquery.markitup.js</add-attribute>            
             <add-attribute>bdrs/admin.js</add-attribute>            
         </put-list-attribute>

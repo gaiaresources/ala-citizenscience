@@ -14,6 +14,10 @@ import java.util.List;
 import java.util.Set;
 
 public interface TaxaDAO extends TransactionDAO {
+
+    /** Allows the client to qualify the desired behaviour when searching by taxon group */
+    static enum TaxonGroupSearchType {PRIMARY, SECONDARY, PRIMARY_OR_SECONDARY};
+
     TaxonGroup createTaxonGroup(String name, boolean includeBehaviour, boolean includeFirstAppearance,
                                 boolean includeLastAppearance, boolean includeHabitat, boolean includeWeather,
                                 boolean includeNumber);
@@ -468,8 +472,11 @@ public interface TaxaDAO extends TransactionDAO {
     /**
      * Returns a {@link PagedQueryResult} of {@link IndicatorSpecies} for the {@link TaxonGroup}
      * with groupId and matching the search terms: searchInGroups and searchInResult
-     * @param groupId (optional) id of the {@link TaxonGroup} to search in.  This will search primary or secondary
-     *                groups.
+     * @param groupId (optional) id of the {@link TaxonGroup} to search in.
+     * @param groupSearchType Specifies how the groupId parameter is to be used.  Valid values are:
+     *                        PRIMARY : matches taxa in the primary group = groupId.
+     *                        SECONDARY :  matches taxa with groupId as one of the configured secondary groups.
+     *                        PRIMARY_OR_SECONDARY : matches taxa in the the primary or secondary group specified by groupId
      * @param searchInGroups (optional) a string to search for
      * @param searchInResult (optional) a second string to search for once the results have been narrowed by searchInGroups
      * @param filter A {@link PaginationFilter} to apply to the query to implement paging
@@ -478,6 +485,31 @@ public interface TaxaDAO extends TransactionDAO {
      * @throws ParseException if there is an error in the search terms
      */
     PagedQueryResult<IndicatorSpecies> searchTaxa(
-            Integer groupId, String searchInGroups, String searchInResult, PaginationFilter filter) throws ParseException;
+            Integer groupId, TaxonGroupSearchType groupSearchType, String searchInGroups, String searchInResult, PaginationFilter filter) throws ParseException;
 
+    /**
+     * Updates the primary group of the taxa identified by the supplied list of ids.
+     * Additionally, the TaxonGroup will no longer be a secondary group of any of the supplied taxa.
+     * @param taxonids Identifies the IndicatorSpecies to update.
+     * @param group The new primary TaxonGroup for the identified species.
+     */
+    void bulkUpdatePrimaryGroup(List<Integer> taxonids, TaxonGroup group);
+
+    /**
+     * Removes the supplied TaxonGroup from the list of configured secondary groups of the IndicatorSpecies identified
+     * by the supplied list of ids.
+     *
+     * @param taxonIds Identifies the IndicatorSpecies to update.
+     * @param group The TaxonGroup that will be removed as a secondary group from all of the IndicatorSpecies.
+     */
+    void bulkRemoveSecondaryGroup(List<Integer> taxonIds, TaxonGroup group);
+
+    /**
+     * Adds the supplied TaxonGroup to the list of configured secondary groups of the IndicatorSpecies identified
+     * by the supplied list of ids.
+     * IndicatorSpecies that have the supplied TaxonGroup as their primary group will not be updated.
+     * @param taxonIds Identifies the IndicatorSpecies to update.
+     * @param group The TaxonGroup that will be added as a secondary group to all of the IndicatorSpecies.
+     */
+    void bulkAssignSecondaryGroup(List<Integer> taxonIds, TaxonGroup group);
 }

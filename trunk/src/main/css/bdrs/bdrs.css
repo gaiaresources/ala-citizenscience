@@ -1548,7 +1548,7 @@ table.bulkDataTableForm tbody tr th {
 }
 
 /****************************************/
-/* Edit Txonomic Groups 2 column layout */
+/* Edit Taxonomic Groups 2 column layout */
 /****************************************/
 .editTaxonGroupLeftColumn {
 	padding: 10px;
@@ -1583,6 +1583,22 @@ table.bulkDataTableForm tbody tr th {
     width:15px;
 }
 
+#taxonGroupMembers .heading {
+    font-weight: bold;
+    margin-right: 1em;
+}
+
+#bulkTaxaActions {
+    position:relative;
+    margin-top: 10px;
+}
+#bulkTaxaActions .form_action {
+    position:absolute;
+    right: 0px;
+}
+#bulkTaxaActions label {
+    margin-left: 10px;
+}
 /*******************/
 /* Search taxonomy */
 /*******************/

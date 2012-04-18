@@ -1,21 +1,5 @@
 package au.com.gaiaresources.bdrs.controller.fieldguide;
 
-import java.text.ParseException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.log4j.Logger;
-import org.displaytag.tags.TableTagParameters;
-import org.displaytag.util.ParamEncoder;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.ModelAndView;
-
 import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataBuilder;
 import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataHelper;
@@ -27,6 +11,20 @@ import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
+import org.apache.log4j.Logger;
+import org.displaytag.tags.TableTagParameters;
+import org.displaytag.util.ParamEncoder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.text.ParseException;
 
 /**
  * The <code>BDRSFieldGuide</code> controller is a taxongroup and taxa add form renderer
@@ -110,7 +108,7 @@ public class BDRSFieldGuideController  extends AbstractController {
             mv.addObject("searchResultHeader", "Search results for \"" + searchInGroups + "\"");
         }
         try {
-            PagedQueryResult<IndicatorSpecies> pq = taxaDAO.searchTaxa(groupPk, searchInGroups, null, filter);
+            PagedQueryResult<IndicatorSpecies> pq = taxaDAO.searchTaxa(groupPk, TaxaDAO.TaxonGroupSearchType.PRIMARY_OR_SECONDARY, searchInGroups, null, filter);
             mv.addObject("taxaPaginator", pq);
         } catch (org.apache.lucene.queryParser.ParseException e) {
             log.error("Error finding taxa", e);
@@ -134,11 +132,16 @@ public class BDRSFieldGuideController  extends AbstractController {
                                 HttpServletResponse response,
                                 @RequestParam(value="search_in_groups",  required=false) String searchInGroups,
                                 @RequestParam(value="search_in_result", required=false) String searchInResult,
-                                @RequestParam(value="groupId", required=false) Integer groupId) throws Exception {
+                                @RequestParam(value="groupId", required=false) Integer groupId,
+                                @RequestParam(value="primaryGroupOnly", required=false, defaultValue = "false") boolean primaryGroupOnly) throws Exception {
         
         JqGridDataHelper jqGridHelper = new JqGridDataHelper(request);       
         PaginationFilter filter = jqGridHelper.createFilter(request);
-        PagedQueryResult<IndicatorSpecies> queryResult = taxaDAO.searchTaxa(groupId, searchInGroups, searchInResult, filter);
+        TaxaDAO.TaxonGroupSearchType searchType = TaxaDAO.TaxonGroupSearchType.PRIMARY_OR_SECONDARY;
+        if (primaryGroupOnly) {
+            searchType = TaxaDAO.TaxonGroupSearchType.PRIMARY;
+        }
+        PagedQueryResult<IndicatorSpecies> queryResult = taxaDAO.searchTaxa(groupId, searchType, searchInGroups, searchInResult, filter);
         JqGridDataBuilder builder = new JqGridDataBuilder(jqGridHelper.getMaxPerPage(), queryResult.getCount(), jqGridHelper.getRequestedPage());
 
         if (queryResult.getCount() > 0) {

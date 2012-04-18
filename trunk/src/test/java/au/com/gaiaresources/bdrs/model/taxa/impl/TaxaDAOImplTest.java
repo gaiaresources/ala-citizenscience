@@ -6,16 +6,34 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonRank;
 import junit.framework.Assert;
+import org.hibernate.Session;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class TaxaDAOImplTest extends AbstractGridControllerTest {
 
     @Autowired
     private TaxaDAO taxaDAO;
-    
+
+    private List<TaxonGroup> groups = new ArrayList<TaxonGroup>();
+
+    @Before
+    public void setupTaxonGroups() {
+        int numGroups = 10;
+        for (int i=0; i<numGroups; i++) {
+            TaxonGroup group = new TaxonGroup();
+            group.setName(Integer.toString(i));
+            taxaDAO.save(group);
+            groups.add(group);
+        }
+    }
+
+
     @Test
     public void testHqlInjection() {
         // will error if search is not implemented properly
@@ -128,5 +146,148 @@ public class TaxaDAOImplTest extends AbstractGridControllerTest {
         
         Assert.assertEquals("wrong id", parent.getId(), parent_r.getId());
         Assert.assertEquals("wrong child id", child.getId(), child_r.getId());
+    }
+
+    /**
+     * Tests the build group assignment feature works in the simple case.
+     */
+    @Test
+    public void testBulkAssignSecondaryGroup() {
+
+        List<IndicatorSpecies> taxa = taxaDAO.getIndicatorSpecies();
+        List<Integer> ids = new ArrayList<Integer>(taxa.size());
+        for (IndicatorSpecies taxon : taxa) {
+            ids.add(taxon.getId());
+        }
+
+        taxaDAO.bulkAssignSecondaryGroup(ids, groups.get(0));
+
+        Session session = getRequestContext().getHibernate();
+        session.flush();
+
+        for (IndicatorSpecies taxon : taxa) {
+            Assert.assertTrue(taxon.getSecondaryGroups().contains(groups.get(0)));
+        }
+    }
+
+
+    /**
+     * This test ensures the secondary group won't be added to IndicatorSpecies that have the selected group
+     * as the primary group.
+     */
+    @Test
+    public void testBulkAssignSecondaryGroupHasGroupAsPrimary() {
+
+        List<IndicatorSpecies> taxa = taxaDAO.getIndicatorSpecies();
+        List<Integer> ids = new ArrayList<Integer>(taxa.size());
+        for (IndicatorSpecies taxon : taxa) {
+            ids.add(taxon.getId());
+        }
+
+        // Update the primary group of the drop bear.
+        dropBear.setTaxonGroup(groups.get(0));
+
+        taxaDAO.bulkAssignSecondaryGroup(ids, groups.get(0));
+
+        Session session = getRequestContext().getHibernate();
+        session.flush();
+
+        for (IndicatorSpecies taxon : taxa) {
+            Assert.assertEquals(!taxon.equals(dropBear), taxon.getSecondaryGroups().contains(groups.get(0)));
+        }
+    }
+
+    /**
+     * This test ensures the secondary group won't be added a second time to IndicatorSpecies that already have
+     * the group as a secondary group.
+     */
+    @Test
+    public void testBulkAssignSecondaryGroupHasGroupAsSecondary() {
+
+        List<IndicatorSpecies> taxa = taxaDAO.getIndicatorSpecies();
+        List<Integer> ids = new ArrayList<Integer>(taxa.size());
+        for (IndicatorSpecies taxon : taxa) {
+            ids.add(taxon.getId());
+        }
+
+        // Update the primary group of the drop bear.
+        dropBear.addSecondaryGroup(groups.get(0));
+
+        taxaDAO.bulkAssignSecondaryGroup(ids, groups.get(0));
+
+        Session session = getRequestContext().getHibernate();
+        session.flush();
+
+        for (IndicatorSpecies taxon : taxa) {
+            Assert.assertTrue(taxon.getSecondaryGroups().contains(groups.get(0)));
+            Assert.assertEquals(1, taxon.getSecondaryGroups().size());
+        }
+    }
+
+
+    /**
+     * Tests the primary group assignment feature works in the simple case.
+     */
+    @Test
+    public void testAssignPrimaryGroup() {
+
+        IndicatorSpecies[] toReassign = {dropBear, hoopSnake};
+
+        List<Integer> ids = new ArrayList<Integer>(toReassign.length);
+        for (IndicatorSpecies taxon : toReassign) {
+            ids.add(taxon.getId());
+        }
+
+        taxaDAO.bulkUpdatePrimaryGroup(ids, groups.get(0));
+
+        Session session = getRequestContext().getHibernate();
+        session.flush();
+
+        List<IndicatorSpecies> taxa = taxaDAO.getIndicatorSpecies();
+        for (IndicatorSpecies taxon : taxa) {
+            TaxonGroup expected;
+            if (Arrays.asList(toReassign).contains(taxon)) {
+                expected = groups.get(0);
+            }
+            else {
+                expected = g1;
+            }
+            Assert.assertEquals("Taxon: "+taxon.getCommonName()+" expected group: "+expected.getName()+ " was: "+taxon.getTaxonGroup().getName(), expected, taxon.getTaxonGroup());
+        }
+    }
+
+    /**
+     * Tests the primary group assignment feature works in the case that the new primary group is currently
+     * a secondary group of one or more of the taxa.
+     */
+    @Test
+    public void testAssignPrimaryGroupAlreadySecondaryGroup() {
+
+        IndicatorSpecies[] toReassign = {dropBear, hoopSnake};
+
+        List<Integer> ids = new ArrayList<Integer>(toReassign.length);
+        for (IndicatorSpecies taxon : toReassign) {
+            ids.add(taxon.getId());
+        }
+
+        dropBear.addSecondaryGroup(groups.get(0));
+
+        taxaDAO.bulkUpdatePrimaryGroup(ids, groups.get(0));
+
+        Session session = getRequestContext().getHibernate();
+        session.flush();
+
+        List<IndicatorSpecies> taxa = taxaDAO.getIndicatorSpecies();
+        for (IndicatorSpecies taxon : taxa) {
+            TaxonGroup expected;
+            if (Arrays.asList(toReassign).contains(taxon)) {
+                expected = groups.get(0);
+            }
+            else {
+                expected = g1;
+            }
+            Assert.assertEquals("Taxon: "+taxon.getCommonName()+" expected group: "+expected.getName()+ " was: "+taxon.getTaxonGroup().getName(), expected, taxon.getTaxonGroup());
+            Assert.assertFalse(taxon.getSecondaryGroups().contains(groups.get(0)));
+        }
     }
 }

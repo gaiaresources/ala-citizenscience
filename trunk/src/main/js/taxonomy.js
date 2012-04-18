@@ -677,12 +677,12 @@ bdrs.taxonomy.addSecondaryGroupControls = function(secondaryGroupAutocompleteSel
         source: bdrs.taxonomy.taxonGroupSearcher.searchTaxonGroups,
         select: function(event, ui) {
             var taxonGroup = ui.item.data;
-
             jQuery(event.target).next("input[type=text]").val(taxonGroup.id);
         }
     });
-    console.log(jQuery(deleteSecondaryGroupSelector));
-    jQuery(deleteSecondaryGroupSelector).click(bdrs.taxonomy.deleteSecondaryGroup);
+    if (deleteSecondaryGroupSelector !== undefined) {
+        jQuery(deleteSecondaryGroupSelector).click(bdrs.taxonomy.deleteSecondaryGroup);
+    }
 
 };
 
@@ -766,3 +766,111 @@ bdrs.taxonomy.moveRowToTop = function(row) {
     bdrs.dnd.tableDnDDropHandler(row.parents("table:first")[0], row);
 
 };
+
+// -------------------------------------
+// editTaxonGroup.jsp support functions
+// -------------------------------------
+/**
+ * Initialises the table displaying taxon group members on the Edit Taxon Group page.
+ * Also configures the functionality of the bulk update and search features that act on the table.
+ * @param urlPrefix the prefix to use for ajax URLs (the web application context path).
+ * @param groupId the id of the taxon group being edited.
+ */
+bdrs.taxonomy.initEditTaxonGroupMembers = function(urlPrefix, groupId) {
+    // Initialize the grid
+    var thumbnailFormatter = function(cellvalue, options, rowObject) {
+        if (cellvalue != undefined && cellvalue != '') {
+            return '<a href="'+urlPrefix+'/fieldguide/taxon.htm?id=' + rowObject.id +'">' +
+                '<img class="max_size_img" src="'+urlPrefix+'/files/downloadByUUID.htm?uuid=' + cellvalue + '"/>' +
+                '</a>';
+        }
+        return '';
+    };
+
+    var nameLinkFormatter = function(cellvalue, options, rowObject) {
+        return '<a href="'+urlPrefix+'/fieldguide/taxon.htm?id=' + rowObject.id +'">' + cellvalue + '</a>';
+    };
+
+    var initParams = "?groupId="+groupId+"&primaryGroupOnly=true";
+
+
+    var updateBulkActionButtonStatus = function() {
+
+        var selectedTaxa = jQuery("#taxaList").getGridParam('selarrrow');
+        var group = jQuery("#actionGroupId").val();
+
+        if ((selectedTaxa !== undefined) && (selectedTaxa.length > 0) &&
+            (group != undefined) && (parseInt(group) > 0)) {
+            jQuery('#performGroupAction').removeAttr('disabled');
+        }
+        else {
+            jQuery('#performGroupAction').attr('disabled', 'disabled');
+        }
+    };
+
+    var reloadGrid = function() {
+        jQuery("#taxaList").css('min-height', jQuery("#taxaList").css('height'));
+        var searchResultsQuery = jQuery('#search_in_result').val();
+        var queryString = "?groupId="+groupId+"&primaryGroupOnly=true&search_in_result=" + searchResultsQuery;
+        jQuery("#taxaList").jqGrid().setGridParam({
+            url:''+urlPrefix+'/fieldguide/listTaxa.htm' + queryString,
+            page:1}).trigger("reloadGrid");
+        updateBulkActionButtonStatus();
+    };
+
+    jQuery("#taxaList").jqGrid({
+        url: urlPrefix+'/fieldguide/listTaxa.htm' + initParams,
+        datatype: "json",
+        mtype: "GET",
+        colNames:['Scientific Name','Common Name', ''],
+        colModel:[
+            {name:'scientificName',index:'scientificName', width:150, classes:'scientificName', formatter:nameLinkFormatter},
+            {name:'commonName',index:'commonName', width:150, formatter: nameLinkFormatter},
+            {name:'thumbnail', index:'thumbnail', sortable:false, formatter:thumbnailFormatter, align:'center'}
+        ],
+        autowidth: true,
+        jsonReader : { repeatitems: false },
+        rowNum:50,
+        rowList:[10,20,30,40,50,100],
+        pager: '#pager2',
+        sortname: 'scientificName',
+        viewrecords: true,
+        sortorder: "asc",
+        width: '100%',
+        height: "100%",
+        multiselect: true,
+        onSelectRow: updateBulkActionButtonStatus
+    });
+
+
+
+    jQuery('#search_in_result_button').bind('click', reloadGrid);
+
+    jQuery(".ui-jqgrid-bdiv").css('overflow-x', 'hidden');
+
+
+    var action = function() {
+        var url = urlPrefix+'/webservice/taxon/'+jQuery('#groupAction').val()+'.htm';
+        var selectedTaxa = jQuery("#taxaList").getGridParam('selarrrow');
+        var group = jQuery('#actionGroupId').val();
+        jQuery.post(url, {taxonGroupId:group, taxonId: selectedTaxa}, function(data) {
+            reloadGrid();
+        });
+
+
+    };
+
+    jQuery('#actionGroup').autocomplete({
+        search: bdrs.taxonomy.taxonGroupSearcher.initSearch,
+        source: bdrs.taxonomy.taxonGroupSearcher.searchTaxonGroups,
+        select: function(event, ui) {
+            var taxonGroup = ui.item.data;
+            jQuery(event.target).next("input[type=text]").val(taxonGroup.id);
+            updateBulkActionButtonStatus();
+        }
+    });
+    jQuery('#performGroupAction').click(action);
+    jQuery('#actionGroup').change(updateBulkActionButtonStatus);
+
+    updateBulkActionButtonStatus();
+}
