@@ -456,6 +456,13 @@
         <put-attribute name="maps" value="false"/>
     </definition>
 	
+	<!-- Embedded widgets landing page -->
+	<definition name="embeddedWidgets" extends="admin-template">
+        <put-attribute name="title" value="Embedded Widgets" />
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/admin/embeddedWidgets.jsp" />
+        <put-attribute name="maps" value="false"/>
+    </definition>
+	
 	<!-- Manage projects landing page -->
 	<definition name="manageProjects" extends="admin-template">
         <put-attribute name="title" value="Manage Projects" />

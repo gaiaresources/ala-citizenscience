@@ -2,7 +2,7 @@
 
 <jsp:useBean id="gallery" type="au.com.gaiaresources.bdrs.model.showcase.Gallery" scope="request" />
 <div id="gallery">
-    <jsp:useBean id="mfMap" type="java.util.Map<String, au.com.gaiaresources.bdrs.model.file.ManagedFile>" scope="request"/>
+    <jsp:useBean id="mfMap" type="java.util.Map<java.lang.String, au.com.gaiaresources.bdrs.model.file.ManagedFile>" scope="request"/>
     <c:forEach var="uuid" items="${gallery.fileUUIDS}">
     	<jsp:useBean id="uuid" type="java.lang.String" />
 		<a rel="lightbox" href="${pageContext.request.contextPath}/bdrs/public/gallery/fullImg.htm?uuid=${uuid}">

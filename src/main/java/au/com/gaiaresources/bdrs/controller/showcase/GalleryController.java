@@ -34,12 +34,11 @@ import au.com.gaiaresources.bdrs.model.file.ManagedFile;
 import au.com.gaiaresources.bdrs.model.file.ManagedFileDAO;
 import au.com.gaiaresources.bdrs.model.showcase.Gallery;
 import au.com.gaiaresources.bdrs.model.showcase.GalleryDAO;
-import au.com.gaiaresources.bdrs.util.ImageUtil;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.managedFile.ManagedFileService;
 import au.com.gaiaresources.bdrs.util.FileUtils;
+import au.com.gaiaresources.bdrs.util.ImageUtil;
 
-@RolesAllowed( {Role.ADMIN} )
 @Controller
 public class GalleryController extends AbstractDownloadFileController {
     
@@ -219,9 +218,9 @@ public class GalleryController extends AbstractDownloadFileController {
                         fis = new FileInputStream(f);
 
                         // fixed width but height can be variable
-                        BufferedImage bf = ImageUtil.resizeImage(new FileInputStream(f), SLIDESHOW_DEFAULT_WIDTH, SLIDESHOW_DEFAULT_HEIGHT);
+                        BufferedImage bf = ImageUtil.resizeImage(fis, SLIDESHOW_DEFAULT_WIDTH, SLIDESHOW_DEFAULT_HEIGHT);
                         File targetFile = fileService.createTargetFile(mf.getClass(), mf.getId(), FILENAME_SLIDESHOW_PREFIX + mf.getFilename());
-                        ImageUtil.saveImage(targetFile, bf, mf.getContentType(), JPEG_QUALITY);                       
+                        ImageUtil.saveImage(targetFile, bf, mf.getContentType(), JPEG_QUALITY);
                     } catch (IOException e) {
                         log.error("Error doing image resizing", e);
                         throw e;
@@ -229,7 +228,7 @@ public class GalleryController extends AbstractDownloadFileController {
                         if (fis != null) {
                             fis.close();
                         }
-                    }            
+                    }
                 } else if (SLIDESHOW_ACTION_UPLOAD.equals(slideshowActionParams[i])) {
                     // if a file has been uploaded, store it
                     MultipartFile slideshowFile = getFileFromList(slideshowFiles, i);
@@ -312,7 +311,9 @@ public class GalleryController extends AbstractDownloadFileController {
             response.setStatus(404);
             return null;
         }
-        return super.downloadFile(mf.getClass().getName(), mf.getId(), FILENAME_SLIDESHOW_PREFIX + mf.getFilename());
+        return super.downloadFile(mf.getClass().getName(), mf.getId(), 
+                                  FILENAME_SLIDESHOW_PREFIX + mf.getFilename(), 
+                                  mf.getContentType());
     }
     
     // returns the full sized image

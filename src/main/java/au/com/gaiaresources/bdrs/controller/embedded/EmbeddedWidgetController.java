@@ -31,7 +31,6 @@ import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.template.TemplateService;
 
-@RolesAllowed( {Role.ADMIN} )
 @Controller
 public class EmbeddedWidgetController extends AbstractController {
 
@@ -54,6 +53,17 @@ public class EmbeddedWidgetController extends AbstractController {
     @Autowired
     private TemplateService templateService;
 
+    /**
+     * Shows a static page that describes what Embedded Widgets are and how to use them
+     * with links to the embedded widgets and image gallery pages.
+     */
+    @RolesAllowed({ Role.ROOT, Role.ADMIN, Role.SUPERVISOR, Role.POWERUSER })
+    @RequestMapping(value="/bdrs/admin/embeddedWidgets.htm", method=RequestMethod.GET) 
+    public ModelAndView renderEmbeddedWidgetsPage() {
+        return new ModelAndView("embeddedWidgets");
+    }
+    
+    @RolesAllowed({Role.ROOT, Role.ADMIN, Role.SUPERVISOR, Role.POWERUSER})
     @RequestMapping(value = "/bdrs/public/embedded/widgetBuilder.htm", method = RequestMethod.GET)
     public ModelAndView widgetBuilder(HttpServletRequest request,
             HttpServletResponse response) {
