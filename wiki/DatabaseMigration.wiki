@@ -548,7 +548,7 @@ rollback;
 begin;
 update preference set description = substring(description from 0 for char_length(description)-4) || '<dd>{{{<code>}}}optionCount{{{</code>}}} - the number of facet options visible by default. The remaining options can be made visible by the user. Default = 10</dd></dl>' where key like 'au.com.gaiaresources.bdrs.service.facet%';
 
-update preference set value = substring(value from 0 for char_length(value) -2) || ',"optionCount":10}]' where key like 'au.com.gaiaresources.bdrs.service.facet%';
+update preference set value = substring(value from 0 for char_length(value) -1) || ',"optionCount":10}]' where key like 'au.com.gaiaresources.bdrs.service.facet%';
 
 rollback;
 
