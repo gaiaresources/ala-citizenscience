@@ -334,65 +334,103 @@ public class ThresholdService implements ConditionOperatorHandler {
      * {@link Condition} on this {@link Attribute}, false otherwise
      */
     public boolean isActiveThresholdForAttribute(Attribute attribute) {
-        Session sesh = RequestContextHolder.getContext().getHibernate();
-        Survey survey = new Survey();
-        sesh.evict(survey);
-        
+
         // get all the active thresholds
         List<Threshold> thresholds = thresholdDAO.getEnabledThresholdByClassName(Record.class.getCanonicalName());
         thresholds.addAll(thresholdDAO.getEnabledThresholdByClassName(Survey.class.getCanonicalName()));
+        List<Attribute> attributes = new ArrayList<Attribute>(1);
+        attributes.add(attribute);
         for (Threshold threshold : thresholds) {
-            List<Condition> conditions = threshold.getConditions();
-            for (Condition condition : conditions) {
-                String[] propertyPath = condition.getPropertyPath().split("\\.");
-                if (propertyPath.length >= 1) {
-                    String attrPath = propertyPath[0];
-                    if (attrPath.equals("survey") && propertyPath.length >= 2) {
-                        if (propertyPath[1].equals("attributes")) {
-                            // create a dummy record for testing this condition
-                            Record rec = new Record();
-                            // must remove all other attributes from the survey so that the 
-                            // thresholds only match on the current attribute not all survey attributes
-                            List<Attribute> attributes = new ArrayList<Attribute>(1);
-                            attributes.add(attribute);
-                            survey.setAttributes(attributes);
-                            rec.setSurvey(survey);
+            if (matchesThreshold(threshold, attributes)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Checks the supplied List of Attributes to see if they have the potential to trigger an action of the
+     * supplied type.
+     * @param actionType the type of action to check for.
+     * @param attributes the Attributes to check.
+     * @return true if the supplied Attributes have the potential to trigger the specified action.
+     */
+    public boolean canTriggerAction(ActionType actionType, List<Attribute> attributes) {
+        List<Threshold> thresholds = thresholdDAO.getEnabledThresholdByClassName(Record.class.getCanonicalName());
+        thresholds.addAll(thresholdDAO.getEnabledThresholdByClassName(Survey.class.getCanonicalName()));
+        for (Threshold threshold : thresholds) {
+            for (Action action : threshold.getActions()) {
+                if (action.getActionType() == actionType) {
+                    if (matchesThreshold(threshold, attributes)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Checks the supplied List of Attributes to see if they have the potential to trigger the supplied Threshold
+     * @param threshold the threshold to check.
+     * @param attributes the Attributes to check.
+     * @return true if the supplied Attributes have the potential to trigger the specified threshold.
+     */
+    private boolean matchesThreshold(Threshold threshold, List<Attribute> attributes) {
+
+        Session sesh = RequestContextHolder.getContext().getHibernate();
+
+        List<Condition> conditions = threshold.getConditions();
+        for (Condition condition : conditions) {
+            String[] propertyPath = condition.getPropertyPath().split("\\.");
+            Survey survey = new Survey();
+            if (propertyPath.length >= 1) {
+                String attrPath = propertyPath[0];
+                if (attrPath.equals("survey") && propertyPath.length >= 2) {
+                    if (propertyPath[1].equals("attributes")) {
+                        // create a dummy record for testing this condition
+                        Record rec = new Record();
+
+                        // must remove all other attributes from the survey so that the
+                        // thresholds only match on the current attribute not all survey attributes
+                        survey.setAttributes(attributes);
+                        rec.setSurvey(survey);
+                        for (Attribute attribute : attributes) {
                             AttributeValue val = new AttributeValue();
                             val.setAttribute(attribute);
                             rec.getAttributes().add(val);
-                            sesh.evict(rec);
-                            boolean isThold = condition.applyCondition(sesh, rec, this);
-                            // only return if it is true so that we check all conditions until a match is found
-                            if (isThold) {
-                                return isThold;
-                            }
                         }
-                    } else if (threshold.getClassName().equals(Survey.class.getCanonicalName())) {
-                        // must remove all other attributes from the survey so that the 
-                        // thresholds only match on the current attribute not all survey attributes
-                        List<Attribute> attributes = new ArrayList<Attribute>(1);
-                        attributes.add(attribute);
-                        survey.setAttributes(attributes);
-                        boolean isThold = condition.applyCondition(sesh, survey, this);
+                        boolean isThold = condition.applyCondition(sesh, rec, this);
                         // only return if it is true so that we check all conditions until a match is found
                         if (isThold) {
                             return isThold;
                         }
-                    } else {
-                        if (attrPath.equals("location") && propertyPath.length >= 2) {
-                            attrPath = propertyPath[1];
-                        }
-                        if (attrPath.equals("attributes")) {
-                            boolean isThold = false;
+                    }
+                } else if (threshold.getClassName().equals(Survey.class.getCanonicalName())) {
+                    // must remove all other attributes from the survey so that the
+                    // thresholds only match on the current attribute not all survey attributes
+                    survey.setAttributes(attributes);
+                    boolean isThold = condition.applyCondition(sesh, survey, this);
+                    // only return if it is true so that we check all conditions until a match is found
+                    if (isThold) {
+                        return isThold;
+                    }
+                } else {
+                    if (attrPath.equals("location") && propertyPath.length >= 2) {
+                        attrPath = propertyPath[1];
+                    }
+                    if (attrPath.equals("attributes")) {
+                        boolean isThold = false;
+                        for (Attribute attribute: attributes) {
                             if (condition.getKeyOperator().equals(Operator.EQUALS)) {
                                 isThold = attribute.getName().equals(condition.getKey());
                             } else if (condition.getKeyOperator().equals(Operator.CONTAINS)) {
                                 isThold = attribute.getName().contains(condition.getKey());
                             }
-                            // only return if it is true so that we check all conditions until a match is found
-                            if (isThold) {
-                                return isThold;
-                            }
+                        }
+                        // only return if it is true so that we check all conditions until a match is found
+                        if (isThold) {
+                            return isThold;
                         }
                     }
                 }
@@ -400,7 +438,7 @@ public class ThresholdService implements ConditionOperatorHandler {
         }
         return false;
     }
-    
+
     /**
      * Checks the active {@link Threshold Thresholds} to determine if there is one
      * with a {@link Condition} matching on this {@link RecordProperty}.
