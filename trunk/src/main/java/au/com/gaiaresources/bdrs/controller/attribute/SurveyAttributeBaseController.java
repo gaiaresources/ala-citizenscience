@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.ws.http.HTTPException;
 
+import au.com.gaiaresources.bdrs.model.threshold.ActionType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -204,11 +205,9 @@ public class SurveyAttributeBaseController extends AbstractController {
             Metadata md = survey.setFormRendererType(SurveyFormRendererType.DEFAULT);
             metadataDAO.save(md);
         }
-        
-        // update the moderation email keys if specified
-        updateModerationSettings(survey, modPerformedEmailKey, ContentService.MODERATION_PERFORMED_EMAIL_KEY, Metadata.MODERATION_PERFORMED_EMAIL);
-        updateModerationSettings(survey, modRequiredEmailKey, ContentService.MODERATION_REQUIRED_EMAIL_KEY, Metadata.MODERATION_REQUIRED_EMAIL);
-        
+
+        updateModerationSettings(modPerformedEmailKey, modRequiredEmailKey, survey);
+
         // no child protection!
         List<CensusMethod> childList = new ArrayList<CensusMethod>();
         if (childCensusMethodList != null) {
@@ -252,9 +251,31 @@ public class SurveyAttributeBaseController extends AbstractController {
     }
 
     /**
+     * Updates the email settings for moderation attributes and enables commenting on the Survey if the Survey is
+     * able to trigger the MODERATION_HISTORY threshold action.
+     *
+     * @param modPerformedEmailKey the value of the parameter containing the moderation performed email key.
+     * @param modRequiredEmailKey the value of the parameter containing the moderation required email key.
+     * @param survey the survey to update moderation settings for.
+     */
+    private void updateModerationSettings(String modPerformedEmailKey, String modRequiredEmailKey, Survey survey) {
+        // update the moderation email keys if specified
+        updateModerationSettings(survey, modPerformedEmailKey, ContentService.MODERATION_PERFORMED_EMAIL_KEY, Metadata.MODERATION_PERFORMED_EMAIL);
+        updateModerationSettings(survey, modRequiredEmailKey, ContentService.MODERATION_REQUIRED_EMAIL_KEY, Metadata.MODERATION_REQUIRED_EMAIL);
+
+        // Check if the survey is able to trigger a moderation history action, and if so automatically enable
+        // commenting.
+        if (thresholdService.canTriggerAction(ActionType.MODERATION_HISTORY, survey.getAttributes())) {
+            survey.setRecordCommentsEnabled(true, metadataDAO);
+        }
+    }
+
+
+    /**
      * Updates the email settings for moderation attributes.  Creates a {@link Metadata} value for metadataKey
      * with value paramValue if the paramValue is specified and is not equal to the default content, specified
      * by contentKey. If it matches the default, any existing {@link Metadata} for metadataKey will be removed.
+     *
      * @param survey The survey that contains the metadata
      * @param paramValue The value of the metadata to set
      * @param contentKey The default content key
