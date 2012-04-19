@@ -409,7 +409,7 @@ public class ThemeController extends AbstractDownloadFileController {
         
         ModelAndView mv = new ModelAndView("themeEdit");
         mv.addObject("editTheme", theme);
-        mv.addObject("portalId", portal.getId().intValue());
+        mv.addObject("portalId", portal.getId());
         mv.addObject("themeFileList", themeFiles);
         
         return mv;
@@ -556,7 +556,7 @@ public class ThemeController extends AbstractDownloadFileController {
         }
 
         ModelAndView mv = new ModelAndView(new RedirectView(redirectUrl, true));
-        mv.addObject("portalId", portal.getId().intValue());
+        mv.addObject("portalId", portal.getId());
         mv.addObject("themeId", theme.getId());
         
         return mv;

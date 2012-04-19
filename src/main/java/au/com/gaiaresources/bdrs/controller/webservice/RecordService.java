@@ -554,7 +554,7 @@ public class RecordService extends AbstractController {
         // Delete the records
         for (Object entry : jsonRecordIdsMap.entrySet()) {
             try {
-                Integer id = Integer.valueOf((Integer) entry);
+                Integer id = (Integer) entry;
                 recordDAO.deleteById(id);
             } catch (Exception e) {
                 log.error("The id in the jsonRecordIdsMap is not an Integer.");
