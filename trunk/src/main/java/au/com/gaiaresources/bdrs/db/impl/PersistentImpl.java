@@ -33,10 +33,21 @@ import au.com.gaiaresources.bdrs.annotation.Sensitive;
 @MappedSuperclass
 public abstract class PersistentImpl implements Persistent,
         DataInterchangeSerializable {
+    /**
+     * The pattern for formatting dates when inserting formatted dates in flattened maps.
+     */
     public static final String DATE_FORMAT_PATTERN = "dd MMM yyyy";
-
+    /**
+     * The key that is used when inserting the class name in flattened maps.
+     */
     public static final String FLATTEN_KEY_CLASS = "_class";
+    /**
+     * The key template that is used when inserting the a formatted date in flattened maps.
+     */
     public static final String FLATTENED_FORMATTED_DATE_TMPL = "_%s_formatted";
+    /**
+     * The default weight of all persistent objects.
+     */
     public static final int DEFAULT_WEIGHT = 0;
 
     /**

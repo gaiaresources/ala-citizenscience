@@ -29,7 +29,7 @@ public class JqGridDataHelper {
     // pass expected column names or something in the ctor...
     public JqGridDataHelper(HttpServletRequest request) throws Exception {
         String maxPerPageArg = request.getParameter(MAX_PER_PAGE_PARAM);
-        maxPerPage = StringUtils.hasLength(maxPerPageArg) ? Integer.parseInt(maxPerPageArg)
+        maxPerPage = StringUtils.hasLength(maxPerPageArg) ? Integer.valueOf(maxPerPageArg)
                 : DEFAULT_MAX_PER_PAGE;
         
         String pnArg = request.getParameter(REQUESTED_PAGE_PARAM);

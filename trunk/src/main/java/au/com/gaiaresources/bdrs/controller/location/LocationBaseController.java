@@ -70,7 +70,7 @@ public class LocationBaseController extends AbstractController {
     public static final String GET_SURVEY_LOCATIONS_FOR_USER = "/bdrs/location/getSurveyLocationsForUser.htm";
     
     public static final String PARAM_SURVEY_ID = BdrsWebConstants.PARAM_SURVEY_ID;
-    
+
 
     private Logger log = Logger.getLogger(getClass());
 
@@ -109,10 +109,15 @@ public class LocationBaseController extends AbstractController {
             int defaultLocPk = Integer.parseInt(defaultLocId.getValue());
             defaultLocation = locationDAO.getLocation(defaultLocPk);
         }
+
+        Integer defaultLocationId = -1;
+        if(defaultLocation != null) {
+            defaultLocationId = defaultLocation.getId();
+        }
         
         ModelAndView mv = new ModelAndView("userEditLocations");
         mv.addObject("locations", locationDAO.getUserLocations(user));
-        mv.addObject("defaultLocationId", defaultLocation == null ? -1 : defaultLocation.getId());
+        mv.addObject("defaultLocationId", defaultLocationId);
         mv.addObject("redirect", redirect);
         return mv;
     }
@@ -222,7 +227,7 @@ public class LocationBaseController extends AbstractController {
         }
         
         ModelAndView mv = new ModelAndView("userLocationRow");
-        mv.addObject("index", Integer.parseInt(request.getParameter("index")));
+        mv.addObject("index", Integer.valueOf(request.getParameter("index")));
         mv.addObject("defaultLocationId", defaultLocation == null ? -1 : defaultLocation.getId());
         return mv;
     }
