@@ -1,6 +1,7 @@
 package au.com.gaiaresources.bdrs.controller.attribute;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -76,7 +77,10 @@ public class AttributeController extends AbstractController {
         }
         sesh.evict(attribute);
         try {
-            response.getOutputStream().write(String.valueOf(thresholdService.isActiveThresholdForAttribute(attribute)).getBytes());
+            response.getOutputStream().write(
+                String.valueOf(
+                    thresholdService.isActiveThresholdForAttribute(attribute)
+                ).getBytes(Charset.defaultCharset()));
         } catch (IOException e) {
             log.warn("Error occurred writing to response stream", e);
         }

@@ -14,12 +14,7 @@
 	        <tr>
 	            <th>Widget</th>
 	            <td>
-	            	Latest Statistics
-	            	<input type="hidden" id="feature" value="LATEST_STATISTICS" />
-					<%--
-					hard code to the latest statistics widget for now...
-					
-	                <select id="feature" name="feature">
+	               <select id="feature" name="feature">
 	                    <c:forEach items="<%= EmbeddedFeature.values() %>" var="feature">
 	                        <jsp:useBean id="feature" type="au.com.gaiaresources.bdrs.controller.embedded.EmbeddedFeature"/>
 	                        <option value="<c:out value="<%= feature.toString() %>"/>">   
@@ -27,7 +22,6 @@
 	                        </option>
 	                    </c:forEach>
 	                </select>
-					--%>
 	            </td>
 	        </tr>
 			<tr class="gallerySection customWidgetSection">

@@ -1,8 +1,10 @@
 package au.com.gaiaresources.bdrs.controller.admin.setup;
 
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -149,96 +151,123 @@ public class ALATaxonomyLoader {
         long taxaCount = 0;
         long taxaTotal = 0;
         int rowCount = 1;
+        FileInputStream fis = null;
+        InputStreamReader isr = null;
+        CSVReader reader = null;
+        try {
+            fis = new FileInputStream(nameUsages);
+            isr = new InputStreamReader(fis, Charset.defaultCharset());
+            reader = new CSVReader(isr, '\t');
 
-        CSVReader reader = new CSVReader(new FileReader(nameUsages), '\t');
-
-        // Discard the header
-        for (int i = 0; i < rowCount; i++) {
-            reader.readNext();
-        }
-
-        for (String[] line = reader.readNext(); line != null; line = reader.readNext()) {
-            if ((rowCount % 1000) == 0) {
-                log.debug("Reading Taxon Hierarchy Row: " + rowCount);
+            // Discard the header
+            for (int i = 0; i < rowCount; i++) {
+                reader.readNext();
             }
-
-            if (taxaCount > 49) {
-                sesh.flush();
-                sesh.clear();
-                TransactionHelper.commit(tx, sesh);
-
-                taxaTotal = taxaTotal + taxaCount;
-                log.debug("Commited " + taxaCount
-                        + " taxa parenting. Time Delta "
-                        + (System.currentTimeMillis() - start)
-                        + "ms. Total Taxa Count " + taxaTotal);
-                start = System.currentTimeMillis();
-                taxaCount = 0;
-
-                tx = sesh.beginTransaction();
-                //log.debug(taxonSoftRefMap.size());
-
-            }
-
-            nub_id = line[0];
-            parent_nub_id = line[1];
-//            lsid = line[2];
-            accepted_id = line[3];
-//            accepted_lsid = line[4];
-//            name_id = line[5];
-//            canonical_name = line[6];
-//            author = line[7];
-//            portal_rank_id = line[8];
-//            rank = line[9];
-//            lft = line[10];
-//            rgt = line[11];
-//            kingdom_id = line[12];
-//            kingdom = line[13];
-//            phylum_id = line[14];
-//            phylum = line[15];
-//            class_id = line[16];
-//            klass = line[17];
-//            order_id = line[18];
-//            order = line[19];
-//            family_id = line[20];
-//            family = line[21];
-//            genus_id = line[22];
-//            genus = line[23];
-//            species_id = line[24];
-//            species = line[25];
-//            source = line[26];
-
-            if (accepted_id.isEmpty()) {
-
-                child = (IndicatorSpecies) taxonSoftRefMap.get(nub_id);
-                if (child == null) {
-                    child = taxaDAO.getIndicatorSpeciesBySourceDataID(sesh, nub_id);
-                    if (child != null) {
-                        taxonSoftRefMap.put(nub_id, child);
-                    }
+    
+            for (String[] line = reader.readNext(); line != null; line = reader.readNext()) {
+                if ((rowCount % 1000) == 0) {
+                    log.debug("Reading Taxon Hierarchy Row: " + rowCount);
                 }
-
-                if (child != null) {
-                    if (parent_nub_id.isEmpty()) {
-                        parent = null;
-                    } else {
-                        parent = (IndicatorSpecies) taxonSoftRefMap.get(parent_nub_id);
-                        if (parent == null) {
-                            parent = taxaDAO.getIndicatorSpeciesBySourceDataID(sesh, parent_nub_id);
-                            if (parent != null) {
-                                taxonSoftRefMap.put(parent_nub_id, parent);
-                            }
+    
+                if (taxaCount > 49) {
+                    sesh.flush();
+                    sesh.clear();
+                    TransactionHelper.commit(tx, sesh);
+    
+                    taxaTotal = taxaTotal + taxaCount;
+                    log.debug("Commited " + taxaCount
+                            + " taxa parenting. Time Delta "
+                            + (System.currentTimeMillis() - start)
+                            + "ms. Total Taxa Count " + taxaTotal);
+                    start = System.currentTimeMillis();
+                    taxaCount = 0;
+    
+                    tx = sesh.beginTransaction();
+                    //log.debug(taxonSoftRefMap.size());
+    
+                }
+    
+                nub_id = line[0];
+                parent_nub_id = line[1];
+    //            lsid = line[2];
+                accepted_id = line[3];
+    //            accepted_lsid = line[4];
+    //            name_id = line[5];
+    //            canonical_name = line[6];
+    //            author = line[7];
+    //            portal_rank_id = line[8];
+    //            rank = line[9];
+    //            lft = line[10];
+    //            rgt = line[11];
+    //            kingdom_id = line[12];
+    //            kingdom = line[13];
+    //            phylum_id = line[14];
+    //            phylum = line[15];
+    //            class_id = line[16];
+    //            klass = line[17];
+    //            order_id = line[18];
+    //            order = line[19];
+    //            family_id = line[20];
+    //            family = line[21];
+    //            genus_id = line[22];
+    //            genus = line[23];
+    //            species_id = line[24];
+    //            species = line[25];
+    //            source = line[26];
+    
+                if (accepted_id.isEmpty()) {
+    
+                    child = (IndicatorSpecies) taxonSoftRefMap.get(nub_id);
+                    if (child == null) {
+                        child = taxaDAO.getIndicatorSpeciesBySourceDataID(sesh, nub_id);
+                        if (child != null) {
+                            taxonSoftRefMap.put(nub_id, child);
                         }
                     }
-
-                    child.setParent(parent);
-                    taxaDAO.save(sesh, child);
-                    taxaCount++;
+    
+                    if (child != null) {
+                        if (parent_nub_id.isEmpty()) {
+                            parent = null;
+                        } else {
+                            parent = (IndicatorSpecies) taxonSoftRefMap.get(parent_nub_id);
+                            if (parent == null) {
+                                parent = taxaDAO.getIndicatorSpeciesBySourceDataID(sesh, parent_nub_id);
+                                if (parent != null) {
+                                    taxonSoftRefMap.put(parent_nub_id, parent);
+                                }
+                            }
+                        }
+    
+                        child.setParent(parent);
+                        taxaDAO.save(sesh, child);
+                        taxaCount++;
+                    }
+                }
+                rowCount++;
+            }
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    log.error("Error closing reader", e);
                 }
             }
-            rowCount++;
+            if (fis != null) {
+                try {
+                    fis.close();
+                } catch (IOException e) {
+                    log.error("Error closing FileInputStream", e);
+                }
+            } 
+            if (isr != null) {
+                try {
+                    isr.close();
+                } catch (IOException e) {
+                    log.error("Error closing InputStreamReader", e);
+                }
+            }
         }
-
         sesh.flush();
         sesh.clear();
         TransactionHelper.commit(tx, sesh);
@@ -293,146 +322,174 @@ public class ALATaxonomyLoader {
         List<CommonNameRow> commonNameRowList;
 
         int rowCount = 1;
-        CSVReader reader = new CSVReader(new FileReader(nameUsages), '\t');
+        FileInputStream fis = null;
+        InputStreamReader isr = null;
+        CSVReader reader = null;
+        try {
+            fis = new FileInputStream(nameUsages);
+            isr = new InputStreamReader(fis, Charset.defaultCharset());
+            reader = new CSVReader(isr, '\t');
 
-        // Discard the header
-        for (int i = 0; i < rowCount; i++) {
-            reader.readNext();
-        }
-
-        for (String[] line = reader.readNext(); line != null; line = reader.readNext()) {
-            if ((rowCount % 1000) == 0) {
-                log.debug("Reading Taxon Row: " + rowCount);
+            // Discard the header
+            for (int i = 0; i < rowCount; i++) {
+                reader.readNext();
             }
-
-            if (taxaCount > 49) {
-                sesh.flush();
-                clearSessionCache();
-                sesh.clear();
-                TransactionHelper.commit(tx, sesh);
-
-                taxaTotal = taxaTotal + taxaCount;
-                log.debug("Commited " + taxaCount + " taxa. Time Delta "
-                        + (System.currentTimeMillis() - start)
-                        + "ms. Total Taxa Count " + taxaTotal);
-                start = System.currentTimeMillis();
-                taxaCount = 0;
-
-                tx = sesh.beginTransaction();
-
-            }
-
-            nub_id = line[0];
-//            parent_nub_id = line[1];
-            lsid = line[2];
-            accepted_id = line[3];
-//            accepted_lsid = line[4];
-//            name_id = line[5];
-            canonical_name = line[6];
-            author = line[7];
-//            portal_rank_id = line[8];
-            rank = line[9];
-//            lft = line[10];
-//            rgt = line[11];
-//            kingdom_id = line[12];
-//            kingdom = line[13];
-//            phylum_id = line[14];
-//            phylum = line[15];
-//            class_id = line[16];
-//            klass = line[17];
-//            order_id = line[18];
-//            order = line[19];
-//            family_id = line[20];
-            family = line[21];
-//            genus_id = line[22];
-//            genus = line[23];
-//            species_id = line[24];
-            species = line[25];
-            source = line[26];
-
-            if (accepted_id.isEmpty()) {
-
-                taxon = getOrCreateTaxon(sesh, nub_id);
-                taxon.setScientificName(canonical_name);
-                taxon.setCommonName(canonical_name);
-                taxon.setAuthor(author);
-                taxon.setTaxonRank(taxonRankMap.get(rank));
-                if (!species.isEmpty()) {
-                    taxonGroup = getOrCreateTaxonGroup(sesh, family);
-                } else {
-                    taxonGroup = life;
+    
+            for (String[] line = reader.readNext(); line != null; line = reader.readNext()) {
+                if ((rowCount % 1000) == 0) {
+                    log.debug("Reading Taxon Row: " + rowCount);
                 }
-                taxon.setTaxonGroup(taxonGroup);
-
-                if (commonNameRowMap.containsKey(lsid)) {
-                    speciesProfileSet.clear();
-                    speciesProfileSet.addAll(taxon.getInfoItems());
-
-                    commonNameRowList = commonNameRowMap.get(lsid);
-                    for (CommonNameRow commonNameRow : commonNameRowList) {
-
-                        if (!commonNameRow.SCIENTIFIC_NAME_AUTHOR.isEmpty()) {
-                            taxon.setAuthor(commonNameRow.SCIENTIFIC_NAME_AUTHOR);
-                        }
-                        if (!commonNameRow.SCIENTIFIC_NAME_YEAR.isEmpty()) {
-                            taxon.setYear(commonNameRow.SCIENTIFIC_NAME_YEAR);
-                        }
-
-                        if (!commonNameRow.COMMON_NAME_STRING.isEmpty()) {
-                            taxon.setCommonName(commonNameRow.COMMON_NAME_STRING);
-
-                            if (!commonNameRow.COMMON_NAME_NAME_LSID.isEmpty()) {
-                                commonNameProfile = getOrCreateCommonName(sesh, taxon, commonNameRow.COMMON_NAME_NAME_LSID);
-                                commonNameProfile.setContent(commonNameRow.COMMON_NAME_STRING);
-                                speciesProfileDAO.save(sesh, commonNameProfile);
-                                addToSessionCache(commonNameRow.COMMON_NAME_NAME_LSID, taxon, commonNameProfile);
-
-                                if (!speciesProfileSet.contains(commonNameProfile)) {
-                                    speciesProfileSet.add(commonNameProfile);
-                                    taxon.getInfoItems().add(commonNameProfile);
+    
+                if (taxaCount > 49) {
+                    sesh.flush();
+                    clearSessionCache();
+                    sesh.clear();
+                    TransactionHelper.commit(tx, sesh);
+    
+                    taxaTotal = taxaTotal + taxaCount;
+                    log.debug("Commited " + taxaCount + " taxa. Time Delta "
+                            + (System.currentTimeMillis() - start)
+                            + "ms. Total Taxa Count " + taxaTotal);
+                    start = System.currentTimeMillis();
+                    taxaCount = 0;
+    
+                    tx = sesh.beginTransaction();
+    
+                }
+    
+                nub_id = line[0];
+    //            parent_nub_id = line[1];
+                lsid = line[2];
+                accepted_id = line[3];
+    //            accepted_lsid = line[4];
+    //            name_id = line[5];
+                canonical_name = line[6];
+                author = line[7];
+    //            portal_rank_id = line[8];
+                rank = line[9];
+    //            lft = line[10];
+    //            rgt = line[11];
+    //            kingdom_id = line[12];
+    //            kingdom = line[13];
+    //            phylum_id = line[14];
+    //            phylum = line[15];
+    //            class_id = line[16];
+    //            klass = line[17];
+    //            order_id = line[18];
+    //            order = line[19];
+    //            family_id = line[20];
+                family = line[21];
+    //            genus_id = line[22];
+    //            genus = line[23];
+    //            species_id = line[24];
+                species = line[25];
+                source = line[26];
+    
+                if (accepted_id.isEmpty()) {
+    
+                    taxon = getOrCreateTaxon(sesh, nub_id);
+                    taxon.setScientificName(canonical_name);
+                    taxon.setCommonName(canonical_name);
+                    taxon.setAuthor(author);
+                    taxon.setTaxonRank(taxonRankMap.get(rank));
+                    if (!species.isEmpty()) {
+                        taxonGroup = getOrCreateTaxonGroup(sesh, family);
+                    } else {
+                        taxonGroup = life;
+                    }
+                    taxon.setTaxonGroup(taxonGroup);
+    
+                    if (commonNameRowMap.containsKey(lsid)) {
+                        speciesProfileSet.clear();
+                        speciesProfileSet.addAll(taxon.getInfoItems());
+    
+                        commonNameRowList = commonNameRowMap.get(lsid);
+                        for (CommonNameRow commonNameRow : commonNameRowList) {
+    
+                            if (!commonNameRow.SCIENTIFIC_NAME_AUTHOR.isEmpty()) {
+                                taxon.setAuthor(commonNameRow.SCIENTIFIC_NAME_AUTHOR);
+                            }
+                            if (!commonNameRow.SCIENTIFIC_NAME_YEAR.isEmpty()) {
+                                taxon.setYear(commonNameRow.SCIENTIFIC_NAME_YEAR);
+                            }
+    
+                            if (!commonNameRow.COMMON_NAME_STRING.isEmpty()) {
+                                taxon.setCommonName(commonNameRow.COMMON_NAME_STRING);
+    
+                                if (!commonNameRow.COMMON_NAME_NAME_LSID.isEmpty()) {
+                                    commonNameProfile = getOrCreateCommonName(sesh, taxon, commonNameRow.COMMON_NAME_NAME_LSID);
+                                    commonNameProfile.setContent(commonNameRow.COMMON_NAME_STRING);
+                                    speciesProfileDAO.save(sesh, commonNameProfile);
+                                    addToSessionCache(commonNameRow.COMMON_NAME_NAME_LSID, taxon, commonNameProfile);
+    
+                                    if (!speciesProfileSet.contains(commonNameProfile)) {
+                                        speciesProfileSet.add(commonNameProfile);
+                                        taxon.getInfoItems().add(commonNameProfile);
+                                    }
+                                }
+                            }
+    
+                            if (!commonNameRow.PUBLICATION_CITATION.isEmpty()
+                                    && !commonNameRow.PUBLICATION_LSID.isEmpty()) {
+                                publicationProfile = getOrCreatePublicationCitation(sesh, taxon, commonNameRow.PUBLICATION_LSID);
+                                publicationProfile.setContent(commonNameRow.PUBLICATION_CITATION);
+                                speciesProfileDAO.save(sesh, publicationProfile);
+                                addToSessionCache(commonNameRow.PUBLICATION_LSID, taxon, publicationProfile);
+    
+                                if (!speciesProfileSet.contains(publicationProfile)) {
+                                    speciesProfileSet.add(publicationProfile);
+                                    taxon.getInfoItems().add(publicationProfile);
+                                }
+                            }
+    
+                            if (!commonNameRow.SCIENTIFIC_NAME_STRING.isEmpty()
+                                    && !commonNameRow.SCIENTIFIC_NAME_NAME_LSID.isEmpty()) {
+                                scientificNameProfile = getOrCreateScientificName(sesh, taxon, commonNameRow.SCIENTIFIC_NAME_NAME_LSID);
+                                scientificNameProfile.setContent(commonNameRow.SCIENTIFIC_NAME_STRING);
+                                speciesProfileDAO.save(sesh, scientificNameProfile);
+                                addToSessionCache(commonNameRow.SCIENTIFIC_NAME_NAME_LSID, taxon, scientificNameProfile);
+    
+                                if (!speciesProfileSet.contains(scientificNameProfile)) {
+                                    speciesProfileSet.add(scientificNameProfile);
+                                    taxon.getInfoItems().add(scientificNameProfile);
                                 }
                             }
                         }
-
-                        if (!commonNameRow.PUBLICATION_CITATION.isEmpty()
-                                && !commonNameRow.PUBLICATION_LSID.isEmpty()) {
-                            publicationProfile = getOrCreatePublicationCitation(sesh, taxon, commonNameRow.PUBLICATION_LSID);
-                            publicationProfile.setContent(commonNameRow.PUBLICATION_CITATION);
-                            speciesProfileDAO.save(sesh, publicationProfile);
-                            addToSessionCache(commonNameRow.PUBLICATION_LSID, taxon, publicationProfile);
-
-                            if (!speciesProfileSet.contains(publicationProfile)) {
-                                speciesProfileSet.add(publicationProfile);
-                                taxon.getInfoItems().add(publicationProfile);
-                            }
-                        }
-
-                        if (!commonNameRow.SCIENTIFIC_NAME_STRING.isEmpty()
-                                && !commonNameRow.SCIENTIFIC_NAME_NAME_LSID.isEmpty()) {
-                            scientificNameProfile = getOrCreateScientificName(sesh, taxon, commonNameRow.SCIENTIFIC_NAME_NAME_LSID);
-                            scientificNameProfile.setContent(commonNameRow.SCIENTIFIC_NAME_STRING);
-                            speciesProfileDAO.save(sesh, scientificNameProfile);
-                            addToSessionCache(commonNameRow.SCIENTIFIC_NAME_NAME_LSID, taxon, scientificNameProfile);
-
-                            if (!speciesProfileSet.contains(scientificNameProfile)) {
-                                speciesProfileSet.add(scientificNameProfile);
-                                taxon.getInfoItems().add(scientificNameProfile);
-                            }
-                        }
+                    } else {
+                        taxon.setCommonName(canonical_name);
                     }
-                } else {
-                    taxon.setCommonName(canonical_name);
+    
+                    setOrCreateTaxonSource(sesh, taxon, source);
+    
+                    taxaDAO.save(sesh, taxon);
+                    addToSessionCache(lsid, taxon);
+                    taxaCount++;
                 }
-
-                setOrCreateTaxonSource(sesh, taxon, source);
-
-                taxaDAO.save(sesh, taxon);
-                addToSessionCache(lsid, taxon);
-                taxaCount++;
+                rowCount++;
             }
-            rowCount++;
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    log.error("Error closing reader", e);
+                }
+            }
+            if (fis != null) {
+                try {
+                    fis.close();
+                } catch (IOException e) {
+                    log.error("Error closing FileInputStream", e);
+                }
+            } 
+            if (isr != null) {
+                try {
+                    isr.close();
+                } catch (IOException e) {
+                    log.error("Error closing InputStreamReader", e);
+                }
+            }
         }
-
         sesh.flush();
         clearSessionCache();
         sesh.clear();
@@ -601,46 +658,74 @@ public class ALATaxonomyLoader {
         List<CommonNameRow> rows;
         CommonNameRow commonNameRow;
         int rowCount = 1;
-        CSVReader reader = new CSVReader(new FileReader(commonNames), ',', '"',
-                rowCount);
-        for (String[] line = reader.readNext(); line != null; line = reader.readNext()) {
-            if ((rowCount % 1000) == 0) {
-                log.debug("Reading Common Name Row: " + rowCount);
-            }
-
-            if (line.length == 10) {
-
-                commonNameRow = new CommonNameRow();
-                //commonNameRow.COMMON_NAME_CONCEPT_LSID = line[0];
-                commonNameRow.COMMON_NAME_NAME_LSID = line[1];
-                commonNameRow.COMMON_NAME_STRING = line[2];
-                commonNameRow.PUBLICATION_LSID = line[3];
-                commonNameRow.PUBLICATION_CITATION = line[4];
-                commonNameRow.SCIENTIFIC_NAME_CONCEPT_LSID = line[5];
-                commonNameRow.SCIENTIFIC_NAME_NAME_LSID = line[6];
-                commonNameRow.SCIENTIFIC_NAME_STRING = line[7];
-                commonNameRow.SCIENTIFIC_NAME_AUTHOR = line[8];
-                commonNameRow.SCIENTIFIC_NAME_YEAR = line[9];
-
-                rows = commonNameRowMap.get(commonNameRow.SCIENTIFIC_NAME_CONCEPT_LSID);
-                if (rows == null) {
-                    rows = new ArrayList<CommonNameRow>();
-                    commonNameRowMap.put(commonNameRow.SCIENTIFIC_NAME_CONCEPT_LSID, rows);
+        FileInputStream fis = null;
+        InputStreamReader isr = null;
+        CSVReader reader = null;
+        try {
+            fis = new FileInputStream(commonNames);
+            isr = new InputStreamReader(fis, Charset.defaultCharset());
+            reader = new CSVReader(isr, ',', '"', rowCount);
+            for (String[] line = reader.readNext(); line != null; line = reader.readNext()) {
+                if ((rowCount % 1000) == 0) {
+                    log.debug("Reading Common Name Row: " + rowCount);
                 }
-                rows.add(commonNameRow);
-            } else {
-                log.warn("Ignoring row " + rowCount
-                        + " because the line length != 10. Line length is "
-                        + line.length + " The row data was");
-                StringBuilder builder = new StringBuilder();
-                for (String cell : line) {
-                    builder.append(cell);
-                    builder.append(", ");
+    
+                if (line.length == 10) {
+    
+                    commonNameRow = new CommonNameRow();
+                    //commonNameRow.COMMON_NAME_CONCEPT_LSID = line[0];
+                    commonNameRow.COMMON_NAME_NAME_LSID = line[1];
+                    commonNameRow.COMMON_NAME_STRING = line[2];
+                    commonNameRow.PUBLICATION_LSID = line[3];
+                    commonNameRow.PUBLICATION_CITATION = line[4];
+                    commonNameRow.SCIENTIFIC_NAME_CONCEPT_LSID = line[5];
+                    commonNameRow.SCIENTIFIC_NAME_NAME_LSID = line[6];
+                    commonNameRow.SCIENTIFIC_NAME_STRING = line[7];
+                    commonNameRow.SCIENTIFIC_NAME_AUTHOR = line[8];
+                    commonNameRow.SCIENTIFIC_NAME_YEAR = line[9];
+    
+                    rows = commonNameRowMap.get(commonNameRow.SCIENTIFIC_NAME_CONCEPT_LSID);
+                    if (rows == null) {
+                        rows = new ArrayList<CommonNameRow>();
+                        commonNameRowMap.put(commonNameRow.SCIENTIFIC_NAME_CONCEPT_LSID, rows);
+                    }
+                    rows.add(commonNameRow);
+                } else {
+                    log.warn("Ignoring row " + rowCount
+                            + " because the line length != 10. Line length is "
+                            + line.length + " The row data was");
+                    StringBuilder builder = new StringBuilder();
+                    for (String cell : line) {
+                        builder.append(cell);
+                        builder.append(", ");
+                    }
+                    log.warn(builder.toString());
                 }
-                log.warn(builder.toString());
+    
+                rowCount++;
             }
-
-            rowCount++;
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    log.error("Error closing reader", e);
+                }
+            }
+            if (fis != null) {
+                try {
+                    fis.close();
+                } catch (IOException e) {
+                    log.error("Error closing FileInputStream", e);
+                }
+            } 
+            if (isr != null) {
+                try {
+                    isr.close();
+                } catch (IOException e) {
+                    log.error("Error closing InputStreamReader", e);
+                }
+            }
         }
     }
 

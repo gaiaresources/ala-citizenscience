@@ -489,7 +489,7 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
         for(Facet f : facetList) {
             if(f.isActive()) {
                 String s = f.getIndexedQueryString();
-                if (s != null) {
+                if (!StringUtils.nullOrEmpty(s)) {
                     sb.append(" +" + s);
                 }
             }

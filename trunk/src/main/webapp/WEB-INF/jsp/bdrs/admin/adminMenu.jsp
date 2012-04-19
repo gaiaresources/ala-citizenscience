@@ -25,6 +25,12 @@
 	        - Click here to manage portal preferences, themes, content, taxonomy, maps, files, and widgets.
 	    </li>
     </sec:authorize>
+    <sec:authorize ifAnyGranted="ROLE_ADMIN,ROLE_ROOT,ROLE_SUPERVISOR,ROLE_POWER_USER">
+	    <li>
+	        <a href="http://localhost:8080/BDRS/bdrs/admin/embeddedWidgets.htm">Embedded Widgets</a>
+	        - Click here to create embedded widgets and create/edit image galleries for 'Image Slideshow' widgets.
+	    </li>
+    </sec:authorize>
 </ul>
 
 <p>If you need help with any of the options, please consult the <a href="javascript:bdrs.underDev();">Administration Guide</a>.</p>

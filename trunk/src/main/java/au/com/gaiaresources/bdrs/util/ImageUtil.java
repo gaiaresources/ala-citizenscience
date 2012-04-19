@@ -30,27 +30,35 @@ public class ImageUtil {
         BufferedImage sourceImage = ImageIO.read(inputStream);
         
         if (width != null && height != null) {
-            BufferedImage scaledImage = new BufferedImage(width.intValue(), height.intValue(), BufferedImage.TYPE_INT_ARGB);
+            BufferedImage scaledImage = new BufferedImage(width.intValue(), height.intValue(), BufferedImage.TYPE_INT_RGB);
             Graphics2D g2_scaled = scaledImage.createGraphics();
             // Better scaling
             g2_scaled.setRenderingHint(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_BICUBIC);
     
             g2_scaled.setBackground(new Color(255,255,255,0));
             g2_scaled.clearRect(0,0,width.intValue(),height.intValue());
-    
+            
             int origWidth = sourceImage.getWidth();
             int origHeight = sourceImage.getHeight();
             
             double widthRatio = (double)width / (double) origWidth;
             double heightRatio = (double)height / (double) origHeight;
             
+            int x = 0, y = 0;
+            int scaledWidth = width;
+            int scaledHeight = height;
             if (heightRatio > widthRatio) {
-                int scaledHeight = (int) Math.round(widthRatio * origHeight);
-                g2_scaled.drawImage(sourceImage, 0, (scaledImage.getHeight() - scaledHeight) / 2, scaledImage.getWidth(), scaledHeight, g2_scaled.getBackground(), null);
+                x = 0;
+                y = (scaledImage.getHeight() - scaledHeight) / 2;
+                scaledWidth = scaledImage.getWidth();
+                scaledHeight = (int) Math.round(widthRatio * origHeight);
             } else {
-                int scaledWidth = (int) Math.round(heightRatio * origWidth);
-                g2_scaled.drawImage(sourceImage, (scaledImage.getWidth() - scaledWidth) / 2, 0, scaledWidth, scaledImage.getHeight(), g2_scaled.getBackground(), null);
+                x = (scaledImage.getWidth() - scaledWidth) / 2;
+                y = 0;
+                scaledWidth = (int) Math.round(heightRatio * origWidth);
+                scaledHeight = scaledImage.getHeight();
             }
+            g2_scaled.drawImage(sourceImage, x, y, scaledWidth, scaledHeight, g2_scaled.getBackground(), null);
             return scaledImage;
         } else if (width != null && height == null) {
             int origWidth = sourceImage.getWidth();
@@ -67,11 +75,10 @@ public class ImageUtil {
             //g2_scaled.clearRect(0,0,width.intValue(),height.intValue());
             
             g2_scaled.drawImage(sourceImage, 0, (scaledImage.getHeight() - scaledHeight) / 2, scaledImage.getWidth(), scaledHeight, g2_scaled.getBackground(), null);
-            
             // Better scaling
             g2_scaled.setRenderingHint(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_BICUBIC);
             g2_scaled.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-          
+            
             return scaledImage;
         } else if (width == null && height != null ) {
             throw new IllegalArgumentException("not supported");
