@@ -60,3 +60,24 @@ bdrs.user.bookmarkUserLocation = function(locationName, latitude, longitude, isD
     };
     jQuery.getJSON(url, params, callback);
 };
+
+bdrs.user.listing = {};
+
+bdrs.user.listing.IMPORT_USERS_BUTTON_SELECTOR = '#import_users_button';
+bdrs.user.listing.IMPORT_USERS_FILE_SELECTOR = '#import_users_file';
+
+/**
+ *  Initialises the user listing page.
+ *  This function will attach handlers to the "Import Users" button in order to trigger a file input dialog.
+ */
+bdrs.user.listing.init = function() {
+    // Submits the add report form when the file selection changes.
+    jQuery(bdrs.user.listing.IMPORT_USERS_FILE_SELECTOR).change(function(event) {
+        var file_elem = jQuery(event.currentTarget);
+        file_elem.parents('form').trigger('submit');
+    });
+    // Displays a file selection dialog when the button is clicked.
+    jQuery(bdrs.user.listing.IMPORT_USERS_BUTTON_SELECTOR).click(function() {
+        jQuery(bdrs.user.listing.IMPORT_USERS_FILE_SELECTOR).trigger('click');
+    });
+};

@@ -1,12 +1,14 @@
 package au.com.gaiaresources.bdrs.service.survey;
 
-import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
-import au.com.gaiaresources.bdrs.json.JSONObject;
-import au.com.gaiaresources.bdrs.service.survey.handler.ImportHandlerListener;
-import org.hibernate.classic.Session;
-
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
+
+import org.hibernate.Session;
+
+import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
+import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.service.survey.handler.ImportHandlerListener;
 
 /**
  * Implemented by classes registered in the {@link ImportHandlerRegistry}, this interface provides the generic
@@ -61,4 +63,19 @@ public interface ImportHandler {
      * @return the registry key.
      */
     public String getRegistryKey();
+
+    /**
+     * Returns a list of indexed message codes and corresponding data from importing data.
+     * The message code is one from bdrs-errors.properties and is indexed by appending a .#
+     * to provide a unique set of keys for the map. The .# is stripped off when the 
+     * messages are retrieved.
+     * 
+     * @return a list of indexed messages codes and corresponding data
+     */
+    public Map<String, Object[]> getMessages();
+
+    /**
+     * Clears any messages that have accumulated in the messages list.
+     */
+    public void clearMessages();
 }

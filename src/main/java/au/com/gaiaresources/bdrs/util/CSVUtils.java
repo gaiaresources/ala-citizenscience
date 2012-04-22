@@ -38,6 +38,38 @@ public class CSVUtils {
     }
     
     public static String toCSVString(String[] values, char separator, char quotechar, boolean sortValues) {
+        return toCSVString(values, separator, quotechar, CSVWriter.DEFAULT_LINE_END, sortValues);
+    }
+    
+    /**
+     * Converts the string array values into a delimited, quoted string.
+     * 
+     * @param values       the values to write to a string
+     * @param separator    the separator to use between the values
+     * @param quoteEntries boolean indicating if each entry should be quoted or not
+     * @param useLineEnd   boolean indicating if a line end character should be appended at the end of each line string
+     * @param sortValues   boolean indicating if the values should be sorted
+     * @return A string representation of the array, delimited by the separator and quoted according to quoteEntries
+     */
+    public static String toCSVString(String[] values, char separator, boolean quoteEntries, boolean useLineEnd, boolean sortValues) {
+        return toCSVString(values, separator, 
+                           quoteEntries ? CSVParser.DEFAULT_QUOTE_CHARACTER : CSVWriter.NO_QUOTE_CHARACTER, 
+                           useLineEnd ? CSVWriter.DEFAULT_LINE_END : "", sortValues);
+    }
+    
+    /**
+     * Converts the string array values into a delimited, quoted string.
+     * 
+     * @param values     the values to write to a string
+     * @param separator  the separator to use between the values
+     * @param quotechar  the quote character to use when quoting values
+     *                   use CSVWriter.NO_QUOTE_CHARACTER if no quotes are desired
+     * @param lineEnd    the line end character to append to the end of each line
+     * @param sortValues boolean indicating if the values should be sorted
+     * @return A string representation of the array, delimited by the separator, quoted with the quotechar, 
+     *         ending with the lineEnd char and sorted if sortValues is true
+     */
+    public static String toCSVString(String[] values, char separator, char quotechar, String lineEnd, boolean sortValues) {
         String stringValue;
         if(values == null) {
                 stringValue = "";
@@ -50,7 +82,7 @@ public class CSVUtils {
                 }
                 
                 StringWriter writer = new StringWriter();
-                CSVWriter csvWriter = new CSVWriter(writer, separator, quotechar);
+                CSVWriter csvWriter = new CSVWriter(writer, separator, quotechar, lineEnd);
                 csvWriter.writeNext(copy);
                 stringValue = writer.toString();
                 

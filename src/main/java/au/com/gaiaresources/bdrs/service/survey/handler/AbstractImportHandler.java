@@ -10,12 +10,13 @@ import com.vividsolutions.jts.geom.Geometry;
 import org.apache.commons.beanutils.ConstructorUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.annotations.CollectionOfElements;
-import org.hibernate.classic.Session;
+import org.hibernate.Session;
 import org.springframework.beans.BeanUtils;
 
 import javax.persistence.*;
 import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -47,6 +48,11 @@ public abstract class AbstractImportHandler implements ImportHandler {
      */
     private ArrayList<ImportHandlerListener> listenerList = new ArrayList<ImportHandlerListener>();
 
+    /**
+     * Messages to send back from import.
+     */
+    protected Map<String, Object[]> messages = new LinkedHashMap<String, Object[]>();
+    
     /**
      * Creates a new instance of the object imported by the implementation of this handler.
      *
@@ -141,7 +147,9 @@ public abstract class AbstractImportHandler implements ImportHandler {
      * @return true if the property is a simple data type, false otherwise.
      */
     protected boolean isColumn(PropertyDescriptor pd) {
-        return hasAnnotation(pd, Column.class);
+        // the check for Transient annotation is for boolean property descriptors
+        // pd.getReadMethod() only returns get methods, not is methods
+        return hasAnnotation(pd, Column.class) || hasAnnotation(pd, Transient.class);
     }
 
     /**
@@ -204,6 +212,10 @@ public abstract class AbstractImportHandler implements ImportHandler {
         return pd.getReadMethod().getAnnotation(annotationClass) != null;
     }
 
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.service.survey.ImportHandler#importData(org.hibernate.Session, au.com.gaiaresources.bdrs.json.JSONObject, java.util.Map, au.com.gaiaresources.bdrs.json.JSONObject)
+     */
     @Override
     public Object importData(Session sesh, JSONObject importData, Map<Class,
             Map<Integer, PersistentImpl>> persistentLookup, JSONObject jsonPersistent)
@@ -211,6 +223,41 @@ public abstract class AbstractImportHandler implements ImportHandler {
 
         // Remove the representation from the registry of instances to be imported
         removeJSONPersistent(importData, jsonPersistent);
+        Object bean = createBean(sesh, importData, persistentLookup, jsonPersistent);
+
+        // Notify all listeners that we are about to save the instance.
+        firePreSaveEvent(sesh, importData, persistentLookup, jsonPersistent, bean);
+
+        // Save the instance and add it to the registry of saved data.
+        sesh.save(bean);
+        addToPersistentLookup(persistentLookup, jsonPersistent, (PersistentImpl) bean);
+
+        // Notify all listeners that the instance has been saved.
+        firePostSaveEvent(sesh, importData, persistentLookup, jsonPersistent, bean);
+
+        return bean;
+    }
+
+    /**
+     * Creates the object specified using the provided session.
+     *
+     * @param sesh             the session to use for importing data.
+     * @param importData       the data to be imported.
+     * @param persistentLookup a lookup of classes that have been parsed and saved as part of the import sequence.
+     *                         The key of the map is the class that was parsed, and the value of the map is a mapping
+     *                         between the original ID of the parsed object and the newly saved instance.
+     * @param jsonPersistent
+     * @return
+     * @throws InvocationTargetException
+     * @throws NoSuchMethodException
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     */
+    protected Object createBean(Session sesh, JSONObject importData, 
+            Map<Class, Map<Integer, PersistentImpl>> persistentLookup, 
+            JSONObject jsonPersistent) 
+                    throws InvocationTargetException, NoSuchMethodException, 
+                           InstantiationException, IllegalAccessException {
         Object bean = createNewInstance();
 
         // Import each of the keys in the representation
@@ -223,9 +270,9 @@ public abstract class AbstractImportHandler implements ImportHandler {
                 Method writeMethod = pd.getWriteMethod();
                 // Don't import the primary key or bad things will happen
                 if (writeMethod != null && !isPrimaryKey(pd)) {
-
                     if (isColumn(pd)) {
                         // Import the value and invoke the mutator
+                        // do this check last because @JoinColumn takes precedence over @Column
                         Object value = getByDataType(sesh, importData, persistentLookup, jsonPersistent, pd);
                         writeMethod.invoke(bean, value);
                     } else if (isManyToMany(pd) || isOneToMany(pd) || (isJoinColumn(pd) && isCollectionOfElements(pd))) {
@@ -261,17 +308,6 @@ public abstract class AbstractImportHandler implements ImportHandler {
                 }
             }
         }
-
-        // Notify all listeners that we are about to save the instance.
-        firePreSaveEvent(sesh, importData, persistentLookup, jsonPersistent, bean);
-
-        // Save the instance and add it to the registry of saved data.
-        sesh.save(bean);
-        addToPersistentLookup(persistentLookup, jsonPersistent, (PersistentImpl) bean);
-
-        // Notify all listeners that the instance has been saved.
-        firePostSaveEvent(sesh, importData, persistentLookup, jsonPersistent, bean);
-
         return bean;
     }
 
@@ -282,7 +318,7 @@ public abstract class AbstractImportHandler implements ImportHandler {
      * @param jsonPersistent   the original representation of the imported instance.
      * @param bean             the newly created object.
      */
-    private void addToPersistentLookup(Map<Class,
+    protected void addToPersistentLookup(Map<Class,
             Map<Integer, PersistentImpl>> persistentLookup, JSONObject jsonPersistent, PersistentImpl bean) {
         int id = getJSONPersistentId(jsonPersistent);
         Map<Integer, PersistentImpl> typeLookup = persistentLookup.get(bean.getClass());
@@ -377,6 +413,14 @@ public abstract class AbstractImportHandler implements ImportHandler {
             return new BigDecimal(jsonPersistent.getString(key));
         } else if (Geometry.class.isAssignableFrom(type)) {
             return locationService.createGeometryFromWKT(jsonPersistent.getString(key));
+        } else if (type.isArray()) {
+            JSONArray array = jsonPersistent.getJSONArray(key);
+            if (array.size() > 0) {
+                // set the type of the array or a ClassCastException will occur
+                type = array.get(0).getClass();
+                Object[] newArray = (Object[]) Array.newInstance(type, array.size());
+                return array.toArray(newArray);
+            }
         }
 
         log.warn("Unhandled data type encountered: " + type.getCanonicalName());
@@ -392,7 +436,7 @@ public abstract class AbstractImportHandler implements ImportHandler {
      * @param persistentLookup the registry of saved instance.
      * @param type             the datatype of the instance to be returned
      * @param otherId          the primary key (used in the original representation) of the instance to be returned.
-     * @return an insatnce of the dependant object.
+     * @return an instance of the dependant object.
      * @throws InvocationTargetException thrown if there has been an error introspecting the object to be created.
      * @throws NoSuchMethodException     thrown if there has been an error introspecting the object to be created.
      * @throws IllegalAccessException    thrown if there has been an error introspecting the object to be created.
@@ -459,7 +503,7 @@ public abstract class AbstractImportHandler implements ImportHandler {
      * @param jsonPersistent the encoded representation to be removed.
      * @return true if the representation was removed successfully, false otherwise.
      */
-    private boolean removeJSONPersistent(JSONObject importData, JSONObject jsonPersistent) {
+    protected boolean removeJSONPersistent(JSONObject importData, JSONObject jsonPersistent) {
         String klazzName = jsonPersistent.getString(PersistentImpl.FLATTEN_KEY_CLASS);
         JSONObject idToJsonPersistentLookup = importData.getJSONObject(klazzName);
         if (idToJsonPersistentLookup == null) {
@@ -482,5 +526,23 @@ public abstract class AbstractImportHandler implements ImportHandler {
      */
     private int getJSONPersistentId(JSONObject jsonPersistent) {
         return jsonPersistent.getInt("id");
+    }
+    
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.service.survey.ImportHandler#getMessages()
+     */
+    @Override
+    public Map<String, Object[]> getMessages() {
+        return this.messages;
+    }
+    
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.service.survey.ImportHandler#clearMessages()
+     */
+    @Override
+    public void clearMessages() {
+        this.messages.clear();
     }
 }

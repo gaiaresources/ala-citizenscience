@@ -193,7 +193,19 @@ public abstract class PersistentImpl implements Persistent,
     
     @Override
     @Transient
+    public Map<String, Object> flatten(boolean compact, boolean mobileFields, boolean sensitiveFields) {
+        return this.flatten(0, compact, mobileFields, sensitiveFields);
+    }
+    
+    @Override
+    @Transient
     public Map<String, Object> flatten(int depth, boolean compact, boolean mobileFields) {
+        return this.flatten(depth, compact, mobileFields, false);
+    }
+    
+    @Override
+    @Transient
+    public Map<String, Object> flatten(int depth, boolean compact, boolean mobileFields, boolean sensitiveFields) {
         SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_PATTERN);
     	Map<String, Object> map = new HashMap<String, Object>();
         try {
@@ -205,7 +217,7 @@ public abstract class PersistentImpl implements Persistent,
             PropertyDescriptor[] descriptors = BeanUtils.getPropertyDescriptors(getClass());
             
             for (PropertyDescriptor pd : descriptors) {
-                // Skip the attributes marked as sensitive.
+                // Skip the attributes marked as sensitive unless they have been requested
                 readMethod = pd.getReadMethod();
                 String name;
                 if (mobileFields) {
@@ -215,7 +227,7 @@ public abstract class PersistentImpl implements Persistent,
                 	name = pd.getName();
                 }
                 if (readMethod != null
-                        && readMethod.getAnnotation(Sensitive.class) == null
+                        && (sensitiveFields || readMethod.getAnnotation(Sensitive.class) == null)
                         && (!compact || readMethod.getAnnotation(CompactAttribute.class) != null)) {
 
                     Class<?> returnType = readMethod.getReturnType();
