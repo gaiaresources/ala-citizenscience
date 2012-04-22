@@ -618,7 +618,7 @@ public class SurveyBaseController extends AbstractController {
         ZipEntry entry = new ZipEntry(SURVEY_JSON_IMPORT_EXPORT_FILENAME);
         ZipOutputStream out = new ZipOutputStream(response.getOutputStream());
         out.putNextEntry(entry);
-        out.write(jsonSurvey.toJSONString().getBytes());
+        out.write(jsonSurvey.toJSONString().getBytes(Charset.defaultCharset()));
 
         out.flush();
         out.close();
@@ -652,7 +652,7 @@ public class SurveyBaseController extends AbstractController {
                     }
                 }
                 zis.close();
-                importData = JSONObject.fromStringToJSONObject(new String(baos.toByteArray()));
+                importData = JSONObject.fromStringToJSONObject(new String(baos.toByteArray(), Charset.defaultCharset()));
             }
 
             if (importData != null) {
