@@ -11,6 +11,7 @@ import javax.persistence.Transient;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.springframework.util.StringUtils;
 
+import au.com.bytecode.opencsv.CSVWriter;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
 import au.com.gaiaresources.bdrs.file.FileService;
 import au.com.gaiaresources.bdrs.util.CSVUtils;
@@ -107,7 +108,8 @@ public abstract class AbstractTypedAttributeValue extends PortalPersistentImpl i
     
     @Transient
     public void setMultiCheckboxValue(String[] values) {
-        setStringValue(CSVUtils.toCSVString(values, true));
+        // don't want values to be quoted or contain a line end string
+        setStringValue(CSVUtils.toCSVString(values, ',', CSVWriter.NO_QUOTE_CHARACTER, "", true));
     }
     
     @Transient

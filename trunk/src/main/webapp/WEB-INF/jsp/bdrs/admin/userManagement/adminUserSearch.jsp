@@ -28,7 +28,16 @@
 			<input id="searchUsersButton" name="search" type="button" onclick="gridReload()" value="Search" class="form_action" />
 			<input id="downloadXLS" name="downloadXLS" type="button" onclick="bdrs.downloadXls(this)" value="Download XLS" class="form_action" />
 		</div>
+		
 	</form>
+	<div class="buttonpanel textright">
+			<form method="POST" action="${pageContext.request.contextPath}/admin/importUsers.htm" enctype="multipart/form-data">
+				<input id="import_users_file" name="users_file" type="file" style="visibility:hidden"/>
+            	<input id="import_users_button" name="importUsers" type="button" value="Import Users" class="form_action" />
+            	<input id="exportUsers" name="exportUsers" type="button" onclick="window.document.location='${pageContext.request.contextPath}/admin/exportUsers.htm?'+jQuery('#userSearchForm').serialize();" value="Export Users" class="form_action" />
+            </form>
+        </div>
+        <div class="clear"></div>
 </div>
 
 </br>
@@ -74,6 +83,8 @@
 	    jQuery("#userList").jqGrid('navGrid','#pager2',{edit:false,add:false,del:false});
 	    var userSearchFormParams = jQuery("#userSearchForm").serialize();
 	    jQuery("#downloadXLS").data("xlsURL", "${pageContext.request.contextPath}/webservice/user/downloadUsers.htm?"+userSearchFormParams);
+	    
+	    bdrs.user.listing.init();
 	});
 	
 	var timeoutHnd;
@@ -116,7 +127,7 @@
             return false;
         }
     };
-	
+    
 	function approveUser(id) {
 		$.ajax({
 			type: "POST",

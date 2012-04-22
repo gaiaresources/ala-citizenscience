@@ -135,20 +135,4 @@ public class IndicatorSpeciesAttribute extends AbstractTypedAttributeValue imple
             this.dateValue = null;
         }
     }
-    
-    @Transient
-    public String[] getMultiSelectValue() {
-    	String[] split;
-    	try {
-    		CSVReader csvReader = new CSVReader(new StringReader(getStringValue()));
-    		split = csvReader.readNext();
-    		csvReader.close();
-    	} catch(IOException ioe) {
-    		// This can't happen because we are not doing any file or stream IO.
-    		log.error(ioe.getMessage(), ioe);
-    		throw new IOError(ioe);
-    	}
-		
-    	return split;
-    }
 }

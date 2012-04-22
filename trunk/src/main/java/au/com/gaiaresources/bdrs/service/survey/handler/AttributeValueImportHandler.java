@@ -9,7 +9,7 @@ import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.service.survey.ImportHandler;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
-import org.hibernate.classic.Session;
+import org.hibernate.Session;
 
 import java.io.File;
 import java.io.FileOutputStream;

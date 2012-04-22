@@ -2,7 +2,7 @@ package au.com.gaiaresources.bdrs.service.survey.handler;
 
 import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.json.JSONObject;
-import org.hibernate.classic.Session;
+import org.hibernate.Session;
 
 import java.util.Map;
 

@@ -1,5 +1,19 @@
 package au.com.gaiaresources.bdrs.controller.survey;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.mock.web.MockMultipartHttpServletRequest;
+
 import au.com.gaiaresources.bdrs.controller.AbstractGridControllerTest;
 import au.com.gaiaresources.bdrs.controller.LocationAttributeSurveyCreator;
 import au.com.gaiaresources.bdrs.file.FileService;
@@ -22,17 +36,6 @@ import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.servlet.RequestContext;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 import au.com.gaiaresources.bdrs.util.ZipUtils;
-import org.junit.Assert;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.mock.web.MockMultipartHttpServletRequest;
-
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
-import java.util.*;
 
 public class SurveyImportExportTest extends AbstractGridControllerTest {
 
@@ -104,7 +107,8 @@ public class SurveyImportExportTest extends AbstractGridControllerTest {
         request.setMethod("GET");
         request.setRequestURI(SurveyBaseController.SURVEY_EXPORT_URL);
         request.addParameter(SurveyBaseController.QUERY_PARAM_SURVEY_ID, String.valueOf(survey.getId()));
-
+        login("admin", "password", new String[]{Role.ADMIN});
+        
         handle(request, response);
         Assert.assertEquals(ZipUtils.ZIP_CONTENT_TYPE, response.getContentType());
         byte[] exportContent = response.getContentAsByteArray();
@@ -122,6 +126,9 @@ public class SurveyImportExportTest extends AbstractGridControllerTest {
         req.setMethod("POST");
         req.setRequestURI(SurveyBaseController.SURVEY_IMPORT_URL);
         req.addFile(new MockMultipartFile(SurveyBaseController.POST_KEY_SURVEY_IMPORT_FILE, exportContent));
+        
+        login("admin", "password", new String[]{Role.ADMIN});
+        
         handle(request, response);
 
         sessionFactory.getCurrentSession().getTransaction().commit();
@@ -188,17 +195,24 @@ public class SurveyImportExportTest extends AbstractGridControllerTest {
                     String.format("Expected AttributeValue not found: (Parent Attribute name: %s)", actualAttrVal.getAttribute().getName()),
                     expectedAttrVal);
             
-            Assert.assertEquals(expectedAttrVal.getStringValue(), actualAttrVal.getStringValue());
+            Assert.assertEquals("String value for attribute "+actualAttrVal.getAttribute().getName()+" does not match.", 
+                                expectedAttrVal.getStringValue(), actualAttrVal.getStringValue());
             Assert.assertEquals(expectedAttrVal.getWeight(), actualAttrVal.getWeight());
-            Assert.assertEquals(expectedAttrVal.getDateValue(), actualAttrVal.getDateValue());
+            Assert.assertEquals("Date value for attribute "+actualAttrVal.getAttribute().getName()+" does not match.", 
+                                expectedAttrVal.getDateValue(), actualAttrVal.getDateValue());
             if(expectedAttrVal.getNumericValue() == null) {
                 Assert.assertEquals(expectedAttrVal.getNumericValue(), actualAttrVal.getNumericValue());
             } else {
-                Assert.assertTrue(expectedAttrVal.getNumericValue().compareTo(actualAttrVal.getNumericValue()) == 0);
+                Assert.assertTrue("Numeric value for attribute "+actualAttrVal.getAttribute().getName()+" does not match. " +
+                                  "Expected "+expectedAttrVal.getNumericValue()+" but was "+actualAttrVal.getNumericValue(), 
+                                  expectedAttrVal.getNumericValue().compareTo(actualAttrVal.getNumericValue()) == 0);
             }
-            Assert.assertEquals(expectedAttrVal.getBooleanValue(), actualAttrVal.getBooleanValue());
-            Assert.assertArrayEquals(expectedAttrVal.getMultiCheckboxValue(), actualAttrVal.getMultiCheckboxValue());
-            Assert.assertArrayEquals(expectedAttrVal.getMultiSelectValue(), actualAttrVal.getMultiSelectValue());
+            Assert.assertEquals("Boolean value for attribute "+actualAttrVal.getAttribute().getName()+" does not match.", 
+                                expectedAttrVal.getBooleanValue(), actualAttrVal.getBooleanValue());
+            Assert.assertArrayEquals("MultiCheckbox value for attribute "+actualAttrVal.getAttribute().getName()+" does not match.", 
+                                     expectedAttrVal.getMultiCheckboxValue(), actualAttrVal.getMultiCheckboxValue());
+            Assert.assertArrayEquals("MultiSelect value for attribute "+actualAttrVal.getAttribute().getName()+" does not match.", 
+                                     expectedAttrVal.getMultiSelectValue(), actualAttrVal.getMultiSelectValue());
         }
     }
 

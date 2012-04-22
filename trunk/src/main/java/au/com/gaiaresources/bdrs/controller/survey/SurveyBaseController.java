@@ -29,7 +29,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.hibernate.classic.Session;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -49,6 +49,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -608,7 +609,7 @@ public class SurveyBaseController extends AbstractController {
                              HttpServletResponse response,
                              @RequestParam(required = true, value = QUERY_PARAM_SURVEY_ID) int surveyId) throws IOException {
         Survey survey = surveyDAO.get(surveyId);
-        JSONObject jsonSurvey = surveyImportExportService.exportSurvey(survey);
+        JSONObject jsonSurvey = surveyImportExportService.exportObject(survey);
 
         response.setContentType(ZipUtils.ZIP_CONTENT_TYPE);
         response.setHeader("Content-Disposition", "attachment;filename=survey_export_"
@@ -661,7 +662,7 @@ public class SurveyBaseController extends AbstractController {
                     sesh = sessionFactory.openSession();
 
                     tx = sesh.beginTransaction();
-                    surveyImportExportService.importSurvey(sesh, importData);
+                    surveyImportExportService.importObject(sesh, importData);
                     tx.commit();
                     getRequestContext().addMessage("bdrs.survey.import.success");
                 } catch (Throwable t) {

@@ -350,4 +350,33 @@ public class User extends PortalPersistentImpl implements Comparable<User> {
     public boolean isModerator() {
         return isSupervisor() || isAdmin() || isRoot();
     }
+    
+    // so we can determine duplicates
+    @Override
+    public boolean equals(Object other) {
+        if (other instanceof User) {
+            User that = (User) other;
+            // compare by id if both have one
+            if (this.getId() != null && that.getId() != null) {
+                return this.getId().equals(that.getId());
+            } else {
+                // compare by user name
+                if (this.getName() != null && that.getName() != null) {
+                    return this.getName().equals(that.getName());
+                }
+            }
+        }
+        
+        return false;
+    }
+    
+    @Override
+    public int hashCode() {
+        return (this.getId() != null ? this.getId().hashCode() : 0) + 
+               (this.getName() != null ? this.getName().hashCode() : 0) + 
+               (this.getFirstName() != null ? this.getFirstName().hashCode() : 0) +
+               (this.getLastName() != null ? this.getLastName().hashCode() : 0) +
+               (this.getEmailAddress() != null ? this.getEmailAddress().hashCode() : 0) +
+               (this.getRegistrationKey() != null ? this.getRegistrationKey().hashCode() : 0);
+    }
 }
