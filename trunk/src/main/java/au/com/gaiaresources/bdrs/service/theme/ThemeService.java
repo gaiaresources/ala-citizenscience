@@ -566,6 +566,7 @@ public class ThemeService {
         // check if there is a managed file for the theme
         FileOutputStream fos = null;
         InputStream is = null;
+        ZipFile zipFile = null;
         try {
             ManagedFile managedFile = managedFileDAO.getManagedFile(theme.getThemeFileUUID());
         
@@ -576,7 +577,7 @@ public class ThemeService {
             // Extract from zip file and place it in the raw dir
             if (managedFile != null) {
                 FileDataSource fileDataSource = fileService.getFile(managedFile, managedFile.getFilename());
-                ZipFile zipFile = new ZipFile(fileDataSource.getFile());
+                zipFile = new ZipFile(fileDataSource.getFile());
                 ZipEntry zipEntry = zipFile.getEntry(themeFileName);
                 fos = new FileOutputStream(targetFile);
                 
@@ -608,11 +609,20 @@ public class ThemeService {
                 throw new IOException("Could not revert file: Managed File does not exist and theme is not default.");
             }
         } finally {
-            if (fos != null) {
-                fos.close();
-            }
-            if (is != null) {
-                is.close();
+            try {
+                if (fos != null) {
+                    fos.close();
+                }
+                if (is != null) {
+                    is.close();
+                }
+                if (zipFile != null) {
+                    zipFile.close();
+                }
+            } catch (Exception e) {
+                // catch the exception because we don't want to report an error
+                // on a file close error, just a warning
+                log.warn("Error closing theme file on revert", e);
             }
         }
     }

@@ -77,7 +77,7 @@ public class ShapeFileWriter {
     
     public static final String KEY_RECORD_OWNER = "rec_owner";
     
-    private static final SimpleDateFormat shpDateFormat = new SimpleDateFormat("dd MMM yyyy");
+    private SimpleDateFormat shpDateFormat = new SimpleDateFormat("dd MMM yyyy");
     
     private SimpleDateFormat metadataDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
     

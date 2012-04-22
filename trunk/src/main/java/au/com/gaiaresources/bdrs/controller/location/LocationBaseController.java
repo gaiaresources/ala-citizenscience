@@ -228,7 +228,7 @@ public class LocationBaseController extends AbstractController {
         
         ModelAndView mv = new ModelAndView("userLocationRow");
         mv.addObject("index", Integer.valueOf(request.getParameter("index")));
-        mv.addObject("defaultLocationId", defaultLocation == null ? -1 : defaultLocation.getId());
+        mv.addObject("defaultLocationId", defaultLocation == null ? Integer.valueOf(-1) : defaultLocation.getId());
         return mv;
     }
     
