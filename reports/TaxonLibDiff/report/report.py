@@ -1,5 +1,8 @@
 import os
-import json
+try:
+    import json
+except ImportError:
+    import simplejson as json
 from Cheetah.Template import Template
 from datetime import datetime
 from datetime import timedelta
