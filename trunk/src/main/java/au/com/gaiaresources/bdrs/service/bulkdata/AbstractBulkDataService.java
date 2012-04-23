@@ -828,11 +828,20 @@ public abstract class AbstractBulkDataService {
 
                 rec.setHeld(recordUpload.isHeld());
                 rec.setWhen(recordUpload.getWhen());
-                rec.setTime(recordUpload.getTime().getTime());
+                Long recordUploadTime = recordUpload.getTime() != null ? recordUpload.getTime().getTime() : null;
+                rec.setTime(recordUploadTime);
                 rec.setLastDate(recordUpload.getLastDate() != null ? recordUpload.getLastDate()
                         : recordUpload.getWhen());
-                rec.setLastTime(recordUpload.getLastTime() != null ? recordUpload.getLastTime().getTime()
-                        : recordUpload.getTime().getTime());
+                
+                // Setting of rec.setLastTime was previously done by using a ternary operator
+                // however it caused a null pointer exception when recordUploadTime was null.
+                // Not sure why this occured by implementing the if logic as follows fixes
+                // the issue.
+                if (recordUpload.getLastTime() != null) {
+                	rec.setLastTime(recordUpload.getLastTime().getTime());
+                } else {
+                	rec.setLastTime(recordUploadTime);
+                }
 
                 rec.setNotes(recordUpload.getNotes());
                 rec.setFirstAppearance(recordUpload.getFirstAppearance());

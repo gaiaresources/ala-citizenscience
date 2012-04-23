@@ -265,6 +265,13 @@ public class PortalUtil {
         SearchService service = AppContext.getBean(SearchService.class);
         Map<String, String> fullClassNames = IndexUtil.getFullNamesForIndexedClasses(null);
         
+        // set the indexing directory system property
+        try {
+            IndexUtil.setDefaultIndexDirectory();
+        } catch (IOException e) {
+            log.error("Unable to set indexing directory. Indexes will be saved in "+System.getProperty(IndexUtil.INDEX_DIRECTORY_PROPERTY));
+        }
+        
         if (schedules != null) {
             TaskScheduler scheduler = AppContext.getBean(TaskScheduler.class);
             // must call initialize in order for scheduled tasks to work

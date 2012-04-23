@@ -1,8 +1,10 @@
 package au.com.gaiaresources.bdrs.model.index;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import org.hibernate.search.annotations.Indexed;
@@ -17,6 +19,11 @@ import edu.emory.mathcs.backport.java.util.Arrays;
  *
  */
 public class IndexUtil {
+    
+    /**
+     * Constant for the index directory property.
+     */
+    public static final String INDEX_DIRECTORY_PROPERTY = "hibernate.search.default.indexBase";
 
     /**
      * Gets a set of classes that can be indexed.  Classes that can be indexed 
@@ -42,5 +49,16 @@ public class IndexUtil {
             }
         }
         return fullNames;
+    }
+
+    /**
+     * Sets the default index directory property to the one in the 
+     * search.properties file if it has not already been set in the 
+     * hibernate configuration.
+     */
+    public static void setDefaultIndexDirectory() throws IOException {
+        // set the default index directory for the test
+        Properties p = System.getProperties();
+        p.load(IndexUtil.class.getResource("search.properties").openStream());
     }
 }
