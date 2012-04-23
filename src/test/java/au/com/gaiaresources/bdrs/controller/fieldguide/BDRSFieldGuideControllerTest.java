@@ -11,11 +11,6 @@ import junit.framework.Assert;
 import au.com.gaiaresources.bdrs.json.*;
 
 import org.apache.log4j.Logger;
-import org.hibernate.ScrollMode;
-import org.hibernate.ScrollableResults;
-import org.hibernate.Transaction;
-import org.hibernate.search.FullTextSession;
-import org.hibernate.search.Search;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -26,10 +21,8 @@ import org.springframework.test.web.ModelAndViewAssert;
 import org.springframework.web.servlet.ModelAndView;
 
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
-import au.com.gaiaresources.bdrs.controller.admin.setup.SetupController;
-import au.com.gaiaresources.bdrs.controller.test.TestDataCreator;
 import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataHelper;
-import au.com.gaiaresources.bdrs.model.portal.impl.PortalInitialiser;
+import au.com.gaiaresources.bdrs.model.index.IndexUtil;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile;
 import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfileDAO;
@@ -80,6 +73,7 @@ public class BDRSFieldGuideControllerTest extends AbstractControllerTest {
     
     @Before
     public void setup() throws Exception {
+        IndexUtil.setDefaultIndexDirectory();
         for (String keyword : PROFILE_KEYWORDS) {
             keywordUse.put(keyword, 0);
         }

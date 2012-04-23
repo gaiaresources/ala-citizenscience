@@ -15,7 +15,6 @@
         <property name="hibernate.connection.release_mode">after_transaction</property>
         <property name="current_session_context_class">thread</property>
         <property name="hibernate.search.default.directory_provider">filesystem</property>
-        <property name="hibernate.search.default.indexBase">${bdrs.lucene.index.location}</property>
         <property name="hibernate.jdbc.batch_size">20</property>
 
         <mapping class="au.com.gaiaresources.bdrs.model.user.User"/>
