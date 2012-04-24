@@ -61,7 +61,7 @@ public class PreferenceTaxonLibSessionFactory extends AbstractTaxonLibSessionFac
 		
 		String url = urlPref.getValue().trim();
 		String username = userPref.getValue().trim();
-		String password = userPref.getValue().trim();
+		String password = passPref.getValue().trim();
 		
 		return getSession(url, username, password);
     }

@@ -3,6 +3,8 @@ package au.com.gaiaresources.bdrs.controller.taxonomy;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
@@ -20,8 +22,10 @@ import org.springframework.web.servlet.ModelAndView;
 
 import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.db.SessionFactory;
+import au.com.gaiaresources.bdrs.email.EmailService;
 import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfileDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.taxonomy.BdrsAfdImporter;
 import au.com.gaiaresources.bdrs.service.taxonomy.BdrsMaxImporter;
@@ -57,6 +61,8 @@ public class TaxonLibImportController extends AbstractController {
     private SessionFactory sessionFactory;
 	@Autowired
 	private TaxonLibSessionFactory taxonLibSessionFactory;
+	@Autowired
+	private EmailService emailService;
 	
 	private Logger log = Logger.getLogger(getClass());
 	
@@ -138,6 +144,9 @@ public class TaxonLibImportController extends AbstractController {
 		
 		ITaxonLibSession taxonLibSession = null;
 		
+		User currentUser = getRequestContext().getUser();
+		sendStartEmail(currentUser);
+		
 		try {
 			taxonLibSession = taxonLibSessionFactory.getSession();
 			
@@ -160,17 +169,21 @@ public class TaxonLibImportController extends AbstractController {
 			taxonLibSession.commit();
 			
 			getRequestContext().addMessage("bdrs.taxonlib.importSuccess", new Object[] { importSource.toString() });
+			sendSuccessEmail(currentUser);
 		} catch (MissingFileException e) {
 			getRequestContext().addMessage("bdrs.taxonlib.missingFileUpload", new Object[] { e.getMessage() });
 			rollback = true;
+			sendFailureEmail(currentUser, e.getMessage());
 		} catch (BdrsTaxonLibException e) {
 			getRequestContext().addMessage("bdrs.taxonlib.importError", new Object[] { e.getMessage() });
 			log.error("Error during taxon lib import : ", e);
 			rollback = true;
+			sendFailureEmail(currentUser, e.getMessage());
 		} catch (Exception e) {
 			getRequestContext().addMessage("bdrs.taxonlib.importError", new Object[] { e.getMessage() });
 			log.error("Error during taxon lib import : ", e);
 			rollback = true;
+			sendFailureEmail(currentUser, e.getMessage());
 		} finally {
 			if (taxonLibSession != null) {
 				if (rollback) {
@@ -266,6 +279,41 @@ public class TaxonLibImportController extends AbstractController {
 				sesh.getTransaction().commit();
 				sesh.close();
 			}
+		}
+	}
+	
+	/**
+	 * Send a start notification email
+	 * @param user The user that started the import.
+	 */
+	private void sendStartEmail(User user) {
+		if (user != null) {
+			emailService.sendTemplateMessage(user.getEmailAddress(), 
+					"hello@bdrs", "Taxonomy Import Started", "TaxonLibImportStart.vm", new HashMap<String, Object>());
+		}
+	}
+	
+	/**
+	 * Send a success notification email.
+	 * @param user The user that started the import.
+	 */
+	private void sendSuccessEmail(User user) {
+		if (user != null) {
+			emailService.sendTemplateMessage(user.getEmailAddress(), 
+					"hello@bdrs", "Taxonomy Import Successful", "TaxonLibImportSuccess.vm", new HashMap<String, Object>());
+		}
+	}
+	
+	/**
+	 * Send a failure notification email.
+	 * @param user The user that started the import.
+	 */
+	private void sendFailureEmail(User user, String errorMsg) {
+		if (user != null) {
+			Map<String, Object> argMap = new HashMap<String, Object>();
+			argMap.put("errorMsg", errorMsg);
+			emailService.sendTemplateMessage(user.getEmailAddress(), 
+					"hello@bdrs", "Taxonomy Import Failure", "TaxonLibImportFailure.vm", argMap);	
 		}
 	}
 }
