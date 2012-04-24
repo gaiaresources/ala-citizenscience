@@ -141,6 +141,9 @@ public class ContentService {
         tmp.put(MODERATION_PERFORMED_EMAIL_KEY, "/au/com/gaiaresources/bdrs/email/ModerationPerformed.vm");
         tmp.put(MODERATION_REQUIRED_EMAIL_KEY, "/au/com/gaiaresources/bdrs/email/ModerationRequired.vm");
         tmp.put("email/RecordReleased", "/au/com/gaiaresources/bdrs/email/RecordReleased.vm");
+        tmp.put("email/TaxonLibImportSuccess", "/au/com/gaiaresources/bdrs/email/TaxonLibImportSuccess.vm");
+        tmp.put("email/TaxonLibImportFailure", "/au/com/gaiaresources/bdrs/email/TaxonLibImportFailure.vm");
+        tmp.put("email/TaxonLibImportStart", "/au/com/gaiaresources/bdrs/email/TaxonLibImportStart.vm");
         
         CONTENT = Collections.unmodifiableMap(tmp);
     }

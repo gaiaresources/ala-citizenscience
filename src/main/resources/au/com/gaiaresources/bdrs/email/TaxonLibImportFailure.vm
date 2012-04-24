@@ -1,0 +1,6 @@
+<html>
+    <body>
+        <p>Your taxonomy import has failed.</p>
+        <p>${errorMsg}</p>
+    </body>
+</html>
