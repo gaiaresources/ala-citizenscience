@@ -320,11 +320,29 @@
 	<definition name="adminEditContent" extends="admin-template">
 		<put-attribute name="title" value="Edit Content"/>
     	<put-attribute name="content" value="/WEB-INF/jsp/bdrs/admin/contentManagement/adminEditContent.jsp"/>
+        <put-list-attribute name="customCss">
+            <add-attribute>../js/markitup/sets/html/style.css</add-attribute>
+            <add-attribute>../js/markitup/skins/markitup/style.css</add-attribute>
+        </put-list-attribute>
+        <put-list-attribute name="customJavaScript">
+            <add-attribute>markitup/jquery.markitup.js</add-attribute>
+            <add-attribute>bdrs/admin.js</add-attribute>
+        </put-list-attribute>
 	</definition>
 	
 	<definition name="adminEmailUsers" extends="admin-template">
         <put-attribute name="title" value="Email Users"/>
         <put-attribute name="content" value="/WEB-INF/jsp/bdrs/admin/email/adminEmailUsers.jsp"/>
+        <put-list-attribute name="customCss">
+            <add-attribute>../js/markitup/sets/html/style.css</add-attribute>
+            <add-attribute>../js/markitup/skins/bdrs-email/style.css</add-attribute>
+            <add-attribute>wdTree/tree.css</add-attribute>
+        </put-list-attribute>
+        <put-list-attribute name="customJavaScript">
+            <add-attribute>markitup/jquery.markitup.js</add-attribute>
+            <add-attribute>bdrs/admin.js</add-attribute>
+            <add-attribute>jquery.wdTree-1.4/wdTree/src/Plugins/jquery.tree.js</add-attribute>
+        </put-list-attribute>
     </definition>
 	
 	<!-- Test Data -->
@@ -365,8 +383,14 @@
         <put-attribute name="title" value="Edit Census Method"/>
         <put-attribute name="content" value="/WEB-INF/jsp/bdrs/admin/censusMethod/edit.jsp"/>
         <put-attribute name="maps" value="false"/>
-        <put-list-attribute name="customCss"></put-list-attribute>
-        <put-list-attribute name="customJavaScript"></put-list-attribute>
+        <put-list-attribute name="customCss">
+            <add-attribute>../js/markitup/sets/html/style.css</add-attribute>
+            <add-attribute>../js/markitup/skins/markitup/style.css</add-attribute>
+        </put-list-attribute>
+        <put-list-attribute name="customJavaScript">
+            <add-attribute>markitup/jquery.markitup.js</add-attribute>
+            <add-attribute>bdrs/admin.js</add-attribute>
+        </put-list-attribute>
     </definition>
     <definition name="censusMethodEditRow" template="/WEB-INF/jsp/bdrs/admin/censusMethod/censusMethodEditRow.jsp">
         <put-attribute name="name"/>

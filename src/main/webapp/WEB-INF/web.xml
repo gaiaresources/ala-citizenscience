@@ -112,6 +112,16 @@
 
     <servlet-mapping>
         <servlet-name>climatewatch</servlet-name>
+        <url-pattern>/js${version}/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>climatewatch</servlet-name>
+        <url-pattern>/css${version}/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>climatewatch</servlet-name>
         <url-pattern>*.htm</url-pattern>
     </servlet-mapping>
     

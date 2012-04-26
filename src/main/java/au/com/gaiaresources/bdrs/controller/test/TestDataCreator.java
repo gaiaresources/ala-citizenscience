@@ -65,6 +65,7 @@ import au.com.gaiaresources.bdrs.model.user.RegistrationService;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.servlet.Interceptor;
 import au.com.gaiaresources.bdrs.servlet.RecaptchaInterceptor;
+import org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter;
 
 public class TestDataCreator implements TestDataConstants {
     
@@ -223,7 +224,7 @@ public class TestDataCreator implements TestDataConstants {
         survey.setPublic(true);
         survey.setStartDate(new Date());
         survey.setDescription(generateLoremIpsum(5));
-        Metadata surveyRenderer  = survey.setFormRendererType(SurveyFormRendererType.DEFAULT);;
+        Metadata surveyRenderer  = survey.setFormRendererType(SurveyFormRendererType.DEFAULT);
         metadataDAO.save(surveyRenderer);
         
         surveyDAO.save(survey);
@@ -709,8 +710,10 @@ public class TestDataCreator implements TestDataConstants {
 
     private ModelAndView handle(HttpServletRequest request,
             HttpServletResponse response) throws Exception {
-        final HandlerMapping handlerMapping = appContext.getBean(HandlerMapping.class);
-        final HandlerAdapter handlerAdapter = appContext.getBean(HandlerAdapter.class);
+        // The introduction of the mvc:resources for serving static content has introduced extra mappings
+        // and an extra HandlerAdapter, hence the requirement to get the correct Handlers by name/implementation class.
+        final HandlerMapping handlerMapping = (HandlerMapping)appContext.getBean("handlerMapping");
+        final HandlerAdapter handlerAdapter = appContext.getBean(AnnotationMethodHandlerAdapter.class);
         final HandlerExecutionChain handler = handlerMapping.getHandler(request);
 
         Object controller = handler.getHandler();

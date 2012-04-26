@@ -28,58 +28,58 @@
         <meta name="description" content="<tiles:getAsString name="metaDescription"/>"/>
         
         <!-- Reset all browser specific styles regardless of theming -->
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/yui3/yui3-reset.css" type="text/css">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/yui3/yui3-fonts.css" type="text/css">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/yui3/yui3-base.css" type="text/css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css${version}/yui3/yui3-reset.css" type="text/css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css${version}/yui3/yui3-fonts.css" type="text/css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css${version}/yui3/yui3-base.css" type="text/css">
 
         <!-- Include the BDRS default layout styles -->
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/bdrs/bdrs.css" type="text/css"/>
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css${version}/bdrs/bdrs.css" type="text/css"/>
 
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/ketchup/jquery.ketchup.css" type="text/css"/>
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css${version}/ketchup/jquery.ketchup.css" type="text/css"/>
         
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/jquery-1.6.2.min.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/jquery-1.6.2.min.js"></script>
 
 		<!-- custom css goes in before theming css, allows theme to override custom css styling if required -->
         <c:forEach var="cssFile" items="${customCSS}">
-            <link rel="stylesheet" href="${pageContext.request.contextPath}/css/${cssFile}" type="text/css"/>
+            <link rel="stylesheet" href="${pageContext.request.contextPath}/css${version}/${cssFile}" type="text/css"/>
         </c:forEach>
 		        
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/js/colorpicker/css/colorpicker.css" type="text/css"/>
-        <script src="${pageContext.request.contextPath}/js/colorpicker/js/colorpicker.js" type="text/javascript"></script>
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/js${version}/colorpicker/css/colorpicker.css" type="text/css"/>
+        <script src="${pageContext.request.contextPath}/js${version}/colorpicker/js/colorpicker.js" type="text/javascript"></script>
         
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/ketchup/jquery.ketchup.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/ketchup/jquery.ketchup.messages.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/ketchup/jquery.ketchup.validations.basic.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/ketchup/jquery.ketchup.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/ketchup/jquery.ketchup.messages.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/ketchup/jquery.ketchup.validations.basic.js"></script>
         
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/jquery.cj-simple-slideshow.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/jquery.tablednd_0_5.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/jquery.cj-simple-slideshow.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/jquery.tablednd_0_5.js"></script>
 		
-		<script type="text/javascript" src="${pageContext.request.contextPath}/js/state-machine.min.js"></script>
+		<script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/state-machine.min.js"></script>
 		
 		<%-- see http://www.timdown.co.uk/jshashtable/index.html --%>
-		<script type="text/javascript" src="${pageContext.request.contextPath}/js/jshashtable/jshashtable-2.1.js"></script>
+		<script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/jshashtable/jshashtable-2.1.js"></script>
 		
 		<%-- 
 		    ninja date parsing, http://www.datejs.com/
 			Note we are using the australian version. May want to make this
 			part of the theme.
 		--%>
-		<script type="text/javascript" src="${pageContext.request.contextPath}/js/date/date-en-AU.js"></script>
+		<script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/date/date-en-AU.js"></script>
         
         <!--  JqGrid stuff the grid.local-en.js file needs t come before the jqGrid.min.js file -->
         <link rel="stylesheet" type="text/css" media="screen" href="${pageContext.request.contextPath}/js/jquery.jqGrid-4.0.0/css/ui.jqgrid.css" />
-        <script src="${pageContext.request.contextPath}/js/jquery.jqGrid-4.0.0/js/i18n/grid.locale-en.js" type="text/javascript"></script> 
-        <script src="${pageContext.request.contextPath}/js/jquery.jqGrid-4.0.0/js/jquery.jqGrid.min.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js${version}/jquery.jqGrid-4.0.0/js/i18n/grid.locale-en.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js${version}/jquery.jqGrid-4.0.0/js/jquery.jqGrid.min.js" type="text/javascript"></script>
         
-        <script src="${pageContext.request.contextPath}/js/jquery-tmpl/jquery.tmpl.js" type="text/javascript"></script>
+        <script src="${pageContext.request.contextPath}/js${version}/jquery-tmpl/jquery.tmpl.js" type="text/javascript"></script>
                 
         <c:if test="${maps == true}">
-            <script src="${pageContext.request.contextPath}/js/ol/OpenLayers.js" type="text/javascript"></script>
+            <script src="${pageContext.request.contextPath}/js${version}/ol/OpenLayers.js" type="text/javascript"></script>
             <script src="http://maps.google.com/maps?file=api&amp;v=2&amp;&amp;sensor=false&amp;key=${bdrsGoogleMapsKey}" type="text/javascript"></script>
-            <script src="${pageContext.request.contextPath}/js/BdrsCluster.js" type="text/javascript"></script>
+            <script src="${pageContext.request.contextPath}/js${version}/BdrsCluster.js" type="text/javascript"></script>
         </c:if>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/bdrs.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/jquery.jcollapsible.min.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/bdrs.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/jquery.jcollapsible.min.js"></script>
 
 
         <!-- Theme css and js file includes -->
@@ -94,22 +94,22 @@
 		
 		<!-- IE7 specific styles and hard coded IE7 file in theme -->
         <!--[if IE 7]>
-		    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/bdrs/bdrs-ie7.css" type="text/css"/>
+		    <link rel="stylesheet" href="${pageContext.request.contextPath}/css${version}/bdrs/bdrs-ie7.css" type="text/css"/>
             <link rel="stylesheet" href="${pageContext.request.contextPath}/files/download.htm?className=au.com.gaiaresources.bdrs.model.theme.Theme&id=${ theme.id }&fileName=<%= Theme.THEME_DIR_PROCESSED %>/css/base-ie7.css" type="text/css">
         <![endif]-->
 		
 		<!-- Hard coded IE8 file in theme -->
         <!--[if IE 8]>
-		    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/bdrs/bdrs-ie8.css" type="text/css"/>
+		    <link rel="stylesheet" href="${pageContext.request.contextPath}/css${version}/bdrs/bdrs-ie8.css" type="text/css"/>
             <link rel="stylesheet" href="${pageContext.request.contextPath}/files/download.htm?className=au.com.gaiaresources.bdrs.model.theme.Theme&id=${ theme.id }&fileName=<%= Theme.THEME_DIR_PROCESSED %>/css/base-ie8.css" type="text/css">
         <![endif]-->
         
-		<script type="text/javascript" src="${pageContext.request.contextPath}/js/jquery-blockui/jquery.blockUI.js"></script>
-		<script type="text/javascript" src="${pageContext.request.contextPath}/js/jqPrint/jquery.jqprint.0.3.js"></script>
-		<script src="${pageContext.request.contextPath}/js/jquery.ui.autocomplete.html.js" type="text/javascript"></script>
+		<script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/jquery-blockui/jquery.blockUI.js"></script>
+		<script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/jqPrint/jquery.jqprint.0.3.js"></script>
+		<script src="${pageContext.request.contextPath}/js${version}/jquery.ui.autocomplete.html.js" type="text/javascript"></script>
 		
 		<%-- time picker --%>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js/timepicker/jquery-ui-timepicker-addon.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/timepicker/jquery-ui-timepicker-addon.js"></script>
 
         
         <script type="text/javascript">
@@ -153,7 +153,7 @@
             
         </script>
         <c:forEach var="jsFile" items="${customJS}">
-            <script type="text/javascript" src="${pageContext.request.contextPath}/js/${jsFile}"></script>
+            <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/${jsFile}"></script>
         </c:forEach>
     </head>
 

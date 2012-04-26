@@ -10,6 +10,8 @@
         
         <intercept-url pattern="/js/**/*" access="ROLE_ANONYMOUS,IS_AUTHENTICATED_ANONYMOUSLY"/>
         <intercept-url pattern="/css/**/*" access="ROLE_ANONYMOUS,IS_AUTHENTICATED_ANONYMOUSLY"/>
+        <intercept-url pattern="/js${version}/**/*" access="ROLE_ANONYMOUS,IS_AUTHENTICATED_ANONYMOUSLY"/>
+        <intercept-url pattern="/css${version}/**/*" access="ROLE_ANONYMOUS,IS_AUTHENTICATED_ANONYMOUSLY"/>
         <intercept-url pattern="/images/**/*" access="ROLE_ANONYMOUS,IS_AUTHENTICATED_ANONYMOUSLY"/>
         
         <!-- You must specify a Portal pattern for each of these patterns -->

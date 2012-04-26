@@ -5,7 +5,7 @@
     
     <groupId>au.com.gaiaresources</groupId>
     <artifactId>bdrs-core</artifactId>
-    <version>0.1</version>
+    <version>2.0</version>
     <packaging>war</packaging>
     <name>bdrs-core</name>
     <url>http://maven.apache.org</url>
@@ -179,14 +179,14 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
-            <version>3.0.3.RELEASE</version>
+            <version>3.0.4.RELEASE</version>
             <scope>compile</scope>
         </dependency>
         <!-- Spring Web -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
-            <version>3.0.3.RELEASE</version>
+            <version>3.0.4.RELEASE</version>
             <scope>compile</scope>
         </dependency>
         <!-- Spring JMS -->
@@ -293,14 +293,14 @@
             <groupId>org.apache.solr</groupId>
             <version>1.3.0</version>
         </dependency>
-        <!-- Try me if tests are failing when trying to access GIS database objects.
+        <!-- Try me if tests are failing when trying to access GIS database objects. -->
         <dependency>
             <groupId>postgis</groupId>
             <artifactId>postgis-main</artifactId>
             <version>1.3.1</version>
             <scope>system</scope>
            <systemPath>${basedir}/src/main/webapp/WEB-INF/lib/postgis_1.3.1.jar</systemPath>
-        </dependency>    -->
+        </dependency>
         <!-- Commons DBCP -->
         <dependency>
             <groupId>commons-dbcp</groupId>
@@ -663,9 +663,9 @@
                     <excludes>
                         <!--exclude>**/*Client.java</exclude-->
                     </excludes>
-                    <argLine>-Xmx1024m</argLine>
+                    <argLine>-Xmx1024m -Djava.io.tmpdir=/tmp</argLine>
                     <!-- uncomment if you are a MAC OS X user or tests will fail.
-                    <argLine>-Djava.io.tmpdir=/tmp</argLine> -->
+                    <argLine>-Xmx1024m  -Djava.io.tmpdir=/tmp</argLine> -->
 
                 </configuration>
             </plugin>
@@ -848,13 +848,14 @@
                 <configuration>
                     <contextPath>/BDRS</contextPath>
                     <scanIntervalSeconds>3</scanIntervalSeconds>
+                    <reload>manual</reload>
                     <webApp>target/bdrs-core.war</webApp>
                     <webAppConfig>
                         <defaultsDescriptor>webdefault.xml</defaultsDescriptor>
                         <baseResource implementation="org.mortbay.resource.ResourceCollection">
                             <resourcesAsCSV>src/main/webapp,src/main</resourcesAsCSV>
                         </baseResource>
-                        <extraClasspath>../target/classes;</extraClasspath>
+                        <extraClasspath>${basedir}/target/classes;${basedir}/target/test-classes</extraClasspath>
                     </webAppConfig>
                     <executions><execution>
                            <phase>run</phase>
