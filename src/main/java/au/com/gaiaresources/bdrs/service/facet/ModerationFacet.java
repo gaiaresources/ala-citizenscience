@@ -1,15 +1,13 @@
 package au.com.gaiaresources.bdrs.service.facet;
 
-import java.util.Map;
-
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.facet.FacetDAO;
-import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.record.impl.CountRecordFilter;
 import au.com.gaiaresources.bdrs.model.record.impl.RecordFilter;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.facet.option.ModerationFacetOption;
-import edu.emory.mathcs.backport.java.util.Arrays;
+
+import java.util.Map;
 
 /**
  * Restricts records by moderation status.
@@ -28,7 +26,7 @@ public class ModerationFacet extends AbstractFacet {
      * @param recordDAO used for retrieving the count of matching records.
      * @param parameterMap the map of query parameters from the browser.
      * @param user the user that is accessing the records.
-     * @param userParams user configurable parameters provided in via the {@link Preference)}.
+     * @param userParams user configurable parameters provided in via the {@link au.com.gaiaresources.bdrs.model.preference.Preference)}.
      */
     public ModerationFacet(String defaultDisplayName, FacetDAO recordDAO, Map<String, String[]> parameterMap, User user, JSONObject userParams) {
           super(QUERY_PARAM_NAME, defaultDisplayName, userParams);
@@ -37,13 +35,7 @@ public class ModerationFacet extends AbstractFacet {
               setActive(false);
           }
           
-          setContainsSelected(parameterMap.containsKey(getInputName()));
-          
-          String[] selectedOptions = parameterMap.get(getInputName());
-          if(selectedOptions == null) {
-              selectedOptions = new String[]{};
-          }
-          Arrays.sort(selectedOptions);
+          String[] selectedOptions = processParameters(parameterMap);
           
           RecordFilter filter = new CountRecordFilter();
           filter.setAccessor(user);

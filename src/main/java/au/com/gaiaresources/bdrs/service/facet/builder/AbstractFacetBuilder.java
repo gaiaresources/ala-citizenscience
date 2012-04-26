@@ -39,6 +39,7 @@ public abstract class AbstractFacetBuilder<T extends Facet> implements FacetBuil
         list.add(Facet.NAME_CONFIG_DESCRIPTION);
         list.add(Facet.ACTIVE_CONFIG_DESCRIPTION);
         list.add(Facet.WEIGHT_CONFIG_DESCRIPTION);
+        list.add(Facet.OPTION_COUNT_DESCRIPTION);
         return list;
     }
     
@@ -101,6 +102,7 @@ public abstract class AbstractFacetBuilder<T extends Facet> implements FacetBuil
         prefValue.put(Facet.JSON_ACTIVE_KEY, Facet.DEFAULT_ACTIVE_CONFIG);
         prefValue.put(Facet.JSON_WEIGHT_KEY, Facet.DEFAULT_WEIGHT_CONFIG);
         prefValue.put(Facet.JSON_NAME_KEY, getDefaultDisplayName());
+        prefValue.put(Facet.JSON_OPTION_COUNT_KEY, Facet.DEFAULT_VISIBLE_OPTION_COUNT);
 
         JSONArray configArray = new JSONArray();
         configArray.add(prefValue);   

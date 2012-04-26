@@ -26,7 +26,14 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.service.facet.*;
+import au.com.gaiaresources.bdrs.service.facet.CensusMethodTypeFacet;
+import au.com.gaiaresources.bdrs.service.facet.Facet;
+import au.com.gaiaresources.bdrs.service.facet.FacetService;
+import au.com.gaiaresources.bdrs.service.facet.LocationAttributeFacet;
+import au.com.gaiaresources.bdrs.service.facet.MonthFacet;
+import au.com.gaiaresources.bdrs.service.facet.SurveyFacet;
+import au.com.gaiaresources.bdrs.service.facet.TaxonGroupFacet;
+import au.com.gaiaresources.bdrs.service.facet.VisibilityFacet;
 import au.com.gaiaresources.bdrs.service.facet.option.CensusMethodTypeFacetOption;
 import au.com.gaiaresources.bdrs.service.facet.record.RecordSurveyFacet;
 import au.com.gaiaresources.bdrs.service.facet.record.RecordUserFacet;
@@ -41,7 +48,14 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.ModelAndViewAssert;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Tests all aspects of the <code>AdvancedReviewSightingsController</code>.
@@ -508,7 +522,7 @@ public class AdvancedReviewSightingsControllerTest extends
         List<Facet> facets = getFacetInstancesByType(CensusMethodTypeFacet.class);
         for (Facet facet : facets) {
             for (String type : methodTypes) {
-                request.addParameter(facet.getInputName(), type);
+                request.addParameter(facet.getOptionsParameterName(), type);
             }
         }
         deselectMyRecordsOnly();
@@ -546,7 +560,7 @@ public class AdvancedReviewSightingsControllerTest extends
         List<Facet> facets = getFacetInstancesByType(RecordSurveyFacet.class);
         for (Facet facet : facets) {
             for (Survey survey : surveyList) {
-                request.addParameter(facet.getInputName(), survey.getId().toString());
+                request.addParameter(facet.getOptionsParameterName(), survey.getId().toString());
             }
         }
         deselectMyRecordsOnly();
@@ -575,7 +589,7 @@ public class AdvancedReviewSightingsControllerTest extends
     private void deselectMyRecordsOnly() {
         List<Facet> facets = getFacetInstancesByType(RecordUserFacet.class);
         for (Facet facet : facets) {
-            request.addParameter(facet.getInputName(), String.valueOf(-1));
+            request.addParameter(facet.getOptionsParameterName(), String.valueOf(-1));
         }
     }
 
@@ -615,7 +629,7 @@ public class AdvancedReviewSightingsControllerTest extends
         List<Facet> facets = getFacetInstancesByType(LocationAttributeFacet.class);
         for (Facet facet : facets) {
             for (AttributeValue attrVal : locAttrValueList) {
-                request.addParameter(facet.getInputName(), attrVal.getStringValue());
+                request.addParameter(facet.getOptionsParameterName(), attrVal.getStringValue());
                 attrNames.add(attrVal.getStringValue());
             }
         }
@@ -659,7 +673,7 @@ public class AdvancedReviewSightingsControllerTest extends
         List<Facet> facets = getFacetInstancesByType(TaxonGroupFacet.class);
         for (Facet facet : facets) {
             for (TaxonGroup group : groupList) {
-                request.addParameter(facet.getInputName(), group.getId().toString());
+                request.addParameter(facet.getOptionsParameterName(), group.getId().toString());
             }
         }
         deselectMyRecordsOnly();
@@ -697,7 +711,7 @@ public class AdvancedReviewSightingsControllerTest extends
         List<Facet> facets = getFacetInstancesByType(RecordUserFacet.class);
         for (Facet facet : facets) {
             for (User user : userList) {
-                request.addParameter(facet.getInputName(), user.getId().toString());
+                request.addParameter(facet.getOptionsParameterName(), user.getId().toString());
             }
         }
 
@@ -735,7 +749,7 @@ public class AdvancedReviewSightingsControllerTest extends
         List<Facet> facets = getFacetInstancesByType(MonthFacet.class);
         for (Facet facet : facets) {
             for (Long date : monthlist) {
-                request.addParameter(facet.getInputName(), date.toString());
+                request.addParameter(facet.getOptionsParameterName(), date.toString());
                 monthSet.add(date.intValue());
             }
         }
@@ -834,7 +848,7 @@ public class AdvancedReviewSightingsControllerTest extends
         request.setRequestURI("/review/sightings/advancedReview.htm");
 
         Facet facet = getFacetInstancesByType(VisibilityFacet.class).get(0);
-        request.addParameter(facet.getInputName(), Integer.toString(visibility.ordinal()));
+        request.addParameter(facet.getOptionsParameterName(), Integer.toString(visibility.ordinal()));
 
         deselectMyRecordsOnly();
 
@@ -905,7 +919,7 @@ public class AdvancedReviewSightingsControllerTest extends
 
         List<Facet> facets = getFacetInstancesByType(RecordUserFacet.class);
         for (Facet facet : facets) {
-            request.addParameter(facet.getInputName(), String.valueOf(-1));
+            request.addParameter(facet.getOptionsParameterName(), String.valueOf(-1));
         }
 
         ModelAndView mv = handle(request, response);

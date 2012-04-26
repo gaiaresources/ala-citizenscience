@@ -1,14 +1,14 @@
 package au.com.gaiaresources.bdrs.service.facet.builder;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.facet.FacetDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.facet.AttributeFacet;
 import au.com.gaiaresources.bdrs.service.facet.Facet;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * The concrete implementation of the {@link AbstractFacetBuilder} that creates
@@ -25,11 +25,7 @@ public class AttributeFacetBuilder extends AbstractFacetBuilder<AttributeFacet> 
      * A string that describes what the 'attributeName' user configuration parameter will do.
      */
     public static final String ATTRIBUTE_NAME_CONFIG_DESCRIPTION = String.format("<dd><code>%s</code> - the name of the attribute, also the name of the facet.</dd>", "attributeName");
-    /**
-     * A string that describes what the 'optionCount' user configuration parameter will do.
-     */
-    public static final String OPTION_COUNT_CONFIG_DESCRIPTION = String.format("<dd><code>%s</code> - the number of options to show in the facet for the attribute</dd>", "optionCount");
-    
+
     /**
      * The human readable name of this facet.
      */
@@ -65,7 +61,7 @@ public class AttributeFacetBuilder extends AbstractFacetBuilder<AttributeFacet> 
         list.add(Facet.ACTIVE_CONFIG_DESCRIPTION);
         list.add(Facet.WEIGHT_CONFIG_DESCRIPTION);
         list.add(ATTRIBUTE_NAME_CONFIG_DESCRIPTION);
-        list.add(OPTION_COUNT_CONFIG_DESCRIPTION);
+        list.add(Facet.OPTION_COUNT_DESCRIPTION);
         return list;
     }
     

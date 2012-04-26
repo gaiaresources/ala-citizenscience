@@ -1,19 +1,5 @@
 package au.com.gaiaresources.bdrs.controller.review.locations;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
-import junit.framework.Assert;
-
-import org.hibernate.FlushMode;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.web.ModelAndViewAssert;
-import org.springframework.web.servlet.ModelAndView;
-
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.controller.LocationAttributeSurveyCreator;
 import au.com.gaiaresources.bdrs.controller.map.RecordDownloadFormat;
@@ -46,6 +32,18 @@ import au.com.gaiaresources.bdrs.service.facet.location.LocationSurveyFacet;
 import au.com.gaiaresources.bdrs.service.facet.location.LocationUserFacet;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.util.KMLUtils;
+import junit.framework.Assert;
+import org.hibernate.FlushMode;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.ModelAndViewAssert;
+import org.springframework.web.servlet.ModelAndView;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * Tests all aspects of the <code>AdvancedReviewSightingsController</code>.
@@ -403,7 +401,7 @@ public class AdvancedReviewLocationsControllerTest extends
         List<Facet> facets = getFacetInstancesByType(LocationSurveyFacet.class);
         for (Facet facet : facets) {
             for (Survey survey : surveyList) {
-                request.addParameter(facet.getInputName(), survey.getId().toString());
+                request.addParameter(facet.getOptionsParameterName(), survey.getId().toString());
             }
         }
         deselectMyRecordsOnly();
@@ -440,7 +438,7 @@ public class AdvancedReviewLocationsControllerTest extends
     private void deselectMyRecordsOnly() {
         List<Facet> facets = getFacetInstancesByType(LocationUserFacet.class);
         for (Facet facet : facets) {
-            request.addParameter(facet.getInputName(), String.valueOf(-1));
+            request.addParameter(facet.getOptionsParameterName(), String.valueOf(-1));
         }
     }
 
@@ -480,7 +478,7 @@ public class AdvancedReviewLocationsControllerTest extends
         List<Facet> facets = getFacetInstancesByType(LocationAttributeFacet.class);
         for (Facet facet : facets) {
             for (AttributeValue attrVal : locAttrValueList) {
-                request.addParameter(facet.getInputName(), attrVal.getStringValue());
+                request.addParameter(facet.getOptionsParameterName(), attrVal.getStringValue());
                 attrNames.add(attrVal.getStringValue());
             }
         }
@@ -523,7 +521,7 @@ public class AdvancedReviewLocationsControllerTest extends
         List<Facet> facets = getFacetInstancesByType(LocationUserFacet.class);
         for (Facet facet : facets) {
             for (User user : userList) {
-                request.addParameter(facet.getInputName(), user.getId().toString());
+                request.addParameter(facet.getOptionsParameterName(), user.getId().toString());
             }
         }
 

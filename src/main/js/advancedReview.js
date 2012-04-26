@@ -256,6 +256,23 @@ bdrs.advancedReview.initFacets = function(formSelector, facetSelector) {
         select_all_elem.parents(facetSelector).find('.facetOptions input[type="checkbox"]').prop("checked", select_all);
         form.submit();        
     });
+
+    jQuery('.showMore > a').click(function() {
+        var parent = jQuery(this).parent().parent();
+        parent.children('div').show();
+        jQuery(this).parent().hide();
+        parent.find('.showLess').show();
+        parent.find('input[name$=_expanded]').removeAttr('disabled');
+
+    });
+    jQuery('.showLess > a').click(function() {
+        var parent = jQuery(this).parent().parent();
+        parent.children('div:.overflow').hide();
+        jQuery(this).parent().hide();
+        parent.find('.showMore').show();
+        parent.find('input[name$=_expanded]').attr('disabled', 'disabled');
+    });
+    jQuery('input[name$=_expanded]:not([disabled])').parent().find('.showMore > a').click();
 };
 
 /**
