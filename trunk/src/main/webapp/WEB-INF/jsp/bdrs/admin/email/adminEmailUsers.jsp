@@ -3,13 +3,6 @@
 <%@ taglib uri="http://displaytag.sf.net" prefix="display" %>
 <%@ taglib uri="/WEB-INF/cw.tld" prefix="cw" %>
 
-<script type="text/javascript" src="${pageContext.request.contextPath}/js/markitup/jquery.markitup.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/js/jquery.wdTree-1.4/wdTree/src/Plugins/jquery.tree.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/js/bdrs/admin.js"></script>
-<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/js/markitup/sets/html/style.css" />
-<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/js/markitup/skins/bdrs-email/style.css" />
-<link href="${pageContext.request.contextPath}/css/wdTree/tree.css" rel="stylesheet" type="text/css" />
-
 <%@page import="au.com.gaiaresources.bdrs.model.user.User"%>
 <jsp:useBean id="context" scope="request" type="au.com.gaiaresources.bdrs.servlet.RequestContext"></jsp:useBean>
 

@@ -2,11 +2,6 @@
 <%@ taglib uri="http://tiles.apache.org/tags-tiles" prefix="tiles" %>
 <%@ taglib uri="/WEB-INF/cw.tld" prefix="cw" %>
 
-<script type="text/javascript" src="${pageContext.request.contextPath}/js/markitup/jquery.markitup.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/js/bdrs/admin.js"></script>
-<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/js/markitup/sets/html/style.css" />
-<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/js/markitup/skins/bdrs-email/style.css" />
-
 <%@page import="au.com.gaiaresources.bdrs.model.method.Taxonomic"%>
 
 <jsp:useBean id="censusMethod" scope="request" type="au.com.gaiaresources.bdrs.model.method.CensusMethod"/> 

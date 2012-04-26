@@ -38,6 +38,7 @@ import org.springframework.test.context.transaction.AfterTransaction;
 import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.*;
+import org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter;
 import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
@@ -120,8 +121,10 @@ public abstract class AbstractControllerTest extends AbstractTransactionalTest {
 
     protected ModelAndView handle(HttpServletRequest request,
             HttpServletResponse response) throws Exception {
-        final HandlerMapping handlerMapping = applicationContext.getBean(HandlerMapping.class);
-        final HandlerAdapter handlerAdapter = applicationContext.getBean(HandlerAdapter.class);
+        // The introduction of the mvc:resources for serving static content has introduced extra mappings
+        // and an extra HandlerAdapter, hence the requirement to get the correct Handlers by name/implementation class.
+        final HandlerMapping handlerMapping = (HandlerMapping)applicationContext.getBean("handlerMapping");
+        final HandlerAdapter handlerAdapter = applicationContext.getBean(AnnotationMethodHandlerAdapter.class);
         final HandlerExecutionChain handler = handlerMapping.getHandler(request);
         Assert.assertNotNull("No handler found for request, check you request mapping", handler);
 
