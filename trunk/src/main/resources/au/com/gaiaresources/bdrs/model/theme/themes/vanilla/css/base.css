@@ -668,11 +668,13 @@ a:link, a:visited, a:visited.neverVisited {
 }
 
 .facet h4 {
-    background-color: ${style.menu.background.color};
+    color: ${style.table.header.text.color};
+    background: ${style.table.header.background.color};
 }
 
 .alaSightingsContent .columnBanner {
-    background-color: ${style.menu.background.color};
+    color: ${style.table.header.text.color};
+    background: ${style.table.header.background.color};
     border-color: ${style.menu.border.color};
 }
 

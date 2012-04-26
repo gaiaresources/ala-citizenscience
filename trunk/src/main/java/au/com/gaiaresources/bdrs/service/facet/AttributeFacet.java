@@ -1,19 +1,15 @@
 package au.com.gaiaresources.bdrs.service.facet;
 
-import java.util.Map;
-
-import org.apache.log4j.Logger;
-
-import edu.emory.mathcs.backport.java.util.Arrays;
-
 import au.com.gaiaresources.bdrs.db.impl.HqlQuery;
 import au.com.gaiaresources.bdrs.db.impl.Predicate;
+import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.facet.FacetDAO;
-import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.facet.option.StringAttributeFacetOption;
 import au.com.gaiaresources.bdrs.util.Pair;
-import au.com.gaiaresources.bdrs.json.JSONObject;
+import org.apache.log4j.Logger;
+
+import java.util.Map;
 
 /**
  * Creates a {@link Facet} for showing records by attribute values.
@@ -63,19 +59,14 @@ public class AttributeFacet extends AbstractFacet {
             this.attributeName = userParams.getString(JSON_ATTRIBUTE_NAME_KEY);
             this.facetIndex = facetIndex;
             
-            setContainsSelected(parameterMap.containsKey(getInputName()));
-            
-            String[] selectedOptions = parameterMap.get(getInputName());
-            if(selectedOptions == null) {
-                selectedOptions = new String[]{};
-            }
-            Arrays.sort(selectedOptions);
+            String[] selectedOptions = processParameters(parameterMap);
             
             // for now this just handles String type attributes, 
             // later it should retrieve attribute objects vs count
             // and determine which type of attribute options to add 
             // based on the type of the attribute
-            for(Pair<String, Long> pair : recordDAO.getDistinctAttributeValues(null, this.attributeName, userParams.optInt("optionCount"))) {
+            final int NO_LIMIT = 0;
+            for(Pair<String, Long> pair : recordDAO.getDistinctAttributeValues(null, this.attributeName, NO_LIMIT)) {
                 super.addFacetOption(new StringAttributeFacetOption(pair.getFirst(), pair.getSecond(), selectedOptions, facetIndex));
             }
         } else {

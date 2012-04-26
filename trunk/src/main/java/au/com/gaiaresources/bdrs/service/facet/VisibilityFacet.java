@@ -2,14 +2,12 @@ package au.com.gaiaresources.bdrs.service.facet;
 
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.facet.FacetDAO;
-import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.facet.option.VisibilityFacetOption;
 import au.com.gaiaresources.bdrs.util.Pair;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 import org.apache.commons.lang.ArrayUtils;
-
 
 import java.util.List;
 import java.util.Map;
@@ -43,12 +41,7 @@ public class VisibilityFacet extends AbstractFacet {
             setActive(false);
             return;
         }
-        setContainsSelected(parameterMap.containsKey(getInputName()));
-        
-        String[] selectedOptions = parameterMap.get(getInputName());
-        if(selectedOptions == null) {
-            selectedOptions = new String[0];
-        }
+        String[] selectedOptions = processParameters(parameterMap);
 
         List<Pair<RecordVisibility, Long>> visibilities = recordDAO.getDistinctRecordVisibilities();
 

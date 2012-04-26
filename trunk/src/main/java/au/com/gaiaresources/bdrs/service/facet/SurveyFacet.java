@@ -1,9 +1,5 @@
 package au.com.gaiaresources.bdrs.service.facet;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.facet.FacetDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
@@ -12,7 +8,10 @@ import au.com.gaiaresources.bdrs.service.facet.option.FacetOption;
 import au.com.gaiaresources.bdrs.service.facet.option.SurveyFacetOption;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.util.Pair;
-import edu.emory.mathcs.backport.java.util.Arrays;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Represents records on a per survey basis.
@@ -29,15 +28,14 @@ public abstract class SurveyFacet extends AbstractFacet {
      * Creates a new instance.
      *
      * @param defaultDisplayName the default human readable name of this facet.
-     * @param list used for retrieving the count of matching records.
+     * @param facetDAO used for retrieving the count of matching records.
      * @param parameterMap the map of query parameters from the browser.
      * @param user the user that is accessing the records.
-     * @param userParams user configurable parameters provided in via the {@link Preference)}.
+     * @param userParams user configurable parameters provided in via the {@link au.com.gaiaresources.bdrs.model.preference.Preference)}.
      */
     public SurveyFacet(String defaultDisplayName, FacetDAO facetDAO,  Map<String, String[]> parameterMap, User user, JSONObject userParams) {
         super(QUERY_PARAM_NAME, defaultDisplayName, userParams);
-        setContainsSelected(parameterMap.containsKey(getInputName()));
-        
+
         if(parameterMap.get(SURVEY_ID_QUERY_PARAM_NAME) != null && 
             parameterMap.get(SURVEY_ID_QUERY_PARAM_NAME).length == 1) {
             
@@ -50,11 +48,7 @@ public abstract class SurveyFacet extends AbstractFacet {
         }
         
         if(isActive()) {
-            String[] selectedOptions = parameterMap.get(getInputName());
-            if(selectedOptions == null) {
-                selectedOptions = new String[]{};
-            }
-            Arrays.sort(selectedOptions);
+            String[] selectedOptions = processParameters(parameterMap);
             
             for(Pair<Survey, Long> pair : facetDAO.getDistinctSurveys(null)) {
                 super.addFacetOption(getSurveyFacetOption(pair.getFirst(), pair.getSecond(), selectedOptions));

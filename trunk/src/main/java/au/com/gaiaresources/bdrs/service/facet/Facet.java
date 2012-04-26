@@ -1,10 +1,10 @@
 package au.com.gaiaresources.bdrs.service.facet;
 
-import java.util.List;
-
 import au.com.gaiaresources.bdrs.db.impl.HqlQuery;
 import au.com.gaiaresources.bdrs.db.impl.Predicate;
 import au.com.gaiaresources.bdrs.service.facet.option.FacetOption;
+
+import java.util.List;
 
 /**
  * The <code>Facet</code> represents a selection criteria to be applied to 
@@ -32,8 +32,12 @@ public interface Facet {
      * JSON key to retrieve the prefix for the facet. The prefix is prepended to
      * all inputs for this facet.
      */
-    public static final String JSON_PREFIX_KEY = "prefix"; 
-    
+    public static final String JSON_PREFIX_KEY = "prefix";
+
+    /**
+     * JSON key to retrieve the number of options displayed by default when the facet is rendered.
+     */
+    public static final String JSON_OPTION_COUNT_KEY = "optionCount";
     /**
      * The default active state. 
      */
@@ -42,6 +46,10 @@ public interface Facet {
      * The default weight of a facet.
      */
     public static final int DEFAULT_WEIGHT_CONFIG = 0;
+    /**
+     * The default number of options visible when the facet is rendered
+     */
+    public static final int DEFAULT_VISIBLE_OPTION_COUNT = 10;
     /**
      * The default prefix that is prepended to all inputs.
      */
@@ -58,7 +66,11 @@ public interface Facet {
      * A string that describes what the 'weight' user configuration parameter will do.
      */
     public static final String WEIGHT_CONFIG_DESCRIPTION = String.format("<dd><code>%s</code> - the sorting index of this facet. Facets are sorted in ascending order. Default = 0</dd>", JSON_WEIGHT_KEY);
-    
+    /**
+     * A string that describes what the 'optionCount' user configuration parameter will do.
+     */
+    public static final String OPTION_COUNT_DESCRIPTION = String.format("<dd><code>%s</code> - the number of facet options visible by default. The remaining options can be made visible by the user. Default = 10</dd>", JSON_OPTION_COUNT_KEY);
+
     /**
      * Returns the name of the base query parameter name.
      * @return the name of the base query parameter name.
@@ -135,7 +147,7 @@ public interface Facet {
     /**
      * Returns the name of the input by prepending to the prefix to the query
      * parametrs name.
-     * @param the name of the inputs for this facet. 
+     * @return the name of the inputs for this facet.
      */
     public String getInputName();
     
@@ -156,4 +168,35 @@ public interface Facet {
      * @return a query string for performing a lucene-based indexed query.
      */
     public String getIndexedQueryString();
+
+    /**
+     * The number of options displayed by default when the facet is rendered.  If there are more options available
+     * they will be made visible when the "show more options" link is clicked.
+     * @return the number of options to display by default for this Facet.
+     */
+    public int getDefaultVisibleOptionCount();
+
+    /**
+     * The expanded property tracks whether all FacetOptions for this Facet should be visible or not.
+     * @return true if this Facet has been expanded, that is, all FacetOptions should be displayed.  Otherwise only
+     * defaultVisibleOptionCount FacetOptions should be displayed.
+     */
+    public boolean isExpanded();
+
+    /**
+     * The expanded property tracks whether all FacetOptions for this Facet should be visible or not.
+     * Sets whether this Facet has been expanded or not.
+     * @param expanded true if this Facet as been expanded.
+     */
+    public void setExpanded(boolean expanded);
+
+    /**
+     * @return the name of the parameter that contains the values of selected options relevant to this Facet.
+     */
+    public String getOptionsParameterName();
+
+    /**
+     * @return the name of the parameter that contains the value of the expanded property for this Facet.
+     */
+    public String getExpandedParameterName();
 }

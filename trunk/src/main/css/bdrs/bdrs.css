@@ -301,8 +301,20 @@ label.multiCheckboxLabel {
     list-style:none;
 }
 
+.facetOptions {
+    padding-bottom: 2em;
+}
 .facetOptions div {
 	padding-left: 5px;
+}
+
+.facetOptions .showMore,
+.facetOptions .showLess {
+    text-align: right;
+}
+.facetOptions .showMore a,
+.facetOptions .showLess a {
+    padding-right: 1em;
 }
 
 /************************************/

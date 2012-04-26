@@ -1,10 +1,5 @@
 package au.com.gaiaresources.bdrs.service.facet;
 
-import java.util.List;
-import java.util.Map;
-
-import org.apache.log4j.Logger;
-
 import au.com.gaiaresources.bdrs.db.impl.HqlQuery;
 import au.com.gaiaresources.bdrs.db.impl.Predicate;
 import au.com.gaiaresources.bdrs.json.JSONObject;
@@ -12,7 +7,9 @@ import au.com.gaiaresources.bdrs.model.facet.FacetDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.facet.option.LocationAttributeFacetOption;
 import au.com.gaiaresources.bdrs.util.Pair;
-import edu.emory.mathcs.backport.java.util.Arrays;
+import org.apache.log4j.Logger;
+
+import java.util.Map;
 
 /**
  * Creates a {@link Facet} for showing records by location attribute values.
@@ -43,10 +40,11 @@ public class LocationAttributeFacet extends AbstractFacet {
      * Creates an instance of this facet.
      * 
      * @param defaultDisplayName the default human readable name of this facet.
-     * @param recordDAO used for retrieving the count of matching records.
+     * @param facetDAO used for retrieving the count of matching records.
      * @param parameterMap the map of query parameters from the browser.
      * @param user the user that is accessing the records.
-     * @param userParams user configurable parameters provided in via the {@link Preference)}.
+     * @param userParams user configurable parameters provided in via the {@link au.com.gaiaresources.bdrs.model.preference.Preference)}.
+     * @param facetIndex identifies this instance of the LocationAttributeFacet (as there may be more than one)
      */
     public LocationAttributeFacet(String defaultDisplayName, FacetDAO facetDAO, Map<String, String[]> parameterMap, User user,
             JSONObject userParams, int facetIndex) {
@@ -61,13 +59,7 @@ public class LocationAttributeFacet extends AbstractFacet {
             this.attributeName = userParams.getString(JSON_ATTRIBUTE_NAME_KEY);
             this.facetIndex = facetIndex;
             
-            setContainsSelected(parameterMap.containsKey(getInputName()));
-            
-            String[] selectedOptions = parameterMap.get(getInputName());
-            if(selectedOptions == null) {
-                selectedOptions = new String[]{};
-            }
-            Arrays.sort(selectedOptions);
+            String[] selectedOptions = processParameters(parameterMap);
             
             // for now this just handles String type attributes, 
             // later it should retrieve attribute objects vs count

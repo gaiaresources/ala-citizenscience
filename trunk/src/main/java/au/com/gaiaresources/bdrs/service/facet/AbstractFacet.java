@@ -1,37 +1,43 @@
 package au.com.gaiaresources.bdrs.service.facet;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.log4j.Logger;
-
-import au.com.gaiaresources.bdrs.json.JSONObject;
-import au.com.gaiaresources.bdrs.service.facet.option.FacetOption;
 import au.com.gaiaresources.bdrs.db.impl.HqlQuery;
 import au.com.gaiaresources.bdrs.db.impl.Predicate;
+import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.service.facet.option.FacetOption;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  *  Provides basic accessor and mutator functions for {@link Facet} implementations.
  */
 public abstract class AbstractFacet implements Facet {
 
+    /** Suffix applied to request parameters that contain option values */
+    private static final String OPTION_SUFFIX = "_option";
+    /** Suffix applied to request parameters that contain the state of a Facet's expanded property */
+    private static final String EXPANDED_SUFFIX = "_expanded";
+
     private String queryParamName;
     private String displayName;
     private boolean containsSelected;
-
+    private boolean expanded;
     private int weight = DEFAULT_WEIGHT_CONFIG;
     private boolean isActive = DEFAULT_ACTIVE_CONFIG;
     private String prefix = DEFAULT_PREFIX_CONFIG;
-    
+    private int defaultVisibleOptionCount = DEFAULT_VISIBLE_OPTION_COUNT;
     private List<FacetOption> facetOptions = new ArrayList<FacetOption>();
-    
+
+
     /**
      * Creates a new instance of this class.
      * 
      * @param queryParamName the base name of query parameters
      * @param defaultDisplayName the human readable name of this facet.
-     * @param userParams user configurable parameters provided in via the {@link Preference)}.
+     * @param userParams user configurable parameters provided in via the {@link au.com.gaiaresources.bdrs.model.preference.Preference)}.
      */
     public AbstractFacet(String queryParamName, String defaultDisplayName, JSONObject userParams) {
         this.queryParamName = queryParamName;
@@ -40,6 +46,7 @@ public abstract class AbstractFacet implements Facet {
         this.isActive = userParams.optBoolean(JSON_ACTIVE_KEY, DEFAULT_ACTIVE_CONFIG);
         this.prefix = userParams.optString(JSON_PREFIX_KEY, DEFAULT_PREFIX_CONFIG);
         this.displayName = userParams.optString(JSON_NAME_KEY, defaultDisplayName);
+        this.defaultVisibleOptionCount = userParams.optInt(JSON_OPTION_COUNT_KEY, DEFAULT_VISIBLE_OPTION_COUNT);
     }
     
     @Override
@@ -205,6 +212,31 @@ public abstract class AbstractFacet implements Facet {
     public void applyCustomJoins(HqlQuery query) {
         // Do nothing. This is a placeholder for decendents to override if needed.
     }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int getDefaultVisibleOptionCount() {
+        return defaultVisibleOptionCount;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isExpanded() {
+        return expanded;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setExpanded(boolean expanded) {
+        this.expanded = expanded;
+    }
     
     // -------------------------------------
     // Utility Functions
@@ -212,5 +244,40 @@ public abstract class AbstractFacet implements Facet {
     @Override
     public String getInputName() {
         return String.format("%s_%s", getPrefix(), getQueryParamName());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getOptionsParameterName() {
+        return getInputName()+OPTION_SUFFIX;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getExpandedParameterName() {
+        return getInputName()+EXPANDED_SUFFIX;
+    }
+
+    /**
+     * Extracts parameters relevant to this Facet instance from the supplied parameter map and processes them.
+     * As a side effect, the expanded and containsSelected properties are updated.
+     * @param parameterMap the parameters to process.
+     * @return an array of String containing the values of the selected options relevant to this Facet.
+     */
+    protected String[] processParameters(Map<String, String[]> parameterMap) {
+
+        setExpanded(parameterMap.containsKey(getExpandedParameterName()));
+        setContainsSelected(parameterMap.containsKey(getOptionsParameterName()));
+
+        String[] selectedOptions = parameterMap.get(getOptionsParameterName());
+        if(selectedOptions == null) {
+            selectedOptions = new String[0];
+        }
+        Arrays.sort(selectedOptions);
+        return selectedOptions;
     }
 }
