@@ -2,6 +2,8 @@ package au.com.gaiaresources.bdrs.controller.admin;
 
 import javax.annotation.security.RolesAllowed;
 
+import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
+import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,7 +20,11 @@ import au.com.gaiaresources.bdrs.security.Role;
 public class AdminHomePageController extends AbstractController {
     @Autowired
     private RecordDAO recordDAO;
-    
+    @Autowired
+    private UserDAO userDAO;
+    @Autowired
+    private SurveyDAO surveyDAO;
+
     public static final String ADMIN_HOME_URL = "/admin/home.htm";
 
     @RolesAllowed({Role.ROOT, Role.ADMIN,Role.SUPERVISOR,Role.POWERUSER})
@@ -29,6 +35,9 @@ public class AdminHomePageController extends AbstractController {
         Record latestRecord = recordDAO.getLatestRecord();
         view.addObject("latestRecord", latestRecord);
         view.addObject("recordCount", recordDAO.countRecords(user));
+        view.addObject("uniqueSpeciesCount", recordDAO.countUniqueSpecies());
+        view.addObject("userCount", userDAO.countUsers());
+        view.addObject("publicSurveys", surveyDAO.getActivePublicSurveys(true));
         return view;
     }
     
