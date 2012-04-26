@@ -293,14 +293,14 @@
             <groupId>org.apache.solr</groupId>
             <version>1.3.0</version>
         </dependency>
-        <!-- Try me if tests are failing when trying to access GIS database objects. -->
+        <!-- Try me if tests are failing when trying to access GIS database objects.
         <dependency>
             <groupId>postgis</groupId>
             <artifactId>postgis-main</artifactId>
             <version>1.3.1</version>
             <scope>system</scope>
            <systemPath>${basedir}/src/main/webapp/WEB-INF/lib/postgis_1.3.1.jar</systemPath>
-        </dependency>
+        </dependency>    -->
         <!-- Commons DBCP -->
         <dependency>
             <groupId>commons-dbcp</groupId>
@@ -663,7 +663,7 @@
                     <excludes>
                         <!--exclude>**/*Client.java</exclude-->
                     </excludes>
-                    <argLine>-Xmx1024m -Djava.io.tmpdir=/tmp</argLine>
+                    <argLine>-Xmx1024m</argLine>
                     <!-- uncomment if you are a MAC OS X user or tests will fail.
                     <argLine>-Xmx1024m  -Djava.io.tmpdir=/tmp</argLine> -->
 
