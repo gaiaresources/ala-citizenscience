@@ -30,11 +30,7 @@
        <div class="clear"></div>
     </h4>
     
-	<div class="facetOptions ${ facet.inputName  }OptContainer"
-	    <%-- Open the facet if it contains a selected option --%>
-	    <%-- c:if test="${ !facet.containsSelected }"> style="display:none"</c:if --%>
-	    <c:if test="${ facet.displayName == 'Species Group' }"> style="display:none"</c:if>
-	>
+	<div class="facetOptions ${ facet.inputName  }OptContainer">
 		<c:forEach var="facetOption" items="${ facet.facetOptions }" varStatus="status">
 		    <div
                 <c:if test="${status.count > facet.defaultVisibleOptionCount}">
