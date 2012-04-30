@@ -468,20 +468,13 @@
                 <div class="multiCheckboxOpts textleft">
                 <c:forEach var="multiCbOpt2" items="${ formField.attribute.options }" varStatus="multiCbStatus2">
                     <jsp:useBean id="multiCbOpt2" type="au.com.gaiaresources.bdrs.model.taxa.AttributeOption"/>
-                    <jsp:useBean id="multiCbStatus2" type="javax.servlet.jsp.jstl.core.LoopTagStatus"/>
                     <c:set var="multiOptValue" value="<%= multiCbOpt2.getValue() %>" />
                     <div>
-                        <c:choose>
-                            <c:when test="${cw:hasCsvValue(fieldValue, multiOptValue)}">
-                                <span><img src="${pageContext.request.contextPath}/images/vanilla/icon_tick_green.png" /></span>                                            
-                            </c:when>
-                            <c:otherwise>
-                                <span><img src="${pageContext.request.contextPath}/images/vanilla/icon_cross_red.png" /></span>
-                            </c:otherwise>
-                        </c:choose>
-                        <label for="${inputName}_${multiCbStatus2.index}" class="multiCheckboxLabel">
-                            <c:out value="${ multiCbOpt2.value }"/>
-                        </label>
+                        <c:if test="${cw:hasCsvValue(fieldValue, multiOptValue)}">
+                            <label class="multiCheckboxLabel">
+                                <c:out value="${ multiCbOpt2.value }"/>
+                            </label>
+                        </c:if>
                     </div>
                 </c:forEach>
                 </div>
@@ -522,18 +515,11 @@
                 <c:forEach var="multiSelectOpt2" items="${ formField.attribute.options }" varStatus="multiSelectStatus2">
                     <div class="textleft">
                         <jsp:useBean id="multiSelectOpt2" type="au.com.gaiaresources.bdrs.model.taxa.AttributeOption"/>
-                        <jsp:useBean id="multiSelectStatus2" type="javax.servlet.jsp.jstl.core.LoopTagStatus"/>
-                        <c:set var="multiOptValue" value="<%= multiSelectOpt2.getValue() %>" />             
+                        <c:set var="multiOptValue" value="<%= multiSelectOpt2.getValue() %>" />
                         <div>
-                            <c:choose>
-                                <c:when test="${cw:hasCsvValue(fieldValue, multiOptValue)}">
-                                    <span><img src="${pageContext.request.contextPath}/images/vanilla/icon_tick_green.png" /></span>                                            
-                                </c:when>
-                                <c:otherwise>
-                                    <span><img src="${pageContext.request.contextPath}/images/vanilla/icon_cross_red.png" /></span>
-                                </c:otherwise>
-                            </c:choose>
-                            <label><c:out value="${ multiSelectOpt2.value }"/></label>
+                            <c:if test="${cw:hasCsvValue(fieldValue, multiOptValue)}">
+                                <label><c:out value="${ multiSelectOpt2.value }"/></label>
+                            </c:if>
                         </div>
                     </div>
                 </c:forEach>
