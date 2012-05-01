@@ -230,14 +230,11 @@ public class XlsLocationRow extends StyledRowImpl {
             
             String msg = e.getMessage() == null ? e.toString() : e.getMessage();
             
-            // While cell **could** be null, if it is null, we haven't managed
-            // to read anything ever. Which almost defeats the purpose of this
-            // error handler.
-            String value = currentReadCell.toString();
-            String cellColRef = CellReference.convertNumToColString(currentReadCell.getColumnIndex());
-            String sheetName = currentReadCell.getSheet().getSheetName();
+            String value = currentReadCell != null ? currentReadCell.toString() : null;
+            String cellColRef = currentReadCell != null ? CellReference.convertNumToColString(currentReadCell.getColumnIndex()) : "0";
+            String sheetName = row.getSheet().getSheetName();
             
-            String errMsg = String.format("Cell %s!%s%d[ value=\"%s\" ]: %s %s", sheetName, cellColRef, currentReadCell.getRowIndex() + 1, value, e.getClass().getSimpleName(), msg);
+            String errMsg = String.format("Cell %s!%s%d[ value=\"%s\" ]: %s %s", sheetName, cellColRef, row.getRowNum(), value, e.getClass().getSimpleName(), msg);
 
             locationUpload.setError(true);
             locationUpload.setErrorMessage(errMsg);

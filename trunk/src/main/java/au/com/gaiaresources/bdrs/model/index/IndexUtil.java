@@ -66,7 +66,7 @@ public class IndexUtil {
         List<IndexSchedule> schedules = indexDAO.getIndexSchedulesForClass(class1);
         Date indexDate = null;
         if (schedules != null) {
-            Date tempDate = null;
+            Date tempDate = new Date(0);
             for (IndexSchedule indexSchedule : schedules) {
                 tempDate = indexSchedule.getLastRun();
                 if (tempDate != null) {

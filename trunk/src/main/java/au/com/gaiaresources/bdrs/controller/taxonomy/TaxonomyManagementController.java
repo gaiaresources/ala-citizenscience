@@ -47,6 +47,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -192,7 +193,7 @@ public class TaxonomyManagementController extends AbstractController {
             // Cannot find the species profile template configuration file.
             if(profileInputStream != null) {
                 // Read in the configuration file.
-                BufferedReader reader = new BufferedReader(new InputStreamReader(profileInputStream));
+                BufferedReader reader = new BufferedReader(new InputStreamReader(profileInputStream, Charset.defaultCharset()));
                 StringBuilder profileTmplBuilder = new StringBuilder();
                 for(String line = reader.readLine(); line != null; line = reader.readLine()) {
                     profileTmplBuilder.append(line);
