@@ -2,13 +2,15 @@ package au.com.gaiaresources.bdrs.controller.theme;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.Writer;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -197,9 +199,11 @@ public class ThemeController extends AbstractDownloadFileController {
         File template = new File(rawTargetDir, themeFileName);
         // Floor the value if required.
         StringBuilder contentBuilder = new StringBuilder((int)template.length());
+        FileInputStream fis = null;
         try {
             if(template.exists()) {
-                BufferedReader reader = new BufferedReader(new FileReader(template));
+                fis = new FileInputStream(template);
+                BufferedReader reader = new BufferedReader(new InputStreamReader(fis, Charset.defaultCharset()));
                 for(String line = reader.readLine(); line != null; line = reader.readLine()) {
                     contentBuilder.append(line);
                     contentBuilder.append("\n");
@@ -208,6 +212,9 @@ public class ThemeController extends AbstractDownloadFileController {
             }
         } catch(IOException ioe){
             log.error(ioe.getMessage(), ioe);
+            if (fis != null) {
+                fis.close();
+            }
         }
         
         ModelAndView mv = new ModelAndView("themeFileEdit");
@@ -302,7 +309,7 @@ public class ThemeController extends AbstractDownloadFileController {
             fos = new FileOutputStream(targetFile);
             if(revert == null) {
                 // Update the file in the raw dir
-                Writer writer = new OutputStreamWriter(fos);
+                Writer writer = new OutputStreamWriter(fos, Charset.defaultCharset());
                 writer.write(themeFileContent);
                 writer.flush();
                 writer.close();

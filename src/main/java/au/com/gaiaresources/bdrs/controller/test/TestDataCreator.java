@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -847,7 +848,7 @@ public class TestDataCreator implements TestDataConstants {
     }
     
     private byte[] generateDataFile() {
-        return generateLoremIpsum(250, 300).getBytes();
+        return generateLoremIpsum(250, 300).getBytes(Charset.defaultCharset());
     }
     
     private byte[] getBytesFromFile(File file) throws IOException {
