@@ -16,19 +16,7 @@
         <input type="hidden" name="indexId" value="${indexSchedule.id}"/>
     </c:if>
     <div class="input_container">
-        <p>The following selections apply to both 'Index Now' and recurring build schedules:</p>
-        <div style="padding-left: 15px;">
-        <div>
-            
-            <input class="left" type="checkbox" name="deleteIndexes" id="deleteIndexes"
-            <c:if test="${ indexSchedule.fullRebuild }">
-                checked="true"
-            </c:if>
-            />
-            <label for="deleteIndexes">Delete Indexes Before Building?</label>
-            <input class="right form_action" type="button" name="indexNow" value="Index Now" onClick="bdrs.index.runIndex([name=deleteIndexes]);"/>
-        </div>
-        <div class="clear">
+        <div class="left">
             Select something to index:
             <c:forEach var="indexClass" items="${ indexClasses }">
                 <jsp:useBean id="indexClass" type="java.lang.Class"/>
@@ -42,142 +30,151 @@
                 </div>
             </c:forEach>
         </div>
-        </div>
-        <h3>Schedule a Recurring Build</h3>
-        <div class="scheduleRow">
-            <input type="radio" name="indexType" value="server_startup"
-            <c:if test="<%= IndexType.SERVER_STARTUP.equals(indexSchedule.getType()) %>">
-                checked="true"
-            </c:if>
-            >Server Startup</input>
-        </div>
-        <div class="scheduleRow">
-            <input type="radio" name="indexType" value="once"
-            <c:if test="<%= IndexType.ONCE.equals(indexSchedule.getType()) %>">
-                checked="true"
-            </c:if>
-            >Once</input> on 
-            <input type="text" name="date" class="datepicker validate(dateOrBlank)" 
-			<c:choose>
-			    <c:when test="<%= !IndexType.ONCE.equals(indexSchedule.getType()) %>">
-                	disabled
-            	</c:when>
-            	<c:otherwise>
-            	    value="${ indexSchedule.dateString }"
-            	</c:otherwise>
-			</c:choose>
-			/> at 
-            <input type="text" name="time" class="timepicker validate(timeOrBlank)"  
-			<c:choose>
-			    <c:when test="<%= !IndexType.ONCE.equals(indexSchedule.getType()) %>">
-                	disabled
-            	</c:when>
-            	<c:otherwise>
-            	    value="${ indexSchedule.timeString }"
-            	</c:otherwise>
-			</c:choose>
-			/>
-        </div>
-        <div class="scheduleRow">
-            <input type="radio" name="indexType" value="daily"
-            <c:if test="<%= IndexType.DAILY.equals(indexSchedule.getType()) %>">
-                checked="true"
-            </c:if>
-            >Daily</input> at
-            <input type="text" name="time" class="timepicker validate(timeOrBlank)"  
-			<c:choose>
-			    <c:when test="<%= !IndexType.DAILY.equals(indexSchedule.getType()) %>">
-                	disabled
-            	</c:when>
-            	<c:otherwise>
-            	    value="${ indexSchedule.timeString }"
-            	</c:otherwise>
-			</c:choose>
-			/>
-        </div>
-        <div class="scheduleRow">
-            <input type="radio" name="indexType" value="weekly"
-            <c:if test="<%= IndexType.WEEKLY.equals(indexSchedule.getType()) %>">
-                checked="true"
-            </c:if>
-            >Weekly</input> at
-            <input type="text" name="time" class="timepicker validate(timeOrBlank)"  
-			<c:choose>
-			    <c:when test="<%= !IndexType.WEEKLY.equals(indexSchedule.getType()) %>">
-                	disabled
-            	</c:when>
-            	<c:otherwise>
-            	    value="${ indexSchedule.timeString }"
-            	</c:otherwise>
-			</c:choose>
-			/> on 
-			<select name="weeklyDay"
-			<c:if test="<%= !IndexType.WEEKLY.equals(indexSchedule.getType()) %>">
-                disabled
-            </c:if>>
-            <option value="<%= Calendar.MONDAY %>"
-            <c:if test="<%= IndexType.WEEKLY.equals(indexSchedule.getType()) && indexSchedule.getDayOfWeek() == Calendar.MONDAY %>">
-                selected
-            </c:if>
-            >Monday</option>
-            <option value="<%= Calendar.TUESDAY %>"
-            <c:if test="<%= IndexType.WEEKLY.equals(indexSchedule.getType()) && indexSchedule.getDayOfWeek() == Calendar.TUESDAY %>">
-                selected
-            </c:if>
-            >Tuesday</option>
-			<option value="<%= Calendar.WEDNESDAY %>"
-            <c:if test="<%= IndexType.WEEKLY.equals(indexSchedule.getType()) && indexSchedule.getDayOfWeek() == Calendar.WEDNESDAY %>">
-                selected
-            </c:if>
-            >Wednesday</option>
-            <option value="<%= Calendar.THURSDAY %>"
-            <c:if test="<%= IndexType.WEEKLY.equals(indexSchedule.getType()) && indexSchedule.getDayOfWeek() == Calendar.THURSDAY %>">
-                selected
-            </c:if>
-            >Thursday</option>
-            <option value="<%= Calendar.FRIDAY %>"
-            <c:if test="<%= IndexType.WEEKLY.equals(indexSchedule.getType()) && indexSchedule.getDayOfWeek() == Calendar.FRIDAY %>">
-                selected
-            </c:if>
-            >Friday</option>
-            <option value="<%= Calendar.SATURDAY %>"
-            <c:if test="<%= IndexType.WEEKLY.equals(indexSchedule.getType()) && indexSchedule.getDayOfWeek() == Calendar.SATURDAY %>">
-                selected
-            </c:if>
-            >Saturday</option>
-            <option value="<%= Calendar.SUNDAY %>"
-            <c:if test="<%= IndexType.WEEKLY.equals(indexSchedule.getType()) && indexSchedule.getDayOfWeek() == Calendar.SUNDAY %>">
-                selected
-            </c:if>
-            >Sunday</option>
-			</select>
-        </div>
-        <div class="scheduleRow">
-            <input type="radio" name="indexType" value="monthly"
-            <c:if test="<%= IndexType.MONTHLY.equals(indexSchedule.getType()) %>">
-                checked="true"
-            </c:if>
-            >Monthly</input> on
-            <input type="text" name="date" class="datepicker validate(dateOrBlank)"   
-			<c:choose>
-			    <c:when test="<%= !IndexType.MONTHLY.equals(indexSchedule.getType()) %>">
-                	disabled
-            	</c:when>
-            	<c:otherwise>
-            	    value="${ indexSchedule.dateString }"
-            	</c:otherwise>
-			</c:choose>
-			/> at 
-            <input type="text" name="time" class="timepicker validate(timeOrBlank)"   
-			<c:choose>
-			    <c:when test="<%= !IndexType.MONTHLY.equals(indexSchedule.getType()) %>">
-                	disabled
-            	</c:when>
-            	<c:otherwise>
-            	    value="${ indexSchedule.timeString }"
-            	</c:otherwise>
-			</c:choose>
-			/>
+            <div class="right">
+                <input class="left" type="checkbox" name="deleteIndexes" id="deleteIndexes"
+                <c:if test="${ indexSchedule.fullRebuild }">
+                    checked="true"
+                </c:if>
+                />
+                <label for="deleteIndexes">Delete Indexes Before Building?</label>
+            </div>
+        <div class="clear">
+	        <h3>Schedule a Recurring Build</h3>
+	        <div class="scheduleRow">
+	            <input type="radio" name="indexType" value="server_startup"
+	            <c:if test="<%= IndexType.SERVER_STARTUP.equals(indexSchedule.getType()) %>">
+	                checked="true"
+	            </c:if>
+	            >Server Startup</input>
+	        </div>
+	        <div class="scheduleRow">
+	            <input type="radio" name="indexType" value="once"
+	            <c:if test="<%= IndexType.ONCE.equals(indexSchedule.getType()) %>">
+	                checked="true"
+	            </c:if>
+	            >Once</input> on 
+	            <input type="text" name="date" class="datepicker validate(dateOrBlank)" 
+	            <c:choose>
+	                <c:when test="<%= !IndexType.ONCE.equals(indexSchedule.getType()) %>">
+	                    disabled
+	                </c:when>
+	                <c:otherwise>
+	                    value="${ indexSchedule.dateString }"
+	                </c:otherwise>
+	            </c:choose>
+	            /> at 
+	            <input type="text" name="time" class="timepicker validate(timeOrBlank)"  
+	            <c:choose>
+	                <c:when test="<%= !IndexType.ONCE.equals(indexSchedule.getType()) %>">
+	                    disabled
+	                </c:when>
+	                <c:otherwise>
+	                    value="${ indexSchedule.timeString }"
+	                </c:otherwise>
+	            </c:choose>
+	            />
+	        </div>
+	        <div class="scheduleRow">
+	            <input type="radio" name="indexType" value="daily"
+	            <c:if test="<%= IndexType.DAILY.equals(indexSchedule.getType()) %>">
+	                checked="true"
+	            </c:if>
+	            >Daily</input> at
+	            <input type="text" name="time" class="timepicker validate(timeOrBlank)"  
+	            <c:choose>
+	                <c:when test="<%= !IndexType.DAILY.equals(indexSchedule.getType()) %>">
+	                    disabled
+	                </c:when>
+	                <c:otherwise>
+	                    value="${ indexSchedule.timeString }"
+	                </c:otherwise>
+	            </c:choose>
+	            />
+	        </div>
+	        <div class="scheduleRow">
+	            <input type="radio" name="indexType" value="weekly"
+	            <c:if test="<%= IndexType.WEEKLY.equals(indexSchedule.getType()) %>">
+	                checked="true"
+	            </c:if>
+	            >Weekly</input> at
+	            <input type="text" name="time" class="timepicker validate(timeOrBlank)"  
+	            <c:choose>
+	                <c:when test="<%= !IndexType.WEEKLY.equals(indexSchedule.getType()) %>">
+	                    disabled
+	                </c:when>
+	                <c:otherwise>
+	                    value="${ indexSchedule.timeString }"
+	                </c:otherwise>
+	            </c:choose>
+	            /> on 
+	            <select name="weeklyDay"
+	            <c:if test="<%= !IndexType.WEEKLY.equals(indexSchedule.getType()) %>">
+	                disabled
+	            </c:if>>
+	            <option value="<%= Calendar.MONDAY %>"
+	            <c:if test="<%= IndexType.WEEKLY.equals(indexSchedule.getType()) && indexSchedule.getDayOfWeek() == Calendar.MONDAY %>">
+	                selected
+	            </c:if>
+	            >Monday</option>
+	            <option value="<%= Calendar.TUESDAY %>"
+	            <c:if test="<%= IndexType.WEEKLY.equals(indexSchedule.getType()) && indexSchedule.getDayOfWeek() == Calendar.TUESDAY %>">
+	                selected
+	            </c:if>
+	            >Tuesday</option>
+	            <option value="<%= Calendar.WEDNESDAY %>"
+	            <c:if test="<%= IndexType.WEEKLY.equals(indexSchedule.getType()) && indexSchedule.getDayOfWeek() == Calendar.WEDNESDAY %>">
+	                selected
+	            </c:if>
+	            >Wednesday</option>
+	            <option value="<%= Calendar.THURSDAY %>"
+	            <c:if test="<%= IndexType.WEEKLY.equals(indexSchedule.getType()) && indexSchedule.getDayOfWeek() == Calendar.THURSDAY %>">
+	                selected
+	            </c:if>
+	            >Thursday</option>
+	            <option value="<%= Calendar.FRIDAY %>"
+	            <c:if test="<%= IndexType.WEEKLY.equals(indexSchedule.getType()) && indexSchedule.getDayOfWeek() == Calendar.FRIDAY %>">
+	                selected
+	            </c:if>
+	            >Friday</option>
+	            <option value="<%= Calendar.SATURDAY %>"
+	            <c:if test="<%= IndexType.WEEKLY.equals(indexSchedule.getType()) && indexSchedule.getDayOfWeek() == Calendar.SATURDAY %>">
+	                selected
+	            </c:if>
+	            >Saturday</option>
+	            <option value="<%= Calendar.SUNDAY %>"
+	            <c:if test="<%= IndexType.WEEKLY.equals(indexSchedule.getType()) && indexSchedule.getDayOfWeek() == Calendar.SUNDAY %>">
+	                selected
+	            </c:if>
+	            >Sunday</option>
+	            </select>
+	        </div>
+	        <div class="scheduleRow">
+	            <input type="radio" name="indexType" value="monthly"
+	            <c:if test="<%= IndexType.MONTHLY.equals(indexSchedule.getType()) %>">
+	                checked="true"
+	            </c:if>
+	            >Monthly</input> on
+	            <input type="text" name="date" class="datepicker validate(dateOrBlank)"   
+	            <c:choose>
+	                <c:when test="<%= !IndexType.MONTHLY.equals(indexSchedule.getType()) %>">
+	                    disabled
+	                </c:when>
+	                <c:otherwise>
+	                    value="${ indexSchedule.dateString }"
+	                </c:otherwise>
+	            </c:choose>
+	            /> at 
+	            <input type="text" name="time" class="timepicker validate(timeOrBlank)"   
+	            <c:choose>
+	                <c:when test="<%= !IndexType.MONTHLY.equals(indexSchedule.getType()) %>">
+	                    disabled
+	                </c:when>
+	                <c:otherwise>
+	                    value="${ indexSchedule.timeString }"
+	                </c:otherwise>
+	            </c:choose>
+	            />
+	        </div>
         </div>
     </div>
 
@@ -201,15 +198,15 @@
         // get all of the inputs starting with that value and enable them
         var newinputs = jQuery("[name^="+selVal+"]");
         if (newinputs) {
-        	newinputs.removeAttr("disabled");
+            newinputs.removeAttr("disabled");
         }
         newinputs = jQuery(this).parent("div").find("[name=date]");
         if (newinputs) {
-        	newinputs.removeAttr("disabled");
+            newinputs.removeAttr("disabled");
         }
         newinputs = jQuery(this).parent("div").find("[name=time]");
         if (newinputs) {
-        	newinputs.removeAttr("disabled");
+            newinputs.removeAttr("disabled");
         }
         // also set their ketchup validations to required
     });
