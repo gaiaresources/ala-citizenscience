@@ -553,3 +553,13 @@ update preference set value = substring(value from 0 for char_length(value) -1) 
 rollback;
 
 </code>
+
+= r278 =
+<code language="sql">
+begin;
+
+alter table index_schedule add column last_run timestamp without time zone;
+
+rollback;
+
+</code>
