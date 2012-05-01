@@ -172,8 +172,9 @@ public abstract class AbstractDAOImpl implements TransactionDAO {
      * @param args - positional args for the hql query
      * @return
      */
+    @SuppressWarnings("unchecked")
     protected <T extends Persistent> T findUnique(String hql, Object[] args) {
-        return findUnique(sessionFactory.getCurrentSession(), hql, args);
+        return (T)findUnique(sessionFactory.getCurrentSession(), hql, args);
     }
     
     /**
