@@ -528,6 +528,12 @@ bdrs.map.addControlPanel = function(map, hideShowAvailable, enlargeMapAvailable,
     // Create each control
     var controlArray = [];
 
+    // add a control for displaying messages about the results on the page
+    // currently only used by Location Review page to show a message that 
+    // the list results are limited by a map selection and a link to clear
+    // the map selection
+    controlArray.push(jQuery("<div id=\"resultsMessages\"></div>"));
+    
     // Hide / Show Map
     controlArray.push(bdrs.map.getHideShowControl(controlPanel, hideShowAvailable, map));
 

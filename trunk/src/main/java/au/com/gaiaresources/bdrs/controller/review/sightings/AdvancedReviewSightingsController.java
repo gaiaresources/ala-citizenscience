@@ -1,7 +1,6 @@
 package au.com.gaiaresources.bdrs.controller.review.sightings;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -29,6 +28,8 @@ import au.com.gaiaresources.bdrs.db.impl.Predicate;
 import au.com.gaiaresources.bdrs.kml.KMLWriter;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.report.Report;
+import au.com.gaiaresources.bdrs.model.report.ReportCapability;
+import au.com.gaiaresources.bdrs.model.report.impl.ReportView;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.facet.Facet;
@@ -98,13 +99,17 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
         HashMap<String, String[]> newParamMap = new HashMap<String, String[]>(request.getParameterMap());
         // some locations have been selected, add them to the parameters as facet selections
         String locations = request.getParameter("locations");
+        
+        // this code translates the locations parameter into facet selections
+        // there is currently not a good way to get the input name (parameter 
+        // selection name) from a facet before it's creation or to build a mock
+        // facet for retrieving this parameter so the input name is hard-coded 
+        // here
         if (!StringUtils.nullOrEmpty(locations)) {
-            String inputName = "0_"+LocationFacet.QUERY_PARAM_NAME;
-            log.debug("putting locations to paramMap: "+locations);
+            String inputName = "0_"+LocationFacet.QUERY_PARAM_NAME+LocationFacet.OPTION_SUFFIX;
             newParamMap.put(inputName, locations.split(","));
         }
         List<Facet> facetList = facetService.getFacetList(currentUser(), newParamMap);
-        log.debug("got "+facetList.size()+" facets for view");
         Long recordCount = countMatchingRecords(facetList,
                                                 surveyId,
                                                 request.getParameter(SEARCH_QUERY_PARAM_NAME));
@@ -337,5 +342,19 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
     @Override
     protected String getDefaultSortString() {
         return "record.when";
+    }
+    
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.controller.review.AdvancedReviewController#getReportList()
+     */
+    @Override
+    protected List<Report> getReportList() {
+        return reportDAO.getReports(ReportCapability.SCROLLABLE_RECORDS, ReportView.ADVANCED_REVIEW);
+    }
+
+    @Override
+    protected String getKMLFolderName() {
+        return KMLUtils.KML_RECORD_FOLDER;
     }
 }

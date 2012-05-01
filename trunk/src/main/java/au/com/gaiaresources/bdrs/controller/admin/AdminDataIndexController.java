@@ -1,10 +1,13 @@
 package au.com.gaiaresources.bdrs.controller.admin;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
@@ -12,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Controller;
@@ -21,6 +25,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import au.com.gaiaresources.bdrs.controller.AbstractController;
+import au.com.gaiaresources.bdrs.db.SessionFactory;
+import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.model.index.IndexSchedule;
 import au.com.gaiaresources.bdrs.model.index.IndexScheduleDAO;
 import au.com.gaiaresources.bdrs.model.index.IndexTask;
@@ -53,6 +59,8 @@ public class AdminDataIndexController extends AbstractController {
     @Autowired
     private SearchService searchService;
     
+    @Autowired
+    private SessionFactory sessionFactory;
     /*
      * URL and view name constants.
      */
@@ -94,9 +102,9 @@ public class AdminDataIndexController extends AbstractController {
     @RequestMapping(value = INDEX_SCHEDULE_LIST_URL, method = RequestMethod.POST)
     public ModelAndView saveDataIndexSchedules(HttpServletRequest request, 
                                        HttpServletResponse response, 
-                                       @RequestParam(value="index", required=true) String[] index) {
+                                       @RequestParam(value="index", required=false) String[] index) {
         List<IndexSchedule> schedules = indexScheduleDAO.getIndexSchedules();
-        List<String> ids = Arrays.asList(index);
+        List<String> ids = index != null ? Arrays.asList(index) : Collections.EMPTY_LIST;
         List<IndexSchedule> returnSchedules = new ArrayList<IndexSchedule>(schedules.size());
         for (IndexSchedule indexSchedule : schedules) {
             if (!ids.contains(String.valueOf(indexSchedule.getId()))) {
@@ -315,30 +323,46 @@ public class AdminDataIndexController extends AbstractController {
      */
     private IndexSchedule saveAndScheduleIndexes(IndexSchedule thisSchedule,
             String[] indexClasses, IndexType indexType, String deleteIndex, Calendar cal, Calendar periodCal) {
+        Session sesh = null;
+        Transaction tx = null;
         IndexSchedule schedule = null;
-        Map<String, String> fullClassNames = IndexUtil.getFullNamesForIndexedClasses(indexClasses);
-        for (String indexClass : indexClasses) {
-            if (thisSchedule != null && indexClass.equals(thisSchedule.getClassName())) {
-                schedule = thisSchedule;
-            } else {
-                schedule = new IndexSchedule();
-            }
-            schedule.setType(indexType);
-            schedule.setFullRebuild(!StringUtils.nullOrEmpty(deleteIndex));
-            schedule.setClassName(indexClass);
-            if (!IndexType.SERVER_STARTUP.equals(indexType)) {
-                schedule.setDate(cal.getTime());
-                IndexTask indexTask = new IndexTask(searchService, !StringUtils.nullOrEmpty(deleteIndex), fullClassNames.get(indexClass));
-                // schedule the build, note that if the date is in the past, the build will occur now
-                if (!IndexType.ONCE.equals(indexType)) {
-                    taskScheduler.scheduleAtFixedRate(indexTask, cal.getTime(), periodCal.getTimeInMillis() - cal.getTimeInMillis());
+        try {
+            sesh = sessionFactory.openSession();
+            for (String indexClass : indexClasses) {
+                tx = sesh.beginTransaction();
+                if (thisSchedule != null && indexClass.equals(thisSchedule.getClassName())) {
+                    schedule = thisSchedule;
                 } else {
-                    taskScheduler.schedule(indexTask, cal.getTime());
+                    schedule = new IndexSchedule();
+                }
+                schedule.setType(indexType);
+                schedule.setFullRebuild(!StringUtils.nullOrEmpty(deleteIndex));
+                schedule.setClassName(indexClass);
+                if (!IndexType.SERVER_STARTUP.equals(indexType)) {
+                    schedule.setDate(cal.getTime());
+                    // save the current schedule and commit the transaction
+                    schedule = indexScheduleDAO.save(sesh, schedule);
+                    // this ensures that in the IndexTask, the schedule can be retrieved
+                    tx.commit();
+                    
+                    IndexTask indexTask = new IndexTask(sessionFactory, searchService, indexScheduleDAO, schedule.getId());
+                    // schedule the build, note that if the date is in the past, the build will occur now
+                    if (!IndexType.ONCE.equals(indexType)) {
+                        taskScheduler.scheduleAtFixedRate(indexTask, cal.getTime(), periodCal.getTimeInMillis() - cal.getTimeInMillis());
+                    } else {
+                        taskScheduler.schedule(indexTask, cal.getTime());
+                    }
                 }
             }
-            
-            // save the current schedule
-            indexScheduleDAO.save(schedule);
+        } catch (Exception e) {
+            log.error("Error occurred saving and scheduling index builds", e);
+            if (tx != null) {
+                tx.rollback();
+            }
+        } finally {
+            if (sesh != null) {
+                sesh.close();
+            }
         }
         return schedule;
     }
@@ -347,36 +371,65 @@ public class AdminDataIndexController extends AbstractController {
      * Run the index now.
      * @param request
      * @param response
+     * @throws IOException 
      */
     @RolesAllowed({Role.ADMIN, Role.ROOT})
     @RequestMapping(value = "/admin/index/runIndex.htm", method = RequestMethod.GET)
     public void runDataIndex(HttpServletRequest request, 
-                                       HttpServletResponse response) {
-        // run the index now
+                             HttpServletResponse response) throws IOException {
         String deleteIndex = request.getParameter(PARAM_DELETE_INDEX);
-        Session sesh = getRequestContext().getHibernate();
         String[] indexClasses = request.getParameterValues("indexClass");
-        
+
         if (indexClasses == null || indexClasses.length < 1) {
-            if (deleteIndex != null) {
-                searchService.deleteIndexes(sesh);
-            }
-            searchService.createIndexes(sesh);
-        } else {
-            Map<String, String> fullClassNames = IndexUtil.getFullNamesForIndexedClasses(indexClasses);
-            
-            for (String string : indexClasses) {
-                Class clazz;
-                try {
-                    clazz = Class.forName(fullClassNames.get(string));
-                    if (deleteIndex != null) {
-                        searchService.deleteIndex(clazz);
-                    }
-                    searchService.createIndex(clazz);
-                } catch (ClassNotFoundException e) {
-                    log.error("Error building index for class "+string+" with full name "+fullClassNames.get(string), e);
-                }
+            Set<Class<?>> classes = IndexUtil.getIndexedClasses();
+            indexClasses = new String[classes.size()];
+            int i = 0;
+            for (Class clazz : classes) {
+                indexClasses[i] = clazz.getSimpleName();
+                i++;
             }
         }
+        
+        List<IndexSchedule> schedules = indexScheduleDAO.getIndexSchedules();
+        Map<String,String> fullClassNames = IndexUtil.getFullNamesForIndexedClasses(indexClasses);
+        if (schedules == null || schedules.isEmpty()) {
+            schedules = new ArrayList<IndexSchedule>(indexClasses.length);
+            for (String string : indexClasses) {
+                // create new Once indexes for right now for the indexClasses so it is recorded when they are indexed
+                IndexSchedule newSchedule = new IndexSchedule();
+                newSchedule.setClassName(string);
+                newSchedule.setType(IndexType.ONCE);
+                newSchedule.setFullRebuild(!StringUtils.nullOrEmpty(deleteIndex));
+                newSchedule.setDate(new Date());
+                indexScheduleDAO.save(newSchedule);
+            }
+            schedules = indexScheduleDAO.getIndexSchedules();
+        } 
+        JSONArray array = new JSONArray();
+        for (IndexSchedule schedule : schedules) {
+            Class clazz = null;
+            try {
+                clazz = Class.forName(fullClassNames.get(schedule.getClassName()));
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+            if (schedule.isFullRebuild()) {
+                if (clazz != null) {
+                    searchService.deleteIndex(clazz);
+                } else {
+                    searchService.deleteIndexes();
+                }
+            }
+            if (clazz != null) {
+                searchService.createIndex(clazz);
+            } else {
+                searchService.createIndexes();
+            }
+            // update the last run time of the schedule
+            schedule.setLastRun(new Date());
+            schedule = indexScheduleDAO.saveOrUpdate(schedule);
+            array.add(schedule.flatten());
+        }
+        writeJson(request, response, array.toString());
     } 
 }

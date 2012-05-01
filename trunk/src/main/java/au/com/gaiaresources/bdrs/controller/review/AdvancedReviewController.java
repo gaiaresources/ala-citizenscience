@@ -14,9 +14,8 @@ import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceUtil;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
-import au.com.gaiaresources.bdrs.model.report.ReportCapability;
+import au.com.gaiaresources.bdrs.model.report.Report;
 import au.com.gaiaresources.bdrs.model.report.ReportDAO;
-import au.com.gaiaresources.bdrs.model.report.impl.ReportView;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.facet.Facet;
 import au.com.gaiaresources.bdrs.service.facet.FacetService;
@@ -122,7 +121,7 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
         mv.addObject("recordCount", recordCount);
         mv.addObject("resultsPerPage", resultsPerPage);
         mv.addObject("pageCount", pageCount);
-        mv.addObject("reportList", reportDAO.getReports(ReportCapability.SCROLLABLE_RECORDS, ReportView.ADVANCED_REVIEW));
+        mv.addObject("reportList", getReportList());
         
         // Avoid the situation where the number of results per page is increased
         // thereby leaving a page number higher than the total page count.
@@ -131,6 +130,12 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
         return mv;
     }
     
+    /**
+     * Returns a list of reports that are available to the view.
+     * @return
+     */
+    protected abstract List<Report> getReportList();
+
     /**
      * Returns the default sorting parameter for the view to be used for the initial sort.
      * @return
@@ -143,7 +148,7 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
     public void advancedReviewKMLSightings(HttpServletRequest request, HttpServletResponse response, 
             List<Facet> facetList, ScrollableResults<T> sr) throws IOException, JAXBException {
 
-        KMLWriter writer = KMLUtils.createKMLWriter(request.getContextPath(), null);
+        KMLWriter writer = KMLUtils.createKMLWriter(request.getContextPath(), null, getKMLFolderName());
         User currentUser = getRequestContext().getUser();
         String contextPath = request.getContextPath();
         Session sesh = getRequestContext().getHibernate();
@@ -166,6 +171,12 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
         writer.write(false, response.getOutputStream());
     }
     
+    /**
+     * Returns the name of the root folder to use in the kml file.
+     * @return
+     */
+    protected abstract String getKMLFolderName();
+
     /**
      * Writes a list of results to KML.
      * @param writer the writer to use for writing

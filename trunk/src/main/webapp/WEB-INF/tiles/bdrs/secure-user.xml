@@ -77,7 +77,7 @@
     </definition>
     
     <definition name="advancedReviewLocations" extends="user-template">
-        <put-attribute name="title" value="Sightings"/>
+        <put-attribute name="title" value="Locations"/>
         <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/review/sightings/advancedReviewLocations.jsp"/>
         <put-attribute name="maps" value="true"/>
         <put-list-attribute name="customJavaScript">

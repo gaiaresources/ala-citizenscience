@@ -2,6 +2,8 @@ package au.com.gaiaresources.bdrs.model.index;
 
 import java.util.List;
 
+import org.hibernate.Session;
+
 import au.com.gaiaresources.bdrs.db.TransactionDAO;
 import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.model.portal.Portal;
@@ -18,6 +20,11 @@ public interface IndexScheduleDAO extends TransactionDAO {
      * @return a {@link List} of all the {@link IndexSchedule}s for the current portal.
      */
     public List<IndexSchedule> getIndexSchedules();
+    /**
+     * @param sesh the session to use for the retrieval
+     * @return a {@link List} of all the {@link IndexSchedule}s for the current portal.
+     */
+    public List<IndexSchedule> getIndexSchedules(Session sesh);
 
     /**
      * Gets a {@link List} of all the {@link IndexSchedule}s for the given portal
@@ -39,4 +46,12 @@ public interface IndexScheduleDAO extends TransactionDAO {
      * @return
      */
     public IndexSchedule getIndexSchedule(int id);
+
+    /**
+     * Gets the {@link IndexSchedule} with the given id.
+     * @param sesh the session to use for the retreival
+     * @param id
+     * @return
+     */
+    public IndexSchedule getIndexSchedule(Session sesh, int id);
 }

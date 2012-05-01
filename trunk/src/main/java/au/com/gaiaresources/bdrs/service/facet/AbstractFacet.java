@@ -17,7 +17,7 @@ import java.util.Map;
 public abstract class AbstractFacet implements Facet {
 
     /** Suffix applied to request parameters that contain option values */
-    private static final String OPTION_SUFFIX = "_option";
+    public static final String OPTION_SUFFIX = "_option";
     /** Suffix applied to request parameters that contain the state of a Facet's expanded property */
     private static final String EXPANDED_SUFFIX = "_expanded";
 

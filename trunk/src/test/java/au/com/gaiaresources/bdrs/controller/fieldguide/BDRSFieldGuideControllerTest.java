@@ -73,7 +73,6 @@ public class BDRSFieldGuideControllerTest extends AbstractControllerTest {
     
     @Before
     public void setup() throws Exception {
-        IndexUtil.setDefaultIndexDirectory();
         for (String keyword : PROFILE_KEYWORDS) {
             keywordUse.put(keyword, 0);
         }

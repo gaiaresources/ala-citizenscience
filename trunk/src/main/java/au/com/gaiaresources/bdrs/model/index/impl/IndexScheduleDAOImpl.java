@@ -3,6 +3,7 @@ package au.com.gaiaresources.bdrs.model.index.impl;
 import java.util.List;
 
 import org.hibernate.Query;
+import org.hibernate.Session;
 import org.springframework.stereotype.Repository;
 
 import au.com.gaiaresources.bdrs.db.impl.AbstractDAOImpl;
@@ -27,6 +28,16 @@ public class IndexScheduleDAOImpl extends AbstractDAOImpl implements IndexSchedu
     @Override
     public List<IndexSchedule> getIndexSchedules() {
         Query q = getSession().createQuery("from IndexSchedule");
+        return q.list();
+    }
+    
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.index.IndexScheduleDAO#getIndexSchedules(Session sesh)
+     */
+    @Override
+    public List<IndexSchedule> getIndexSchedules(Session sesh) {
+        Query q = sesh.createQuery("from IndexSchedule");
         return q.list();
     }
 
@@ -69,5 +80,14 @@ public class IndexScheduleDAOImpl extends AbstractDAOImpl implements IndexSchedu
     @Override
     public IndexSchedule getIndexSchedule(int id) {
         return getByID(IndexSchedule.class, id);
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.index.IndexScheduleDAO#getIndexSchedule(int)
+     */
+    @Override
+    public IndexSchedule getIndexSchedule(Session sesh, int id) {
+        return getByID(sesh, IndexSchedule.class, id);
     }
 }

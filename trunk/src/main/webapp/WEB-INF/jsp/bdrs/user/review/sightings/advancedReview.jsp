@@ -28,13 +28,13 @@
 	    </div>
 	    <div class="resultCol right">
 	        <div class="columnBanner">
-	           <span>
+	           <span id="count"><c:out value="${ resultCount }"/>
                    <c:choose>
                        <c:when test="${ recordCount == 1 }">
-                           <c:out value="${ resultCount }"/> ${viewType} returned
+                            ${viewType} returned
                        </c:when>
                        <c:otherwise>
-                           <c:out value="${ resultCount }"/> ${viewType}s returned
+                           ${viewType}s returned
                        </c:otherwise>
                    </c:choose>
                </span>

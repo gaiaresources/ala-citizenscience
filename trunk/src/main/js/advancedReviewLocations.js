@@ -22,6 +22,7 @@ bdrs.advancedReview.TABLE_ROW_TMPL = '\
 bdrs.advancedReview.JSON_URL = "/review/sightings/advancedReviewJSONLocations.htm?";
 bdrs.advancedReview.KML_URL = "/review/sightings/advancedReviewKMLLocations.htm?";
 bdrs.advancedReview.DOWNLOAD_URL = "/review/sightings/advancedReviewDownloadLocations.htm?";
+bdrs.advancedReview.COUNT_URL = "/review/sightings/advancedReviewCountLocations.htm?";
 
 /**
  * Gets the checked state of an item in the location list on page load.

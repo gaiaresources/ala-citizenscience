@@ -93,7 +93,7 @@ public class RecordDownloadWriter extends AbstractDownloadWriter<Record> {
             throws JAXBException {
         int recordCount = 0;
         List<Record> rList = new ArrayList<Record>(ScrollableResults.RESULTS_BATCH_SIZE);
-        KMLWriter writer = KMLUtils.createKMLWriter(contextPath, null);
+        KMLWriter writer = KMLUtils.createKMLWriter(contextPath, null, KMLUtils.KML_RECORD_FOLDER);
         while (sc.hasMoreElements()) {
             rList.add(sc.nextElement());
             

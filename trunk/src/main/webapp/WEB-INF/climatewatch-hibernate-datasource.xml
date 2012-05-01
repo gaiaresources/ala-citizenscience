@@ -23,5 +23,11 @@
 
     <!-- The abstract parent bean can be found in climatewatch-hibernate.xml -->
     <bean id="sessionFactory" parent="abstractSessionFactory">
+        <property name="hibernateProperties">
+            <props merge="true">
+                <prop key="hibernate.search.default.indexBase">/tmp/bdrs-googlecode/lucene</prop>
+                <prop key="hibernate.search.indexing_strategy">manual</prop>
+            </props>
+        </property>
     </bean>
 </beans>

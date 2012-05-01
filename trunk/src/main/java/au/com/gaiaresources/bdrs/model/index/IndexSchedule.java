@@ -34,6 +34,7 @@ public class IndexSchedule extends PortalPersistentImpl {
     private Date date;
     private boolean fullRebuild = false;
     private String className;
+    private Date lastRun;
     
     /**
      * Default constructor.
@@ -43,20 +44,18 @@ public class IndexSchedule extends PortalPersistentImpl {
     }
     
     public IndexSchedule(String className, IndexType type) {
-        this.className = className;
-        this.type = type;
+        setClassName(className);
+        setType(type);
     }
     
     public IndexSchedule(String className, IndexType type, boolean fullRebuild) {
         this(className, type);
-        this.fullRebuild = fullRebuild;
+        setFullRebuild(fullRebuild);
     }
     
     public IndexSchedule(String className, IndexType type, boolean fullRebuild, Date date) {
         this(className, type, fullRebuild);
-        if (date != null) {
-            this.date = (Date) date.clone();
-        }
+        setDate(date);
     }
     
     /**
@@ -160,14 +159,14 @@ public class IndexSchedule extends PortalPersistentImpl {
     }
     
     /**
-     * Returns the date in String format specified by {@link DateFormatter::$DAY_MONTH_YEAR}.
+     * Returns the date in String format specified by {@link DateFormatter::$DAY_MONTH_YEAR_TIME}.
      */
     @Transient
     public String getDateString() {
         if (getDate() == null) {
             return "";
         }
-        return DateFormatter.format(getDate(), DateFormatter.DAY_MONTH_YEAR);
+        return DateFormatter.format(getDate(), DateFormatter.DAY_MONTH_YEAR_TIME);
     }
     
     /**
@@ -192,5 +191,34 @@ public class IndexSchedule extends PortalPersistentImpl {
         Calendar cal = Calendar.getInstance();
         cal.setTime(getDate());
         return cal.get(Calendar.DAY_OF_WEEK);
+    }
+
+    /**
+     * @return the date of the last time the index was built
+     */
+    @Column(name = "LAST_RUN", nullable=true)
+    public Date getLastRun() {
+        if (lastRun != null) {
+            return (Date) lastRun.clone();
+        }
+        return null;
+    }
+
+    /**
+     * @param lastRun the date of the last build of the index
+     */
+    public void setLastRun(Date lastRun) {
+        this.lastRun = lastRun != null ? (Date) lastRun.clone() : null;
+    }
+    
+    /**
+     * Returns the date in String format specified by {@link DateFormatter::$DAY_MONTH_YEAR_TIME}.
+     */
+    @Transient
+    public String getLastRunString() {
+        if (getLastRun() == null) {
+            return "Never";
+        }
+        return DateFormatter.format(getLastRun(), DateFormatter.DAY_MONTH_YEAR_TIME);
     }
 }

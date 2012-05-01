@@ -72,6 +72,7 @@ public class AdminDataIndexControllerTest extends AbstractControllerTest {
 
     @Test
     public final void testviewDataIndexSchedule() throws Exception {
+        requestDropDatabase();
         login("admin", "password", new String[] { Role.ADMIN });
         
         request.setMethod("GET");
@@ -85,6 +86,7 @@ public class AdminDataIndexControllerTest extends AbstractControllerTest {
 
     @Test
     public final void testsaveDataIndexSchedule() throws Exception {
+        requestDropDatabase();
         login("admin", "password", new String[] { Role.ADMIN });
         
         Set<Class<?>> indexClasses = IndexUtil.getIndexedClasses();
