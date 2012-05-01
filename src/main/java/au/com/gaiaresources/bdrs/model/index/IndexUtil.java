@@ -64,9 +64,9 @@ public class IndexUtil {
     public static Date getLastIndexBuildTime(IndexScheduleDAO indexDAO,
             Class<? extends PersistentImpl> class1) {
         List<IndexSchedule> schedules = indexDAO.getIndexSchedulesForClass(class1);
-        Date indexDate = null;
+        Date indexDate = new Date(0);
         if (schedules != null) {
-            Date tempDate = new Date(0);
+            Date tempDate = null;
             for (IndexSchedule indexSchedule : schedules) {
                 tempDate = indexSchedule.getLastRun();
                 if (tempDate != null) {
