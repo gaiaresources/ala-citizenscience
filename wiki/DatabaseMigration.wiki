@@ -543,7 +543,7 @@ alter table attribute alter visibility set not null;
 rollback;
 </code>
 
-= r2?? =
+= r271 =
 <code language="sql">
 begin;
 update preference set description = substring(description from 0 for char_length(description)-4) || '<dd>{{{<code>}}}optionCount{{{</code>}}} - the number of facet options visible by default. The remaining options can be made visible by the user. Default = 10</dd></dl>' where key like 'au.com.gaiaresources.bdrs.service.facet%';
