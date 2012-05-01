@@ -70,20 +70,8 @@ bdrs.advancedReview.initTableView = function(formSelector,
     });
     
     // AJAX load the content for the table
-    var url = bdrs.contextPath + bdrs.advancedReview.JSON_URL;
-    var queryParams = jQuery(formSelector).serialize();
+    bdrs.advancedReview.loadTableContent(formSelector, tableSelector, viewStyle);
 
-    var getRecordsHandlerFcn;
-    
-    if (viewStyle === bdrs.advancedReview.VIEW_STYLE_DIV) {
-        getRecordsHandlerFcn = bdrs.advancedReview.getInitViewStyleDivFcn(tableSelector);
-    } else {
-        // default to table style
-        getRecordsHandlerFcn = bdrs.advancedReview.getInitViewStyleTableFcn(tableSelector);
-    }
-    
-    jQuery.getJSON(url + queryParams, {}, getRecordsHandlerFcn);
-    
     // Change Handlers for the Sort Property and Order
     var changeHandler = function(evt) {
         jQuery(bdrs.advancedReview.FACET_FORM_SELECTOR).submit();
@@ -119,6 +107,26 @@ bdrs.advancedReview.initTableView = function(formSelector,
         jNode.addClass("cursorPointer");
     });
     
+};
+
+/**
+ * AJAX loads content to the table described by tableselector.
+ */
+bdrs.advancedReview.loadTableContent = function(formSelector, tableSelector, viewStyle) {
+    // AJAX load the content for the table
+    var url = bdrs.contextPath + bdrs.advancedReview.JSON_URL;
+    var queryParams = jQuery(formSelector).serialize();
+
+    var getRecordsHandlerFcn;
+    
+    if (viewStyle === bdrs.advancedReview.VIEW_STYLE_DIV) {
+        getRecordsHandlerFcn = bdrs.advancedReview.getInitViewStyleDivFcn(tableSelector);
+    } else {
+        // default to table style
+        getRecordsHandlerFcn = bdrs.advancedReview.getInitViewStyleTableFcn(tableSelector);
+    }
+    
+    jQuery.getJSON(url + queryParams, {}, getRecordsHandlerFcn);
 };
 
 /**

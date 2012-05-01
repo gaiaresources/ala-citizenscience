@@ -16,6 +16,10 @@
 
 <div class="alaSightingsTableViewContent">
     <div class="sortPanel">
+        <%-- The results messages will contain any messages about the results on the page
+             Currently, this is only used in the Location Review for a message 
+             about map selection and a link to clear the map --%>
+        <div id="resultsMessages" class="left"></div>
         <div class="${viewStyle == 'DIV' ? 'left' : 'right'}">
             <label for="resultsPerPage">Results per page</label>
             <select id="resultsPerPage" name="resultsPerPage">

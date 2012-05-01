@@ -25,6 +25,7 @@ public class KMLUtils {
     
     public static final String GET_RECORD_PLACEMARK_PNG_URL = "/bdrs/public/map/icon/record_placemark.png";
     public static final String KML_RECORD_FOLDER = "Record";
+    public static final String KML_LOCATION_FOLDER = "Location";
     public static final String KML_POINT_ICON_ID = "pointIcon";
     public static final String KML_POLYGON_STYLE = "polygonStyle";
     public static final String KML_POINT_ICON_ID_HIGHLIGHT = "pointIconHighlight";
@@ -34,19 +35,19 @@ public class KMLUtils {
 
     public static final String KML_CONTENT_TYPE = "application/vnd.google-earth.kml+xml";
         
-    private static void writePlacemark(KMLWriter writer, String label, String description, String id, Geometry geom) {
+    private static void writePlacemark(KMLWriter writer, String folderName, String label, String description, String id, Geometry geom) {
         if (geom instanceof Point) {
-            writer.createPlacemark(KML_RECORD_FOLDER, label, description, id, geom, KML_POINT_ICON_ID);
+            writer.createPlacemark(folderName, label, description, id, geom, KML_POINT_ICON_ID);
         } else if (geom instanceof MultiPolygon) {
-            writer.createPlacemark(KML_RECORD_FOLDER, label, description, id, geom, KML_POLYGON_STYLE);
+            writer.createPlacemark(folderName, label, description, id, geom, KML_POLYGON_STYLE);
         } else if (geom instanceof MultiLineString) {
-            writer.createPlacemark(KML_RECORD_FOLDER, label, description, id, geom, KML_POLYGON_STYLE);
+            writer.createPlacemark(folderName, label, description, id, geom, KML_POLYGON_STYLE);
         } else {
             log.error("Geometry type not supported : " + geom.getClass().getName());    
         }
     }
     
-    public static KMLWriter createKMLWriter(String contextPath, String placemarkColorHex) throws JAXBException {
+    public static KMLWriter createKMLWriter(String contextPath, String placemarkColorHex, String folderName) throws JAXBException {
         KMLWriter writer = new KMLWriter();
         String placemark = contextPath + GET_RECORD_PLACEMARK_PNG_URL + "?color=";
         
@@ -64,7 +65,7 @@ public class KMLUtils {
         writer.createStyleIcon(KML_POINT_ICON_ID_HIGHLIGHT, hlPlacemark, 16, 16);
         writer.createStylePoly(KML_POLYGON_STYLE_HIGHLIGHT, HIGHLIGHT_PLACEMARK_COLOR.toCharArray());
         
-        writer.createFolder(KML_RECORD_FOLDER);
+        writer.createFolder(folderName);
         return writer;
     }
     
@@ -81,9 +82,9 @@ public class KMLUtils {
             
             Geometry geom = record.getGeometry();
             if (geom != null) {
-                writePlacemark(writer, label, description, String.valueOf(record.getId()), geom);
+                writePlacemark(writer, KML_RECORD_FOLDER, label, description, String.valueOf(record.getId()), geom);
             } else if(record.getLocation() != null && record.getLocation().getLocation() != null) {
-                writePlacemark(writer, label, description, String.valueOf(record.getId()), record.getLocation().getLocation());
+                writePlacemark(writer, KML_RECORD_FOLDER, label, description, String.valueOf(record.getId()), record.getLocation().getLocation());
             } else {
                 log.info("Cannot find coordinate for record");
             }
@@ -91,7 +92,7 @@ public class KMLUtils {
     }
 
     public static void writeRecordsToKML(User currentUser, String contextPath, String placemarkColorHex, List<Record> recordList, OutputStream outputStream) throws JAXBException {
-        KMLWriter writer = createKMLWriter(contextPath, placemarkColorHex);
+        KMLWriter writer = createKMLWriter(contextPath, placemarkColorHex, KML_RECORD_FOLDER);
         writeRecords(writer, currentUser, contextPath, recordList);
         writer.write(false, outputStream);
     }
@@ -114,7 +115,7 @@ public class KMLUtils {
             
             Geometry geom = location.getLocation();
             if (geom != null) {
-                writePlacemark(writer, label, description, String.valueOf(location.getId()), geom);
+                writePlacemark(writer, KML_LOCATION_FOLDER, label, description, String.valueOf(location.getId()), geom);
             } else {
                 log.info("Cannot find coordinate for location");
             }
@@ -130,7 +131,7 @@ public class KMLUtils {
      * @throws JAXBException
      */
     public static void writeLocationsToKML(String contextPath, String placemarkColorHex, List<Location> locationList, OutputStream outputStream) throws JAXBException {
-        KMLWriter writer = createKMLWriter(contextPath, placemarkColorHex);
+        KMLWriter writer = createKMLWriter(contextPath, placemarkColorHex, KML_LOCATION_FOLDER);
         writeLocations(writer, contextPath, locationList);
         writer.write(false, outputStream);
     }

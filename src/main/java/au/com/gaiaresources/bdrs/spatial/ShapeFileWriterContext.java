@@ -22,6 +22,9 @@ public class ShapeFileWriterContext {
     private static final int DEFAULT_STRING_LENGTH = 255;
     private static final int DEFAULT_DATE_STRING_LENGTH = 20;
     
+    public static final String FEATURE_RECORD = "Record";
+    public static final String FEATURE_LOCATION = "Location";
+    
     private List<AttributeDescriptorItem> descList;
     private SimpleFeatureTypeBuilder builder;
     private List<Survey> surveyList;
@@ -29,15 +32,15 @@ public class ShapeFileWriterContext {
     
     private static final int KEY_LENGTH_LIMIT = 10;
     
-    public ShapeFileWriterContext(ShapefileType shapefileType) {
-        this(shapefileType, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+    public ShapeFileWriterContext(ShapefileType shapefileType, String featureName) {
+        this(DefaultGeographicCRS.WGS84, shapefileType, Collections.EMPTY_LIST, Collections.EMPTY_LIST, featureName);
     }
     
-    public ShapeFileWriterContext(ShapefileType shapefileType, List<Survey> surveyList, List<CensusMethod> cmList) {
-        this(DefaultGeographicCRS.WGS84, shapefileType, surveyList, cmList);
+    public ShapeFileWriterContext(ShapefileType shapefileType, List<Survey> surveyList, List<CensusMethod> cmList, String featureName) {
+        this(DefaultGeographicCRS.WGS84, shapefileType, surveyList, cmList, featureName);
     }
     
-    public ShapeFileWriterContext(CoordinateReferenceSystem crs, ShapefileType shapefileType, List<Survey> surveyList, List<CensusMethod> cmList) {
+    public ShapeFileWriterContext(CoordinateReferenceSystem crs, ShapefileType shapefileType, List<Survey> surveyList, List<CensusMethod> cmList, String featureName) {
         if (crs == null) {
             throw new IllegalArgumentException("CoordinateReferenceSystem, crs, cannot be null");
         }
@@ -55,7 +58,7 @@ public class ShapeFileWriterContext {
         this.cmList = cmList;
         descList = new LinkedList<AttributeDescriptorItem>();
         builder = new SimpleFeatureTypeBuilder();
-        builder.setName("Record");
+        builder.setName(featureName);
         builder.setCRS(DefaultGeographicCRS.WGS84); // <- Coordinate reference system
         
         switch (shapefileType) {

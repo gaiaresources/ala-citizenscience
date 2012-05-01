@@ -544,10 +544,16 @@
         <put-attribute name="title" value="Edit Data Index Schedule"/>
         <put-attribute name="content" value="/WEB-INF/jsp/bdrs/admin/index/dataIndexScheduler.jsp"/>
         <put-attribute name="indexSchedule" type="object"/>
+        <put-list-attribute name="customJavaScript">
+            <add-attribute>bdrs/index.js</add-attribute>
+        </put-list-attribute>
     </definition>
     <definition name="dataIndexScheduleList" extends="admin-template">
         <put-attribute name="title" value="Add/Edit Data Index Schedule"/>
         <put-attribute name="content" value="/WEB-INF/jsp/bdrs/admin/index/dataIndexListing.jsp"/>
         <put-attribute name="indexSchedules" type="object"/>
+        <put-list-attribute name="customJavaScript">
+            <add-attribute>bdrs/index.js</add-attribute>
+        </put-list-attribute>
     </definition>
 </tiles-definitions>

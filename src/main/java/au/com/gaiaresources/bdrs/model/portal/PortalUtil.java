@@ -263,21 +263,13 @@ public class PortalUtil {
         IndexScheduleDAO indexScheduleDAO = AppContext.getBean(IndexScheduleDAO.class);
         List<IndexSchedule> schedules = indexScheduleDAO.getIndexSchedules(portal);
         SearchService service = AppContext.getBean(SearchService.class);
-        Map<String, String> fullClassNames = IndexUtil.getFullNamesForIndexedClasses(null);
-        
-        // set the indexing directory system property
-        try {
-            IndexUtil.setDefaultIndexDirectory();
-        } catch (IOException e) {
-            log.error("Unable to set indexing directory. Indexes will be saved in "+System.getProperty(IndexUtil.INDEX_DIRECTORY_PROPERTY));
-        }
         
         if (schedules != null) {
             TaskScheduler scheduler = AppContext.getBean(TaskScheduler.class);
             // must call initialize in order for scheduled tasks to work
             ((ThreadPoolTaskScheduler)scheduler).initialize();
             for (IndexSchedule indexSchedule : schedules) {
-                IndexTask task = new IndexTask(service, indexSchedule.isFullRebuild(), fullClassNames.get(indexSchedule.getClassName()));
+                IndexTask task = new IndexTask(sesh.getSessionFactory(), service, indexScheduleDAO, indexSchedule.getId());
                 
                 if (IndexType.SERVER_STARTUP.equals(indexSchedule.getType())) {
                     // schedule the task to run now
@@ -286,11 +278,10 @@ public class PortalUtil {
                     // otherwise schedule indexes accordingly as long as it is 
                     // not a one time only task that was scheduled for sometime 
                     // before right now
-                    log.debug("scheduling build of index for "+indexSchedule.getClassName()+" on "+indexSchedule.getDate()+
-                              " with interval of "+indexSchedule.getPeriod());
                     if (!IndexType.ONCE.equals(indexSchedule.getType())) {
                         scheduler.scheduleAtFixedRate(task, indexSchedule.getDate(), indexSchedule.getPeriod());
-                    } else {
+                    } else if (indexSchedule.getLastRun() == null) {
+                        // only schedule the ONCE index if it has not yet been run
                         scheduler.schedule(task, indexSchedule.getDate());
                     }
                 }

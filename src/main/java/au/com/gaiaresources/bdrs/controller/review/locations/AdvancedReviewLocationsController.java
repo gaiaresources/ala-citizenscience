@@ -2,6 +2,7 @@ package au.com.gaiaresources.bdrs.controller.review.locations;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,19 +42,21 @@ import au.com.gaiaresources.bdrs.db.impl.HqlQuery.SortOrder;
 import au.com.gaiaresources.bdrs.db.impl.Predicate;
 import au.com.gaiaresources.bdrs.db.impl.ScrollableResultsImpl;
 import au.com.gaiaresources.bdrs.kml.KMLWriter;
+import au.com.gaiaresources.bdrs.model.index.IndexScheduleDAO;
+import au.com.gaiaresources.bdrs.model.index.IndexUtil;
 import au.com.gaiaresources.bdrs.model.index.IndexingConstants;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
 import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.record.Record;
+import au.com.gaiaresources.bdrs.model.report.Report;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.search.SearchService;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.facet.Facet;
 import au.com.gaiaresources.bdrs.service.facet.SurveyFacet;
 import au.com.gaiaresources.bdrs.service.facet.option.FacetOption;
-import au.com.gaiaresources.bdrs.service.facet.record.RecordSurveyFacet;
-import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import au.com.gaiaresources.bdrs.util.DateFormatter;
 import au.com.gaiaresources.bdrs.util.KMLUtils;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 
@@ -80,9 +83,18 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
     @Autowired
     private SearchService searchService;
     
+    @Autowired
+    private IndexScheduleDAO indexDAO;
+    
     private static final String KML_FILENAME = "Locations.kml";
     private static final String SHAPEFILE_ZIP_ENTRY_FORMAT = "shp/Locations.zip";
     private static final String XLS_ZIP_ENTRY_FORMAT = "xls/Locations.xls";
+    
+    /**
+     * Constants for request parameters
+     */
+    public static final String PARAM_LOCATION_AREA = "locationArea";
+    public static final String PARAM_LOCATIONS = "locations";
     
     public static final Set<String> VALID_SORT_PROPERTIES;
     
@@ -110,32 +122,107 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
                                        @RequestParam(value=RESULTS_PER_PAGE_QUERY_PARAM_NAME, required=false, defaultValue=DEFAULT_RESULTS_PER_PAGE) Integer resultsPerPage,
                                        @RequestParam(value=PAGE_NUMBER_QUERY_PARAM_NAME, required=false, defaultValue=DEFAULT_PAGE_NUMBER) Integer pageNumber) {
         //configureHibernateSession();
+        String locations = request.getParameter(PARAM_LOCATIONS);
+        String locationArea = request.getParameter(PARAM_LOCATION_AREA);
+        // map view doesn't filter based on locations parameter
+        List<Location> locList = null;
         List<Facet> facetList = facetService.getLocationFacetList(currentUser(), (Map<String, String[]>)request.getParameterMap());
         Long recordCount = countMatchingRecords(facetList,
                                                 surveyId,
-                                                request.getParameter(SEARCH_QUERY_PARAM_NAME));
+                                                request.getParameter(SEARCH_QUERY_PARAM_NAME),
+                                                locationArea, locList);
         
         ModelAndView mv = getAdvancedReviewView(request, surveyId, resultsPerPage, pageNumber, facetList, recordCount, "advancedReviewLocations");
+        if (!StringUtils.nullOrEmpty(request.getParameter(SEARCH_QUERY_PARAM_NAME))) {
+            if (recordCount == 0) {
+                Date indexDate = IndexUtil.getLastIndexBuildTime(indexDAO, Location.class);
+                if (indexDate == null) {
+                    getRequestContext().addMessage("bdrs.index.exist.error");
+                } else if (recordCount < 1) {
+                    getRequestContext().addMessage("bdrs.index.build.date", 
+                                                   new Object[]{
+                                                        DateFormatter.format(indexDate, DateFormatter.DAY_MONTH_YEAR_TIME)
+                                                   });
+                }
+            }
+        }
+        if (!StringUtils.nullOrEmpty(locationArea)) {
+            mv.addObject(PARAM_LOCATION_AREA, locationArea);
+        }
+        if (!StringUtils.nullOrEmpty(locations)) {
+            mv.addObject(PARAM_LOCATIONS, locations);
+        }
         return mv;
     }
     
     /**
+     * Returns the number of results matching the query filtered by the facet list, 
+     * searchText, locationArea, and location list.
+     * @param facetList a list of facets to filter by
+     * @param surveyId a survey id to filter by
+     * @param searchText a text string to filter by
+     * @param locationArea a geometric area (in WKT string) to filter by
+     * @param locList a list of locations to filter the selection by
+     * @return the number of results returned from filtered query
+     */
+    private Long countMatchingRecords(List<Facet> facetList, Integer surveyId,
+            String searchText, String locationArea, List<Location> locList) {
+        List<Location> locations = null;
+        if (!StringUtils.nullOrEmpty(searchText)) {
+            // use an indexed query for searchText
+            try {
+                Query indexedQuery = getIndexedQuery(facetList, surveyId, null, null, searchText, locationArea);
+                locations = indexedQuery.list();
+            } catch (Exception e) {
+                log.error("Exception occurred creating query for search text '"+searchText+"'. Ignoring search criteria.", e);
+            }
+            
+            //if it matched nothing when a search term was specified, return nothing
+            if (locations == null || locations.isEmpty()) {
+                return 0L;
+            }
+        }
+        // add the location list parameter as query criteria
+        if (locations == null) {
+            locations = locList;
+        } else if (locList != null) {
+            locations.addAll(locList);
+        }
+        
+        HqlQuery hqlQuery = new HqlQuery(getCountSelect());
+        if (!StringUtils.nullOrEmpty(locationArea)) {
+            hqlQuery.and(new Predicate("within(location.location, ?) = True"));
+        }
+        applyFacetsToQuery(hqlQuery, facetList, surveyId, searchText);
+
+        if (locations != null && !locations.isEmpty()) {
+            hqlQuery.and(new Predicate("location in (:locs)"));
+        }
+        
+        Query query = toHibernateQuery(hqlQuery, locationArea, locations);
+        Object result = query.uniqueResult();
+        return Long.parseLong(result.toString());
+    }
+
+    /**
      * Returns the list of records matching the {@link Facet} criteria as KML.
+     * @throws ParseException 
      */
     @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR, Role.USER})
     @RequestMapping(value = "/review/sightings/advancedReviewKMLLocations.htm", method = RequestMethod.GET)
-    public void advancedReviewKMLSightings(HttpServletRequest request, HttpServletResponse response) throws IOException, JAXBException {
+    public void advancedReviewKMLSightings(HttpServletRequest request, HttpServletResponse response) throws IOException, JAXBException, ParseException {
         configureHibernateSession();
         Integer surveyId = null;
         if(request.getParameter(SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME) != null) {
             surveyId = Integer.parseInt(request.getParameter(SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME));
         }
         List<Facet> facetList = facetService.getLocationFacetList(currentUser(), (Map<String, String[]>)request.getParameterMap());
-        
+        String locationArea = request.getParameter(PARAM_LOCATION_AREA);
         ScrollableResults<Location> sr = getScrollableResults(facetList, surveyId, 
                                                                      request.getParameter(SORT_BY_QUERY_PARAM_NAME), 
                                                                      request.getParameter(SORT_ORDER_QUERY_PARAM_NAME),
-                                                                     request.getParameter(SEARCH_QUERY_PARAM_NAME));
+                                                                     request.getParameter(SEARCH_QUERY_PARAM_NAME),
+                                                                     locationArea, null);
         advancedReviewKMLSightings(request, response, facetList, sr);
     }
     
@@ -161,26 +248,21 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
                                                                     String sortProperty, 
                                                                     String sortOrder, 
                                                                     String searchText, 
-                                                                    String locationArea) throws ParseException {
-        Query query = getMatchingRecordsQuery(facetList, surveyId, sortProperty, sortOrder, searchText, locationArea);
+                                                                    String locationArea,
+                                                                    List<Location> locList) throws ParseException {
+        Query query = getMatchingRecordsQuery(facetList, surveyId, sortProperty, sortOrder, searchText, locationArea, locList);
         return new ScrollableResultsImpl<Location>(query);
-    }
-    protected ScrollableResults<Location> getScrollableResults(List<Facet> facetList,
-                                                               Integer surveyId,
-                                                               String sortProperty, 
-                                                               String sortOrder, 
-                                                               String searchText, 
-                                                               List<Location> locList) throws ParseException {
-       Query query = getMatchingRecordsQuery(facetList, surveyId, sortProperty, sortOrder, searchText, locList);
-       return new ScrollableResultsImpl<Location>(query);
     }
     protected ScrollableResults<Location> getScrollableResults(List<Facet> facetList,
                                                                     Integer surveyId,
                                                                     String sortProperty, 
                                                                     String sortOrder, 
                                                                     String searchText,
-                                                                    int pageNumber, int entriesPerPage, String locationArea) throws ParseException {
-        Query query = getMatchingRecordsQuery(facetList, surveyId, sortProperty, sortOrder, searchText, locationArea);
+                                                                    int pageNumber, 
+                                                                    int entriesPerPage, 
+                                                                    String locationArea,
+                                                                    List<Location> locList) throws ParseException {
+        Query query = getMatchingRecordsQuery(facetList, surveyId, sortProperty, sortOrder, searchText, locationArea, locList);
         return new ScrollableResultsImpl<Location>(query, pageNumber, entriesPerPage);
     }
     
@@ -206,17 +288,9 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
                                             String sortProperty, 
                                             String sortOrder, 
                                             String searchText,
-                                            String locationArea) throws ParseException {
-        return createFacetQuery(facetList, surveyId, sortProperty, sortOrder, searchText, locationArea, null);
-    }
-    
-    protected Query getMatchingRecordsQuery(List<Facet> facetList,
-            Integer surveyId,
-            String sortProperty, 
-            String sortOrder, 
-            String searchText,
-            List<Location> locList) {
-        return createFacetQuery(facetList, surveyId, sortProperty, sortOrder, searchText, locList);
+                                            String locationArea,
+                                            List<Location> locations) throws ParseException {
+        return createFacetQuery(facetList, surveyId, sortProperty, sortOrder, searchText, locationArea, locations);
     }
     
     /**
@@ -228,12 +302,13 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
                                             HttpServletResponse response,
                                             @RequestParam(value=RESULTS_PER_PAGE_QUERY_PARAM_NAME, required=false, defaultValue=DEFAULT_RESULTS_PER_PAGE) Integer resultsPerPage,
                                             @RequestParam(value=PAGE_NUMBER_QUERY_PARAM_NAME, required=false, defaultValue=DEFAULT_PAGE_NUMBER) Integer pageNumber) throws IOException {
-       configureHibernateSession();
+        configureHibernateSession();
         
         Integer surveyId = null;
         if(request.getParameter(SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME) != null) {
             surveyId = Integer.parseInt(request.getParameter(SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME));
         }
+        String locationArea = request.getParameter(PARAM_LOCATION_AREA);
         List<Facet> facetList = facetService.getLocationFacetList(currentUser(), (Map<String, String[]>)request.getParameterMap());
         try {
             ScrollableResults<Location> sc = getScrollableResults(facetList,
@@ -241,7 +316,8 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
                                                                          request.getParameter(SORT_BY_QUERY_PARAM_NAME), 
                                                                          request.getParameter(SORT_ORDER_QUERY_PARAM_NAME),
                                                                          request.getParameter(SEARCH_QUERY_PARAM_NAME),
-                                                                         pageNumber, resultsPerPage, request.getParameter("locationArea"));
+                                                                         pageNumber, resultsPerPage, 
+                                                                         locationArea, null);
             advancedReviewJSONSightings(request, response, facetList, sc);
         } catch (ParseException e) {
             //TODO: return error
@@ -264,14 +340,16 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
         
         User currentUser = currentUser();
         // some locations have been selected, add them to the parameters as facet selections
-        String locations = request.getParameter("locations");
+        String locations = request.getParameter(PARAM_LOCATIONS);
+        String locationArea = request.getParameter(PARAM_LOCATION_AREA);
         List<Location> locList = getLocationsFromParameter(locations);
-        List<Facet> facetList = facetService.getFacetList(currentUser, (Map<String, String[]>)request.getParameterMap());
+        List<Facet> facetList = facetService.getLocationFacetList(currentUser, (Map<String, String[]>)request.getParameterMap());
         
         ScrollableResults<Location> sc = getScrollableResults(facetList, surveyId, 
                                                               request.getParameter(SORT_BY_QUERY_PARAM_NAME), 
                                                               request.getParameter(SORT_ORDER_QUERY_PARAM_NAME),
-                                                              request.getParameter(SEARCH_QUERY_PARAM_NAME), locList);
+                                                              request.getParameter(SEARCH_QUERY_PARAM_NAME), 
+                                                              locationArea, locList);
         
         downloadLocations(request, response, downloadFormat, sc, locList);
     }
@@ -404,11 +482,6 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
     protected Query createFacetQuery(List<Facet> facetList, Integer surveyId,
             String sortProperty, String sortOrder, String searchText) {
         return createFacetQuery(facetList, surveyId, sortProperty, sortOrder, searchText, null, null);
-    }
-    
-    protected Query createFacetQuery(List<Facet> facetList, Integer surveyId,
-            String sortProperty, String sortOrder, String searchText, List<Location> locList) {
-        return createFacetQuery(facetList, surveyId, sortProperty, sortOrder, searchText, null, locList);
     }
     
     protected Query createFacetQuery(List<Facet> facetList, Integer surveyId,
@@ -550,10 +623,10 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
         return "location.name";
     }
     
-    private static void writeKML(ZipOutputStream zos, Session sesh, String contextPath, User user, ScrollableResults<Location> sc) throws JAXBException {
+    private void writeKML(ZipOutputStream zos, Session sesh, String contextPath, User user, ScrollableResults<Location> sc) throws JAXBException {
         int recordCount = 0;
         List<Location> locList = new ArrayList<Location>(ScrollableResults.RESULTS_BATCH_SIZE);
-        KMLWriter writer = KMLUtils.createKMLWriter(contextPath, null);
+        KMLWriter writer = KMLUtils.createKMLWriter(contextPath, null, getKMLFolderName());
         while (sc.hasMoreElements()) {
             locList.add(sc.nextElement());
             // evict to ensure garbage collection
@@ -570,5 +643,41 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
         sesh.clear();
         
         writer.write(false, zos);
+    }
+
+    @Override
+    protected List<Report> getReportList() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    protected String getKMLFolderName() {
+        return KMLUtils.KML_LOCATION_FOLDER;
+    }
+    
+    /**
+     * Returns a count of locations matching the {@link Facet} criteria.
+     */
+    @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR, Role.USER})
+    @RequestMapping(value = "/review/sightings/advancedReviewCountLocations.htm", method = RequestMethod.GET)
+    public void advancedReviewCountSightings(HttpServletRequest request, 
+                                            HttpServletResponse response) throws IOException {
+        configureHibernateSession();
+        
+        Integer surveyId = null;
+        if(request.getParameter(SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME) != null) {
+            surveyId = Integer.parseInt(request.getParameter(SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME));
+        }
+        String locations = request.getParameter(PARAM_LOCATIONS);
+        String locationArea = request.getParameter(PARAM_LOCATION_AREA);
+        List<Location> locList = getLocationsFromParameter(locations);
+        List<Facet> facetList = facetService.getLocationFacetList(currentUser(), (Map<String, String[]>)request.getParameterMap());
+        Long recordCount = countMatchingRecords(facetList,
+                                                surveyId,
+                                                request.getParameter(SEARCH_QUERY_PARAM_NAME),
+                                                locationArea, locList);
+        response.setContentType("text/plain");
+        response.getWriter().write(recordCount.toString());
+        response.getWriter().flush();
     }
 }

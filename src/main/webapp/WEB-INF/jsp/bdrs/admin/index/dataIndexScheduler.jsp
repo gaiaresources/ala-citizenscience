@@ -187,44 +187,6 @@
 </form>
 
 <script type="text/javascript">
-    bdrs.index = {};
-    
-    bdrs.index.runIndex = function() {
-        jQuery.get(bdrs.contextPath+"/admin/index/runIndex.htm?"+jQuery("form").serialize(), {}, function(data) {
-            
-        });
-        
-        jQuery.blockUI({ message: '<h1 id="blockerMessage">Building Indexes</h1>' });
-        
-        jQuery.ajax({
-            url: bdrs.contextPath + "/admin/index/runIndex.htm",
-            type: "GET",
-            data: jQuery("form").serialize(),
-            success: function(data) {
-                // finished processing indexes
-            	jQuery('#blockerMessage').text("Finished Building Indexes");
-            },
-            error: function() {
-                errorList.push("Error communicating with the server.");
-            },
-            complete: function() {
-                jQuery('#blockerMessage').text("Finished Building Indexes");
-                jQuery.unblockUI();
-                bdrs.message.set("Indexes have been rebuilt");
-            }
-        });
-    };
-    
-    bdrs.index.saveIndex = function() {
-        // make sure that one index class is checked
-        var indexClasses = jQuery("[name=indexClass]:checked");
-        if (indexClasses.length < 1) {
-        	alert('You must select at least one thing to index!');
-        } else {
-        	form.submit();
-        }
-    };
-    
     // disable the inputs related to anything but the selected radio button
     jQuery("[name=indexType]").change(function() {
         // disable all of the checkboxes and text inputs in scheduleRow

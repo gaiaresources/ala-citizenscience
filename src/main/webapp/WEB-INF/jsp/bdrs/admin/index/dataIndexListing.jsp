@@ -6,6 +6,15 @@
 <cw:getContent key="admin/editIndexes" />
 <form method="POST" action="${pageContext.request.contextPath}/admin/index/dataIndexListing.htm">
     <div class="input_container">
+        <div class="left buttonpanel">
+            <input class="vertmiddle" type="checkbox" name="deleteIndexes" id="deleteIndexes"
+            <c:if test="${ indexSchedule.fullRebuild }">
+                checked="true"
+            </c:if>
+            />
+            <label class="vertmiddle" for="deleteIndexes">Delete Indexes Before Building?</label>
+            <input class="form_action" type="button" name="indexNow" value="Index Now" onClick="bdrs.index.runIndex([name=deleteIndexes]);"/>
+        </div>
         <div class="textright buttonpanel">
             <input title="Add an index build schedule." id="addIndexSchedule" class="form_action" type="button" value="Add Index Schedule" onclick="window.document.location='${pageContext.request.contextPath}/admin/index/dataIndexSchedule.htm';"/>
         </div>
@@ -19,10 +28,10 @@
                         Frequency
                     </th>
                     <th>
-                        First Date
+                        First Date/Time
                     </th>
                     <th>
-                        Time
+                        Last Run Date/Time
                     </th>
                     <th>
                         Delete Before Build?
@@ -49,7 +58,7 @@
                             ${ indexSchedule.dateString }
                         </td>
                         <td class="textcenter">
-                            ${ indexSchedule.timeString }
+                            <span id="lastRun_${indexSchedule.id}">${ indexSchedule.lastRunString }</span>
                         </td>
                         <td class="textcenter">
                             <c:choose><c:when test="${ indexSchedule.fullRebuild }">Yes</c:when><c:otherwise>No</c:otherwise></c:choose>

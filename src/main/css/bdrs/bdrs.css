@@ -1982,3 +1982,11 @@ div.blockUI.blockMsg.blockPage h1 {
     padding: 5px;
     overflow: hidden;
 }
+
+/***********************************************/
+/* Style for messages on Location Review page  */
+/***********************************************/
+#resultsMessages {
+    float: left;
+    color: red;
+}

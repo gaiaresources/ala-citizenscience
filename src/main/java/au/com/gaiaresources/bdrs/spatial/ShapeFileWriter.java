@@ -76,6 +76,10 @@ public class ShapeFileWriter {
     private static final String METADATA_TEMPLATE_FILENAME = "shp_metadata_template.xml";
     
     public static final String KEY_RECORD_OWNER = "rec_owner";
+    public static final String KEY_LOCATION_OWNER = "loc_owner";
+    
+    public static final String EXPORT_TYPE_RECORD = "record";
+    public static final String EXPORT_TYPE_LOCATION = "location";
     
     private SimpleDateFormat shpDateFormat = new SimpleDateFormat("dd MMM yyyy");
     
@@ -191,7 +195,7 @@ public class ShapeFileWriter {
         Map<ShapefileType, List<ShapefileFeature>> writeFeatureMap = new HashMap<ShapefileType, List<ShapefileFeature>>();
         
         for (ShapefileType shpType : shapefileTypeSet) {
-            contextMap.put(shpType, new ShapeFileWriterContext(shpType, surveyList, cmList));
+            contextMap.put(shpType, new ShapeFileWriterContext(shpType, surveyList, cmList, ShapeFileWriterContext.FEATURE_RECORD));
             writeFeatureMap.put(shpType, new LinkedList<ShapefileFeature>());
         }
         
@@ -249,7 +253,7 @@ public class ShapeFileWriter {
             
             SimpleFeatureType myFeatureType = context.getBuilder().buildFeatureType();
         
-            String filename = getShpFilename(hasRecords, shpType);
+            String filename = getShpFilename(hasRecords, shpType, EXPORT_TYPE_RECORD);
             File shp = FileUtils.createFileInDir(tempdir, filename + ".shp");    
             
             ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
@@ -497,11 +501,11 @@ public class ShapeFileWriter {
         List<File> filesToCompress = new ArrayList<File>();
         
         for (ShapefileType shpType : shapefileTypeSet) {
-            String filename = getShpFilename(hasRecords, shpType);
+            String filename = getShpFilename(hasRecords, shpType, EXPORT_TYPE_RECORD);
             filesToCompress.add(FileUtils.getFileFromDir(tempdir, filename + ".shp"));
             filesToCompress.add(FileUtils.getFileFromDir(tempdir, filename + ".prj"));
             filesToCompress.add(FileUtils.getFileFromDir(tempdir, filename + ".shx"));
-            filesToCompress.add(FileUtils.getFileFromDir(tempdir, filename + ".dbf"));            
+            filesToCompress.add(FileUtils.getFileFromDir(tempdir, filename + ".dbf"));
         }        
         filesToCompress.add(FileUtils.getFileFromDir(tempdir, FIELD_DESCRIPTION_FILE));
         filesToCompress.add(FileUtils.getFileFromDir(tempdir, HELPER_FILE));
@@ -557,14 +561,14 @@ public class ShapeFileWriter {
         }
     }
     
-    private String getShpFilename(boolean hasRecords, ShapefileType shpType) {
+    private String getShpFilename(boolean hasRecords, ShapefileType shpType, String exportType) {
         StringBuilder filenameBuilder = new StringBuilder();
         if (!hasRecords) {
             // is a record import template...
-            filenameBuilder.append("record_import_template");
+            filenameBuilder.append(exportType+"_import_template");
         } else {
             // is a record export
-            filenameBuilder.append("record_export");
+            filenameBuilder.append(exportType+"_export");
         }
         switch (shpType) {
         case POINT:
@@ -752,14 +756,14 @@ public class ShapeFileWriter {
         
         boolean hasLocs = !locList.isEmpty();
         
-        RecordKeyLookup klu = new ShapefileRecordKeyLookup();
+        RecordKeyLookup klu = new ShapefileLocationKeyLookup();
         
         Map<ShapefileType, ShapeFileWriterContext> contextMap = new HashMap<ShapefileType, ShapeFileWriterContext>();
         Map<ShapefileType, ShapefileDataStore> datastoreMap = new HashMap<ShapefileType, ShapefileDataStore>();
         Map<ShapefileType, List<ShapefileFeature>> writeFeatureMap = new HashMap<ShapefileType, List<ShapefileFeature>>();
         
         for (ShapefileType shpType : shapefileTypeSet) {
-            contextMap.put(shpType, new ShapeFileWriterContext(shpType));
+            contextMap.put(shpType, new ShapeFileWriterContext(shpType, ShapeFileWriterContext.FEATURE_LOCATION));
             writeFeatureMap.put(shpType, new LinkedList<ShapefileFeature>());
         }
         
@@ -787,7 +791,7 @@ public class ShapeFileWriter {
             context.addInt(klu.getRecordIdKey(), null, "The location ID - leave blank if this is a new location");
             
             if (hasLocs) {
-                context.addString(KEY_RECORD_OWNER, null, "The owner of the location. This field is non editable");
+                context.addString(KEY_LOCATION_OWNER, null, "The owner of the location. This field is non editable");
             }
             
             context.addString("name", null, "The name of the location.");
@@ -795,7 +799,7 @@ public class ShapeFileWriter {
             
             SimpleFeatureType myFeatureType = context.getBuilder().buildFeatureType();
         
-            String filename = getShpFilename(hasLocs, shpType);
+            String filename = getShpFilename(hasLocs, shpType, EXPORT_TYPE_LOCATION);
             File shp = FileUtils.createFileInDir(tempdir, filename + ".shp");
             
             ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
@@ -829,7 +833,7 @@ public class ShapeFileWriter {
                     // add location data here!
                     featureAttr.put(klu.getRecordIdKey(), loc.getId());
                     if (loc.getUser() != null) {
-                        featureAttr.put(KEY_RECORD_OWNER, loc.getUser().getFirstName() + " " + loc.getUser().getLastName());
+                        featureAttr.put(KEY_LOCATION_OWNER, loc.getUser().getFirstName() + " " + loc.getUser().getLastName());
                     }
                     
                     featureAttr.put("name", loc.getName());
@@ -898,7 +902,7 @@ public class ShapeFileWriter {
         List<File> filesToCompress = new ArrayList<File>();
         
         for (ShapefileType shpType : shapefileTypeSet) {
-            String filename = getShpFilename(hasLocs, shpType);
+            String filename = getShpFilename(hasLocs, shpType, EXPORT_TYPE_LOCATION);
             filesToCompress.add(FileUtils.getFileFromDir(tempdir, filename + ".shp"));
             filesToCompress.add(FileUtils.getFileFromDir(tempdir, filename + ".prj"));
             filesToCompress.add(FileUtils.getFileFromDir(tempdir, filename + ".shx"));

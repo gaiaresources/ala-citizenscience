@@ -37,6 +37,7 @@ import au.com.gaiaresources.bdrs.service.facet.builder.UserFacetBuilder;
 import au.com.gaiaresources.bdrs.service.facet.builder.VisibilityFacetBuilder;
 import au.com.gaiaresources.bdrs.service.facet.builder.YearFacetBuilder;
 import au.com.gaiaresources.bdrs.service.facet.option.FacetOption;
+import au.com.gaiaresources.bdrs.util.StringUtils;
 import edu.emory.mathcs.backport.java.util.Collections;
 
 /**
@@ -131,7 +132,7 @@ public class FacetService {
                            (Location.class.equals(facetClass) ? locationDAO : null);
             for(FacetBuilder builder : FACET_BUILDER_CLASS_REGISTRY.get(facetClass)) {
                 Preference pref = prefDAO.getPreferenceByKey(builder.getPreferenceKey());
-                if(pref == null) {
+                if(pref == null || StringUtils.nullOrEmpty(pref.getValue())) {
                     log.error("Cannot create facet. Cannot find preference with key: "+builder.getPreferenceKey());
                 } else {
                     try {
