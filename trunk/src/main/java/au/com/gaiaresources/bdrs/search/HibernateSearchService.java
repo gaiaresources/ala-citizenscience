@@ -1,13 +1,7 @@
 package au.com.gaiaresources.bdrs.search;
 
-import au.com.gaiaresources.bdrs.db.FilterManager;
-import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
-import au.com.gaiaresources.bdrs.db.impl.PaginationFilter;
-import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
-import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
-import au.com.gaiaresources.bdrs.db.impl.QueryPaginator;
-import au.com.gaiaresources.bdrs.model.index.IndexUtil;
-import au.com.gaiaresources.bdrs.model.portal.PortalDAO;
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.queryParser.MultiFieldQueryParser;
@@ -21,8 +15,12 @@ import org.hibernate.search.Search;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.List;
+import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
+import au.com.gaiaresources.bdrs.db.impl.PaginationFilter;
+import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
+import au.com.gaiaresources.bdrs.db.impl.QueryPaginator;
+import au.com.gaiaresources.bdrs.model.index.IndexUtil;
+import au.com.gaiaresources.bdrs.model.portal.PortalDAO;
 
 /**
  * Service that implements a Hibernate Search Service.  Handles the creation and  
@@ -34,8 +32,6 @@ import java.util.List;
 @Service
 public class HibernateSearchService implements SearchService {
 
-    /** Identifies the portal id field in indexes entities */
-    private static final String PORTAL_ID_FIELD_NAME = "portal.id";
     private Logger log = Logger.getLogger(getClass());
     
     @Autowired
@@ -48,7 +44,6 @@ public class HibernateSearchService implements SearchService {
         if (sesh == null) {
             sesh = portalDAO.getSessionFactory().getCurrentSession();
         }
-
         FullTextSession fullTextSession = Search.getFullTextSession(sesh);
         fullTextSession.beginTransaction();
         for (Class indexedClass : IndexUtil.getIndexedClasses()) {
@@ -59,8 +54,8 @@ public class HibernateSearchService implements SearchService {
 
     /**
      * Builds an index for the specified class.
-     * @param fullTextSession the session to use when indexing
-     * @param clazz the Class of the entity to index.
+     * @param fullTextSession
+     * @param clazz
      */
     private void buildIndex(FullTextSession fullTextSession,
             Class<?> clazz) {
@@ -69,20 +64,15 @@ public class HibernateSearchService implements SearchService {
             .setFetchSize(INDEX_BATCH_SIZE)
             .scroll(ScrollMode.FORWARD_ONLY);
         int index = 0;
-        try {
-            System.err.println(Arrays.asList(fullTextSession.getSearchFactory().getDirectoryProviders(clazz)[0].getDirectory().list()));
-        } catch (Exception e) {e.printStackTrace();}
-        System.err.println(fullTextSession);
         while(results.next()) {
             index++;
-            System.err.println("Adding index for: " + ((PortalPersistentImpl) results.get(0)).getPortal().getId() + "," + ((PortalPersistentImpl) results.get(0)).getId());
             fullTextSession.index(results.get(0)); //index each element
             if (index % INDEX_BATCH_SIZE == 0) {
                 fullTextSession.flushToIndexes(); //apply changes to indexes
                 fullTextSession.clear(); //free memory since the queue is processed
             }
         }
-
+        
         fullTextSession.flushToIndexes();
         fullTextSession.clear();
     }
@@ -97,7 +87,8 @@ public class HibernateSearchService implements SearchService {
         }
         FullTextSession fullTextSession = Search.getFullTextSession(sesh);
         for (Class indexedClass : IndexUtil.getIndexedClasses()) {
-            deleteIndex(fullTextSession, indexedClass);
+            log.info("deleting index for "+indexedClass.getName());
+            fullTextSession.purgeAll(indexedClass);
         }
         fullTextSession.flush();
     }
@@ -139,34 +130,12 @@ public class HibernateSearchService implements SearchService {
          FullTextSession fullTextSession = Search.getFullTextSession(sesh);
          fullTextSession.beginTransaction();
          MultiFieldQueryParser parser = new MultiFieldQueryParser(fields, analyzer);
-
-         searchTerm = applyPortalIdTerm(sesh, searchTerm);
-
+         
          org.apache.lucene.search.Query query = parser.parse(searchTerm);
-
-        System.err.println(query);
-        try {
-        System.err.println(Arrays.asList(fullTextSession.getSearchFactory().getDirectoryProviders(entities[0])[0].getDirectory().list()));
-        } catch (Exception e) {e.printStackTrace();}
-        System.err.println(sesh);
-        System.err.println(fullTextSession);
-
-        return fullTextSession.createFullTextQuery(query, entities);
+         
+         FullTextQuery hibQuery = fullTextSession.createFullTextQuery(query, entities);
+         return hibQuery;
      }
-
-    /**
-     * Modifies the supplied query by appending the portal id as a required term.
-     * @param sesh the current hibernate session - used to retrieve the current portal id.
-     * @param searchTerm the search term to modify.
-     * @return a new search query that will only match results from the current portal.
-     */
-    private String applyPortalIdTerm(Session sesh, String searchTerm) {
-        Integer portalId = FilterManager.getFilteredPortalId(sesh);
-        if (portalId != null) {
-            searchTerm += " +" + PORTAL_ID_FIELD_NAME + ":" +portalId;
-        }
-        return searchTerm;
-    }
 
     /*
      * (non-Javadoc)
@@ -214,18 +183,9 @@ public class HibernateSearchService implements SearchService {
             sesh = portalDAO.getSessionFactory().getCurrentSession();
         }
         FullTextSession fullTextSession = Search.getFullTextSession(sesh);
-        log.info("deleting index for " + indexedClass.getName());
-        ScrollableResults results = sesh.createCriteria(indexedClass)
-                .setFetchSize(INDEX_BATCH_SIZE)
-                .scroll(ScrollMode.FORWARD_ONLY);
-        while (results.next()) {
-            if (results.get(0) instanceof PersistentImpl) {
-                PersistentImpl entity = (PersistentImpl)results.get(0);
-                System.err.println("deleting index for: " + ((PortalPersistentImpl) results.get(0)).getPortal().getId() + "," + ((PortalPersistentImpl) results.get(0)).getId());
-                fullTextSession.purge(indexedClass, entity.getId());
-            }
-
-        }
+        log.info("deleting index for "+indexedClass.getName());
+        fullTextSession.purgeAll(indexedClass);
+        //fullTextSession.flush();
     }
 
     /*
@@ -239,8 +199,7 @@ public class HibernateSearchService implements SearchService {
         }
         FullTextSession fullTextSession = Search.getFullTextSession(sesh);
         fullTextSession.beginTransaction();
-        System.err.println("creating index for " + indexedClass.getName());
+        log.info("creating index for "+indexedClass.getName());
         buildIndex(fullTextSession, indexedClass);
     }
-
 }
