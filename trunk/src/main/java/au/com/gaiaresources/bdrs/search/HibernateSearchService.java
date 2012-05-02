@@ -48,6 +48,7 @@ public class HibernateSearchService implements SearchService {
         if (sesh == null) {
             sesh = portalDAO.getSessionFactory().getCurrentSession();
         }
+
         FullTextSession fullTextSession = Search.getFullTextSession(sesh);
         fullTextSession.beginTransaction();
         for (Class indexedClass : IndexUtil.getIndexedClasses()) {
@@ -68,6 +69,10 @@ public class HibernateSearchService implements SearchService {
             .setFetchSize(INDEX_BATCH_SIZE)
             .scroll(ScrollMode.FORWARD_ONLY);
         int index = 0;
+        try {
+            System.err.println(Arrays.asList(fullTextSession.getSearchFactory().getDirectoryProviders(clazz)[0].getDirectory().list()));
+        } catch (Exception e) {e.printStackTrace();}
+        System.err.println(fullTextSession);
         while(results.next()) {
             index++;
             System.err.println("Adding index for: " + ((PortalPersistentImpl) results.get(0)).getPortal().getId() + "," + ((PortalPersistentImpl) results.get(0)).getId());
@@ -143,7 +148,10 @@ public class HibernateSearchService implements SearchService {
         try {
         System.err.println(Arrays.asList(fullTextSession.getSearchFactory().getDirectoryProviders(entities[0])[0].getDirectory().list()));
         } catch (Exception e) {e.printStackTrace();}
-         return fullTextSession.createFullTextQuery(query, entities);
+        System.err.println(sesh);
+        System.err.println(fullTextSession);
+
+        return fullTextSession.createFullTextQuery(query, entities);
      }
 
     /**
