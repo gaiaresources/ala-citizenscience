@@ -21,6 +21,7 @@ import org.hibernate.search.Search;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -69,7 +70,7 @@ public class HibernateSearchService implements SearchService {
         int index = 0;
         while(results.next()) {
             index++;
-            System.err.println("Adding index for: "+((PortalPersistentImpl)results.get(0)).getPortal().getId()+","+((PortalPersistentImpl)results.get(0)).getId());
+            System.err.println("Adding index for: " + ((PortalPersistentImpl) results.get(0)).getPortal().getId() + "," + ((PortalPersistentImpl) results.get(0)).getId());
             fullTextSession.index(results.get(0)); //index each element
             if (index % INDEX_BATCH_SIZE == 0) {
                 fullTextSession.flushToIndexes(); //apply changes to indexes
@@ -139,6 +140,9 @@ public class HibernateSearchService implements SearchService {
          org.apache.lucene.search.Query query = parser.parse(searchTerm);
 
         System.err.println(query);
+        try {
+        System.err.println(Arrays.asList(fullTextSession.getSearchFactory().getDirectoryProviders(entities[0])[0].getDirectory().list()));
+        } catch (Exception e) {e.printStackTrace();}
          return fullTextSession.createFullTextQuery(query, entities);
      }
 
@@ -209,7 +213,7 @@ public class HibernateSearchService implements SearchService {
         while (results.next()) {
             if (results.get(0) instanceof PersistentImpl) {
                 PersistentImpl entity = (PersistentImpl)results.get(0);
-                System.err.println("Adding index for: "+((PortalPersistentImpl)results.get(0)).getPortal().getId()+","+((PortalPersistentImpl)results.get(0)).getId());
+                System.err.println("deleting index for: " + ((PortalPersistentImpl) results.get(0)).getPortal().getId() + "," + ((PortalPersistentImpl) results.get(0)).getId());
                 fullTextSession.purge(indexedClass, entity.getId());
             }
 
@@ -227,7 +231,7 @@ public class HibernateSearchService implements SearchService {
         }
         FullTextSession fullTextSession = Search.getFullTextSession(sesh);
         fullTextSession.beginTransaction();
-        System.err.println("creating index for "+indexedClass.getName());
+        System.err.println("creating index for " + indexedClass.getName());
         buildIndex(fullTextSession, indexedClass);
     }
 
