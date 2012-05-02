@@ -1,15 +1,15 @@
 package au.com.gaiaresources.bdrs.db;
 
-import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
-import au.com.gaiaresources.bdrs.model.portal.Portal;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 import org.hibernate.Filter;
 import org.hibernate.Session;
-import org.hibernate.impl.FilterImpl;
+
+import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
+import au.com.gaiaresources.bdrs.model.portal.Portal;
 
 public class FilterManager {
-
     public static void setPortalFilter(org.hibernate.Session sesh, Portal portal) {
         Filter filter = sesh.enableFilter(PortalPersistentImpl.PORTAL_FILTER_NAME);
         filter.setParameter(PortalPersistentImpl.PORTAL_FILTER_PORTALID_PARAMETER_NAME, portal.getId());
@@ -43,22 +43,6 @@ public class FilterManager {
             session.enableFilter(filterName).setParameter(Record.FILTER_PARAMETER_USER, user.getId());
         }
                 
-    }
-
-    /**
-     * Returns the ID of the Portal that has been supplied to the Portal Filter.  If the Portal Filter is not
-     * in effect, null will be returned.
-     * @param session the Session to check the Filter on.
-     * @return the ID of the Portal used to filter Hibernate queries, or null if the Filter is not applied.
-     */
-    public static Integer getFilteredPortalId(Session session) {
-        Integer portalId = null;
-        Filter filter = session.getEnabledFilter(PortalPersistentImpl.PORTAL_FILTER_NAME);
-        if (filter != null && filter instanceof FilterImpl) {
-            portalId = (Integer)((FilterImpl)filter).getParameter(PortalPersistentImpl.PORTAL_FILTER_PORTALID_PARAMETER_NAME);
-        }
-
-        return portalId;
     }
     
 }
