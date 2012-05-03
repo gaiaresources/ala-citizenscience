@@ -525,7 +525,41 @@ public class RecordService extends AbstractController {
 
     /**
      * Deletes records from the database with the given record ids.
-     * 
+     *
+     * @param ident
+     *            The users registration key.
+     * @param recordIds
+     *            An array of primary keys of the records to be deleted.
+     * @throws IOException
+     */
+    @RequestMapping(value = "/webservice/record/bulkDeleteRecords.htm", method = RequestMethod.POST)
+    public void bulkDeleteRecords(HttpServletRequest request,
+            HttpServletResponse response,
+            @RequestParam(value = "ident", required = true) String ident,
+            @RequestParam(value = "recordIds[]", required=true) int[] recordIds) throws IOException {
+
+        User user;
+        if (ident.isEmpty()) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+        } else {
+            user = userDAO.getUserByRegistrationKey(ident);
+            if (user == null) {
+                throw new HTTPException(HttpServletResponse.SC_UNAUTHORIZED);
+            }
+        }
+
+        JSONArray deletedRecordIds = new JSONArray();
+        for(int pk : recordIds) {
+            recordDAO.deleteById(pk);
+            deletedRecordIds.add(pk);
+        }
+
+        super.writeJson(request, response, deletedRecordIds.toString());
+    }
+
+    /**
+     * Deletes records from the database with the given record ids.
+     *
      * @param ident
      *            The users registration key.
      * @param recordIds
@@ -537,7 +571,7 @@ public class RecordService extends AbstractController {
             HttpServletResponse response,
             @RequestParam(value = "ident", required = true) String ident)
             throws IOException {
-                    
+
         JSONObject jsonRecordIdsMap = JSONObject.fromStringToJSONObject(request
                 .getParameter("JSONrecords"));
         // Authenticate the user

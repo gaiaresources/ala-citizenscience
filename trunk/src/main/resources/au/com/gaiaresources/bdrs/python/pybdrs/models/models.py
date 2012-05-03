@@ -1,3 +1,4 @@
+import json
 from time import mktime, strptime
 from datetime import datetime
 from csv import reader as csv_reader
@@ -30,6 +31,17 @@ class LazyPersistent(object):
             # else loaded or not, an empty list is just empty.
         # else it has been loaded previously
         return p
+
+    def recurse_data(self):
+        d = {}
+        for k,v in self._data.items():
+            if isinstance(v, LazyPersistent):
+                v = v.recurse_data()
+            d[k] = v
+        return d
+
+    def as_json(self):
+        return json.dumps(self.recurse_data())
 
 def insert_accessors(klazz, mapping):
     """Monkey patches the specified class with a series of functions that make 

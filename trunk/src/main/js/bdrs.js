@@ -2835,35 +2835,37 @@ bdrs.getClassParamValue = function(node, paramName) {
     }
 };
 
+bdrs.initDeferredKetchup = function() {
+    // Deferred_ketchup may be used if the form contains many inputs
+    // such that using normal ketchup causes a large initial overhead
+    // when loading the page.
+    jQuery('[class*=deferred_ketchup]').blur(function(evt){
+
+       var elem = jQuery(evt.target);
+       var klass_attr = elem.attr("class");
+       var klass_split = klass_attr.split(" ");
+
+       var i;
+       var klass_name;
+       var complete = false;
+       for (i = 0; i < klass_split.length && !complete; i++) {
+           klass_name = klass_split[i];
+           if (klass_name.indexOf("deferred_ketchup") === 0) {
+               elem.attr("class", klass_attr.replace("deferred_ketchup", "validate"));
+               elem.parents("form").ketchup();
+               elem.trigger("blur");
+               complete = true;
+           }
+       }
+    });
+};
 
 bdrs.init = function(){
     bdrs.initDatePicker();
     bdrs.initColorPicker();
     bdrs.initSubmitDisabler();
-    
-    // Deferred_ketchup may be used if the form contains many inputs
-    // such that using normal ketchup causes a large initial overhead
-    // when loading the page.
-    jQuery('[class*=deferred_ketchup]').blur(function(evt){
-    
-        var elem = jQuery(evt.target);
-        var klass_attr = elem.attr("class");
-        var klass_split = klass_attr.split(" ");
-        
-        var i;
-        var klass_name;
-        var complete = false;
-        for (i = 0; i < klass_split.length && !complete; i++) {
-            klass_name = klass_split[i];
-            if (klass_name.indexOf("deferred_ketchup") === 0) {
-                elem.attr("class", klass_attr.replace("deferred_ketchup", "validate"));
-                elem.parents("form").ketchup();
-                elem.trigger("blur");
-                complete = true;
-            }
-        }
-    });
-    
+    bdrs.initDeferredKetchup();
+
     // Changing blockUI defaults
     // this puts the block UI above all known items...
     jQuery.blockUI.defaults.baseZ = 1070;

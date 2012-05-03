@@ -1,6 +1,11 @@
 package au.com.gaiaresources.bdrs.model.taxa;
 
 import au.com.gaiaresources.bdrs.controller.attribute.DisplayContext;
+import au.com.gaiaresources.bdrs.json.JSONEnum;
+import au.com.gaiaresources.bdrs.json.JSONEnumUtil;
+
+import java.io.IOException;
+import java.io.Writer;
 
 /**
  * An AttributeVisibility defines the contexts in which an Attribute is visible.
@@ -11,7 +16,7 @@ import au.com.gaiaresources.bdrs.controller.attribute.DisplayContext;
  *     <li>EDIT - the attribute is only visible while the Record is being edited (or created)</li>
  * </ul>
  */
-public enum AttributeVisibility {
+public enum AttributeVisibility implements JSONEnum {
     ALWAYS("Always"), READ("Read"), EDIT("Edit");
 
     /** A description of this enum value.  Used when rendering select options associated with an AttributeVisibility */
@@ -56,5 +61,15 @@ public enum AttributeVisibility {
                 throw new IllegalStateException("Invalid state of the visibility property: "+this);
         }
         return visible;
+    }
+
+    @Override
+    public void writeJSONString(Writer out) throws IOException {
+        JSONEnumUtil.writeJSONString(out, this);
+    }
+
+    @Override
+    public String toJSONString() {
+        return JSONEnumUtil.toJSONString(this);
     }
 }

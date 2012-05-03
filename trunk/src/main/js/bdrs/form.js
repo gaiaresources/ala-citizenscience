@@ -28,3 +28,19 @@ bdrs.form.prepopulate = function(){
     	jQuery("#date").val(bdrs.util.formatDate(new Date()));
     }
 };
+
+bdrs.form.not_validated_form_selectors = [];
+bdrs.form.remove_from_validation = function(selector) {
+    if(selector !== undefined && selector !== null) {
+        bdrs.form.not_validated_form_selectors.push(selector);
+    }
+}
+
+bdrs.form.init_form_validation = function() {
+    var form_list = jQuery('form');
+    if(bdrs.form.not_validated_form_selectors.length > 0) {
+        form_list = form_list.not(bdrs.form.not_validated_form_selectors.join(','));
+    }
+
+    form_list.ketchup();
+}

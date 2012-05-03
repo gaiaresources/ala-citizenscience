@@ -29,12 +29,12 @@ class PersistentFactory:
             instance_list.append(self.lazy_load(model_klazz, pk))
         return instance_list
 
-    def lazy_load(self, model_klazz, pk):
+    def lazy_load(self, model_klazz, pk, data=None):
         """Lazy loads the model with the specified type and primary key."""
         instance = self._cache.get(model_klazz, {}).get(pk)
         if instance is None:
             try: 
-                instance = self._lazy_load_handler_map[model_klazz](pk)
+                instance = self._lazy_load_handler_map[model_klazz](pk, data)
                 self._cache.setdefault(model_klazz, {})[pk] = instance
             except KeyError, ke:
                 msg = 'No lazy load handler available for %s' % model_klazz
@@ -42,50 +42,66 @@ class PersistentFactory:
                 raise KeyError, msg
         return instance
 
-    def lazy_load_survey(self, pk):
+    def lazy_load_survey(self, pk, data=None):
         """Lazy loads the Survey with the specified primary key."""
-        pk = int(pk, 10) if type(pk) == str or type(pk) == unicode else pk
-        data = self._bdrs.getSurveyDAO().getById(pk)
-        return Survey(self, json.loads(data, strict=False))
+        if data is None:
+            pk = int(pk, 10) if type(pk) == str or type(pk) == unicode else pk
+            data = self._bdrs.getSurveyDAO().getById(pk)
+            data = json.loads(data, strict=False)
+        return Survey(self, data)
 
-    def lazy_load_portal(self, pk):
+    def lazy_load_portal(self, pk, data=None):
         """Lazy loads the Portal with the specified primary key."""
-        pk = int(pk, 10) if type(pk) == str or type(pk) == unicode else pk
-        data = self._bdrs.getPortalDAO().getById(pk)
-        return Portal(self, json.loads(data, strict=False))
+        if data is None:
+            pk = int(pk, 10) if type(pk) == str or type(pk) == unicode else pk
+            data = self._bdrs.getPortalDAO().getById(pk)
+            data = json.loads(data, strict=False)
+        return Portal(self, data)
 
-    def lazy_load_attribute(self, pk):
+    def lazy_load_attribute(self, pk, data=None):
         """Lazy loads the Attribute with the specified primary key."""
-        pk = int(pk, 10) if type(pk) == str or type(pk) == unicode else pk
-        data = self._bdrs.getAttributeDAO().getById(pk)
-        return Attribute(self, json.loads(data, strict=False))
+        if data is None:
+            pk = int(pk, 10) if type(pk) == str or type(pk) == unicode else pk
+            data = self._bdrs.getAttributeDAO().getById(pk)
+            data = json.loads(data, strict=False)
+        return Attribute(self, data)
 
-    def lazy_load_attribute_option(self, pk):
+    def lazy_load_attribute_option(self, pk, data=None):
         """Lazy loads the Attribute Option with the specified primary key."""
-        pk = int(pk, 10) if type(pk) == str or type(pk) == unicode else pk
-        data = self._bdrs.getAttributeOptionDAO().getById(pk)
-        return AttributeOption(self, json.loads(data, strict=False))
+        if data is None:
+            pk = int(pk, 10) if type(pk) == str or type(pk) == unicode else pk
+            data = self._bdrs.getAttributeOptionDAO().getById(pk)
+            data = json.loads(data, strict=False)
+        return AttributeOption(self, data)
 
-    def lazy_load_attribute_value(self, pk):
+    def lazy_load_attribute_value(self, pk, data=None):
         """Lazy loads the AttributeValue with the specified primary key."""
-        pk = int(pk, 10) if type(pk) == str or type(pk) == unicode else pk
-        data = self._bdrs.getAttributeValueDAO().getById(pk)
-        return AttributeValue(self, json.loads(data, strict=False))
+        if data is None:
+            pk = int(pk, 10) if type(pk) == str or type(pk) == unicode else pk
+            data = self._bdrs.getAttributeValueDAO().getById(pk)
+            data = json.loads(data, strict=False)
+        return AttributeValue(self, data)
 
-    def lazy_load_metadata(self, pk):
+    def lazy_load_metadata(self, pk, data=None):
         """Lazy loads the Metadata with the specified primary key."""
-        pk = int(pk, 10) if type(pk) == str or type(pk) == unicode else pk
-        data = self._bdrs.getMetadataDAO().getById(pk)
-        return Metadata(self, json.loads(data, strict=False))        
+        if data is None:
+            pk = int(pk, 10) if type(pk) == str or type(pk) == unicode else pk
+            data = self._bdrs.getMetadataDAO().getById(pk)
+            data = json.loads(data, strict=False)
+        return Metadata(self, data)
 
-    def lazy_load_record(self, pk):
+    def lazy_load_record(self, pk, data=None):
         """Lazy loads the Record with the specified primary key."""
-        pk = int(pk, 10) if type(pk) == str or type(pk) == unicode else pk
-        data = self._bdrs.getRecordDAO().getById(pk)
-        return Record(self, json.loads(data, strict=False))        
+        if data is None:
+            pk = int(pk, 10) if type(pk) == str or type(pk) == unicode else pk
+            data = self._bdrs.getRecordDAO().getById(pk)
+            data = json.loads(data, strict=False)
+        return Record(self, data)
 
-    def lazy_load_taxon(self, pk):
+    def lazy_load_taxon(self, pk, data=None):
         """Lazy loads the Taxon (Indicator Species) with the specified primary key."""
-        pk = int(pk, 10) if type(pk) == str or type(pk) == unicode else pk
-        data = self._bdrs.getTaxaDAO().getById(pk)
-        return Taxon(self, json.loads(data, strict=False))   
+        if data is None:
+            pk = int(pk, 10) if type(pk) == str or type(pk) == unicode else pk
+            data = self._bdrs.getTaxaDAO().getById(pk)
+            data = json.loads(data, strict=False)
+        return Taxon(self, data)

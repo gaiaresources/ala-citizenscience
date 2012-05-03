@@ -92,7 +92,10 @@ class RecordForm(Form):
         required = self._survey.get_record_property_required(property_name)
         hidden = self._survey.get_record_property_hidden(property_name)
         initial = self._value_map.get(name, None)
-        error_text = self._error_map.get(property_name, None)
+        if property_name == 'when':
+            error_text = self._error_map.get('date', None)
+        else:
+            error_text = self._error_map.get(property_name, None)
         widget = widget(self._bdrs,
                         widget_id=widget_id, 
                         name=name, 

@@ -1,9 +1,10 @@
 package au.com.gaiaresources.bdrs.python.model;
 
-import java.util.Map;
+import java.util.*;
 
 import au.com.gaiaresources.bdrs.json.JSONArray;
 
+import au.com.gaiaresources.bdrs.model.taxa.*;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 
@@ -17,7 +18,6 @@ import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
 import au.com.gaiaresources.bdrs.model.record.impl.AdvancedRecordFilter;
 import au.com.gaiaresources.bdrs.model.record.impl.RecordFilter;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 
@@ -170,7 +170,7 @@ public class PyRecordDAO extends AbstractPyDAO {
 
     /**
      * Retrieves all records within the geometry specified.
-     * 
+     *
      * @param srid
      *            the projection of the wkt string
      * @param wktFilter
@@ -190,10 +190,102 @@ public class PyRecordDAO extends AbstractPyDAO {
                 log.error(String.format("WKT String does not produce a valid geometry: %s", wktFilter));
                 return null;
             }
-            
+
         } catch (ParseException e) {
             log.error(String.format("Failed to parse WKT String: %s", wktFilter), e);
             return null;
+        }
+    }
+
+    /**
+     * Returns a JSON encoded list of Records with the same values for Survey scoped Attributes. Note that this
+     * list will include the candidate record.
+     *
+     * @param recordId the primary key of the candidate record.
+     * @return a JSON encoded list of Records with the same values for Survey scoped Attributes.
+     */
+    public String getSurveyScopeCompanionRecords(int recordId) {
+        List<Record> result = new ArrayList<Record>();
+        Record rec = recordDAO.getRecord(recordId);
+
+        if (rec != null) {
+            // Build a attribute to attribute value mapping of survey scoped attributes for the source record.
+            // Making it unmodifiable so you cannot accidentally mess with it.
+            //
+            Map<Attribute, AttributeValue> attrMap = Collections.unmodifiableMap(buildSurveyScopeAttrMap(rec));
+
+            AdvancedRecordFilter recFilter = new AdvancedRecordFilter();
+            recFilter.setStartDate(rec.getWhen());
+            recFilter.setEndDate(rec.getWhen());
+            recFilter.setSurveyPk(rec.getSurvey().getId());
+            recFilter.setUser(rec.getUser());
+            recFilter.setAccessor(accessor);
+
+            ScrollableRecords scrollableRecords = recordDAO.getScrollableRecords(recFilter);
+
+            while (scrollableRecords.hasMoreElements()) {
+                boolean isSimilar = true;
+                Record testRecord = scrollableRecords.nextElement();
+                Map<Attribute, AttributeValue> testAttrMap = buildSurveyScopeAttrMap(testRecord);
+
+                // Make sure the geometry is the same.
+                isSimilar = isSimilar && isEqualGeometry(rec.getGeometry(), testRecord.getGeometry());
+
+                for (Map.Entry<Attribute, AttributeValue> entry : attrMap.entrySet()) {
+                    AttributeValue testAttrVal = testAttrMap.remove(entry.getKey());
+                    isSimilar = isSimilar && testAttrVal != null &&
+                            AttributeValueUtil.isAttributeValuesEqual(entry.getValue(), testAttrVal);
+                }
+
+                // Assert that after removing all survey scoped attributes, the test record does not have any
+                // extra attributes that are not present in the source record.
+                isSimilar = isSimilar && testAttrMap.isEmpty();
+
+                if (isSimilar) {
+                    result.add(testRecord);
+                }
+            }
+        }
+
+        return PyDAOUtil.toJSON(result).toString();
+    }
+
+    /**
+     * Builds a map of Attribute to AttributeValues where each attribute is either
+     * {@link AttributeScope#SURVEY Survey} scoped or {@link AttributeScope#SURVEY_MODERATION Survey Moderation}
+     * scoped.
+     *
+     * @param rec the record containing the attribute values to be mapped.
+     * @return a mapping of Attribute to AttributeValues.
+     */
+    private Map<Attribute, AttributeValue> buildSurveyScopeAttrMap(Record rec) {
+        Map<Attribute, AttributeValue> surveyScopeAttrMap = new HashMap<Attribute, AttributeValue>(rec.getAttributes().size());
+        for (AttributeValue attrVal : rec.getAttributes()) {
+            Attribute attr = attrVal.getAttribute();
+            AttributeScope scope = attr.getScope();
+            if (AttributeScope.SURVEY.equals(scope) || AttributeScope.SURVEY_MODERATION.equals(scope)) {
+                surveyScopeAttrMap.put(attrVal.getAttribute(), attrVal);
+            }
+        }
+        return surveyScopeAttrMap;
+    }
+
+    /**
+     * Tests the equality of two geometries.
+     *
+     * @param geom  the first geometry
+     * @param other the other geometry
+     * @return true if both geometries are null or exactly equal, false otherwise.
+     */
+    private boolean isEqualGeometry(Geometry geom, Geometry other) {
+        if (geom == null && other == null) {
+            return true;
+        } else {
+            if (geom == null) {
+                return other.equalsExact(geom);
+            } else {
+                return geom.equalsExact(other);
+            }
         }
     }
 }
