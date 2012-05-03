@@ -345,7 +345,6 @@ public class SurveyBaseController extends AbstractController {
         // to update with the correct active state.
         if (create) {
             survey.setActive(active);
-            surveyDAO.save(survey);
             createDefaultBaseLayers(survey);
         }
         
@@ -385,6 +384,8 @@ public class SurveyBaseController extends AbstractController {
             // set the layer to visible if no values have been saved and it is a Google layer
             // or if there is no default and it is G_HYBRID_MAP (for the default)
             BaseMapLayer layer = new BaseMapLayer(survey, baseMapLayerSource, isGoogleDefault, BaseMapLayerSource.isGoogleLayerSource(baseMapLayerSource) || isGoogleDefault);
+            layer.setSurvey(survey);
+            layer = baseMapLayerDAO.save(layer);
             survey.addBaseMapLayer(layer);
         }
     }
