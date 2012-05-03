@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
@@ -225,7 +226,7 @@ public class AtlasService {
             log.info("importing " + (shortProfile ? "short" : "full") + " profile from "+url);
             
             URLConnection conn = url.openConnection();
-            reader = new InputStreamReader(conn.getInputStream());
+            reader = new InputStreamReader(conn.getInputStream(), Charset.defaultCharset());
             StringBuffer buff = new StringBuffer();
             int c;
             while ((c = reader.read()) != -1) {

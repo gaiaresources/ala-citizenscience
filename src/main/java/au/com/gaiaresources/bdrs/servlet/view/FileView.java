@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.Map;
 
 import javax.activation.FileDataSource;
@@ -64,7 +65,7 @@ public class FileView extends AbstractView {
 	        	}
 	        	//encode file and store result in JSONObject
 	    		JSONObject jsonFile = new JSONObject();
-	    		jsonFile.put("base64", new String(Base64.encode(baos.toByteArray())));
+	    		jsonFile.put("base64", new String(Base64.encode(baos.toByteArray()), Charset.defaultCharset()));
 	    		jsonFile.put("fileType", this.fileType);
 	    		
 	        	// support

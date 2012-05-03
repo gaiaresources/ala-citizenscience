@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 
 import au.com.gaiaresources.bdrs.json.JSON;
 import au.com.gaiaresources.bdrs.json.JSONArray;
@@ -194,7 +195,7 @@ public class FileUtils {
     public static JSON readJsonStream(InputStream stream) throws IOException, JSONException {
         BufferedReader reader = null;
         try {
-            reader = new BufferedReader(new InputStreamReader(stream));
+            reader = new BufferedReader(new InputStreamReader(stream, Charset.defaultCharset()));
             StringBuilder configJsonStr = new StringBuilder();
             for(String line = reader.readLine(); line != null; line = reader.readLine()) {
                 configJsonStr.append(line);
