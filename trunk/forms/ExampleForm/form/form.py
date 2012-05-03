@@ -1,4 +1,7 @@
-import json
+try:
+    import json
+except ImportError:
+    import simplejson as json
 from datetime import datetime
 from copy import deepcopy
 from Cheetah.Template import Template

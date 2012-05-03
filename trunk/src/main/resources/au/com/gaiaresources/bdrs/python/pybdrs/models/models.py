@@ -1,4 +1,7 @@
-import json
+try:
+    import json
+except ImportError:
+    import simplejson as json
 from time import mktime, strptime
 from datetime import datetime
 from csv import reader as csv_reader
