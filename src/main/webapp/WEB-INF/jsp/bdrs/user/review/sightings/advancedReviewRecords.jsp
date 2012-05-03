@@ -8,7 +8,7 @@
 
 
 <tiles:insertDefinition name="advancedReview">
-    <tiles:putAttribute name="viewType" value="record"/>
+    <tiles:putAttribute name="resultsType" value="record"/>
     <tiles:putAttribute name="resultCount" value="${ recordCount }"/>
     <tiles:putAttribute name="tableColumns" value="${ tableColumns }"/>
 </tiles:insertDefinition>

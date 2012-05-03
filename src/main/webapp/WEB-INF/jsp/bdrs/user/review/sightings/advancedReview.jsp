@@ -3,6 +3,7 @@
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 
 <tiles:useAttribute name="viewType" classname="java.lang.String" ignore="true"/>
+<tiles:useAttribute name="resultsType" classname="java.lang.String" ignore="true"/>
 <tiles:useAttribute name="resultCount" ignore="true"/>
 
 <!-- for handling the page description in theme -->
@@ -31,10 +32,10 @@
 	           <span id="count"><c:out value="${ resultCount }"/>
                    <c:choose>
                        <c:when test="${ recordCount == 1 }">
-                            ${viewType} returned
+                            ${resultsType} returned
                        </c:when>
                        <c:otherwise>
-                           ${viewType}s returned
+                           ${resultsType}s returned
                        </c:otherwise>
                    </c:choose>
                </span>
@@ -79,6 +80,7 @@
 		           <c:when test="${ tableViewSelected }">
 		               <tiles:insertDefinition name="advancedReviewTableView">
     						<tiles:putAttribute name="tableColumns" value="${ tableColumns }"/>
+    						<tiles:putAttribute name="resultsType" value="${ resultsType }"/>
 		               </tiles:insertDefinition>
                    </c:when>
 				   <c:when test="${ downloadViewSelected }">

@@ -8,6 +8,7 @@
 <tiles:useAttribute name="resultsPerPage" classname="java.lang.Integer" ignore="true"/>
 <tiles:useAttribute name="pageCount" classname="java.lang.Long" ignore="true"/>
 <tiles:useAttribute name="pageNumber" classname="java.lang.Long" ignore="true"/>
+<tiles:useAttribute name="resultsType" classname="java.lang.String" ignore="true"/>
 
 <%-- Access the facade to retrieve the preference information --%>
 <jsp:useBean id="bdrsPluginFacade" scope="request" type="au.com.gaiaresources.bdrs.servlet.BdrsPluginFacade"></jsp:useBean>
@@ -124,7 +125,7 @@
     <sec:authorize ifAnyGranted="ROLE_USER, ROLE_POWER_USER, ROLE_SUPERVISOR, ROLE_ADMIN">
         <div class="bulkActionContainer">
             <div class="right">
-                <c:if test="${viewType == 'record' }">
+                <c:if test="${resultsType == 'record' }">
 	                <span>Apply action to selected records: </span>
 	                <a title="Delete the selected records" href="javascript:void(0)" onclick="bdrs.advancedReview.bulkDelete()">Delete</a>
 	                <sec:authorize ifAnyGranted="ROLE_SUPERVISOR, ROLE_ADMIN">

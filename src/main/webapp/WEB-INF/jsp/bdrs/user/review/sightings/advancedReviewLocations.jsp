@@ -5,7 +5,7 @@
 <h1>Location Review</h1>
 
 <tiles:insertDefinition name="advancedReview">
-    <tiles:putAttribute name="viewType" value="location"/>
+    <tiles:putAttribute name="resultsType" value="location"/>
     <tiles:putAttribute name="resultCount" value="${ recordCount }"/>
 </tiles:insertDefinition>
 
