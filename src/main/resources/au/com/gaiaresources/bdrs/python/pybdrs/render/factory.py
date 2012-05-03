@@ -2,12 +2,12 @@ from widgets import *
 from forms import *
 
 class RenderFactory:
-    def __init__(self, bdrs, query_params, deserialized_result_list = []):
+    def __init__(self, bdrs, query_params, deserialized_result_list = [], record_row_index = 0):
         self._bdrs = bdrs
         self._query_params = query_params
         self._deserialized_result_list = deserialized_result_list
 
-        self._record_row_index = 0
+        self._record_row_index = record_row_index
 
         self._form_creation_handler_map = {
             Record : self.create_record_form,

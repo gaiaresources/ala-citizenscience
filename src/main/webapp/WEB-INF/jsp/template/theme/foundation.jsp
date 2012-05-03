@@ -148,7 +148,7 @@
 
                 bdrs.init();
                 
-                jQuery('form').ketchup();
+
             });
             
         </script>
@@ -188,4 +188,7 @@
         </div>
         <cw:getThemeTemplate key="template.page.footer"/>
     </body>
+    <script type="text/javascript">
+        bdrs.form.init_form_validation();
+    </script>
 </html>
