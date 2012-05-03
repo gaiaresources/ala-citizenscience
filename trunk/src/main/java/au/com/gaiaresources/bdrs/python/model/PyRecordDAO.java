@@ -278,14 +278,6 @@ public class PyRecordDAO extends AbstractPyDAO {
      * @return true if both geometries are null or exactly equal, false otherwise.
      */
     private boolean isEqualGeometry(Geometry geom, Geometry other) {
-        if (geom == null && other == null) {
-            return true;
-        } else {
-            if (geom == null) {
-                return other.equalsExact(geom);
-            } else {
-                return geom.equalsExact(other);
-            }
-        }
+        return (geom == null && other == null) || (geom != null && other != null && geom.equalsExact(other));
     }
 }

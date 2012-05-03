@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -178,7 +179,7 @@ public class ThemeService {
                     
                     if(isTextContent(contentType)) {
                         // Read the file into memory
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(fis, Charset.defaultCharset()));
                         StringBuilder builder = new StringBuilder();
                         for(String line = reader.readLine(); line != null; line = reader.readLine()) {
                             builder.append(line);
@@ -199,7 +200,7 @@ public class ThemeService {
                         content = content.replaceAll(regex, Matcher.quoteReplacement(assetContext));
                         
                         // Write the file to disk
-                        Writer writer = new OutputStreamWriter(fos);
+                        Writer writer = new OutputStreamWriter(fos, Charset.defaultCharset());
                         writer.write(content);
                         writer.flush();
                         writer.close();
@@ -523,7 +524,7 @@ public class ThemeService {
             // serialize the changes to the original file
             FileOutputStream fos = new FileOutputStream(configFile);
             // Update the file in the raw dir
-            writer = new OutputStreamWriter(fos);
+            writer = new OutputStreamWriter(fos, Charset.defaultCharset());
             writer.write(config.toString());
             fos.flush();
             writer.flush();
