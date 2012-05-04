@@ -520,6 +520,10 @@ legend {
     white-space: nowrap;
 }
 
+.prewrap {
+    white-space: pre-wrap;
+}
+
 .noborder {
     border-top-width: 0px;
     border-right-width: 0px;
@@ -1967,7 +1971,7 @@ div.blockUI.blockMsg.blockPage h1 {
 }
 
 .comments .commentBody {
-    white-space: pre;
+    white-space: pre-wrap;
 }
 
 .jcollapsible {

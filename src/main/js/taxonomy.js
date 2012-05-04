@@ -633,13 +633,19 @@ bdrs.taxonomy.addNewProfile = function(newProfileIndexSelector, profileTableSele
     var profileIndex = parseInt(profileIndexElem.val(), 10);
     profileIndexElem.val(profileIndex + 1);
     
-    
     var params = {};
     params.index = profileIndex;
     
     jQuery.get(bdrs.contextPath+'/bdrs/admin/taxonomy/ajaxAddProfile.htm', params, function(data) {
-        jQuery(profileTableSelector).find("tbody").append(data);
-
+        // add the new row
+        var table = jQuery(profileTableSelector); 
+        var row = jQuery(data);
+        table.find("tbody").append(row);
+        // add the dnd handler to the new row
+        bdrs.dnd.attachTableDnD(profileTableSelector);
+        bdrs.dnd.tableDnDDropHandler(table[0], row[0]); 
+        row.ketchup();
+        
         // Focus the row we just added, if the table is long it can be unclear if the add function did anything.
         jQuery(profileTableSelector).find('tr:last input[type=text]:first').focus();
     });

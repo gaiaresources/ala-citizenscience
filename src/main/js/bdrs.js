@@ -2628,7 +2628,7 @@ bdrs.survey.location.updateLocation = function(pk, surveyId, options) {
             
             // show the location attributes in the locationAttributesContainer
             if (options) {
-                bdrs.attribute.createAttributeDisplayDiv(data.attributes, options.attributeSelector);
+                bdrs.attribute.createAttributeDisplayDiv(data.orderedAttributes, options.attributeSelector);
             }
         });
     }

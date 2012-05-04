@@ -354,7 +354,7 @@
                 <textarea id="notes" name="${ formPrefix }notes"<c:if test="${ formField.required }"> class="validate(required)"</c:if>><c:choose><c:when test="<%= valueMap != null && valueMap.containsKey(formField.getPrefix()+\"notes\") %>"><c:out value="<%= valueMap.get(formField.getPrefix()+\"notes\") %>"/></c:when><c:when test="${ formField.record != null }"><c:out value="${ formField.record.notes }"/></c:when></c:choose></textarea>
             </c:when>
             <c:otherwise>
-                <span style="white-space: pre;"><c:out value="${ formField.record.notes }"/></span>
+                <span class="prewrap"><c:out value="${ formField.record.notes }"/></span>
             </c:otherwise>
         </c:choose>
     </c:when>
