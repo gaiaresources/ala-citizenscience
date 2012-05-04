@@ -29,15 +29,8 @@
 	    </div>
 	    <div class="resultCol right">
 	        <div class="columnBanner">
-	           <span id="count"><c:out value="${ resultCount }"/>
-                   <c:choose>
-                       <c:when test="${ recordCount == 1 }">
-                            ${resultsType} returned
-                       </c:when>
-                       <c:otherwise>
-                           ${resultsType}s returned
-                       </c:otherwise>
-                   </c:choose>
+	           <span id="count">
+	               <c:out value="${ resultCount }"/>&nbsp;${resultsType}<c:if test="${ recordCount != 1 }">s</c:if>&nbsp;returned
                </span>
 	        </div>
 	        
