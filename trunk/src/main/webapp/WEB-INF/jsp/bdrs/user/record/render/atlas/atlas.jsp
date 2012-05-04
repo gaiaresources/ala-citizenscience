@@ -125,7 +125,7 @@
                             </c:when>
                             <c:otherwise>
                                 <c:if test="${ record != null && record.location != null }">
-                                     <span style="white-space: pre;"><c:out value="${ record.location.name }"/></span>
+                                     <span class="prewrap"><c:out value="${ record.location.name }"/></span>
                                 </c:if>
                                 
                             </c:otherwise>

@@ -22,10 +22,10 @@
                 
             </td>
             <td>
-                <input type="text" name="new_profile_header_${ index }" value="<c:out value="${ profile.header }"/>"/>
+                <input class="validate(required)" type="text" name="new_profile_header_${ index }" value="<c:out value="${ profile.header }"/>"/>
             </td>
             <td>
-                <input type="text" name="new_profile_description_${ index }" value="<c:out value="${ profile.description }"/>"/>
+                <input class="validate(required)" type="text" name="new_profile_description_${ index }" value="<c:out value="${ profile.description }"/>"/>
             </td>
             <td>
                 <input type="text" name="new_profile_content_${ index }" value="<c:out value="${ profile.content }"/>"/>
@@ -55,10 +55,10 @@
                 </select>
             </td>
             <td>
-                <input type="text" name="profile_header_${ profile.id }" value="<c:out value="${ profile.header }"/>"/>
+                <input class="validate(required)" type="text" name="profile_header_${ profile.id }" value="<c:out value="${ profile.header }"/>"/>
             </td>
             <td>
-                <input type="text" name="profile_description_${ profile.id }" value="<c:out value="${ profile.description }"/>"/>
+                <input class="validate(required)" type="text" name="profile_description_${ profile.id }" value="<c:out value="${ profile.description }"/>"/>
             </td>
             <td>
                 <input type="text" name="profile_content_${ profile.id }" value="<c:out value="${ profile.content }"/>"/>

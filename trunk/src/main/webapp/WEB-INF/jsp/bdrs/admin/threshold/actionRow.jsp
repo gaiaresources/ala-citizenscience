@@ -68,10 +68,10 @@
                     </c:forEach>
                 </select>
             </td>
-            <td id="action_cell_${ index }">
+            <td id="action_cell_${ action.id }">
                 <tiles:insertDefinition name="thresholdActionValue">
                     <tiles:putAttribute name="action" value="${ action }"/>
-                    <tiles:putAttribute name="index" value="${ index }"/>
+                    <tiles:putAttribute name="index" value="${ action.id }"/>
                 </tiles:insertDefinition>
             </td>
 	    </c:otherwise>
