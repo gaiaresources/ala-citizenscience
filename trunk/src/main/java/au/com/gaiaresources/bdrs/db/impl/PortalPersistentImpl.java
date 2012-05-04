@@ -5,6 +5,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
 
 import au.com.gaiaresources.bdrs.model.portal.Portal;
+import org.hibernate.search.annotations.IndexedEmbedded;
 
 @MappedSuperclass
 public abstract class PortalPersistentImpl extends PersistentImpl {
@@ -16,6 +17,7 @@ public abstract class PortalPersistentImpl extends PersistentImpl {
     
     @ManyToOne
     @JoinColumn(name = "PORTAL_ID", nullable = true)
+    @IndexedEmbedded
     public Portal getPortal() {
         return portal;
     }

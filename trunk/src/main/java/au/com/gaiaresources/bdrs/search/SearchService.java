@@ -26,12 +26,16 @@ public interface SearchService {
     
     /**
      * Creates the indexes for the search engine.
+     * WARNING: this method is non-transactional and has the side effect of clearing the current Hibernate Session.
+     * Designed for administrative use only.
      * @param sesh the {@link Session} to use for the query
      */
     public void createIndexes(Session sesh);
     
     /**
      * Deletes the indexes for the search engine.
+     * WARNING: this method is non-transactional and has the side effect of clearing the current Hibernate Session.
+     * Designed for administrative use only.
      * @param sesh the {@link Session} to use for the query
      */
     public void deleteIndexes(Session sesh);
@@ -75,16 +79,22 @@ public interface SearchService {
 
     /**
      * Deletes all defined indexes from the system.
+     * WARNING: this method is non-transactional and has the side effect of clearing the current Hibernate Session.
+     * Designed for administrative use only.
      */
     public void deleteIndexes();
 
     /**
      * Creates indexes for all indexed classes returned by {@link IndexUtils::getIndexedClasses()}.
+     * WARNING: this method is non-transactional and has the side effect of clearing the current Hibernate Session.
+     * Designed for administrative use only.
      */
     public void createIndexes();
 
     /**
      * Deletes the index for the specified class.
+     * WARNING: this method is non-transactional and has the side effect of clearing the current Hibernate Session.
+     * Designed for administrative use only.
      * @param sesh the {@link Session} to use for the indexing
      * @param clazz the {@link Class} to index
      */
@@ -99,12 +109,16 @@ public interface SearchService {
     
     /**
      * Deletes the index for the specified class.
+     * WARNING: this method is non-transactional and has the side effect of clearing the current Hibernate Session.
+     * Designed for administrative use only.
      * @param clazz the {@link Class} to index
      */
     public void deleteIndex(Class<?> clazz);
 
     /**
      * Creates the index for the specified class.
+     * WARNING: this method is non-transactional and has the side effect of clearing the current Hibernate Session.
+     * Designed for administrative use only.
      * @param clazz the {@link Class} to index
      */
     public void createIndex(Class<?> clazz);
