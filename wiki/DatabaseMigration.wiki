@@ -563,3 +563,17 @@ alter table index_schedule add column last_run timestamp without time zone;
 rollback;
 
 </code>
+
+= r294 =
+<code language="sql">
+begin;
+
+update species_profile set "header"='' where "header" is null;
+update species_profile set description='' where description is null;
+
+alter table species_profile alter column description set not null;
+alter table species_profile alter column "header" set not null;
+
+rollback;
+
+</code>
