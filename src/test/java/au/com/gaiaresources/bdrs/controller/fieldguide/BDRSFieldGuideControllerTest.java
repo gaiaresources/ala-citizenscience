@@ -325,6 +325,8 @@ public class BDRSFieldGuideControllerTest extends AbstractControllerTest {
 
         IndicatorSpecies greenMonkey = taxaDAO.getIndicatorSpeciesByCommonName("Green Monkey").get(0);
         greenMonkey.addSecondaryGroup(group);
+
+        sesh.flush();
     }
 
     /**

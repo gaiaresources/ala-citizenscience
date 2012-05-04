@@ -1016,6 +1016,7 @@
                 <taxonlib.db.password>postgres</taxonlib.db.password>
                 <taxonlib.db.url>localhost:5432/taxonlib-test</taxonlib.db.url>
                 <bdrs.lucene.index.location>/tmp/bdrs/lucene</bdrs.lucene.index.location>
+                <bdrs.lucene.index.strategy>event</bdrs.lucene.index.strategy>
                 <!-- Logging Properties -->
                 <bdrs.logfile>logs/bdrs-core.log</bdrs.logfile>
                 <bdrs.sqllogfile>logs/bdrs-core-SQL.log</bdrs.sqllogfile>
