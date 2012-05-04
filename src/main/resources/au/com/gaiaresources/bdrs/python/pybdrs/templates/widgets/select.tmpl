@@ -6,7 +6,9 @@
                 #end if
             "
         style="${ widget.widget_style }">
-    <option></option>
+    #if not $widget.required:
+        <option></option>
+    #end if
     #for $opt in $widget.options
         <option value="${ opt }" #if $opt == $widget.widget_value then 'selected="selected"' else '' #>
             ${ opt }
