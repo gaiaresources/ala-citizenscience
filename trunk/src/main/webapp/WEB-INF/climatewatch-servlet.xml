@@ -24,6 +24,15 @@
 
     <mvc:resources mapping="/**/*.css" location="/css/,/js/" cache-period="31556926"/>
     <mvc:resources mapping="/**/*.js" location="/js/,/css/" cache-period="31556926"/>
+    <mvc:resources mapping="/**/*.png" location="/js/,/css/" cache-period="31556926"/>
+    <mvc:resources mapping="/**/*.gif" location="/js/,/css/" cache-period="31556926"/>
+    <mvc:resources mapping="/**/*.swf" location="/js/,/css/" cache-period="31556926"/>
+    <mvc:resources mapping="/**/*.xml" location="/js/,/css/" cache-period="31556926"/>
+    <mvc:resources mapping="/**/*.html" location="/js/,/css/" cache-period="31556926"/>
+    <mvc:resources mapping="/**/*.svg" location="/js/,/css/" cache-period="31556926"/>
+    <mvc:resources mapping="/**/*.txt" location="/js/,/css/" cache-period="31556926"/>
+    <mvc:resources mapping="/**/*.jpg" location="/js/,/css/" cache-period="31556926"/>
+
 
     <context:annotation-config />
     <context:component-scan
