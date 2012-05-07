@@ -3,29 +3,13 @@
  */
 package au.com.gaiaresources.bdrs.model.portal;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import au.com.gaiaresources.bdrs.config.AppContext;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
-
-import org.apache.log4j.Logger;
-import org.hibernate.Session;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-
-import au.com.gaiaresources.bdrs.config.AppContext;
 import au.com.gaiaresources.bdrs.model.index.IndexSchedule;
 import au.com.gaiaresources.bdrs.model.index.IndexScheduleDAO;
 import au.com.gaiaresources.bdrs.model.index.IndexTask;
 import au.com.gaiaresources.bdrs.model.index.IndexType;
-import au.com.gaiaresources.bdrs.model.index.IndexUtil;
 import au.com.gaiaresources.bdrs.model.portal.impl.PortalInitialiser;
 import au.com.gaiaresources.bdrs.model.preference.Preference;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceCategory;
@@ -38,6 +22,20 @@ import au.com.gaiaresources.bdrs.search.SearchService;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.facet.FacetService;
 import au.com.gaiaresources.bdrs.util.ModerationUtil;
+import org.apache.log4j.Logger;
+import org.hibernate.Session;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author stephanie
@@ -48,6 +46,9 @@ public class PortalUtil {
     private static Logger log = Logger.getLogger(PortalUtil.class);
     
     public static final String DEFAULT_PREFERENCES = "preferences.json";
+
+    /** The preferences.json file is UTF-8 encoded, as is the maven resources plugin configuration */
+    public static final String PREFERENCES_CHARACTER_ENCODING = "UTF-8";
     
     protected PortalUtil() {
         throw new UnsupportedOperationException();
@@ -147,7 +148,7 @@ public class PortalUtil {
     public static JSONArray getPreferenceJson(String filename) throws IOException {
         // Load the JSON data from file.
         BufferedReader reader = new BufferedReader(new InputStreamReader(
-                PortalInitialiser.class.getResourceAsStream(filename)));
+                PortalInitialiser.class.getResourceAsStream(filename), Charset.forName(PREFERENCES_CHARACTER_ENCODING)));
         StringBuilder builder = new StringBuilder();
         for (String line = reader.readLine(); line != null; line = reader.readLine()) {
             builder.append(line);
