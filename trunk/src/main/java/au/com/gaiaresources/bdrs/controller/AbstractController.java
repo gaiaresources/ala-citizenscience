@@ -1,23 +1,23 @@
 package au.com.gaiaresources.bdrs.controller;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import au.com.gaiaresources.bdrs.db.TransactionCallback;
+import au.com.gaiaresources.bdrs.servlet.Interceptor;
+import au.com.gaiaresources.bdrs.servlet.RequestContext;
+import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
+import au.com.gaiaresources.bdrs.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
+import org.springframework.web.util.HtmlUtils;
 
-import au.com.gaiaresources.bdrs.db.TransactionCallback;
-import au.com.gaiaresources.bdrs.servlet.Interceptor;
-import au.com.gaiaresources.bdrs.servlet.RequestContext;
-import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class AbstractController {
     @Autowired
@@ -63,18 +63,22 @@ public abstract class AbstractController {
      */
     protected void writeJson(HttpServletRequest request, HttpServletResponse response, String json) throws IOException {
         // support for JSONP
-        if (request.getParameter("callback") != null) {
-                response.setContentType("application/javascript");              
-                response.getWriter().write(request.getParameter("callback") + "(");
+
+        String callback = request.getParameter("callback");
+        // support for JSONP
+        if (StringUtils.notEmpty(callback)) {
+            callback = HtmlUtils.htmlEscape(callback);
+            response.setContentType("application/javascript");
+            response.getWriter().write(callback + "(");
         } else {
-                response.setContentType("application/json");
+            response.setContentType("application/json");
         }
 
         // write our content
         response.getWriter().write(json);
         
-        if (request.getParameter("callback") != null) {
-                response.getWriter().write(");");
+        if (StringUtils.notEmpty(callback)) {
+            response.getWriter().write(");");
         }
     }
     
