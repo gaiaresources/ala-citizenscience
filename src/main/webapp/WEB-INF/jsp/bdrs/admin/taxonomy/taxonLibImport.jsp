@@ -8,6 +8,13 @@
     WARNING
 </h3>
 <div>
+	<p>
+		Before you run your taxonomy import, make sure your email is correctly set in your
+		<a href="${pageContext.request.contextPath}/user/editProfile.htm">profile</a>.
+	</p>
+	<p>
+		An email will be sent to you to report the outcome of your taxonomy import.
+	</p>
     <p>
         These updates can take hours to run (up to 10 hours for very large datasets).
         Once the update has started it cannot be stopped.

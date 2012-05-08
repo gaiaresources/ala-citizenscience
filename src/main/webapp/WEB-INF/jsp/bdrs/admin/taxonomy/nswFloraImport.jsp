@@ -11,7 +11,8 @@
 	<p>
 		Save your NSW Flora spreadsheet as a CSV file and upload it here.
 	</p>
-	<form method="POST" enctype="multipart/form-data" action="${pageContext.request.contextPath}/bdrs/admin/taxonomy/taxonLibImport.htm">
+	<form method="POST" enctype="multipart/form-data" action="${pageContext.request.contextPath}/bdrs/admin/taxonomy/taxonLibImport.htm"
+	target="iframe_target">
 	    <input type="hidden" name="importSource" value="NSW_FLORA" />
 	    <table class="form_table">
 	        <tbody>
@@ -30,6 +31,16 @@
 	    <div id="buttonPanelBottom" class="buttonpanel textright">
 	        <input class="form_action" type="submit" />
 	    </div>
-	</form>
+		<iframe id="iframe_target" name="iframe_target" src="" class="hidden"></iframe>
+    </form>
 </div>
+<script type="text/javascript">
+	jQuery(function() {
+		jQuery('form').bind('onKetchup', function(ev, isTasty) {
+			if (isTasty) {
+				bdrs.message.set("Taxonomy import started. Please do not start another Import until you have received an import completion email.");
+			}
+		});
+	});
+</script>
 

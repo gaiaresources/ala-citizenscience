@@ -13,7 +13,8 @@
     <p> 
         The Max flora database has 4 tables that we need to export as CSV after which we can upload the files here.
     </p>
-    <form method="POST" enctype="multipart/form-data" action="${pageContext.request.contextPath}/bdrs/admin/taxonomy/taxonLibImport.htm">
+    <form method="POST" enctype="multipart/form-data" action="${pageContext.request.contextPath}/bdrs/admin/taxonomy/taxonLibImport.htm"
+    target="iframe_target">
         <input type="hidden" name="importSource" value="MAX"/>
         <table class="form_table">
             <tbody>
@@ -62,5 +63,15 @@
         <div id="buttonPanelBottom" class="buttonpanel textright">
             <input class="form_action" type="submit"/>
         </div>
+    	<iframe id="iframe_target" name="iframe_target" src="" class="hidden"></iframe>
     </form>
 </div>
+<script type="text/javascript">
+	jQuery(function() {
+		jQuery('form').bind('onKetchup', function(ev, isTasty) {
+			if (isTasty) {
+				bdrs.message.set("Taxonomy import started. Please do not start another Import until you have received an import completion email.");
+			}
+		});
+	});
+</script>
