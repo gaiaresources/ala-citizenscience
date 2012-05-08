@@ -347,10 +347,37 @@ bdrs.attribute.createAttributeDisplayDiv = function(attributes, attributeSelecto
         var attElem = jQuery('<div class="attributeElement" ></div>');
         var attDescElem = jQuery('<div class="attributeDescription" >' + 
                 att.attribute.description + '</div>');
-        var attValueElem = jQuery('<div class="attributeValue" >' + 
-                att.stringValue + '</div>');
-        attElem.append(attDescElem);
-        attElem.append(attValueElem);
+        var attValueElem;
+        var attr_type = bdrs.model.taxa.attributeType.code[att.attribute.typeCode];
+        // If this is a file attribute, create a link.
+        if(attr_type.isFileType()) {
+        	if (att.attribute.type === "FILE") {
+	            // make a link to download the file
+	        	attValueElem = jQuery('<div class="attributeValue" >' + 
+	        			'<a href="'+bdrs.contextPath+'/files/download.htm?'+att.fileURL+'">' +
+	                    att.value+'</a></div>');
+	        } else if (att.attribute.type === "IMAGE") {
+	            // make a link to download the file
+	        	attValueElem = jQuery('<div class="attributeValue" >' + 
+	        			'<a href="'+bdrs.contextPath+'/files/download.htm?'+att.fileURL+'">' +
+	        			'<img width="250"'+
+	                        'src="'+bdrs.contextPath+'/files/download.htm?'+att.fileURL+'"' +
+	                        'alt="Missing Image"/></a></div>');
+	        } 
+        } else if (attr_type.isHtmlType()) {
+            // display the html in one single div instead of two
+        	attDescElem = null;
+        	attValueElem = jQuery('<div class="attributeValue" >' + att.attribute.description + '</div>');
+        } else {
+            attValueElem = jQuery('<div class="attributeValue" >' + 
+                    att.value + '</div>');
+        }
+        if (attDescElem) {
+        	attElem.append(attDescElem);
+        }
+        if (attValueElem) {
+        	attElem.append(attValueElem);
+        }
         attDiv.append(attElem);
     }
 };

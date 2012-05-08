@@ -277,18 +277,15 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
     
     @Override
     public Integer countNullCensusMethodRecords() {
-        RecordFilter filter = new CountRecordFilter();
-        filter.setCensusMethod(null);
-        Query q = filter.getRecordQuery(getSession());
+        Query q = getSession().createQuery("select count(*) from Record r where r.censusMethod is null");
         Integer count = Integer.parseInt(q.list().get(0).toString(),10);
         return count;
     }
 
     @Override
     public Integer countRecordsForSpecies(IndicatorSpecies species) {
-        RecordFilter filter = new CountRecordFilter();
-        filter.setSpecies(species);
-        Query q = filter.getRecordQuery(getSession());
+        Query q = getSession().createQuery("select count(*) from Record r where r.species = ?");
+        q.setParameter(0, species);
         Integer count = Integer.parseInt(q.list().get(0).toString(),10);
         return count;
     }

@@ -58,7 +58,7 @@ import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
  *
  */
 @Controller
-public class YearlySightingsController extends AbstractController {
+public class YearlySightingsController extends RecordController {
 
     /**
      * Url for the yearly sightings form
@@ -342,7 +342,7 @@ public class YearlySightingsController extends AbstractController {
         } else {
             switch (survey.getFormSubmitAction()) {
             case MY_SIGHTINGS:
-                getRequestContext().addMessage(MSG_CODE_SUCCESS_MY_SIGHTINGS);
+                getRequestContext().addMessage(MSG_CODE_SUCCESS_MY_SIGHTINGS, new Object[]{defaultTab()});
                 break;
             case STAY_ON_FORM:
                 getRequestContext().addMessage(MSG_CODE_SUCCESS_STAY_ON_FORM);

@@ -9,7 +9,7 @@
 <tiles:useAttribute name="showActions" ignore="true" />
 
 <h4>Search Census Methods</h4>
-    <form class="widgetSearchForm" id="${widgetId}SearchForm">
+    <form class="widgetSearchForm" id="${widgetId}SearchForm" onsubmit="return false;">
         <table>
             <tr>
                 <td class="formlabel">Census Method Name:</td>

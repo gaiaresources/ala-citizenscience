@@ -22,11 +22,12 @@ import org.hibernate.annotations.ParamDef;
 import org.hibernate.search.annotations.Analyzer;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Store;
+import org.springframework.util.StringUtils;
 
 import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
 import au.com.gaiaresources.bdrs.model.index.IndexingConstants;
-import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import au.com.gaiaresources.bdrs.util.DateFormatter;
 
 
 /**
@@ -150,5 +151,23 @@ public class AttributeValue extends AbstractTypedAttributeValue implements Typed
         } else {
             this.dateValue = null;
         }
+    }
+    
+    /**
+     * Returns the value of this attribute value as a String for display purposes.
+     * Converts boolean, date, and number.
+     * @return A formatted String that represents this value
+     */
+    @Transient
+    public String getValue() {
+        if (StringUtils.hasLength(getStringValue())) {
+            return getStringValue();
+        } else if (getDateValue() != null) {
+            return DateFormatter.format(getDateValue(), DateFormatter.DAY_MONTH_YEAR);
+        } else if (getNumericValue() != null) {
+            return String.valueOf(getNumericValue());
+        }
+        
+        return null;
     }
 }

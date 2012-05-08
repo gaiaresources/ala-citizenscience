@@ -31,4 +31,16 @@ public class BdrsWebConstants {
      * Constant for the web form parameter "commentId".
      */
     public static final String PARAM_COMMENT_ID = "commentId";
+    /**
+     * Constant for the session attribute name that stores property/attribute specific errors
+     */
+    public static final String MV_ERROR_MAP = "errorMap";
+    /**
+     * Constant for the session attribute name that stores property/attribute values on error.
+     */
+    public static final String MV_VALUE_MAP = "valueMap";
+    /**
+     * Constant for the session attribute name that stores the wkt string of the location on error.
+     */
+    public static final String MV_WKT = "wkt";
 }

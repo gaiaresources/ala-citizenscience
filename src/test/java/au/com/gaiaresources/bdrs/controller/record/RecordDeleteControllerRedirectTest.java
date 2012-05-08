@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.ModelAndView;
 
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
+import au.com.gaiaresources.bdrs.controller.review.sightings.SightingsController;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
@@ -55,42 +56,42 @@ public class RecordDeleteControllerRedirectTest extends AbstractControllerTest {
     
     @Test
     public void testMultiDeleteSuccess() throws Exception {
-        testRecordDeletionRedirect(true, true, false, RecordDeletionController.MSG_CODE_RECORD_MULTI_DELETE_SUCCESS);
+        testRecordDeletionRedirect(true, true, false, RecordDeletionController.MSG_CODE_RECORD_MULTI_DELETE_SUCCESS, 2);
     }
     
     @Test
     public void testMultiDeleteRedirectSuccess() throws Exception {
-        testRecordDeletionRedirect(true, true, true, RecordDeletionController.MSG_CODE_RECORD_MULTI_DELETE_REDIRECT_SUCCESS);
+        testRecordDeletionRedirect(true, true, true, RecordDeletionController.MSG_CODE_RECORD_MULTI_DELETE_REDIRECT_SUCCESS, 1);
     }
     
     @Test
     public void testSingleDeleteSuccess() throws Exception {
-        testRecordDeletionRedirect(false, true, false, RecordDeletionController.MSG_CODE_RECORD_DELETE_SUCCESS);
+        testRecordDeletionRedirect(false, true, false, RecordDeletionController.MSG_CODE_RECORD_DELETE_SUCCESS, 0);
     }
     
     @Test
     public void testSingleDeleteRedirectSuccess() throws Exception {
-        testRecordDeletionRedirect(false, true, true, RecordDeletionController.MSG_CODE_RECORD_DELETE_REDIRECT_SUCCESS);
+        testRecordDeletionRedirect(false, true, true, RecordDeletionController.MSG_CODE_RECORD_DELETE_REDIRECT_SUCCESS, 0);
     }
     
     @Test
     public void testMultiDeleteAuthFail() throws Exception {
-        testRecordDeletionRedirect(true, false, false, RecordDeletionController.MSG_CODE_RECORD_MULTI_DELETE_AUTHFAIL);
+        testRecordDeletionRedirect(true, false, false, RecordDeletionController.MSG_CODE_RECORD_MULTI_DELETE_AUTHFAIL, 0);
     }
     
     @Test
     public void testMultiDeleteRedirectAuthFail() throws Exception {
-        testRecordDeletionRedirect(true, false, true, RecordDeletionController.MSG_CODE_RECORD_MULTI_DELETE_REDIRECT_AUTHFAIL);
+        testRecordDeletionRedirect(true, false, true, RecordDeletionController.MSG_CODE_RECORD_MULTI_DELETE_REDIRECT_AUTHFAIL, 0);
     }
     
     @Test
     public void testSingleDeleteAuthFail() throws Exception {
-        testRecordDeletionRedirect(false, false, false, RecordDeletionController.MSG_CODE_RECORD_DELETE_AUTHFAIL);
+        testRecordDeletionRedirect(false, false, false, RecordDeletionController.MSG_CODE_RECORD_DELETE_AUTHFAIL, 0);
     }
     
     @Test
     public void testSingleDeleteRedirectAuthFail() throws Exception {
-        testRecordDeletionRedirect(false, false, true, RecordDeletionController.MSG_CODE_RECORD_DELETE_REDIRECT_AUTHFAIL);
+        testRecordDeletionRedirect(false, false, true, RecordDeletionController.MSG_CODE_RECORD_DELETE_REDIRECT_AUTHFAIL, 0);
     }
     
     /**
@@ -100,9 +101,10 @@ public class RecordDeleteControllerRedirectTest extends AbstractControllerTest {
      * @param authOk - true => login as user with auth to delete, else user with no auth
      * @param redirect - true => pass the redirect param, else no redirect param
      * @param msgCode - message code to look for
+     * @param argCount - number of arguments to pass to the message
      * @throws Exception
      */
-    private void testRecordDeletionRedirect(boolean multi, boolean authOk, boolean redirect, String msgCode) throws Exception {
+    private void testRecordDeletionRedirect(boolean multi, boolean authOk, boolean redirect, String msgCode, int argCount) throws Exception {
         if (authOk) {
             login("admin", "password", new String[] { Role.ADMIN });
         } else {
@@ -125,8 +127,17 @@ public class RecordDeleteControllerRedirectTest extends AbstractControllerTest {
         }
         
         if (authOk) {
-            if (multi) {
-                this.assertMessageCodeAndArgs(msgCode, new Object[] { 2 } );
+            // create the arguments
+            Object[] args = new Object[argCount];
+            for (int i = 0; i < args.length; i++) {
+                if (i == 0 && multi) {
+                    args[i] = 2;
+                } else {
+                    args[i] = SightingsController.TABLE_TAB;
+                }
+            }
+            if (args.length > 0) {
+                this.assertMessageCodeAndArgs(msgCode, args);
             } else {
                 this.assertMessageCode(msgCode);
             }    

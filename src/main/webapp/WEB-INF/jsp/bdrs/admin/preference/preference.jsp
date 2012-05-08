@@ -17,43 +17,53 @@
         <c:set var="preferenceList" value="${ categoryToPrefEntry.value }"/>
         <div class="preference_category">
             <div id="preferences${ category.id }Container">
-            	
-				<table class="preference_table_header">
-					<tbody>
-						<tr>
-							<td><h2><c:out value="${ category.displayName }"/></h2>
-		                    <p>
-		                    	<!-- not escaping xml as this text is only settable server side -->
-		                        <c:out value="${ category.description }" escapeXml="false" />
-		                    </p></td>
-							<td class="right_cell" valign="bottom">
-								<div class="textright buttonpanel">
-				                    <a id="maximiseLink${ category.id }" class="text-left" href="javascript:bdrs.util.maximise('#maximiseLink${ category.id }', '#preferences${ category.id }Container', 'Enlarge Table', 'Shrink Table')">Enlarge Table</a>
-				                    <input type="button" class="form_action" value="Add <c:out value="${ category.displayName }"/> Preference" onclick="bdrs.preferences.addPreferenceRow( ${ category.id }, '#index', '#category_${ category.id }' );"/>
-				                </div>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-	            <table id="category_${ category.id }" class="preference_table datatable textjustify">
-	                <thead>
-	                    <tr>
-	                        <th>Description</th>
-	                        <th>Key</th>
-	                        <th>Value</th>
-	                        <th>Delete</th>
-	                    </tr>
-	                </thead>
-	                <tbody>
-	                    <c:forEach var="pref" items="${ preferenceList }">
-	                        <tiles:insertDefinition name="preferenceRow">
-	                            <tiles:putAttribute name="pref" value="${ pref }"/>
-	                        </tiles:insertDefinition>
-	                    </c:forEach>
-	                </tbody>
-	            </table>
+                <table>
+                    <tr>
+                        <td><h2 class="left"><c:out value="${ category.displayName }"/></h2></td>
+                        <td valign="middle">
+                            <a id="category_toggle_${ category.id }" name="category_toggle_${ category.id }" class="left" href="javascript: void(0);">Show Preferences List</a>
+                        </td>
+                    </tr>
+                </table>
+                <p class="clear">
+                    <!-- not escaping xml as this text is only settable server side -->
+                    <c:out value="${ category.description }" escapeXml="false" />
+                </p>
+                <div id="preference_category_${ category.id }" name="preference_category_${ category.id }">
+                    <div class="textright buttonpanel">
+                        <a id="maximiseLink${ category.id }" class="text-left" href="javascript:bdrs.util.maximise('#maximiseLink${ category.id }', '#preferences${ category.id }Container', 'Enlarge Table', 'Shrink Table')">Enlarge Table</a>
+                        <input type="button" class="form_action" value="Add <c:out value="${ category.displayName }"/> Preference" onclick="bdrs.preferences.addPreferenceRow( ${ category.id }, '#index', '#category_${ category.id }' );"/>
+                    </div>
+                    <table id="category_${ category.id }" class="preference_table datatable textjustify">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Key</th>
+                                <th>Value</th>
+                                <th>Delete</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="pref" items="${ preferenceList }">
+                                <tiles:insertDefinition name="preferenceRow">
+                                    <tiles:putAttribute name="pref" value="${ pref }"/>
+                                </tiles:insertDefinition>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
+        <script type="text/javascript">
+            jQuery(function() {
+                jQuery("#category_toggle_${ category.id }").click(function() {
+                    jQuery("#preference_category_${ category.id }").slideToggle(function() {
+                        var canSee = jQuery("#preference_category_${ category.id }").css('display') === 'none';
+                        jQuery("#category_toggle_${ category.id }").text(canSee ? "Show Preferences List" : "Hide Preferences List");
+                    });
+                });
+            });
+        </script>
     </c:forEach>
     
     <div class="buttonpanel textright">
@@ -61,3 +71,9 @@
     </div>
 </form>
 
+<script type="text/javascript">
+    jQuery(window).load(function() {
+        // hide the preferences here so ketchup is rendered in the appropriate position
+        jQuery("[name^='preference_category']").css('display', 'none');
+    });
+</script>

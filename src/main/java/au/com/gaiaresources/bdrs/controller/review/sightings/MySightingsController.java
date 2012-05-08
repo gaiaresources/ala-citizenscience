@@ -75,11 +75,6 @@ public class MySightingsController extends SightingsController {
     public static final String MY_SIGHTINGS_DOWNLOAD_URL = "/map/ajaxMySightingsDownload.htm";
     public static final String MY_SIGHTINGS_RECORD_COUNT_URL = "/map/ajaxMySightingsRecordCount.htm";
     
-    public static final String MAP_TAB = "map";
-    public static final String TABLE_TAB = "table";
-    public static final String DOWNLOAD_TAB = "download";
-    public static final String DEFAULT_TAB = MAP_TAB;
-    
     // SortOrder.ASCENDING.toString();
     public static final String DEFAULT_SORT_ORDER = "ASCENDING";
     public static final String DEFAULT_SORT_COL = "record.when";
@@ -510,16 +505,5 @@ public class MySightingsController extends SightingsController {
         dateFormat.setLenient(false);
         binder.registerCustomEditor(Date.class, new CustomDateEditor(
                 dateFormat, true));
-    }
-
-    /**
-     * Returns the default tab (map or table) to display if it has not been specified in the request.
-     * The default is determined by the value of the Preference.DEFAULT_TO_MAP_VIEW_KEY preference.
-     * @return the default tab to display (MAP_TAB or TABLE_TAB).
-     */
-    private String defaultTab() {
-        PreferenceUtil preferenceUtil = new PreferenceUtil(preferenceDAO);
-        boolean useMap = preferenceUtil.getBooleanPreference(Preference.MY_SIGHTINGS_DEFAULT_VIEW_KEY);
-        return useMap ? MAP_TAB : TABLE_TAB;
     }
 }

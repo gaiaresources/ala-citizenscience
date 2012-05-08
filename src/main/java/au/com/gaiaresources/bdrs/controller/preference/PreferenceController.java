@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
@@ -43,7 +44,7 @@ public class PreferenceController extends AbstractController {
 
         Map<String, Preference> prefMap = prefDAO.getPreferences();
         // { Category : [ Preference ] }
-        Map<PreferenceCategory, List<Preference>> categoryMap = new HashMap<PreferenceCategory, List<Preference>>();
+        Map<PreferenceCategory, List<Preference>> categoryMap = new TreeMap<PreferenceCategory, List<Preference>>();
         // { Category : categoryDisplayName }
         
         for (PreferenceCategory pc : prefDAO.getPreferenceCategories()) {

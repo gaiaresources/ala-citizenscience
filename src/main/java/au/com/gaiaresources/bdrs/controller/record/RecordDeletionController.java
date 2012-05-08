@@ -25,7 +25,7 @@ import au.com.gaiaresources.bdrs.service.web.RedirectionService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 @Controller
-public class RecordDeletionController extends AbstractController {
+public class RecordDeletionController extends RecordController {
 
     private Logger log = Logger.getLogger(getClass());
     
@@ -121,13 +121,13 @@ public class RecordDeletionController extends AbstractController {
             
             if (recordId.length > 1) {
                 if (defaultRedirect) {
-                    getRequestContext().addMessage(new Message(MSG_CODE_RECORD_MULTI_DELETE_AUTHFAIL));
+                    getRequestContext().addMessage(new Message(MSG_CODE_RECORD_MULTI_DELETE_AUTHFAIL, new Object[]{defaultTab()}));
                 } else {
                     getRequestContext().addMessage(new Message(MSG_CODE_RECORD_MULTI_DELETE_REDIRECT_AUTHFAIL));
                 }
             } else {
                 if (defaultRedirect) {
-                    getRequestContext().addMessage(new Message(MSG_CODE_RECORD_DELETE_AUTHFAIL));
+                    getRequestContext().addMessage(new Message(MSG_CODE_RECORD_DELETE_AUTHFAIL, new Object[]{defaultTab()}));
                 } else {
                     getRequestContext().addMessage(new Message(MSG_CODE_RECORD_DELETE_REDIRECT_AUTHFAIL));
                 }
@@ -136,14 +136,14 @@ public class RecordDeletionController extends AbstractController {
             if (recordDeleteCount > 1) {
                 // multi delete case
                 if (defaultRedirect) {
-                    getRequestContext().addMessage(new Message(MSG_CODE_RECORD_MULTI_DELETE_SUCCESS, new Object[] { recordDeleteCount }));
+                    getRequestContext().addMessage(new Message(MSG_CODE_RECORD_MULTI_DELETE_SUCCESS, new Object[] { recordDeleteCount, defaultTab() }));
                 } else {
                     getRequestContext().addMessage(new Message(MSG_CODE_RECORD_MULTI_DELETE_REDIRECT_SUCCESS, new Object[] { recordDeleteCount } ));
                 }
             } else {
                 // single delete case
                 if (defaultRedirect) {
-                    getRequestContext().addMessage(new Message(MSG_CODE_RECORD_DELETE_SUCCESS));
+                    getRequestContext().addMessage(new Message(MSG_CODE_RECORD_DELETE_SUCCESS, new Object[]{defaultTab()}));
                 } else {
                     getRequestContext().addMessage(new Message(MSG_CODE_RECORD_DELETE_REDIRECT_SUCCESS));
                 }
