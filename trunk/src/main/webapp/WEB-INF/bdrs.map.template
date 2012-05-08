@@ -29,8 +29,17 @@ DEBUG 0
   EXTENT 110 -40 120 -30
   WEB
     METADATA
-      "wms_title" 		"BDRS Map Server"
-      "wms_srs" 		"EPSG:4326 EPSG:900913"
+      "wms_title"               "BDRS Map Server"
+      "wms_srs"                 "EPSG:4326 EPSG:900913"
+      'OWS_ENABLE_REQUEST'      '*'
+    END
+    VALIDATION
+      'SLD_BODY'                '[.]*'
+      'GEO_MAP_FEATURE_ID'      '[.]*'
+      'RECORD_ID'               '[.]*'
+      'GEO_MAP_LAYER_ID'        '[.]*'
+      'IS_ADMIN'                '[.]*'
+      'USER_ID'                 '[0-9]*'
     END
   END
 

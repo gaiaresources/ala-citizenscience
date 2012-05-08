@@ -133,10 +133,8 @@ public class TaxonLibImportController extends AbstractController {
 	 */
 	@RolesAllowed({Role.ADMIN})
 	@RequestMapping(value=TAXON_LIB_IMPORT_URL, method = RequestMethod.POST)
-	public ModelAndView runImport(MultipartHttpServletRequest request,
+	public void runImport(MultipartHttpServletRequest request,
             HttpServletResponse response) {
-		
-		ModelAndView mv = this.redirect(TAXON_LIB_IMPORT_URL);
 		
 		log.info("TAXONOMY IMPORT START");
 		
@@ -168,19 +166,15 @@ public class TaxonLibImportController extends AbstractController {
 			// commit!
 			taxonLibSession.commit();
 			
-			getRequestContext().addMessage("bdrs.taxonlib.importSuccess", new Object[] { importSource.toString() });
 			sendSuccessEmail(currentUser);
 		} catch (MissingFileException e) {
-			getRequestContext().addMessage("bdrs.taxonlib.missingFileUpload", new Object[] { e.getMessage() });
 			rollback = true;
 			sendFailureEmail(currentUser, e.getMessage());
 		} catch (BdrsTaxonLibException e) {
-			getRequestContext().addMessage("bdrs.taxonlib.importError", new Object[] { e.getMessage() });
 			log.error("Error during taxon lib import : ", e);
 			rollback = true;
 			sendFailureEmail(currentUser, e.getMessage());
 		} catch (Exception e) {
-			getRequestContext().addMessage("bdrs.taxonlib.importError", new Object[] { e.getMessage() });
 			log.error("Error during taxon lib import : ", e);
 			rollback = true;
 			sendFailureEmail(currentUser, e.getMessage());
@@ -199,8 +193,6 @@ public class TaxonLibImportController extends AbstractController {
 			}
 		}
 		log.info("TAXONOMY IMPORT END");
-		
-		return mv;
 	}
 	
 	/**

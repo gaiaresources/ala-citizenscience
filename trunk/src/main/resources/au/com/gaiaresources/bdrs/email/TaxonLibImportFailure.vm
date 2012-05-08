@@ -2,5 +2,6 @@
     <body>
         <p>Your taxonomy import has failed.</p>
         <p>${errorMsg}</p>
+        <p>You may now begin another taxonomy import.</p>
     </body>
 </html>

@@ -1,3 +1,8 @@
+// IMPORTANT !!!
+// *************************************************************
+// If upgrading ketchup see line 42 - onKetchup event triggering
+// *************************************************************
+
 /*
    jQuery Ketchup Plugin
    =====================
@@ -35,6 +40,9 @@
       for(var i = 0; i < fields.length; i++) {
         if(buildErrorList(extractValidations(fields[i].blur()), fields[i]).length) tasty = false;
       }
+	  
+	  // If we ever upgrade ketchup - implement this trigger on form validation !
+	  form.trigger('onKetchup', tasty);
 
       if(!tasty) return false;
     });
