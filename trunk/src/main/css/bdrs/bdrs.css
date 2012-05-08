@@ -218,7 +218,7 @@ textarea.locationMetadata {
     margin: 0 0 0 20px;
     vertical-align: top;
 }
-
+/* the label width keeps the form aligned as if it were in a table layout */
 .verticalFormField label,
 .verticalFormField select,
 .verticalFormField textarea {
@@ -372,7 +372,10 @@ table.form_table tbody tr th {
 table.form_table tbody tr td {
 	max-width: 300px;
 }
-
+/* style that allows a form table to have a wider column */
+table.wide tbody tr td {
+	max-width: 500px;
+}
 /* set the min with for the tracker form table to keep the hidden species input to 
    the right of the species input for the ketchup popups */
 table.tracker_form_table tbody tr td,

@@ -70,6 +70,7 @@ public class AtlasController extends AbstractController {
     public static final String PARAM_SURVEY_ID = BdrsWebConstants.PARAM_SURVEY_ID;
     public static final String PARAM_RECORD_ID = BdrsWebConstants.PARAM_RECORD_ID;
     public static final String PARAM_TAXON_SEARCH = "taxonSearch";
+    public static final String PARAM_GUID = "guid";
 
     @Autowired
     private RecordDAO recordDAO;
@@ -111,7 +112,7 @@ public class AtlasController extends AbstractController {
             @RequestParam(value = BdrsWebConstants.PARAM_SURVEY_ID, required = true) int surveyId,
             @RequestParam(value = PARAM_TAXON_SEARCH, required = false) String taxonSearch,
             @RequestParam(value = BdrsWebConstants.PARAM_RECORD_ID, required = false, defaultValue = "0") int recordId,
-            @RequestParam(value = "guid", required = false) String guid) {
+            @RequestParam(value = PARAM_GUID, required = false) String guid) {
         
         Survey survey = surveyDAO.getSurvey(surveyId);
         Record record = recordDAO.getRecord(recordId);
@@ -248,10 +249,8 @@ public class AtlasController extends AbstractController {
     public ModelAndView saveRecord(
             MultipartHttpServletRequest request,
             HttpServletResponse response,
-            @RequestParam(value = BdrsWebConstants.PARAM_SURVEY_ID, required = true) int surveyId,
-            @RequestParam(value = PARAM_TAXON_SEARCH, required = false) String taxonSearch,
-            @RequestParam(value = BdrsWebConstants.PARAM_RECORD_ID, required = false, defaultValue = "0") int recordId,
-            @RequestParam(value = "guid", required = false) String guid) throws ParseException, IOException {
+            @RequestParam(value = BdrsWebConstants.PARAM_SURVEY_ID, required = true) int surveyId) 
+                    throws ParseException, IOException {
         // call the tracker form save
         ModelAndView mv = tc.saveRecord(request, response, surveyId, 0, null);
         return mv;

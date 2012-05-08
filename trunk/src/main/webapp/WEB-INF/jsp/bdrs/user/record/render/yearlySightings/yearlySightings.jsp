@@ -37,7 +37,7 @@
             <tiles:putAttribute name="recordWebFormContext" value="${recordWebFormContext}" />
         </tiles:insertDefinition>
         
-        <table class="form_table">
+        <table class="form_table wide">
             <tbody>
                 <tr>
                     <th>Species</th>
@@ -83,19 +83,10 @@
                     </td>
                 </tr>
                 <c:forEach items="${recordWebFormContext.namedFormFields['formFieldList']}" var="formField">
-                    <tr>
-                        <th>
-                            <label for="attribute_${formField.attribute.id}">
-                                <c:out value="${formField.attribute.description}"/>
-                            </label>
-                        </th>
-                        <td>
-                            <tiles:insertDefinition name="attributeRenderer">
+                    <tiles:insertDefinition name="formFieldRenderer">
                                 <tiles:putAttribute name="formField" value="${formField}"/>
                                 <tiles:putAttribute name="editEnabled" value="${ recordWebFormContext.editable }" />
                             </tiles:insertDefinition>
-                        </td>
-                    </tr>
                 </c:forEach>
             </tbody>
         </table>

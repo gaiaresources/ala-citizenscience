@@ -33,4 +33,16 @@ public class AttributeUtil {
         return AttributeScope.isModerationScope(attr.getScope()) && 
                 ((loggedInUser != null && loggedInUser.isModerator()) || (attrVal != null && attrVal.isPopulated()));
     }
+
+    /**
+     * Checks if the attribute type is an HTML type or not
+     * @param attribute the attribute to check
+     * @return true if the type of the attribute is an HTML type, false otherwise
+     */
+    public static boolean isHTMLType(Attribute attribute) {
+        AttributeType type = attribute.getType();
+        return AttributeType.HTML.equals(type) || AttributeType.HTML_COMMENT.equals(type) ||
+               AttributeType.HTML_HORIZONTAL_RULE.equals(type) || 
+               AttributeType.HTML_NO_VALIDATION.equals(type);
+    }
 }

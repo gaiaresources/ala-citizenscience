@@ -4,9 +4,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -32,6 +35,7 @@ import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeUtil;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
@@ -81,7 +85,7 @@ public class LocationWebService extends AbstractController {
 
         Location location = locationDAO.getLocation(pk);
         
-        Map<String,Object> locationObj = location.flatten(3);
+        Map<String,Object> locationObj = location.flatten(2);
         if (surveyId != -1) {
             filterAttributesBySurvey(surveyId, location, locationObj);
         }
@@ -208,28 +212,67 @@ public class LocationWebService extends AbstractController {
             typedAttrMap.put(attr.getAttribute(), attr);
         }
         
-        // get all of the attributes for the survey and filter only keep 
+        // get all of the attributes for the survey and filter - only keep 
         // attribute values for this location that match the survey attributes
         Set<Integer> attrIdsToKeep = new HashSet<Integer>();
+        // also keep track of any location-scoped HTML attributes on the survey
+        // as they will need to be added to the form too
+        List<Attribute> attributesToAdd = new ArrayList<Attribute>();
         for(Attribute attribute : survey.getAttributes()) {
             if(AttributeScope.LOCATION.equals(attribute.getScope())) {
                 AttributeValue value = typedAttrMap.get(attribute);
-                if (value != null) {
+                // if the attribute has a value, it is a keeper
+                if (value != null && value.getValue() != null) {
                     attrIdsToKeep.add(attribute.getId());
+                } else {
+                    // if it is an HTML attribute, it will need to be added later
+                    if (AttributeUtil.isHTMLType(attribute)) {
+                        attributesToAdd.add(attribute);
+                    }
                 }
             }
         }
         
-        List<Map<String, Map<String, Object>>> attributes = (List<Map<String, Map<String, Object>>>) locationObj.get("attributes");
+        List<Map<String, Object>> attributes = (List<Map<String, Object>>) locationObj.get("orderedAttributes");
         List<Object> removeAttrs = new ArrayList<Object>();
-        for (Map<String, Map<String, Object>> attributeMap : attributes) {
-            Map<String, Object> attributeValues = attributeMap.get("attribute");
+        Map<Integer, Attribute> indexedAttributes = new TreeMap<Integer, Attribute>();
+        int index = 0;
+        for (Map<String, Object> attributeMap : attributes) {
+            Map<String, Object> attributeValues = (Map<String, Object>) attributeMap.get("attribute");
             Integer id = (Integer) attributeValues.get("id");
             if (!attrIdsToKeep.contains(id)) {
                 // remove attributes not found in the survey
                 removeAttrs.add(attributeMap);
             }
+            // check the weight of the attribute and insert or append the values from attributesToAdd accordingly
+            Integer weight = (Integer) attributeValues.get("weight");
+            // check the attributesToAdd for any of this weight or less
+            for (Attribute att : attributesToAdd) {
+                if (att.getWeight() < weight) {
+                    indexedAttributes.put(index++, att);
+                }
+            }
+            // remove any added attributes from the attributesToAdd list
+            attributesToAdd.removeAll(indexedAttributes.values());
+            
+            // increment the index for the element
+            index++;
         }
+        
+        // add any remaining attributes from attributesToAdd
+        for (Attribute att : attributesToAdd) {
+            indexedAttributes.put(index++, att);
+        }
+        
+        // add the indexed attributes to the list
+        for (Entry<Integer, Attribute> entry : indexedAttributes.entrySet()) {
+            // create an empty attribute value to hold the attribute
+            AttributeValue value = new AttributeValue();
+            value.setStringValue("");
+            value.setAttribute(entry.getValue());
+            attributes.add(entry.getKey(), value.flatten(2));
+        }
+        
         attributes.removeAll(removeAttrs);
     }
 }

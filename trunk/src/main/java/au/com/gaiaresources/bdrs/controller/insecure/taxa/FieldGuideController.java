@@ -21,6 +21,7 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -30,6 +31,7 @@ import org.springframework.web.servlet.view.RedirectView;
 import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.controller.record.AtlasController;
 import au.com.gaiaresources.bdrs.controller.record.TrackerController;
+import au.com.gaiaresources.bdrs.controller.record.YearlySightingsController;
 import au.com.gaiaresources.bdrs.model.content.Content;
 import au.com.gaiaresources.bdrs.model.content.ContentDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
@@ -283,7 +285,7 @@ public class FieldGuideController extends AbstractController {
             }
             // Else, there is only one survey to add to : redirect to that survey!
             Survey survey = surveys.get(0);
-            return getSurveyRenderRedirect(survey, request);
+            return getSurveyRenderRedirect(survey, species, request);
         } catch (Exception e) {
             log.error("Error occurred rendering survey for species id: "+request.getParameter(PARAM_SPECIES_ID), e);
             getRequestContext().addMessage("bdrs.survey.taxonomy.error");
@@ -291,25 +293,38 @@ public class FieldGuideController extends AbstractController {
         }
     }
 
-    private ModelAndView getSurveyRenderRedirect(Survey survey,
+    private ModelAndView getSurveyRenderRedirect(Survey survey, IndicatorSpecies species,
             HttpServletRequest request) {
         SurveyFormRendererType renderer = survey.getFormRendererType();
 
         renderer = renderer == null ? SurveyFormRendererType.DEFAULT : renderer;
         String redirectURL;
+        Map<String,Object> paramMap = new HashMap<String,Object>(request.getParameterMap());
         switch (renderer) {
-        // only handle atlas controller, all others redirect to tracker form by default
-        case ATLAS:
-            redirectURL = AtlasController.ATLAS_URL;
-            break;
-        case DEFAULT:
-            // Fall through
-        default:
-            redirectURL = TrackerController.EDIT_URL;
+            case ATLAS:
+                redirectURL = AtlasController.ATLAS_URL;
+                // have to add the species for this to work
+                if (StringUtils.hasLength(species.getSourceId())) {
+                    paramMap.put(AtlasController.PARAM_GUID, species.getSourceId());
+                } else {
+                    paramMap.put(AtlasController.PARAM_TAXON_SEARCH, species.getScientificName());
+                }
+                break;
+            case YEARLY_SIGHTINGS:
+                redirectURL = YearlySightingsController.YEARLY_SIGHTINGS_URL;
+                break;
+            // single site forms default to tracker form because you have only chosen
+            // to record a single species
+            case SINGLE_SITE_ALL_TAXA:
+            case SINGLE_SITE_MULTI_TAXA:
+            case DEFAULT:
+                // Fall through
+            default:
+                redirectURL = TrackerController.EDIT_URL;
         }
 
         ModelAndView mv = this.redirect(redirectURL);
-        mv.addAllObjects(request.getParameterMap());
+        mv.addAllObjects(paramMap);
         mv.addObject(PARAM_SURVEY_ID, survey.getId());
         return mv;
     }

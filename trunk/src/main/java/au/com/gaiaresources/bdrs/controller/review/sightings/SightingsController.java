@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.controller.map.RecordDownloadFormat;
 import au.com.gaiaresources.bdrs.controller.map.RecordDownloadWriter;
+import au.com.gaiaresources.bdrs.controller.record.RecordController;
 import au.com.gaiaresources.bdrs.db.ScrollableResults;
 import au.com.gaiaresources.bdrs.kml.KMLWriter;
 import au.com.gaiaresources.bdrs.model.record.Record;
@@ -26,7 +27,7 @@ import au.com.gaiaresources.bdrs.service.bulkdata.BulkDataService;
 import au.com.gaiaresources.bdrs.util.FileUtils;
 import au.com.gaiaresources.bdrs.util.KMLUtils;
 
-public abstract class SightingsController extends AbstractController {
+public abstract class SightingsController extends RecordController {
     
     private Logger log = Logger.getLogger(getClass());
 

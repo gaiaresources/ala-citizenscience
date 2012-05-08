@@ -79,7 +79,7 @@ import com.vividsolutions.jts.geom.Geometry;
  * @author benk
  */
 
-public abstract class SingleSiteController extends AbstractController {
+public abstract class SingleSiteController extends RecordController {
 
     private static final RecordPropertyType[] TAXA_RECORD_PROPERTY_NAMES = new RecordPropertyType[] {
             RecordPropertyType.SPECIES, RecordPropertyType.NUMBER };
@@ -222,7 +222,7 @@ public abstract class SingleSiteController extends AbstractController {
         } else {
             switch (survey.getFormSubmitAction()) {
             case MY_SIGHTINGS:
-                getRequestContext().addMessage(MSG_CODE_SUCCESS_MY_SIGHTINGS, new Object[] { results.size() });
+                getRequestContext().addMessage(MSG_CODE_SUCCESS_MY_SIGHTINGS, new Object[] { results.size(), defaultTab() });
                 break;
             case STAY_ON_FORM:
                 getRequestContext().addMessage(MSG_CODE_SUCCESS_STAY_ON_FORM, new Object[] { results.size() });
@@ -399,25 +399,29 @@ public abstract class SingleSiteController extends AbstractController {
 
         ModelAndView mv = new ModelAndView(viewName);
 
-        // modify the list
-        // note we need to reassign as it is a new list instance...
-        recordsForFormInstance = modifyRecordDisplayList(recordsForFormInstance, survey);
-        
-        for (Record rec : recordsForFormInstance) {
-            boolean highlight = rec.equals(record);
-            String prefix = getSightingPrefix(sightingIndex++);
-            
-            RecordFormFieldCollection rffc = new RecordFormFieldCollection(prefix, 
-                                                                           rec, 
-                                                                           highlight, 
-                                                                           recordScopedRecordPropertyList.values(),
-                                                                           recordScopedAttributeList.values());
-            
-            recFormFieldCollectionList.add(rffc);
-        }
-
-        Map<String, String> valueMap = (Map<String, String>) getRequestContext().getSessionAttribute("valueMap");
-        if (valueMap != null) {
+        Map<String, String> valueMap = (Map<String, String>)getRequestContext().getSessionAttribute(BdrsWebConstants.MV_VALUE_MAP);
+        // clear the session attributes once they are used here
+        getRequestContext().removeSessionAttribute(BdrsWebConstants.MV_VALUE_MAP);
+        // if there is no value map, this is a blank form, use the recordsForFormInstance
+        // otherwise, we only want to load the data from the value map as it is the representation
+        // of the submitted form
+        if (valueMap == null) {
+            // modify the list
+            // note we need to reassign as it is a new list instance...
+            recordsForFormInstance = modifyRecordDisplayList(recordsForFormInstance, survey);
+            for (Record rec : recordsForFormInstance) {
+                boolean highlight = rec.equals(record);
+                String prefix = getSightingPrefix(sightingIndex++);
+                
+                RecordFormFieldCollection rffc = new RecordFormFieldCollection(prefix, 
+                                                                               rec, 
+                                                                               highlight, 
+                                                                               recordScopedRecordPropertyList.values(),
+                                                                               recordScopedAttributeList.values());
+                
+                recFormFieldCollectionList.add(rffc);
+            }
+        } else {
             // convert the valueMap into a set of records
             Map<String, Record> recordMap = new HashMap<String, Record>();
             // keep track of all the values we are creating records from
@@ -520,8 +524,13 @@ public abstract class SingleSiteController extends AbstractController {
         mv.addObject("censusMethod", censusMethod);
         mv.addObject(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT, context);
         if (accessor != null) {
-        	mv.addObject("ident", accessor.getRegistrationKey());
+            mv.addObject("ident", accessor.getRegistrationKey());
         }
+
+        Map<String, String> errorMap = (Map<String, String>)getRequestContext().getSessionAttribute(BdrsWebConstants.MV_ERROR_MAP);
+        getRequestContext().removeSessionAttribute(BdrsWebConstants.MV_ERROR_MAP);
+        mv.addObject(BdrsWebConstants.MV_ERROR_MAP, errorMap);
+        mv.addObject(BdrsWebConstants.MV_VALUE_MAP, valueMap);
         mv.addObject("displayMap", showMap);
         
         return mv;

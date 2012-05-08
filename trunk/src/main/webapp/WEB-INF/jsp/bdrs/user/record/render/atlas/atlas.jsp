@@ -31,17 +31,9 @@
         <c:if test="${record != null}">
             <input type="hidden" id="recordId" name="recordId" value="${record.id}"/>
         </c:if>
-        
-        <span style="display:none">
-            <c:set var="formField" value="<%= formFieldMap.get(RecordPropertyType.SPECIES) %>"/>
-            <tiles:insertDefinition name="formFieldRenderer">
-                <tiles:putAttribute name="formField" value="${ formField }"/>
-                <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
-                <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
-                <tiles:putAttribute name="editEnabled" value="${ recordWebFormContext.editable }"/>
-                <tiles:putAttribute name="isModerationOnly" value="${ recordWebFormContext.moderateOnly }"/>
-            </tiles:insertDefinition>
-        </span>
+        <c:if test="${taxon != null}">
+            <input type="hidden" name="species" value="${ taxon.id }"/>
+        </c:if>
     </c:if>
     <div class="leftCol left">
         <h3 class="left">
@@ -314,17 +306,64 @@
     };
 
     jQuery(function() {
-        // Create the center point of the map if we have one.
-        var lat = jQuery('input[name=latitude]');
+        
+        
+    });
+    
+    
+    bdrs.survey.deleteRecord = function() {
+        if(confirm('Are you sure you want to delete this record?')) {
+            var recordId = jQuery('#recordId').val();
+            var redirecturl = jQuery('#redirecturl').val();
+            
+            var url = bdrs.contextPath+"/bdrs/user/deleteRecord.htm";
+            var param = {
+                recordId: recordId,
+                redirecturl: redirecturl
+            };
+            bdrs.postWith(url, param);
+        }
+    };
+    
+    /**
+    * Prepopulate fields
+    */
+    jQuery(function(){
+        bdrs.form.prepopulate();
+    });
+    
+    /**
+     *  OpenLayers must be done after window load on IE.
+     */
+    jQuery(window).load(function() {
+    	var lat = jQuery('input[name=latitude]');
         var lon = jQuery('input[name=longitude]');
 
-
+        var geocodeClickHandler = function(lonLat) {
+            lonLat.transform(bdrs.map.GOOGLE_PROJECTION, bdrs.map.WGS84_PROJECTION);
+            lat.val(bdrs.map.roundLatOrLon(lonLat.lat)).trigger("change");
+            lon.val(bdrs.map.roundLatOrLon(lonLat.lon)).trigger("change");
+        }
+        
+        var layerName = bdrs.survey.location.LAYER_NAME;
+        var mapOptions = {
+            mapZoom: -1,
+            geocode : {
+                selector: '#geocode',
+                zoom: -1,
+                useKeyHandler: false,
+                clickHandler: geocodeClickHandler
+            }
+        };
+        bdrs.map.initBaseMap('base_map', mapOptions);
+        
+        // Create the center point of the map if we have one.
         var latLonChangeHandler = function() {
             var callback = function(name) {
                 jQuery("#locationName").val(name);
                 jQuery("#location").val(-1);
             };
-        
+            
             bdrs.map.latLonToName(  jQuery('input[name=latitude]').val(), 
                                     jQuery('input[name=longitude]').val(), 
                                     callback);
@@ -380,8 +419,7 @@
             
             jLoc.val(bdrs.survey.location.DEFAULT_LOCATION_ID).trigger("change");
         }
-            
-            
+        
         // Species Autocomplete
         var recordIdElem = jQuery("[name=recordId]");
         var speciesAutocompleteArgs = {
@@ -412,65 +450,6 @@
             delay: 300
         });
         
-    });
-    
-    
-    bdrs.survey.deleteRecord = function() {
-        if(confirm('Are you sure you want to delete this record?')) {
-            var recordId = jQuery('#recordId').val();
-            var redirecturl = jQuery('#redirecturl').val();
-            
-            var url = bdrs.contextPath+"/bdrs/user/deleteRecord.htm";
-            var param = {
-                recordId: recordId,
-                redirecturl: redirecturl
-            };
-            bdrs.postWith(url, param);
-        }
-    };
-    
-    /**
-    * Prepopulate fields
-    */
-    jQuery(function(){
-        bdrs.form.prepopulate();
-    });
-    
-    /**
-     *  OpenLayers must be done after window load on IE.
-     */
-    jQuery(window).load(function() {
-        var lat = jQuery('input[name=latitude]');
-        var lon = jQuery('input[name=longitude]');
-    
-        var olLonLat = null;
-        // protect from non existant inputs - occurs in read only mode
-        if(lat.val() && lon.val() && lat.val().length > 0 && lon.val().length > 0) {
-            olLonLat = new OpenLayers.LonLat(
-                    parseFloat(lon.val()), parseFloat(lat.val()));
-        }
-
-        var geocodeClickHandler = function(lonLat) {
-            lonLat.transform(bdrs.map.GOOGLE_PROJECTION, bdrs.map.WGS84_PROJECTION);
-            lat.val(bdrs.map.roundLatOrLon(lonLat.lat)).trigger("change");
-            lon.val(bdrs.map.roundLatOrLon(lonLat.lon)).trigger("change");
-        }
-        
-        var layerName = bdrs.survey.location.LAYER_NAME;
-        var mapOptions = {
-            mapCenter: olLonLat,
-            mapZoom: -1,
-            geocode : {
-                selector: '#geocode',
-                zoom: -1,
-                useKeyHandler: false,
-                clickHandler: geocodeClickHandler
-            }
-        };
-        bdrs.map.initBaseMap('base_map', mapOptions);
-//        bdrs.map.addLocationLayer(bdrs.map.baseMap, bdrs.survey.location.LOCATION_LAYER_NAME);
-        bdrs.map.centerMap(bdrs.map.baseMap, olLonLat, -1);
-        
         <%-- when we cant edit, dont allow the user to drag the location point around --%>
         <c:choose>
             <c:when test="${survey.predefinedLocationsOnly || not recordWebFormContext.editable}">
@@ -481,6 +460,13 @@
                 bdrs.map.addLonLatChangeHandler(layer, 'input[name=longitude]', 'input[name=latitude]');
             </c:otherwise>
         </c:choose>
+        
+        var olLonLat = null;
+        // protect from non existant inputs - occurs in read only mode
+        if(lat.val() && lon.val() && lat.val().length > 0 && lon.val().length > 0) {
+            olLonLat = new OpenLayers.LonLat(
+                    parseFloat(lon.val()), parseFloat(lat.val()));
+        }
         
         // If there is an intial point, add the feature.
         if(olLonLat !== undefined && olLonLat !== null) {

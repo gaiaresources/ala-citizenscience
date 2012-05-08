@@ -23,7 +23,7 @@ import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Table(name = "PREFERENCECATEGORY")
 @AttributeOverride(name = "id", column = @Column(name = "CATEGORY_ID"))
-public class PreferenceCategory extends PortalPersistentImpl {
+public class PreferenceCategory extends PortalPersistentImpl implements Comparable<PreferenceCategory> {
 
     @SuppressWarnings("unused")
     private Logger log = Logger.getLogger(getClass());
@@ -58,5 +58,19 @@ public class PreferenceCategory extends PortalPersistentImpl {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    @Override
+    public int compareTo(PreferenceCategory o) {
+        if (o == null) {
+            return 1;
+        }
+        // first sort by weight, this should be done in the super class
+        int compare = this.getWeight() - o.getWeight();
+        if (compare == 0) {
+            // if the weights are equal, compare by name
+            compare = this.getName().compareTo(o.getName());
+        }
+        return compare;
     }
 }

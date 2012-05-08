@@ -67,7 +67,7 @@ import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
  * 
  */
 @Controller
-public class TrackerController extends AbstractController {
+public class TrackerController extends RecordController {
 
     private Logger log = Logger.getLogger(getClass());
     
@@ -638,7 +638,7 @@ public class TrackerController extends AbstractController {
                 if (StringUtils.hasLength(request.getParameter(TrackerController.PARAM_RECORD_ID))) {
                     switch (survey.getFormSubmitAction()) {
                     case MY_SIGHTINGS:
-                        getRequestContext().addMessage(new Message(MSG_CODE_SAVE_EXISTING_SUCCESS_MY_SIGHTINGS));
+                        getRequestContext().addMessage(new Message(MSG_CODE_SAVE_EXISTING_SUCCESS_MY_SIGHTINGS, new Object[]{defaultTab()}));
                         break;
                     case STAY_ON_FORM:
                         getRequestContext().addMessage(new Message(MSG_CODE_SAVE_EXISTING_SUCCESS_STAY_ON_FORM));
@@ -649,7 +649,7 @@ public class TrackerController extends AbstractController {
                 } else {
                     switch (survey.getFormSubmitAction()) {
                     case MY_SIGHTINGS:
-                        getRequestContext().addMessage(new Message(MSG_CODE_SAVE_NEW_SUCCESS_MY_SIGHTINGS));
+                        getRequestContext().addMessage(new Message(MSG_CODE_SAVE_NEW_SUCCESS_MY_SIGHTINGS, new Object[]{defaultTab()}));
                         break;
                     case STAY_ON_FORM:
                         getRequestContext().addMessage(new Message(MSG_CODE_SAVE_NEW_SUCCESS_STAY_ON_FORM));
@@ -732,7 +732,7 @@ public class TrackerController extends AbstractController {
      * @return ModelAndView
      */
     private ModelAndView nullSurveyError() {
-        getRequestContext().addMessage(NO_SURVEY_ERROR_KEY);
+        getRequestContext().addMessage(NO_SURVEY_ERROR_KEY, new Object[]{defaultTab()});
         return new ModelAndView(new RedirectView(redirectionService.getMySightingsUrl(null), true));
     }
 }

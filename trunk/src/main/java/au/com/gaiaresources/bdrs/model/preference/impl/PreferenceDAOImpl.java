@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import javax.annotation.PostConstruct;
 
@@ -254,7 +255,8 @@ public class PreferenceDAOImpl extends AbstractDAOImpl implements PreferenceDAO 
         if (prefCache.containsKey(portal)) {
 
             Preference temp;
-            Map<String, Preference> prefMap = new HashMap<String, Preference>();
+            // the preferences should be sorted by key
+            Map<String, Preference> prefMap = new TreeMap<String, Preference>();
             if (portal != null) {
                 for (Preference p : prefCache.get(null).values()) {
                     try {

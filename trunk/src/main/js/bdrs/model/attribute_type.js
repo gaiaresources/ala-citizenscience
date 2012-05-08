@@ -45,6 +45,16 @@ bdrs.model.taxa.attributeType.AttributeType = function(value, code, name) {
             (bdrs.model.taxa.attributeType.value.FILE === this);
     };
     
+    /**
+     * @return [boolean] true if this is an html type, false otherwise.
+     */
+    this.isHtmlType = function() {
+        return (bdrs.model.taxa.attributeType.value.HTML === this) || 
+            (bdrs.model.taxa.attributeType.value.HTML_NO_VALIDATION === this) || 
+            (bdrs.model.taxa.attributeType.value.HTML_COMMENT === this) || 
+            (bdrs.model.taxa.attributeType.value.HTML_HORIZONTAL_RULE === this);
+    };
+    
     return this;
 };
 
