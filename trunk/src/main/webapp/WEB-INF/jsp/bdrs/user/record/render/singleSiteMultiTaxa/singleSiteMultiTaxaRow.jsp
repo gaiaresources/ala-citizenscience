@@ -7,7 +7,7 @@
 <%@page import="au.com.gaiaresources.bdrs.servlet.RequestContextHolder"%>
 <tiles:useAttribute name="recordFormFieldCollection" classname="au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordFormFieldCollection" ignore="true" />
 <tiles:useAttribute name="editEnabled" ignore="true" />
-<tiles:useAttribute name="isModerationOnly" ignore="true" />
+<tiles:useAttribute name="isModerationOnly" classname="java.lang.Boolean" ignore="true" />
 
 <%-- when there is a record form field collection use it, it's filled with data. Otherwise use the formFieldList object to create the empty row --%>
 
@@ -26,14 +26,21 @@
 
     <input name="${recordFormFieldCollection.prefix}${sightingIndex}recordId" type="hidden" value="${recordFormFieldCollection.recordId}" class="recordRow" />
     <input name="rowPrefix" type="hidden" value="${recordFormFieldCollection.prefix}${sightingIndex}" />
-    <c:set var="fieldEditable" value="${editEnabled}"></c:set>
+    <c:set var="fieldEditable" value="${editEnabled}" ></c:set>
     <c:forEach items="${ffList}" var="formField">
         <jsp:useBean id="formField" type="au.com.gaiaresources.bdrs.controller.attribute.formfield.AbstractRecordFormField" />
            
         <c:choose>
            <c:when test="<%= formField.isModerationFormField() %>">
                <c:if test="${editEnabled}">
-                   <c:set var="fieldEditable" value="<%= RequestContextHolder.getContext().getUser().isModerator() %>"></c:set>
+                   <c:choose>
+	                   <c:when test="${isModerationOnly}">
+		                   <c:set var="fieldEditable" value="<%= formField.getRecord().getId() != null && RequestContextHolder.getContext().getUser().isModerator() %>"/>
+	                  </c:when>
+	                  <c:otherwise>
+	                      <c:set var="fieldEditable" value="<%= RequestContextHolder.getContext().getUser().isModerator() %>"/>
+	                  </c:otherwise>
+                  </c:choose>
                </c:if>
            </c:when>
            <c:otherwise>
@@ -62,6 +69,8 @@
                        <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
                        <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
                        <tiles:putAttribute name="editEnabled" value="${ fieldEditable }" />
+                       <tiles:putAttribute name="isModerationOnly" value="${ isModerationOnly }" />
+                       <tiles:putAttribute name="recordId" value="${recordFormFieldCollection.recordId}" />
                    </tiles:insertDefinition>
                </td>
         </c:when>
@@ -69,7 +78,7 @@
     </c:forEach>
      <c:if test="${ editEnabled and not preview and not isModerationOnly}">
         <td class="delete_col">
-             <a href="javascript: void(0);" onclick="bdrs.survey.deleteAjaxRecord('${ident}', '${recordFormFieldCollection.recordId}', jQuery(this).parents('tr'), '.messages');">
+             <a href="javascript: void(0);" onclick="bdrs.survey.deleteAjaxRecord('${ident}', '${recordFormFieldCollection.recordId}', jQuery(this).parents('tr'), '.messages');" tabIndex="-1">
                <img src="${pageContext.request.contextPath}/images/icons/delete.png" alt="Delete" class="vertmiddle"/>
             </a>
         </td>

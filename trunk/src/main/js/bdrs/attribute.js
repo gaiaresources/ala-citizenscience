@@ -367,7 +367,13 @@ bdrs.attribute.createAttributeDisplayDiv = function(attributes, attributeSelecto
         } else if (attr_type.isHtmlType()) {
             // display the html in one single div instead of two
         	attDescElem = null;
-        	attValueElem = jQuery('<div class="attributeValue" >' + att.attribute.description + '</div>');
+        	var valString = "";
+        	if (bdrs.model.taxa.attributeType.value.HTML_HORIZONTAL_RULE === attr_type) {
+        		valString = "<hr/>";
+        	} else {
+        		valString = att.attribute.description;
+        	}
+        	attValueElem = jQuery('<div class="attributeValue" >' + valString + '</div>');
         } else {
             attValueElem = jQuery('<div class="attributeValue" >' + 
                     att.value + '</div>');

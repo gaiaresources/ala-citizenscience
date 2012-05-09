@@ -30,11 +30,9 @@ public class SingleSiteFormToRecordEntryTransformer {
         
         List<RecordEntry> result = new ArrayList<RecordEntry>();
         for (String recordPrefix : rowIds) {
-            if (StringUtils.hasLength(recordPrefix)) {
-                RecordEntry entry = new RecordEntry(paramMap, fileMap, recordPrefix);
-                entry.setGeometry(geom);
-                result.add(entry);
-            }
+            RecordEntry entry = new RecordEntry(paramMap, fileMap, recordPrefix);
+            entry.setGeometry(geom);
+            result.add(entry);
         }
         return result;
     }

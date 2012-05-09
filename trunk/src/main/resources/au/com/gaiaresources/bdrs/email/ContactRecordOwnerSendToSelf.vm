@@ -6,6 +6,6 @@
         
         <hr />
         
-        <p>${contactText}</p>
+        <p style="white-space: pre-wrap;">${contactText}</p>
     </body>
 </html>

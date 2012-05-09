@@ -98,6 +98,7 @@ public class RecordPropertyFormField extends AbstractRecordFormField {
      * Gets the required value from the <code>RecordProperty</code>
      * @return  Either true or false
      */
+    @Override
     public boolean isRequired() {
     	return this.recordProperty.isRequired();
     }
