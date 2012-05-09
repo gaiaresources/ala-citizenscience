@@ -2,7 +2,6 @@ package au.com.gaiaresources.bdrs.model.taxa.impl;
 
 import au.com.gaiaresources.bdrs.db.QueryOperation;
 import au.com.gaiaresources.bdrs.db.impl.AbstractDAOImpl;
-import au.com.gaiaresources.bdrs.db.impl.BatchUpdateHelper;
 import au.com.gaiaresources.bdrs.db.impl.HqlQuery;
 import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
 import au.com.gaiaresources.bdrs.db.impl.PaginationFilter;
@@ -1041,12 +1040,10 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
         bulkRemoveSecondaryGroup(taxonIds, group);
 
         List<IndicatorSpecies> taxa = getIndicatorSpeciesById(taxonIds.toArray(new Integer[taxonIds.size()]));
-        final TaxonGroup primaryGroup = group;
-        new BatchUpdateHelper<IndicatorSpecies>() {
-            public void invoke(IndicatorSpecies taxon) {
-                taxon.setTaxonGroup(primaryGroup);
-            }
-        }.doBatched(taxa);
+        for (IndicatorSpecies taxon : taxa) {
+            taxon.setTaxonGroup(group);
+        }
+
     }
 
     /**
@@ -1090,12 +1087,8 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
         query.setParameterList("taxonIds", taxonIds);
         List<IndicatorSpecies> taxa = query.list();
 
-        final TaxonGroup secondaryGroup = group;
-        new BatchUpdateHelper<IndicatorSpecies>() {
-            public void invoke(IndicatorSpecies taxon) {
-                taxon.addSecondaryGroup(secondaryGroup);
-            }
-        }.doBatched(taxa);
-
+        for (IndicatorSpecies taxon : taxa) {
+            taxon.addSecondaryGroup(group);
+        }
     }
 }
