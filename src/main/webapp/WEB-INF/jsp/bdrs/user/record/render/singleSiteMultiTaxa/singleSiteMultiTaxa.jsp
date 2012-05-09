@@ -12,6 +12,7 @@
 <%-- Access the facade to retrieve the preference information --%>
 <jsp:useBean id="bdrsPluginFacade" scope="request" type="au.com.gaiaresources.bdrs.servlet.BdrsPluginFacade"></jsp:useBean>
 <c:set var="showScientificName" value="<%= bdrsPluginFacade.getPreferenceBooleanValue(\"taxon.showScientificName\") %>" />
+<c:set var="hasRequiredTableCell" value="false"/>
 
 <h1><c:out value="${survey.name}"/></h1>
 <c:if test="${censusMethod != null}">
@@ -104,6 +105,9 @@
                                    </th>
                                    </c:when>
                                </c:choose>
+                               <c:if test="${ not hasRequiredTableCell }">
+                                   <c:set var="hasRequiredTableCell" value="<%= sightingRowFormField.isRequired() %>"/>
+                               </c:if>
                            </c:if>
                        </c:if>
                        <c:if test="<%= sightingRowFormField.isAttributeFormField() %>">
@@ -111,6 +115,9 @@
                                <th>
                                <c:out value="${ sightingRowFormField.attribute.description }" />
                                </th>
+                               <c:if test="${ not hasRequiredTableCell }">
+                                   <c:set var="hasRequiredTableCell" value="<%= sightingRowFormField.isRequired() %>"/>
+                               </c:if>
                            </c:if>
                        </c:if>
                    </c:forEach>
@@ -138,7 +145,7 @@
     
     <%-- the record form footer contains the 'form' close tag --%>
 <tiles:insertDefinition name="recordFormFooter">
-    <tiles:putAttribute name="recordWebFormContext" value="${recordWebFormContext}" />                    
+    <tiles:putAttribute name="recordWebFormContext" value="${recordWebFormContext}" />
 </tiles:insertDefinition>
 
 <noscript>
@@ -158,5 +165,17 @@
          */
         bdrs.form.prepopulate();
         bdrs.contribute.singleSiteMultiTaxa.init('#sighting_index', '[name=surveyId]', false, false);
+        <c:if test="${fn:length(recordWebFormContext.namedCollections['recordFieldCollectionList']) < 1 && hasRequiredTableCell}">
+        	bdrs.contribute.singleSiteMultiTaxa.addSighting('#sighting_index', '[name=surveyId]', '#sightingTable tbody', false, false, ${showScientificName});
+        </c:if>
+        
+        jQuery("form").submit(function() {
+            // if there are no entries in the table, let the user know
+            var rows = jQuery("#sightingTable").find("tbody").find("tr");
+            if (rows.length < 1 && ${hasRequiredTableCell}) {
+                alert("You must add at least 1 row to the table to submit this record!");
+                return false;
+            }
+        });
     });
 </script>

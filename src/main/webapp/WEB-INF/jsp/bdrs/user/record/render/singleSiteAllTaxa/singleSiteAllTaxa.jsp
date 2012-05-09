@@ -104,8 +104,8 @@
                             </c:if>
                         
                    </c:forEach>
-                   <c:if test="${ not preview and recordWebFormContext.editable }">
-                           <th>Delete</th>
+                   <c:if test="${ not preview and recordWebFormContext.editable and not recordWebFormContext.moderateOnly }">
+                       <th>Delete</th>
                    </c:if>
                </tr>
             </thead>
@@ -115,7 +115,10 @@
                 <c:forEach items="${recordWebFormContext.namedCollections['recordFieldCollectionList']}" var="recordFormFieldCollection">
                     <tiles:insertDefinition name="singleSiteMultiTaxaRow">
                         <tiles:putAttribute name="recordFormFieldCollection" value="${recordFormFieldCollection}"/>
+                        <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
+                        <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
                         <tiles:putAttribute name="editEnabled" value="${ recordWebFormContext.editable }" />
+                        <tiles:putAttribute name="isModerationOnly" value="${ recordWebFormContext.moderateOnly }" />
                     </tiles:insertDefinition>
                 </c:forEach>
             </tbody>
@@ -126,7 +129,7 @@
     
 <%-- the record form footer contains the 'form' close tag --%>
 <tiles:insertDefinition name="recordFormFooter">
-    <tiles:putAttribute name="recordWebFormContext" value="${recordWebFormContext}" />                    
+    <tiles:putAttribute name="recordWebFormContext" value="${recordWebFormContext}" />
 </tiles:insertDefinition>
 
 <noscript>

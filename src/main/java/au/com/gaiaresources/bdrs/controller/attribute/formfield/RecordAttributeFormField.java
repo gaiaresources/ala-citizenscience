@@ -106,4 +106,13 @@ public class RecordAttributeFormField extends AbstractRecordFormField implements
     public boolean isVisible(DisplayContext context) {
         return attribute.isVisible(context);
     }
+    
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.controller.attribute.formfield.AbstractRecordFormField#isRequired()
+     */
+    @Override
+    public boolean isRequired() {
+        return attribute.isRequired();
+    }
 }

@@ -42,31 +42,33 @@ public class EqualsHandler implements SimpleOperatorHandler {
         
         List<Object> properties = condition.getPropertiesForPath(entity);
         for (Object actualValue : properties) {
-            Class<?> returnType = actualValue.getClass();
-            
-            Object val;
-            if(String.class.equals(returnType)) {
-                val = condition.stringValue();
-            } else if(Integer.class.equals(returnType)) {
-                val = condition.intValue();
-            } else if(Long.class.equals(returnType)) {
-                val = condition.longValue();
-            } else if(Double.class.equals(returnType)) {
-                val = condition.doubleValue();
-            } else if(Float.class.equals(returnType)) {
-                val = condition.floatValue();
-            } else if(Boolean.class.equals(returnType)) {
-                val = condition.booleanValue();
-            } else if(Date.class.equals(returnType)) {
-                val = condition.dateValue();
-            } else {
-                val = condition.getValue();
+            // adding null protection because it is possible that actualValue is null
+            if (actualValue != null) {
+                Class<?> returnType = actualValue.getClass();
+                
+                Object val;
+                if(String.class.equals(returnType)) {
+                    val = condition.stringValue();
+                } else if(Integer.class.equals(returnType)) {
+                    val = condition.intValue();
+                } else if(Long.class.equals(returnType)) {
+                    val = condition.longValue();
+                } else if(Double.class.equals(returnType)) {
+                    val = condition.doubleValue();
+                } else if(Float.class.equals(returnType)) {
+                    val = condition.floatValue();
+                } else if(Boolean.class.equals(returnType)) {
+                    val = condition.booleanValue();
+                } else if(Date.class.equals(returnType)) {
+                    val = condition.dateValue();
+                } else {
+                    val = condition.getValue();
+                }
+                
+                if (match(actualValue, val)) {
+                    return true;
+                }
             }
-            
-            if (match(actualValue, val)) {
-                return true;
-            }
-
         }
         
         return false;

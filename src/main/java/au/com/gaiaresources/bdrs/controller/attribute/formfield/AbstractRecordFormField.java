@@ -55,4 +55,10 @@ public abstract class AbstractRecordFormField extends AbstractFormField {
     public void setRecord(Record record) {
         this.record = record;
     }
+    
+    /**
+     * Returns true if the field is a required one.
+     * @return
+     */
+    public abstract boolean isRequired();
 }
