@@ -16,6 +16,8 @@
         <property name="current_session_context_class">thread</property>
         <property name="hibernate.search.default.directory_provider">filesystem</property>
         <property name="hibernate.jdbc.batch_size">20</property>
+        <property name="hibernate.order_inserts">true</property>
+        <property name="hibernate.order_updates">true</property>
 
         <mapping class="au.com.gaiaresources.bdrs.model.user.User"/>
         <mapping class="au.com.gaiaresources.bdrs.model.group.Group"/>

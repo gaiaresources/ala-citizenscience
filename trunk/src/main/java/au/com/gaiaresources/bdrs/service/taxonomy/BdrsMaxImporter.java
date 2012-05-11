@@ -7,12 +7,14 @@ import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfileDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.taxonlib.ITaxonLibSession;
 import au.com.gaiaresources.taxonlib.importer.max.MaxImporter;
+import org.hibernate.SessionFactory;
 
 public class BdrsMaxImporter {
 
 	private MaxImporter taxonLibImporter;
 
-	public BdrsMaxImporter(ITaxonLibSession taxonLibSession, Date now, TaxaDAO taxaDAO, SpeciesProfileDAO spDAO) {
+	public BdrsMaxImporter(ITaxonLibSession taxonLibSession, Date now,
+                           SessionFactory sessionFactory, TaxaDAO taxaDAO, SpeciesProfileDAO spDAO) {
 		if (taxonLibSession == null) {
 			throw new IllegalArgumentException("TaxonLibSession cannot be null");
 		}
@@ -25,7 +27,8 @@ public class BdrsMaxImporter {
 		if (spDAO == null) {
 			throw new IllegalArgumentException("SpeciesProfileDAO cannot be null");
 		}
-		BdrsMaxImporterRowHandler handler = new BdrsMaxImporterRowHandler(taxonLibSession, now, taxaDAO, spDAO);
+		BdrsMaxImporterRowHandler handler = new BdrsMaxImporterRowHandler(taxonLibSession, now,
+                                                                            sessionFactory, taxaDAO, spDAO);
 		taxonLibImporter = new MaxImporter(taxonLibSession, handler, now);
 	}
 	

@@ -164,12 +164,14 @@
             </sec:authorize>
 
             <cw:getThemeTemplate key="template.header"/>
-            
+
 			<div class="dashboardContainer">
-				<cw:getThemeTemplate key="template.menu"/>
-				
+			    <c:if test="${not disableMenu}">
+				    <cw:getThemeTemplate key="template.menu"/>
+                </c:if>
+
 				<cw:getThemeTemplate key="template.dashboard"/>
-			    
+
 	            <div class="contentwrapper" id="contentwrapper">
 	                <div class="messages">
 	                    <c:forEach items="${context.messageContents}" var="message">
@@ -177,13 +179,15 @@
 	                    </c:forEach>
 	                </div>
 	                <div class="content" id="content">
-	                    <tiles:insertAttribute name="content"/>
+                        <c:if test="${not disableContent}">
+	                        <tiles:insertAttribute name="content"/>
+                        </c:if>
 	                </div>
 	            </div>
-				
+
 				<div class="dashboardFooter"></div>
             </div>
-			
+
             <cw:getThemeTemplate key="template.footer"/>
         </div>
         <cw:getThemeTemplate key="template.page.footer"/>

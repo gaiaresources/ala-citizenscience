@@ -1,22 +1,19 @@
 package au.com.gaiaresources.bdrs.service.taxonomy;
 
-import java.util.List;
-
-import junit.framework.Assert;
-
-import org.apache.log4j.Logger;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile;
-import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfileDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonRank;
 import au.com.gaiaresources.taxonlib.ITemporalContext;
 import au.com.gaiaresources.taxonlib.importer.max.MaxImporter;
 import au.com.gaiaresources.taxonlib.model.ITaxonName;
+import junit.framework.Assert;
+import org.apache.log4j.Logger;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
 
 /**
  * Tests the BdrsMaxImporter
@@ -49,7 +46,7 @@ public class BdrsMaxImporterTest extends AbstractBdrsMaxImporterTest {
 		
 		runImport("MAX_PlantFamilies_TEST.csv", "MAX_PlantGenera_TEST.csv",
 				"MAX_PlantNames_TEST.csv", "MAX_PlantCrossRef_TEST.csv");
-		
+
 		assertImport();
 		
 		Assert.assertEquals("wrong species count", indicatorSpeciesCount, taxaDAO.countAllSpecies());
@@ -122,7 +119,7 @@ public class BdrsMaxImporterTest extends AbstractBdrsMaxImporterTest {
 					BdrsMaxImporterRowHandler.INFO_ITEM_CONSV_CODE, "ff");
 
 		}
-		
+
 		// check deprecated indicator species and common name
 		{			
 			IndicatorSpecies species = getIndicatorSpecies(MaxImporter.getId(MaxImporter.SPECIES_ID_PREFIX, "3"));

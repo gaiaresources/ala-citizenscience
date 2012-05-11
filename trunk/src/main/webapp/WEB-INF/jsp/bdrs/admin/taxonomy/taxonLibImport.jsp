@@ -4,7 +4,7 @@
 <h1>
     Import Taxon Information From Files
 </h1>
-<h3 style="color:red">
+<h3 class="warning_header">
     WARNING
 </h3>
 <div>
@@ -16,10 +16,8 @@
 		An email will be sent to you to report the outcome of your taxonomy import.
 	</p>
     <p>
-        These updates can take hours to run (up to 10 hours for very large datasets).
-        Once the update has started it cannot be stopped.
-        Your taxonomic data may also be inconsistent
-        while the update is running.
+        Please be aware that depending upon the server speed this import may take up to several hours to complete.
+        During this time the BDRS will be put into maintenance mode and inaccessible to all users except the root user.
     </p>
 </div>
 

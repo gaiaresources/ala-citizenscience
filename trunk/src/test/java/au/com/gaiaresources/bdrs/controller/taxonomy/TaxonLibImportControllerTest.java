@@ -19,7 +19,7 @@ public class TaxonLibImportControllerTest extends AbstractControllerTest {
 	 */
 	@Test
 	public void testRenderLandingPage() throws Exception {
-		login("admin", "password", new String[] { Role.ADMIN });
+		login("root", "password", new String[] { Role.ROOT });
 		
 		request.setRequestURI(TaxonLibImportController.TAXON_LIB_IMPORT_URL);
 		request.setMethod("GET");
@@ -35,7 +35,7 @@ public class TaxonLibImportControllerTest extends AbstractControllerTest {
 	 */
 	@Test
 	public void testRenderNswFlora() throws Exception {
-		login("admin", "password", new String[] { Role.ADMIN });
+		login("root", "password", new String[] { Role.ROOT });
 		
 		request.setRequestURI(TaxonLibImportController.NSW_FLORA_IMPORT_URL);
 		request.setMethod("GET");
@@ -51,7 +51,7 @@ public class TaxonLibImportControllerTest extends AbstractControllerTest {
 	 */
 	@Test
 	public void testRenderMax() throws Exception {
-		login("admin", "password", new String[] { Role.ADMIN });
+		login("root", "password", new String[] { Role.ROOT });
 		
 		request.setRequestURI(TaxonLibImportController.MAX_IMPORT_URL);
 		request.setMethod("GET");
@@ -67,7 +67,7 @@ public class TaxonLibImportControllerTest extends AbstractControllerTest {
 	 */
 	@Test
 	public void testRenderAfd() throws Exception {
-		login("admin", "password", new String[] { Role.ADMIN });
+		login("root", "password", new String[] { Role.ROOT });
 		
 		request.setRequestURI(TaxonLibImportController.AFD_IMPORT_URL);
 		request.setMethod("GET");

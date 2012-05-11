@@ -1,27 +1,12 @@
 package au.com.gaiaresources.bdrs.model.taxa.impl;
 
 import au.com.gaiaresources.bdrs.db.QueryOperation;
-import au.com.gaiaresources.bdrs.db.impl.AbstractDAOImpl;
-import au.com.gaiaresources.bdrs.db.impl.HqlQuery;
-import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
-import au.com.gaiaresources.bdrs.db.impl.PaginationFilter;
-import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
-import au.com.gaiaresources.bdrs.db.impl.Predicate;
-import au.com.gaiaresources.bdrs.db.impl.QueryPaginator;
+import au.com.gaiaresources.bdrs.db.impl.*;
 import au.com.gaiaresources.bdrs.model.index.IndexingConstants;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.region.Region;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpeciesAttribute;
-import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
-import au.com.gaiaresources.bdrs.model.taxa.TaxonRank;
-import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.*;
 import au.com.gaiaresources.bdrs.search.SearchService;
 import au.com.gaiaresources.bdrs.service.db.DeleteCascadeHandler;
 import au.com.gaiaresources.bdrs.service.db.DeletionService;
@@ -42,13 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 
@@ -530,18 +509,42 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
      }
 	
 	@Override
+    public List<IndicatorSpecies> getIndicatorSpeciesBySourceDataID(Session sesh, String source, List<String> sourceDataIdList) {
+        if(source == null) {
+            throw new IllegalArgumentException("Source ID cannot be null");
+        }
+
+        if(sourceDataIdList == null || sourceDataIdList.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        String query = "select s from IndicatorSpecies s where s.source = :source and s.sourceId in (:sourceIdList)";
+
+        Query q;
+        if (sesh == null) {
+            q = getSession().createQuery(query);
+        } else {
+            q = sesh.createQuery(query);
+        }
+
+        q.setParameter("source", source);
+        q.setParameterList("sourceIdList", sourceDataIdList);
+        return q.list();
+    }
+
+	@Override
 	public IndicatorSpecies getIndicatorSpeciesBySourceDataID(Session sesh, String source, String sourceDataId) {
 	    String query = "select s from IndicatorSpecies s where s.source = :source and s.sourceId = :sourceId";
-            Query q;
-            if (sesh == null) {
-                q = getSession().createQuery(query);
-            } else {
-                q = sesh.createQuery(query);
-            }
-            
-            q.setParameter("sourceId", sourceDataId);
-            q.setParameter("source", source);
-            return (IndicatorSpecies)q.uniqueResult();
+        Query q;
+        if (sesh == null) {
+            q = getSession().createQuery(query);
+        } else {
+            q = sesh.createQuery(query);
+        }
+
+        q.setParameter("sourceId", sourceDataId);
+        q.setParameter("source", source);
+        return (IndicatorSpecies)q.uniqueResult();
 	}
 
     @Override

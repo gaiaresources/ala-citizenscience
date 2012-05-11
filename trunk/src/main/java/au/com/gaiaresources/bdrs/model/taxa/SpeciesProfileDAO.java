@@ -1,8 +1,8 @@
 package au.com.gaiaresources.bdrs.model.taxa;
 
-import java.util.List;
+import org.hibernate.Session;
 
-import org.hibernate.classic.Session;
+import java.util.List;
 
 public interface SpeciesProfileDAO {
     SpeciesProfile createSpeciesProfile(String header, String content,

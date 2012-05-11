@@ -703,6 +703,10 @@ table {
     width: 868px;
 }
 
+.warning_header {
+    color: red;
+}
+
 /**************************/
 /* Dashboard styling      */
 /**************************/

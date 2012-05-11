@@ -367,6 +367,15 @@ public interface TaxaDAO extends TransactionDAO {
     IndicatorSpeciesAttribute save(Session sesh, IndicatorSpeciesAttribute taxonAttribute);
 
     /**
+     * Gets a list of IndicatorSpecies by source data id.
+     * @param sesh Hibernate session.
+     * @param source Data source.
+     * @param sourceDataIdList the source data ids of the indicator species to be returned.
+     * @return the matching list of indicator species.
+     */
+    List<IndicatorSpecies> getIndicatorSpeciesBySourceDataID(Session sesh, String source, List<String> sourceDataIdList);
+
+    /**
      * Get IndicatorSpecies by source data id.
      * @param sesh Hibernate session.
      * @param sourceDataId Source data id.

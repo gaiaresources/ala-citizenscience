@@ -15,6 +15,8 @@ import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.security.UserDetails;
 import au.com.gaiaresources.bdrs.service.menu.MenuService;
+import au.com.gaiaresources.bdrs.service.mode.AbstractApplicationMode;
+import au.com.gaiaresources.bdrs.service.mode.ApplicationModeService;
 import au.com.gaiaresources.bdrs.service.property.PropertyService;
 import au.com.gaiaresources.bdrs.service.web.GoogleKeyService;
 import au.com.gaiaresources.bdrs.servlet.view.FileView;
@@ -65,6 +67,8 @@ public class Interceptor implements HandlerInterceptor {
     private ThemeDAO themeDAO;
     @Autowired
     private PropertyService propertyService;
+    @Autowired
+    private ApplicationModeService appModeService;
     
     @Autowired
     private GoogleKeyService gkService;
@@ -165,8 +169,16 @@ public class Interceptor implements HandlerInterceptor {
             RequestContextHolder.getContext().addMessage("bdrs.menu.error");
         }
         c.setMenu(menu);
-        
+
         return true;
+    }
+
+    private void configureApplicationMode(ModelAndView modelAndView) {
+        if(appModeService.isMaintenanceModeActive()) {
+            for(AbstractApplicationMode mode : appModeService.getMaintenanceModeList()) {
+                mode.apply(modelAndView);
+            }
+        }
     }
 
     @Override
@@ -174,8 +186,9 @@ public class Interceptor implements HandlerInterceptor {
                            Object handler, ModelAndView modelAndView) throws Exception {
     	if (modelAndView != null) {
     	    RequestContext requestContext = RequestContextHolder.getContext();
-            
-            
+            // Application Mode
+            configureApplicationMode(modelAndView);
+
             // Theming
             Theme theme = null;
             Map<String, ThemeElement> themeElementMap = new HashMap<String, ThemeElement>();
