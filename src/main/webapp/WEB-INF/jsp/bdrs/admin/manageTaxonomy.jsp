@@ -1,3 +1,5 @@
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
+
 <h1>Manage Taxonomy</h1>
 
 <p>
@@ -10,7 +12,9 @@
 	<li><a href="${pageContext.request.contextPath}/bdrs/admin/taxonomy/edit.htm">Add a new taxon</a></li>
 	<li><a href="${pageContext.request.contextPath}/bdrs/admin/taxonomy/listing.htm">Edit an existing taxon</a></li>
 	<li><a href="${pageContext.request.contextPath}/bdrs/admin/taxonomy/importTaxon.htm">Import taxon information...</a></li>
-	<li><a href="${pageContext.request.contextPath}/bdrs/admin/taxonomy/taxonLibImport.htm">Import taxon information from files...</a></li>
+	<sec:authorize ifAnyGranted="ROLE_ROOT">
+	    <li><a href="${pageContext.request.contextPath}/bdrs/admin/taxonomy/taxonLibImport.htm">Import taxon information from files...</a></li>
+    </sec:authorize>
 </ul>
 
 <p>At the level of the taxonomic group, you can:</p>

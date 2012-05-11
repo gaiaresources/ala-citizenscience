@@ -29,6 +29,14 @@ public abstract class TaxonomyImportTest extends AbstractControllerTest {
     @Before
     public void taxonomyImportTestSetup() throws Exception {
         taxonLibSession = taxonLibSessionFactory.getSession();
+
+        // Flush the current session so that the un-flushed persistent objects such as Portal
+        // get saved to the database before we begin importing. If you do not flush here,
+        // the importer will fail because it cannot find the Portal.
+        sessionFactory.getCurrentSession().getTransaction().commit();
+        sessionFactory.getCurrentSession().beginTransaction();
+
+        requestTaxonomyImportTestDropDatabase();
     }
 
     @After

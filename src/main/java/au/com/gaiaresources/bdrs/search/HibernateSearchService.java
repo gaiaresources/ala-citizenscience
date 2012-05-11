@@ -7,20 +7,22 @@ import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.db.impl.QueryPaginator;
 import au.com.gaiaresources.bdrs.model.index.IndexUtil;
 import au.com.gaiaresources.bdrs.model.portal.PortalDAO;
+import au.com.gaiaresources.bdrs.search.criteriaBuilder.IndicatorSpeciesHibernateSearchCriteriaBuilder;
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.queryParser.MultiFieldQueryParser;
 import org.apache.lucene.queryParser.ParseException;
-import org.hibernate.ScrollMode;
-import org.hibernate.ScrollableResults;
-import org.hibernate.Session;
+import org.hibernate.*;
 import org.hibernate.search.FullTextQuery;
 import org.hibernate.search.FullTextSession;
 import org.hibernate.search.Search;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Service that implements a Hibernate Search Service.  Handles the creation and  
@@ -31,6 +33,20 @@ import java.util.List;
 @SuppressWarnings(value={"unchecked","rawtypes"})
 @Service
 public class HibernateSearchService implements SearchService {
+
+    private static Map<Class<?>, HibernateSearchCriteriaBuilder> INDEX_CANDIDATE_MAP;
+    static {
+        HibernateSearchCriteriaBuilder[] builders = {
+            new IndicatorSpeciesHibernateSearchCriteriaBuilder()
+        };
+
+        Map<Class<?>, HibernateSearchCriteriaBuilder> temp = new HashMap<Class<?>, HibernateSearchCriteriaBuilder>(2);
+        for(HibernateSearchCriteriaBuilder builder : builders) {
+            temp.put(builder.getIndexedClass(), builder);
+        }
+
+        INDEX_CANDIDATE_MAP = Collections.unmodifiableMap(temp);
+    }
 
     /** Identifies the portal id field in indexes entities */
     private static final String PORTAL_ID_FIELD_NAME = "portal.id";
@@ -62,9 +78,15 @@ public class HibernateSearchService implements SearchService {
     private void buildIndex(FullTextSession fullTextSession,
             Class<?> clazz) {
         //Scrollable results will avoid loading too many objects in memory
-        ScrollableResults results = fullTextSession.createCriteria(clazz)
-            .setFetchSize(INDEX_BATCH_SIZE)
-            .scroll(ScrollMode.FORWARD_ONLY);
+        HibernateSearchCriteriaBuilder builder = INDEX_CANDIDATE_MAP.get(clazz);
+        Criteria criteria;
+        if(builder == null) {
+            criteria = fullTextSession.createCriteria(clazz);
+        } else {
+            criteria = builder.createCriteria(fullTextSession);
+        }
+
+        ScrollableResults results = criteria.setFetchSize(INDEX_BATCH_SIZE).scroll(ScrollMode.FORWARD_ONLY);
         int index = 0;
         while(results.next()) {
             index++;

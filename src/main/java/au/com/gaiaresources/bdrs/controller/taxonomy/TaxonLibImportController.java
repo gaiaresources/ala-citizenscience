@@ -1,15 +1,17 @@
 package au.com.gaiaresources.bdrs.controller.taxonomy;
 
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.annotation.security.RolesAllowed;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import au.com.gaiaresources.bdrs.controller.AbstractController;
+import au.com.gaiaresources.bdrs.db.SessionFactory;
+import au.com.gaiaresources.bdrs.email.EmailService;
+import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfileDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.mode.ApplicationModeService;
+import au.com.gaiaresources.bdrs.service.mode.TaxonomyImportMode;
+import au.com.gaiaresources.bdrs.service.taxonomy.*;
+import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
+import au.com.gaiaresources.taxonlib.ITaxonLibSession;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,19 +22,14 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 
-import au.com.gaiaresources.bdrs.controller.AbstractController;
-import au.com.gaiaresources.bdrs.db.SessionFactory;
-import au.com.gaiaresources.bdrs.email.EmailService;
-import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfileDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
-import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.service.taxonomy.BdrsAfdImporter;
-import au.com.gaiaresources.bdrs.service.taxonomy.BdrsMaxImporter;
-import au.com.gaiaresources.bdrs.service.taxonomy.BdrsNswFloraImporter;
-import au.com.gaiaresources.bdrs.service.taxonomy.BdrsTaxonLibException;
-import au.com.gaiaresources.bdrs.service.taxonomy.TaxonLibSessionFactory;
-import au.com.gaiaresources.taxonlib.ITaxonLibSession;
+import javax.annotation.security.RolesAllowed;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Controller for handling TaxonLib importing.
@@ -63,6 +60,8 @@ public class TaxonLibImportController extends AbstractController {
 	private TaxonLibSessionFactory taxonLibSessionFactory;
 	@Autowired
 	private EmailService emailService;
+    @Autowired
+    private ApplicationModeService applicationModeService;
 	
 	private Logger log = Logger.getLogger(getClass());
 	
@@ -79,7 +78,7 @@ public class TaxonLibImportController extends AbstractController {
 	 * @param response Response.
 	 * @return ModelAndView to render the page.
 	 */
-	@RolesAllowed({Role.ADMIN})
+	@RolesAllowed({Role.ROOT})
 	@RequestMapping(value=TAXON_LIB_IMPORT_URL, method = RequestMethod.GET)
 	public ModelAndView renderSelectImportPage(HttpServletRequest request, HttpServletResponse response) {
 		return new ModelAndView(TAXON_LIB_SELECT_IMPORT_VIEW);
@@ -92,7 +91,7 @@ public class TaxonLibImportController extends AbstractController {
 	 * @param response Response.
 	 * @return ModelAndView to render the page.
 	 */
-	@RolesAllowed({Role.ADMIN})
+	@RolesAllowed({Role.ROOT})
 	@RequestMapping(value=NSW_FLORA_IMPORT_URL, method = RequestMethod.GET)
 	public ModelAndView renderNswFloraImport(HttpServletRequest request, HttpServletResponse response) {
 		return new ModelAndView(NSW_IMPORT_VIEW);
@@ -105,7 +104,7 @@ public class TaxonLibImportController extends AbstractController {
 	 * @param response Response.
 	 * @return ModelAndView to render the page.
 	 */
-	@RolesAllowed({Role.ADMIN})
+	@RolesAllowed({Role.ROOT})
 	@RequestMapping(value=MAX_IMPORT_URL, method = RequestMethod.GET)
 	public ModelAndView renderMaxImportPage(HttpServletRequest request, HttpServletResponse response) {
 		return new ModelAndView(MAX_IMPORT_VIEW);
@@ -118,7 +117,7 @@ public class TaxonLibImportController extends AbstractController {
 	 * @param response Response.
 	 * @return ModelAndView to render the page.
 	 */
-	@RolesAllowed({Role.ADMIN})
+	@RolesAllowed({Role.ROOT})
 	@RequestMapping(value=AFD_IMPORT_URL, method = RequestMethod.GET)
 	public ModelAndView renderAfdImportPage(HttpServletRequest request, HttpServletResponse response) {
 		return new ModelAndView(AFD_IMPORT_VIEW);
@@ -131,68 +130,74 @@ public class TaxonLibImportController extends AbstractController {
 	 * @param response Response.
 	 * @return ModelAndView to display result.
 	 */
-	@RolesAllowed({Role.ADMIN})
+	@RolesAllowed({Role.ROOT})
 	@RequestMapping(value=TAXON_LIB_IMPORT_URL, method = RequestMethod.POST)
 	public void runImport(MultipartHttpServletRequest request,
             HttpServletResponse response) {
-		
-		log.info("TAXONOMY IMPORT START");
-		
-		boolean rollback = false;
-		
-		ITaxonLibSession taxonLibSession = null;
-		
-		User currentUser = getRequestContext().getUser();
-		sendStartEmail(currentUser);
-		
-		try {
-			taxonLibSession = taxonLibSessionFactory.getSession();
-			
-			TaxonLibImportSource importSource = TaxonLibImportSource.valueOf(request.getParameter("importSource"));
-			
-			switch (importSource) {
-			case NSW_FLORA:
-				runNswFloraImport(request, taxonLibSession);
-				break;
-			case MAX:
-				runMaxImport(request, taxonLibSession);
-				break;
-			case AFD:
-				runAfdImport(request, taxonLibSession);
-				break;
-				default:
-					throw new IllegalStateException("case not handled : " + importSource);
-			}
-			// commit!
-			taxonLibSession.commit();
-			
-			sendSuccessEmail(currentUser);
-		} catch (MissingFileException e) {
-			rollback = true;
-			sendFailureEmail(currentUser, e.getMessage());
-		} catch (BdrsTaxonLibException e) {
-			log.error("Error during taxon lib import : ", e);
-			rollback = true;
-			sendFailureEmail(currentUser, e.getMessage());
-		} catch (Exception e) {
-			log.error("Error during taxon lib import : ", e);
-			rollback = true;
-			sendFailureEmail(currentUser, e.getMessage());
-		} finally {
-			if (taxonLibSession != null) {
-				if (rollback) {
-					requestRollback(request);
-					try {
-						taxonLibSession.rollback();	
-					} catch (SQLException sqle) {
-						log.error("Error attempting taxon lib session rollback", sqle);
-					}
-					
-				}
-				taxonLibSession.close();
-			}
-		}
-		log.info("TAXONOMY IMPORT END");
+
+        TaxonomyImportMode mode = new TaxonomyImportMode();
+        applicationModeService.addMode(mode);
+        try {
+            log.info("TAXONOMY IMPORT START");
+
+            boolean rollback = false;
+
+            ITaxonLibSession taxonLibSession = null;
+
+            User currentUser = getRequestContext().getUser();
+            sendStartEmail(currentUser);
+
+            try {
+                taxonLibSession = taxonLibSessionFactory.getSession();
+
+                TaxonLibImportSource importSource = TaxonLibImportSource.valueOf(request.getParameter("importSource"));
+
+                switch (importSource) {
+                case NSW_FLORA:
+                    runNswFloraImport(request, taxonLibSession);
+                    break;
+                case MAX:
+                    runMaxImport(request, taxonLibSession);
+                    break;
+                case AFD:
+                    runAfdImport(request, taxonLibSession);
+                    break;
+                    default:
+                        throw new IllegalStateException("case not handled : " + importSource);
+                }
+                // commit!
+                taxonLibSession.commit();
+
+                sendSuccessEmail(currentUser);
+            } catch (MissingFileException e) {
+                rollback = true;
+                sendFailureEmail(currentUser, e.getMessage());
+            } catch (BdrsTaxonLibException e) {
+                log.error("Error during taxon lib import : ", e);
+                rollback = true;
+                sendFailureEmail(currentUser, e.getMessage());
+            } catch (Exception e) {
+                log.error("Error during taxon lib import : ", e);
+                rollback = true;
+                sendFailureEmail(currentUser, e.getMessage());
+            } finally {
+                if (taxonLibSession != null) {
+                    if (rollback) {
+                        requestRollback(request);
+                        try {
+                            taxonLibSession.rollback();
+                        } catch (SQLException sqle) {
+                            log.error("Error attempting taxon lib session rollback", sqle);
+                        }
+
+                    }
+                    taxonLibSession.close();
+                }
+            }
+            log.info("TAXONOMY IMPORT END");
+        } finally {
+            applicationModeService.removeMode(mode);
+        }
 	}
 	
 	/**
@@ -239,8 +244,8 @@ public class TaxonLibImportController extends AbstractController {
 		if (xrefFile == null) {
 			throw new MissingFileException("MAX Xref");
 		}
-		
-		BdrsMaxImporter importer = new BdrsMaxImporter(tls, new Date(), taxaDAO, spDAO);
+
+		BdrsMaxImporter importer = new BdrsMaxImporter(tls, new Date(), sessionFactory, taxaDAO, spDAO);
 		importer.runImport(familyFile.getInputStream(), generaFile.getInputStream(), nameFile.getInputStream(), xrefFile.getInputStream());
 	}
 	

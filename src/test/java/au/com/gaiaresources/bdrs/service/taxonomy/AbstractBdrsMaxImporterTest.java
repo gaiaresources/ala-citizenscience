@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfileDAO;
@@ -30,7 +31,12 @@ public abstract class AbstractBdrsMaxImporterTest extends TaxonomyImportTest {
 	private TaxaDAO taxaDAO;
 	@Autowired
 	private SpeciesProfileDAO spDAO;
-	
+
+    @Before
+    public void setup() {
+        requestTaxonomyImportTestDropDatabase();
+    }
+
 	protected void runDefaultImport() throws Exception {
 		runImport("MAX_PlantFamilies_TEST.csv", "MAX_PlantGenera_TEST.csv",
 				"MAX_PlantNames_TEST.csv", "MAX_PlantCrossRef_TEST.csv");
@@ -39,7 +45,7 @@ public abstract class AbstractBdrsMaxImporterTest extends TaxonomyImportTest {
 	protected void runImport(String familyFile, String generaFile,
 			String nameFile, String xrefFile) throws Exception {
 		BdrsMaxImporter importer = new BdrsMaxImporter(taxonLibSession, now,
-				taxaDAO, spDAO);
+                sessionFactory, taxaDAO, spDAO);
 
 		List<InputStream> streamsToClose = new ArrayList<InputStream>();
 		try {

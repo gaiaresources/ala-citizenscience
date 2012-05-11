@@ -1,39 +1,21 @@
 package au.com.gaiaresources.bdrs.service.taxonomy;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
-
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile;
-import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfileDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
-import au.com.gaiaresources.bdrs.model.taxa.TaxonRank;
-import au.com.gaiaresources.taxonlib.ITemporalContext;
+import au.com.gaiaresources.bdrs.model.taxa.*;
 import au.com.gaiaresources.taxonlib.ITaxonLibSession;
-import au.com.gaiaresources.taxonlib.importer.max.MaxFamilyRow;
-import au.com.gaiaresources.taxonlib.importer.max.MaxGeneraRow;
-import au.com.gaiaresources.taxonlib.importer.max.MaxImporter;
-import au.com.gaiaresources.taxonlib.importer.max.MaxImporterRowHandler;
-import au.com.gaiaresources.taxonlib.importer.max.MaxNameRow;
-import au.com.gaiaresources.taxonlib.importer.max.MaxXrefRow;
+import au.com.gaiaresources.taxonlib.ITemporalContext;
+import au.com.gaiaresources.taxonlib.importer.max.*;
 import au.com.gaiaresources.taxonlib.model.ITaxonConcept;
 import au.com.gaiaresources.taxonlib.model.ITaxonName;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+
+import java.util.*;
 
 public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
-	
-	private Map<String, IndicatorSpecies> iSpeciesCache = new HashMap<String, IndicatorSpecies>();
-	private TaxaDAO taxaDAO;
-	private SpeciesProfileDAO spDAO;
-	private ITemporalContext temporalContext;
-	
-	/**
+    /**
 	 * Taxon group name
 	 */
 	public static final String MAX_GROUP_NAME = "MAX";
@@ -74,19 +56,28 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
 	 * Species profile item
 	 */
 	public static final String INFO_ITEM_CONSV_CODE = "CONSV_CODE";
-	
-	private TaxonGroup group;
-	
-	private Logger log = Logger.getLogger(getClass());
-	
-	/**
+
+    private SessionFactory sessionFactory;
+    private Logger log = Logger.getLogger(getClass());
+    private Map<String, IndicatorSpecies> sourceIdToIndicatorSpeciesMap =
+        new HashMap<String, IndicatorSpecies>(MaxImporter.REPORT_MOD);
+    private TaxonGroup group = null;
+    private Session operatingSession = null;
+
+    private TaxaDAO taxaDAO;
+    private SpeciesProfileDAO spDAO;
+
+    private ITemporalContext temporalContext;
+
+    /**
 	 * Create a new row handler.
 	 * @param taxonLibSession TaxonLibSession.
 	 * @param now The date we are running the import.
 	 * @param taxaDAO TaxaDAO.
 	 * @param spDAO SpeciesProfileDAO.
 	 */
-	public BdrsMaxImporterRowHandler(ITaxonLibSession taxonLibSession, Date now, TaxaDAO taxaDAO, SpeciesProfileDAO spDAO) {
+	public BdrsMaxImporterRowHandler(ITaxonLibSession taxonLibSession, Date now,
+                                     SessionFactory sessionFactory, TaxaDAO taxaDAO, SpeciesProfileDAO spDAO) {
 		if (taxonLibSession == null) {
 			throw new IllegalArgumentException("TaxonLibSession cannot be null");
 		}
@@ -102,18 +93,7 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
 		this.temporalContext = taxonLibSession.getTemporalContext(now);
 		this.taxaDAO = taxaDAO;
 		this.spDAO = spDAO;
-		
-		group = taxaDAO.getTaxonGroup(MAX_GROUP_NAME);
-		if (group == null) {
-			group = new TaxonGroup();
-			group.setName(MAX_GROUP_NAME);
-			group.setBehaviourIncluded(false);
-			group.setLastAppearanceIncluded(false);
-			group.setNumberIncluded(false);
-			group.setWeatherIncluded(false);
-			group.setHabitatIncluded(false);
-			group = taxaDAO.save(group);
-		}
+        this.sessionFactory = sessionFactory;
 	}
 
 	@Override
@@ -133,10 +113,80 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
 		saveIndicatorSpecies(genus, null);
 	}
 
-	@Override
+    @Override
+    public void precacheTaxa(List<String> sourceIdList) {
+        List<IndicatorSpecies> speciesList = taxaDAO.getIndicatorSpeciesBySourceDataID(
+                this.operatingSession, MaxImporter.MAX_SOURCE, sourceIdList);
+
+        for(IndicatorSpecies s : speciesList) {
+            sourceIdToIndicatorSpeciesMap.put(s.getSourceId(), s);
+        }
+    }
+
+    private IndicatorSpecies getIndicatorSpeciesBySourceDataID(String sourceDataId) {
+        IndicatorSpecies taxa = sourceIdToIndicatorSpeciesMap.get(sourceDataId);
+        if(taxa == null) {
+            taxa = taxaDAO.getIndicatorSpeciesBySourceDataID(this.operatingSession, MaxImporter.MAX_SOURCE, sourceDataId);
+            sourceIdToIndicatorSpeciesMap.put(sourceDataId, taxa);
+        }
+        return taxa;
+    }
+
+    @Override
+    public void begin() {
+        if(this.operatingSession != null) {
+            this.save();
+        }
+
+        this.operatingSession = this.sessionFactory.openSession();
+        this.operatingSession.beginTransaction();
+    }
+
+    @Override
+    public void save() {
+        if(this.operatingSession == null) {
+            log.warn("Attempt to save before a session has been created.");
+            return;
+        }
+
+        Transaction tx = this.operatingSession.getTransaction();
+        if(tx.isActive()) {
+            tx.commit();
+        }
+
+        this.operatingSession.close();
+        this.operatingSession = null;
+        this.group = null;
+        this.sourceIdToIndicatorSpeciesMap.clear();
+    }
+
+    @Override
 	public void processNameRow(MaxNameRow row, ITaxonConcept species) {
 		saveIndicatorSpecies(species, row);
 	}
+
+    private TaxonGroup getTaxonGroup() {
+        if(this.operatingSession == null) {
+            throw new IllegalArgumentException("Operation session not started");
+        }
+
+        if(group == null) {
+            group = taxaDAO.getTaxonGroup(this.operatingSession, MAX_GROUP_NAME);
+
+            if (group == null) {
+                group = new TaxonGroup();
+                group.setName(MAX_GROUP_NAME);
+                group.setBehaviourIncluded(false);
+                group.setLastAppearanceIncluded(false);
+                group.setNumberIncluded(false);
+                group.setWeatherIncluded(false);
+                group.setHabitatIncluded(false);
+                group = taxaDAO.save(this.operatingSession, group);
+            }
+        }
+
+        return group;
+    }
 	
 	/**
 	 * Attempt to save the indicator species. If the species already exists
@@ -148,7 +198,7 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
 	private void saveIndicatorSpecies(ITaxonConcept concept, MaxNameRow nameRow) {
 		if (concept != null) {
 			ITaxonName tn = concept.getName();
-			IndicatorSpecies iSpecies = taxaDAO.getIndicatorSpeciesBySourceDataID(null, MaxImporter.MAX_SOURCE, getSourceId(tn));
+			IndicatorSpecies iSpecies = getIndicatorSpeciesBySourceDataID(getSourceId(tn));
 			if (iSpecies == null) {
 				iSpecies = new IndicatorSpecies();
                 iSpecies.setScientificName(tn.getDisplayName());
@@ -165,9 +215,8 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
                 } else {
                 	iSpecies.setCommonName("");	
                 }
-                
                 iSpecies.setAuthor(tn.getAuthor());
-                iSpecies.setTaxonGroup(group);
+                iSpecies.setTaxonGroup(getTaxonGroup());
                 iSpecies.setSource(MaxImporter.MAX_SOURCE);
                 iSpecies.setSourceId(getSourceId(tn));
                 
@@ -175,8 +224,7 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
                 	if (concept.getParent().getName() == null) {
                 		log.debug("parent concept name is null");
                 	}
-                	IndicatorSpecies iSpeciesParent = taxaDAO.getIndicatorSpeciesBySourceDataID(null, MaxImporter.MAX_SOURCE, 
-                			getSourceId(concept.getParent().getName()));
+                	IndicatorSpecies iSpeciesParent = getIndicatorSpeciesBySourceDataID(getSourceId(concept.getParent().getName()));
                 	iSpecies.setParent(iSpeciesParent);
                 } else {
                 	iSpecies.setParent(null);
@@ -231,8 +279,8 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
                 	
                 	iSpecies.setInfoItems(infoItems);
                 }
-                
-                taxaDAO.save(iSpecies);
+
+                taxaDAO.save(this.operatingSession, iSpecies);
 			}
 		}
 	}
@@ -244,7 +292,7 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
 		if (oldConcept.getName() == null) {
 			log.debug("old concept name is null");
 		}
-		IndicatorSpecies species = taxaDAO.getIndicatorSpeciesBySourceDataID(null, MaxImporter.MAX_SOURCE, getSourceId(oldConcept.getName()));
+		IndicatorSpecies species = taxaDAO.getIndicatorSpeciesBySourceDataID(this.operatingSession, MaxImporter.MAX_SOURCE, getSourceId(oldConcept.getName()));
 		if (species != null) {
 			species.setCurrent(false);
 		}
@@ -276,27 +324,7 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
         sp.setDescription(description);
         sp.setContent(!StringUtils.isEmpty(content) ? content.trim() : "");
         // prevent duplicates
-        spDAO.save(sp);
+        spDAO.save(this.operatingSession, sp);
         infoItems.add(sp);
     }
-	
-    /**
-     * Get indicator species by source ID.
-     * @param sourceId Source ID to match on.
-     * @return IndicatorSpecies result.
-     */
-	private IndicatorSpecies getIndicatorSpecies(String sourceId) {
-		ITaxonName tn = temporalContext.selectNameBySourceId(MaxImporter.MAX_SOURCE, sourceId);
-		
-		String iSpeciesSourceId = getSourceId(tn);
-		if (iSpeciesCache.containsKey(iSpeciesSourceId)) {
-			return iSpeciesCache.get(iSpeciesSourceId);
-		}
-		
-		IndicatorSpecies result = taxaDAO.getIndicatorSpeciesBySourceDataID(null, MaxImporter.MAX_SOURCE, iSpeciesSourceId);
-		if (result != null) {
-			iSpeciesCache.put(sourceId, result);
-		}
-		return result;
-	}
 }

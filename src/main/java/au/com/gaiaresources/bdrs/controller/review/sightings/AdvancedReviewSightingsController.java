@@ -99,14 +99,9 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
         HashMap<String, String[]> newParamMap = new HashMap<String, String[]>(request.getParameterMap());
         // some locations have been selected, add them to the parameters as facet selections
         String locations = request.getParameter("locations");
-        
-        // this code translates the locations parameter into facet selections
-        // there is currently not a good way to get the input name (parameter 
-        // selection name) from a facet before it's creation or to build a mock
-        // facet for retrieving this parameter so the input name is hard-coded 
-        // here
-        if (!StringUtils.nullOrEmpty(locations)) {
-            String inputName = "0_"+LocationFacet.QUERY_PARAM_NAME+LocationFacet.OPTION_SUFFIX;
+
+        String inputName = "0_"+LocationFacet.QUERY_PARAM_NAME+LocationFacet.OPTION_SUFFIX;
+        if (!StringUtils.nullOrEmpty(locations) && !newParamMap.containsKey(inputName)) {
             newParamMap.put(inputName, locations.split(","));
         }
         List<Facet> facetList = facetService.getFacetList(currentUser(), newParamMap);
@@ -240,7 +235,7 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
      * @throws Exception thrown if there is an error running the report.
      */
     @RequestMapping(value = ADVANCED_REVIEW_REPORT_URL, method = RequestMethod.GET)
-    public ModelAndView advancedReviewReport(MultipartHttpServletRequest request,
+    public ModelAndView advancedReviewReport(HttpServletRequest request,
                                              HttpServletResponse response,
                                              @RequestParam(value = QUERY_PARAM_REPORT_ID, required = true) int reportId) throws Exception {
         configureHibernateSession();
