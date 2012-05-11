@@ -575,5 +575,9 @@ alter table species_profile alter column description set not null;
 alter table species_profile alter column "header" set not null;
 
 rollback;
+</code>
 
+= r304 =
+<code language="sql">
+CREATE INDEX indicator_species_source_index on indicator_species(source); 
 </code>
