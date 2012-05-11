@@ -127,6 +127,8 @@ CREATE TABLE taxon_name
     primary key(taxon_name_id)
 );
 alter table taxon_name add constraint TAXON_NAME_TAXON_CONCEPT_FK foreign key (taxon_concept_id) references taxon_concept;
+CREATE INDEX taxon_name_name_lower ON taxon_name ((lower(name)));
+CREATE INDEX taxon_name_display_name_lower ON taxon_name ((lower(display_name)));
 
 CREATE TABLE taxon_concept_relation
 (
