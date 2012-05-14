@@ -78,10 +78,12 @@ bdrs.index.runIndex = function() {
  */
 bdrs.index.saveIndex = function() {
     // make sure that one index class is checked
+    // or that there is a hidden input value for indexClass
     var indexClasses = jQuery("[name=indexClass]:checked");
-    if (indexClasses.length < 1) {
-        alert('You must select at least one thing to index!');
+    var indexClass = jQuery("input[name=indexClass][type=hidden]").val();
+    if (indexClasses.length > 0 || (indexClass && indexClass.length > 0)) {
+        jQuery("form").submit();
     } else {
-        form.submit();
+        alert('You must select at least one thing to index!');
     }
 };

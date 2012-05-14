@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
 import au.com.gaiaresources.bdrs.db.impl.PaginationFilter;
 import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
+import au.com.gaiaresources.bdrs.model.portal.Portal;
 
 /**
  * Interface for implementing an indexed search engine such as Apache Solr or Hibernate Search.
@@ -30,7 +31,7 @@ public interface SearchService {
      * Designed for administrative use only.
      * @param sesh the {@link Session} to use for the query
      */
-    public void createIndexes(Session sesh);
+    public void createIndexes(Session sesh, Portal portal);
     
     /**
      * Deletes the indexes for the search engine.
@@ -38,7 +39,7 @@ public interface SearchService {
      * Designed for administrative use only.
      * @param sesh the {@link Session} to use for the query
      */
-    public void deleteIndexes(Session sesh);
+    public void deleteIndexes(Session sesh, Portal portal);
     
     /**
      * Does a search for searchTerm in the indexes for Class object.
@@ -82,14 +83,14 @@ public interface SearchService {
      * WARNING: this method is non-transactional and has the side effect of clearing the current Hibernate Session.
      * Designed for administrative use only.
      */
-    public void deleteIndexes();
+    public void deleteIndexes(Portal portal);
 
     /**
      * Creates indexes for all indexed classes returned by {@link IndexUtils::getIndexedClasses()}.
      * WARNING: this method is non-transactional and has the side effect of clearing the current Hibernate Session.
      * Designed for administrative use only.
      */
-    public void createIndexes();
+    public void createIndexes(Portal portal);
 
     /**
      * Deletes the index for the specified class.
@@ -97,23 +98,25 @@ public interface SearchService {
      * Designed for administrative use only.
      * @param sesh the {@link Session} to use for the indexing
      * @param clazz the {@link Class} to index
+     * @param portal the {@link Portal} of the index to delete
      */
-    public void deleteIndex(Session sesh, Class<?> clazz);
+    public void deleteIndex(Session sesh, Class<?> clazz, Portal portal);
 
     /**
      * Creates the index for the specified class.
      * @param sesh the {@link Session} to use for the indexing
      * @param clazz the {@link Class} to index
      */
-    public void createIndex(Session sesh, Class<?> clazz);
+    public void createIndex(Session sesh, Class<?> clazz, Portal portal);
     
     /**
      * Deletes the index for the specified class.
      * WARNING: this method is non-transactional and has the side effect of clearing the current Hibernate Session.
      * Designed for administrative use only.
      * @param clazz the {@link Class} to index
+     * @param portal the {@link Portal} of the index to delete
      */
-    public void deleteIndex(Class<?> clazz);
+    public void deleteIndex(Class<?> clazz, Portal portal);
 
     /**
      * Creates the index for the specified class.
@@ -121,5 +124,5 @@ public interface SearchService {
      * Designed for administrative use only.
      * @param clazz the {@link Class} to index
      */
-    public void createIndex(Class<?> clazz);
+    public void createIndex(Class<?> clazz, Portal portal);
 }

@@ -9,6 +9,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
 import au.com.gaiaresources.bdrs.search.SearchService;
+import au.com.gaiaresources.bdrs.util.TransactionHelper;
 
 /**
  * Provides an indexing task which will (optionally) delete indexes and 
@@ -60,22 +61,25 @@ public class IndexTask implements Runnable {
                 }
                 if (schedule.isFullRebuild()) {
                     if (clazz != null) {
-                        searchService.deleteIndex(sesh, clazz);
+                        searchService.deleteIndex(sesh, clazz, schedule.getPortal());
                     } else {
-                        searchService.deleteIndexes(sesh);
+                        searchService.deleteIndexes(sesh, schedule.getPortal());
                     }
                 }
                 if (clazz != null) {
-                    searchService.createIndex(sesh, clazz);
+                    searchService.createIndex(sesh, clazz, schedule.getPortal());
                 } else {
-                    searchService.createIndexes(sesh);
+                    searchService.createIndexes(sesh, schedule.getPortal());
                 }
         
                 // update the last run time of the schedule
                 schedule.setLastRun(new Date());
                 schedule = indexDAO.update(sesh, schedule);
                 // commit the transaction and close the session
-                tx.commit();
+                sesh.flush();
+                sesh.clear();
+                
+                TransactionHelper.commit(tx, sesh);
             }
         } catch (Exception e) {
             log.error("An error occurred updating the run time for index "+(schedule != null ? schedule.getId() : null), e);

@@ -55,7 +55,7 @@
                             ${ indexSchedule.type }
                         </td>
                         <td class="textcenter">
-                            ${ indexSchedule.dateString }
+                            ${ indexSchedule.dateString } ${ indexSchedule.timeString }
                         </td>
                         <td class="textcenter">
                             <span id="lastRun_${indexSchedule.id}">${ indexSchedule.lastRunString }</span>

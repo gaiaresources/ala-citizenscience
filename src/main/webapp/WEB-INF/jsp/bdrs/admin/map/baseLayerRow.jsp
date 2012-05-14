@@ -25,7 +25,7 @@
                type="radio" 
                name="default"
                value="${ baseLayer.layerSource }"
-               onChange="jQuery('#selected_${ baseLayer.layerSource }').prop('checked', this.checked);"
+               onChange="jQuery('#selected_${ baseLayer.layerSource }').prop('checked', this.checked);changeDefaultLayer('${ baseLayer.layerSource.name }');"
           <c:if test="${ baseLayer.default }">checked="true"</c:if>
         />
       </td>

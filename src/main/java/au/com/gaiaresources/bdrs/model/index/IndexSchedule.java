@@ -159,14 +159,14 @@ public class IndexSchedule extends PortalPersistentImpl {
     }
     
     /**
-     * Returns the date in String format specified by {@link DateFormatter::$DAY_MONTH_YEAR_TIME}.
+     * Returns the date in String format specified by {@link DateFormatter::$DAY_MONTH_YEAR}.
      */
     @Transient
     public String getDateString() {
         if (getDate() == null) {
             return "";
         }
-        return DateFormatter.format(getDate(), DateFormatter.DAY_MONTH_YEAR_TIME);
+        return DateFormatter.format(getDate(), DateFormatter.DAY_MONTH_YEAR);
     }
     
     /**

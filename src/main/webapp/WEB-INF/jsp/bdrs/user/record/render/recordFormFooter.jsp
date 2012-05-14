@@ -25,7 +25,7 @@
 			<c:otherwise>
 				    <div class="buttonpanel textright">
                         <input class="form_action" type="submit" name="submitAndAddAnother" value="Submit and Add Another"/>
-                        <input class="form_action" type="submit" name="submit" value="Submit Sighting"/>
+                        <input class="form_action" type="submit" name="submit" value="Submit"/>
                     </div>
                 </form>
 			</c:otherwise>	

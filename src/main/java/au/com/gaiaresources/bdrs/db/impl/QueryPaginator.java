@@ -204,8 +204,8 @@ public class QueryPaginator<T> {
      */
     public PagedQueryResult<T> page(FullTextQuery hibQuery, PaginationFilter filter) {
         PagedQueryResult<T> result = new PagedQueryResult<T>();
-
-        result.setCount(hibQuery.getResultSize());
+        List results = hibQuery.list();
+        result.setCount(results.size());
 
         if (filter != null) {
             // only set the max results if they are less than the actual results
@@ -221,7 +221,7 @@ public class QueryPaginator<T> {
             }
         }
         // assumes that you are going to be casting correctly.....
-        result.setList(hibQuery.list());
+        result.setList(results);
         return result;
     }
 }

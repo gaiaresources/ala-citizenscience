@@ -11,24 +11,33 @@
 <cw:getContent key="admin/manageIndex" />
 
 <form method="POST">
-
-    <c:if test="${indexSchedule.id != null}">
-        <input type="hidden" name="indexId" value="${indexSchedule.id}"/>
-    </c:if>
     <div class="input_container">
         <div class="left">
-            Select something to index:
-            <c:forEach var="indexClass" items="${ indexClasses }">
-                <jsp:useBean id="indexClass" type="java.lang.Class"/>
-                <div style="padding: 2px;">
-                <input type="checkbox" name="indexClass" id="index_class_<%= indexClass.getSimpleName() %>" value="<%= indexClass.getSimpleName() %>"
-                    <c:if test="<%= indexClass.getSimpleName().equals(indexSchedule.getClassName()) %>">
-                        checked="true"
-                    </c:if>
-                />
-                <label for="index_class_<%= indexClass.getSimpleName() %>"><%= indexClass.getSimpleName() %></label>
-                </div>
-            </c:forEach>
+            <c:choose>
+                <c:when test="${indexSchedule.id != null}">
+        			<input type="hidden" name="indexId" value="${indexSchedule.id}"/>
+        			<input type="hidden" name="indexClass" value="${indexSchedule.className}"/>
+        			<p>The following items will be indexed:</p>
+        			<ul>
+        				<li>${indexSchedule.className}</li>
+        			</ul>
+    			</c:when>
+    			<c:otherwise>
+		            Select something to index:
+		            <c:forEach var="indexClass" items="${ indexClasses }">
+		                <jsp:useBean id="indexClass" type="java.lang.Class"/>
+		                <div style="padding: 2px;">
+		                <input type="checkbox" name="indexClass" id="index_class_<%= indexClass.getSimpleName() %>" value="<%= indexClass.getSimpleName() %>"
+		                    <c:if test="<%= indexClass.getSimpleName().equals(indexSchedule.getClassName()) %>">
+		                        checked="true"
+		                    </c:if>
+		                    
+		                />
+		                <label for="index_class_<%= indexClass.getSimpleName() %>"><%= indexClass.getSimpleName() %></label>
+		                </div>
+		            </c:forEach>
+            	</c:otherwise>
+            </c:choose>
         </div>
             <div class="right">
                 <input class="left" type="checkbox" name="deleteIndexes" id="deleteIndexes"
@@ -186,13 +195,17 @@
 <script type="text/javascript">
     // disable the inputs related to anything but the selected radio button
     jQuery("[name=indexType]").change(function() {
+        var container = jQuery(".ketchup-error-container")
+        container.css('display', 'none');
         // disable all of the checkboxes and text inputs in scheduleRow
+        // also remove ketchup validation so they don't cause submit to fail
         var inputs = jQuery(".scheduleRow input[type=text]");
         inputs.attr("disabled", true);
+        inputs.val('');
         inputs = jQuery(".scheduleRow input[type=checkbox]");
-        inputs.attr("disabled", true);
+        inputs.val('');
         inputs = jQuery(".scheduleRow select");
-        inputs.attr("disabled", true);
+        
         // get the value of the selected item
         var selVal = jQuery(this).val();
         // get all of the inputs starting with that value and enable them
@@ -208,6 +221,5 @@
         if (newinputs) {
             newinputs.removeAttr("disabled");
         }
-        // also set their ketchup validations to required
     });
 </script>
