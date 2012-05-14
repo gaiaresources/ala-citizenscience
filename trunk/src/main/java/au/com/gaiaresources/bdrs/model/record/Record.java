@@ -93,7 +93,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     private Set<ReviewRequest> reviewRequests = new HashSet<ReviewRequest>();
 
     private Set<Metadata> metadata = new HashSet<Metadata>();
-
+    
     /**
      * Contains the Comments that have been made on this Record
      */
@@ -698,7 +698,6 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
      */
     @Transient
     public boolean canWrite(User writer) {
-
         if (writer == null) {
             log.warn("Attempting to write to record with a null user. This _probably should not happen");
             // we can't write a record with no writer!
@@ -721,8 +720,12 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
             return false;
         }
         boolean isOwner = writer.getId().intValue() == this.getUser().getId().intValue();
+        boolean canWriteSurvey = this.survey.canWriteSurvey(writer);
         // only the owner, admins, and moderators can write a record
-        return isOwner || writer.isAdmin() || (writer.isModerator() && isAtLeastOneModerationAttribute());
+        // they also must have access to the survey in order to write to it
+        return canWriteSurvey && 
+                (isOwner || writer.isAdmin() || 
+                        (writer.isModerator() && isAtLeastOneModerationAttribute()));
     }
 
     /**

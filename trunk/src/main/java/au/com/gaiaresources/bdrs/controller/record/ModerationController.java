@@ -56,7 +56,11 @@ public class ModerationController extends AbstractController {
      * Property service key
      */
     public static final String MSG_CODE_RECORD_MULTI_MODERATE_AUTHFAIL = "bdrs.record.multiModerate.authfail";
-
+    /**
+     * Property service key
+     */
+    public static final String MSG_CODE_RECORD_MULTI_MODERATE_AUTHFAIL_PARTIAL = "bdrs.record.multiModerate.authfail.partial";
+    
     public static final String PARAM_REDIRECT_URL = "redirecturl";
     
     /**
@@ -119,6 +123,7 @@ public class ModerationController extends AbstractController {
         User moderator = getRequestContext().getUser();
         
         boolean authFail = false;
+        int authFailCount = 0;
         int recordModerateCount = 0;
 
         // only allow moderation of records by a moderator.
@@ -128,19 +133,24 @@ public class ModerationController extends AbstractController {
                     Record record = recordDAO.getRecord(id);
                     
                     if (record != null) {
-                        if (record.getHeld() != hold) {
-                            record.setHeld(hold);
-                            recordDAO.saveRecord(record);
+                        // make sure the moderator has permission to write to the record/survey
+                        if (record.canWrite(moderator)) {
+                            if (record.getHeld() != hold) {
+                                record.setHeld(hold);
+                                recordDAO.saveRecord(record);
+                            }
+                            ++recordModerateCount;
+                            
+                            List<Record> recList = recMap.get(record.getUser());
+                            if (recList == null) {
+                                // add new entry to map if required
+                                recList = new ArrayList<Record>();
+                                recMap.put(record.getUser(), recList);
+                            }
+                            recList.add(record);
+                        } else {
+                            ++authFailCount;
                         }
-                        ++recordModerateCount;
-                        
-                        List<Record> recList = recMap.get(record.getUser());
-                        if (recList == null) {
-                            // add new entry to map if required
-                            recList = new ArrayList<Record>();
-                            recMap.put(record.getUser(), recList);
-                        }
-                        recList.add(record);
                     } else {
                         // could not find record for given id but handle silently. log a warning.
                         log.warn("Requested " + holdString + " of non-existent record, id:" + id);
@@ -165,10 +175,12 @@ public class ModerationController extends AbstractController {
             // rollback transaction. if one record fails to delete they _all_ fail
             requestRollback(request);
             
-            getRequestContext().addMessage(new Message(MSG_CODE_RECORD_MULTI_MODERATE_AUTHFAIL, new Object[] { msgHoldString }));
+            getRequestContext().addMessage(new Message(MSG_CODE_RECORD_MULTI_MODERATE_AUTHFAIL, new Object[] { holdString }));
         } else {
             getRequestContext().addMessage(new Message(MSG_CODE_RECORD_MULTI_MODERATE_SUCCESS, new Object[] { msgHoldString, recordModerateCount }));
-            
+            if (authFailCount > 0) {
+                getRequestContext().addMessage(new Message(MSG_CODE_RECORD_MULTI_MODERATE_AUTHFAIL_PARTIAL, new Object[] { holdString, authFailCount }));
+            }
             if (!hold) {
                 // When releasing records from the moderation cycle send out emails...
                 Session sesh = getRequestContext().getHibernate();

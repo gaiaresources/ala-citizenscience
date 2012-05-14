@@ -2,6 +2,7 @@ package au.com.gaiaresources.bdrs.model.taxa.impl;
 
 import au.com.gaiaresources.bdrs.db.QueryOperation;
 import au.com.gaiaresources.bdrs.db.impl.*;
+import au.com.gaiaresources.bdrs.db.impl.SortOrder;
 import au.com.gaiaresources.bdrs.model.index.IndexingConstants;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.region.Region;
@@ -535,16 +536,16 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
 	@Override
 	public IndicatorSpecies getIndicatorSpeciesBySourceDataID(Session sesh, String source, String sourceDataId) {
 	    String query = "select s from IndicatorSpecies s where s.source = :source and s.sourceId = :sourceId";
-        Query q;
-        if (sesh == null) {
-            q = getSession().createQuery(query);
-        } else {
-            q = sesh.createQuery(query);
-        }
-
-        q.setParameter("sourceId", sourceDataId);
-        q.setParameter("source", source);
-        return (IndicatorSpecies)q.uniqueResult();
+            Query q;
+            if (sesh == null) {
+                q = getSession().createQuery(query);
+            } else {
+                q = sesh.createQuery(query);
+            }
+            
+            q.setParameter("sourceId", sourceDataId);
+            q.setParameter("source", source);
+            return (IndicatorSpecies)q.uniqueResult();
 	}
 
     @Override
@@ -827,6 +828,15 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
         return new QueryPaginator<IndicatorSpecies>().page(this.getSession(), q.getQueryString(), q.getParametersValue(), filter);
     }
     
+    public PagedQueryResult<IndicatorSpecies> getIndicatorSpeciesByGroup(Integer taxonGroupId, PaginationFilter filter) {
+        HqlQuery q = new HqlQuery("from IndicatorSpecies s");
+        if (taxonGroupId != null) {
+            q.and(Predicate.eq("s.taxonGroup.id", taxonGroupId));
+        }
+        
+        return new QueryPaginator<IndicatorSpecies>().page(this.getSession(), q.getQueryString(), q.getParametersValue(), filter);
+    }
+    
     @Override
     public List<IndicatorSpecies> getChildTaxa(IndicatorSpecies taxon) {
         return find("from IndicatorSpecies s where s.parent = ?", taxon);
@@ -996,39 +1006,48 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
     public PagedQueryResult<IndicatorSpecies> searchTaxa(
             Integer groupId, TaxonGroupSearchType searchType,
             String searchInGroups, String searchInResult, PaginationFilter filter) throws org.apache.lucene.queryParser.ParseException {
-        // the fields to search on
-        String[] fields = new String[]{"commonName", "scientificName", "infoItems.content", "taxonGroup.name", "taxonGroup.id"};
-        
-        PerFieldAnalyzerWrapper aWrapper = new PerFieldAnalyzerWrapper(new StandardAnalyzer());
-        Analyzer customAnalyzer = Search.getFullTextSession(getSession()).getSearchFactory().getAnalyzer(IndexingConstants.FULL_TEXT_ANALYZER);
-        aWrapper.addAnalyzer("commonName", customAnalyzer);
-        aWrapper.addAnalyzer("scientificName", customAnalyzer);
-        aWrapper.addAnalyzer("infoItems.content", customAnalyzer);
-        aWrapper.addAnalyzer("taxonGroup.name", customAnalyzer);
-        
-        // the '+' indicates that the term must be matched, only necessary if one of 
-        // searchInResults or groupId is specified, but is done implicitly anyway when there is only one term
-        String searchTerm = !StringUtils.nullOrEmpty(searchInGroups) ? "+" + searchInGroups + "" : "";
-        if (!StringUtils.nullOrEmpty(searchInResult)) {
-            searchTerm += " +"+searchInResult + "" ;
-        }
-
-        if (groupId != null) {
-            // add the group to the query
-            // the '+' indicates that the term must be matched, so it must be in the group and contain the term
-            switch (searchType) {
-                case PRIMARY:
-                    searchTerm += " +(taxonGroup.id:"+groupId+ ")";
-                    break;
-                case SECONDARY:
-                    searchTerm += " +(secondaryGroups.id:"+groupId+ ")";
-                    break;
-                case PRIMARY_OR_SECONDARY:
-                    searchTerm += " +(taxonGroup.id:"+groupId+" OR secondaryGroups.id:"+groupId+ ")";
-                    break;
+        if (StringUtils.nullOrEmpty(searchInGroups) && StringUtils.nullOrEmpty(searchInResult)) {
+            // do a normal database search
+            // add sorting since none is passed to the query
+            // if no sorting, add this one
+            filter.addSortingCriteria("scientificName", SortOrder.ASCENDING);
+            return getIndicatorSpeciesByGroup(groupId, filter);
+        } else {
+            // do an indexed search
+            // the fields to search on
+            String[] fields = new String[]{"commonName", "scientificName", "infoItems.content", "taxonGroup.name", "taxonGroup.id"};
+            
+            PerFieldAnalyzerWrapper aWrapper = new PerFieldAnalyzerWrapper(new StandardAnalyzer());
+            Analyzer customAnalyzer = Search.getFullTextSession(getSession()).getSearchFactory().getAnalyzer(IndexingConstants.FULL_TEXT_ANALYZER);
+            aWrapper.addAnalyzer("commonName", customAnalyzer);
+            aWrapper.addAnalyzer("scientificName", customAnalyzer);
+            aWrapper.addAnalyzer("infoItems.content", customAnalyzer);
+            aWrapper.addAnalyzer("taxonGroup.name", customAnalyzer);
+            
+            // the '+' indicates that the term must be matched, only necessary if one of 
+            // searchInResults or groupId is specified, but is done implicitly anyway when there is only one term
+            String searchTerm = !StringUtils.nullOrEmpty(searchInGroups) ? "+" + searchInGroups + "" : "";
+            if (!StringUtils.nullOrEmpty(searchInResult)) {
+                searchTerm += " +"+searchInResult + "" ;
             }
+
+            if (groupId != null) {
+                // add the group to the query
+                // the '+' indicates that the term must be matched, so it must be in the group and contain the term
+                switch (searchType) {
+                    case PRIMARY:
+                        searchTerm += " +(taxonGroup.id:"+groupId+ ")";
+                        break;
+                    case SECONDARY:
+                        searchTerm += " +(secondaryGroups.id:"+groupId+ ")";
+                        break;
+                    case PRIMARY_OR_SECONDARY:
+                        searchTerm += " +(taxonGroup.id:"+groupId+" OR secondaryGroups.id:"+groupId+ ")";
+                        break;
+                }
+            }
+            return searchService.searchPaged(getSession(), fields, aWrapper, searchTerm, filter, IndicatorSpecies.class, SpeciesProfile.class);
         }
-        return searchService.searchPaged(getSession(), fields, aWrapper, searchTerm, filter, IndicatorSpecies.class, SpeciesProfile.class);
     }
 
     /**

@@ -99,7 +99,12 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
         HashMap<String, String[]> newParamMap = new HashMap<String, String[]>(request.getParameterMap());
         // some locations have been selected, add them to the parameters as facet selections
         String locations = request.getParameter("locations");
-
+        
+        // this code translates the locations parameter into facet selections
+        // there is currently not a good way to get the input name (parameter 
+        // selection name) from a facet before it's creation or to build a mock
+        // facet for retrieving this parameter so the input name is hard-coded 
+        // here
         String inputName = "0_"+LocationFacet.QUERY_PARAM_NAME+LocationFacet.OPTION_SUFFIX;
         if (!StringUtils.nullOrEmpty(locations) && !newParamMap.containsKey(inputName)) {
             newParamMap.put(inputName, locations.split(","));
@@ -154,7 +159,7 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
                                             HttpServletResponse response,
                                             @RequestParam(value=RESULTS_PER_PAGE_QUERY_PARAM_NAME, required=false, defaultValue=DEFAULT_RESULTS_PER_PAGE) Integer resultsPerPage,
                                             @RequestParam(value=PAGE_NUMBER_QUERY_PARAM_NAME, required=false, defaultValue=DEFAULT_PAGE_NUMBER) Integer pageNumber) throws IOException {
-       configureHibernateSession();
+        configureHibernateSession();
         
         Integer surveyId = null;
         if(request.getParameter(SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME) != null) {

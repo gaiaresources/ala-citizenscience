@@ -59,7 +59,7 @@ import edu.emory.mathcs.backport.java.util.Collections;
  *
  */
 @Controller
-public class AtlasController extends AbstractController {
+public class AtlasController extends RecordController {
 
     private Logger log = Logger.getLogger(getClass());
     

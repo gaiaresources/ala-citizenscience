@@ -23,6 +23,7 @@ import org.springframework.web.servlet.ModelAndView;
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataHelper;
 import au.com.gaiaresources.bdrs.model.index.IndexUtil;
+import au.com.gaiaresources.bdrs.model.portal.Portal;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile;
 import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfileDAO;
@@ -78,9 +79,10 @@ public class BDRSFieldGuideControllerTest extends AbstractControllerTest {
         }
         login("admin", "password", new String[] { Role.ADMIN });
         createTestData();
+        Portal p = getRequestContext().getPortal();
         // delete the indexes to make sure they are not saved from last time
-        searchService.deleteIndexes(sesh);
-        searchService.createIndexes(sesh);
+        searchService.deleteIndexes(sesh, p);
+        searchService.createIndexes(sesh, p);
     }
     
     @After

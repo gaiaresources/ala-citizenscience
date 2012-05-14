@@ -47,7 +47,6 @@
         <c:set var="fieldValue" value="<%= formField.getAttributeValue().toString() %>"></c:set>
     </c:when>
 </c:choose>
-
 <c:choose>
     <c:when test="${ formField.attribute.type == 'STRING_WITH_VALID_VALUES'}">
         <c:choose>
@@ -62,7 +61,7 @@
                     <c:forEach var="attrOpt" items="${ formField.attribute.options }">
                         <jsp:useBean id="attrOpt" type="au.com.gaiaresources.bdrs.model.taxa.AttributeOption"/>
                         <option <c:if test="${attrOpt.value == fieldValue}">selected="selected"</c:if> >
-                            <c:out value="${ attrOpt.value }"/>
+                            ${ attrOpt.value }
                         </option>
                     </c:forEach>
                 </select>

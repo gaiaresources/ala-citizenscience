@@ -772,13 +772,14 @@ public class SurveyBaseController extends AbstractController {
         Collections.sort(baseLayers);
         Collections.sort(allBdrsLayers);
         
-        log.debug("after sorting, base layers are: ");
+        // the layers need to be flattened for use in javascript
+        List<Map<String,Object>> flatBaseLayers = new ArrayList<Map<String,Object>>(baseLayers.size());
         for (BaseMapLayer baseLayer : baseLayers) {
-            log.debug("        "+baseLayer.getLayerSource().getName()+" with weight "+baseLayer.getWeight());
+            flatBaseLayers.add(baseLayer.flatten());
         }
-        log.debug("after sorting, bdrs layers are: ");
+        List<Map<String,Object>> flatBdrsLayers = new ArrayList<Map<String,Object>>(allBdrsLayers.size());
         for (SurveyGeoMapLayer baseLayer : allBdrsLayers) {
-            log.debug("        "+baseLayer.getLayer().getName()+" with weight "+baseLayer.getWeight());
+            flatBdrsLayers.add(baseLayer.flatten());
         }
         
         mv.addObject("baseLayers", baseLayers);

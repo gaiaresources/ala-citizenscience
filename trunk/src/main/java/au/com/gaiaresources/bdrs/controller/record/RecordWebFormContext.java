@@ -67,6 +67,10 @@ public class RecordWebFormContext {
      */
     public static final String MSG_CODE_VIEW_AUTHFAIL = "bdrs.record.view.authfail";
     /**
+     * Msg code - cannot create/edit records in the survey due to auth failure
+     */
+    protected static final String MSG_SURVEY_AUTHFAIL = "bdrs.record.survey.authfail";
+    /**
      * Request param - passed when the POST should redirect to a blank version of the same
      * form that has just been posted
      */
@@ -152,6 +156,9 @@ public class RecordWebFormContext {
         unlockable = existingRecord && recordToLoad.canWrite(accessingUser);
         commentable = (context == DisplayContext.VIEW) && recordToLoad.canComment(accessingUser);
         anonymous = (accessingUser == null);
+        if (isEditable()) {
+            surveyAccessSecurityCheck(survey, accessingUser);
+        }
         recordAccessSecurityCheck(recordToLoad, accessingUser, isEditable());
         
         // add the flattened layers to the page so they can be referenced 
@@ -237,6 +244,18 @@ public class RecordWebFormContext {
             }
         }
         // if security pass is successful no exceptions will be thrown
+    }
+    
+    /**
+     * Helper method to throw AccessDeniedExceptions if the user does not have permission to write
+     * to a survey and they have requested an edit.
+     * @param survey the survey we are trying to write to
+     * @param user the user we are trying to write as
+     */
+    private static void surveyAccessSecurityCheck(Survey survey, User user) {
+        if (!survey.canWriteSurvey(user)) {
+            throw new AccessDeniedException(MSG_SURVEY_AUTHFAIL);
+        }
     }
     
     /**

@@ -217,6 +217,7 @@
         for (var i = 0; i < baseLayers.length; i++) {
             var layer = baseLayers[i];
             var thisLayer;
+            
             if(layer.layerSource === 'G_PHYSICAL_MAP' && window.G_PHYSICAL_MAP !== undefined && window.G_PHYSICAL_MAP !== null) {
                 thisLayer = new OpenLayers.Layer.Google('Google Physical', {
                     type: G_PHYSICAL_MAP,

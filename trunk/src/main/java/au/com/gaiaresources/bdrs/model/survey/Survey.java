@@ -829,4 +829,26 @@ public class Survey extends PortalPersistentImpl implements Comparable<Survey> {
     public void setCustomForm(CustomForm customForm) {
         this.customForm = customForm;
     }
+    
+    /**
+     * Returns true if the user can contribute to the survey/edit records in the survey.
+     * This will be true if the survey is public or if they have been added directly
+     * to the survey or via a group.
+     * @param user the user
+     * @return true if the given user can contribute to the survey
+     */
+    @Transient
+    public boolean canWriteSurvey(User user) {
+        if (isPublic() || getUsers().contains(user)) {
+            return true;
+        }
+        
+        for (Group group : getGroups()) {
+            if (group.contains(user)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
 }

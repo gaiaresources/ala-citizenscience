@@ -32,10 +32,12 @@ import au.com.gaiaresources.bdrs.model.index.IndexScheduleDAO;
 import au.com.gaiaresources.bdrs.model.index.IndexTask;
 import au.com.gaiaresources.bdrs.model.index.IndexType;
 import au.com.gaiaresources.bdrs.model.index.IndexUtil;
+import au.com.gaiaresources.bdrs.model.portal.Portal;
 import au.com.gaiaresources.bdrs.search.SearchService;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.util.DateFormatter;
 import au.com.gaiaresources.bdrs.util.StringUtils;
+import au.com.gaiaresources.bdrs.util.TransactionHelper;
 import edu.emory.mathcs.backport.java.util.Arrays;
 
 /**
@@ -198,10 +200,17 @@ public class AdminDataIndexController extends AbstractController {
         String date = request.getParameter("date");
         String time = request.getParameter("time");
         Calendar cal = getFirstTime(request, indexType, date, time);
-        Calendar periodCal = getNextTime(indexType, cal);
-        
-        schedule = saveAndScheduleIndexes(thisSchedule, indexClasses, indexType, deleteIndex, cal, periodCal);
-        
+        if (cal == null) {
+            // this means it was missing a required parameter, fill it in with now
+            cal = Calendar.getInstance();
+            cal.setTime(new Date());
+            Calendar periodCal = getNextTime(indexType, cal);
+            // only create the schedule without saving it on error
+            schedule = createIndexSchedule(thisSchedule, indexClasses, indexType, deleteIndex, cal, periodCal);
+        } else {
+            Calendar periodCal = getNextTime(indexType, cal);
+            schedule = saveAndScheduleIndexes(thisSchedule, indexClasses, indexType, deleteIndex, cal, periodCal);
+        }
         return schedule;
     }
 
@@ -328,23 +337,24 @@ public class AdminDataIndexController extends AbstractController {
         IndexSchedule schedule = null;
         try {
             sesh = sessionFactory.openSession();
+            if (thisSchedule != null) {
+                // refresh the schedule in the session so you can save it under the same id in this session
+                sesh.refresh(thisSchedule);
+            }
             for (String indexClass : indexClasses) {
                 tx = sesh.beginTransaction();
-                if (thisSchedule != null && indexClass.equals(thisSchedule.getClassName())) {
-                    schedule = thisSchedule;
-                } else {
-                    schedule = new IndexSchedule();
-                }
-                schedule.setType(indexType);
-                schedule.setFullRebuild(!StringUtils.nullOrEmpty(deleteIndex));
-                schedule.setClassName(indexClass);
+                schedule = createIndexSchedule(thisSchedule, indexClasses, indexType, deleteIndex, cal, periodCal);
+                
+                // save the current schedule and commit the transaction
+                schedule = indexScheduleDAO.save(sesh, schedule);
+                // this ensures that in the IndexTask, the schedule can be retrieved
+                sesh.flush();
+                sesh.clear();
+                
+                TransactionHelper.commit(tx, sesh);
+                
+                // only schedule if it isn't server startup schedule
                 if (!IndexType.SERVER_STARTUP.equals(indexType)) {
-                    schedule.setDate(cal.getTime());
-                    // save the current schedule and commit the transaction
-                    schedule = indexScheduleDAO.save(sesh, schedule);
-                    // this ensures that in the IndexTask, the schedule can be retrieved
-                    tx.commit();
-                    
                     IndexTask indexTask = new IndexTask(sessionFactory, searchService, indexScheduleDAO, schedule.getId());
                     // schedule the build, note that if the date is in the past, the build will occur now
                     if (!IndexType.ONCE.equals(indexType)) {
@@ -367,6 +377,39 @@ public class AdminDataIndexController extends AbstractController {
         return schedule;
     }
 
+    /**
+     * Create an IndexSchedule object without persisting it.
+     * @param thisSchedule the existing schedule to modify (null if creating a new one)
+     * @param indexClasses the list of classes to index for the schedule
+     * @param indexType the type of index schedule
+     * @param deleteIndex indicates if the index should be deleted before building or not
+     * @param cal a Calendar representing the first time to run the schedule
+     * @param periodCal a Calendar representing the period at which to schedule rebuilds
+     * @return the new IndexSchedule object or the modified one
+     */
+    private IndexSchedule createIndexSchedule(IndexSchedule thisSchedule,
+            String[] indexClasses, IndexType indexType, String deleteIndex, Calendar cal, Calendar periodCal) {
+        IndexSchedule schedule = null;
+        try {
+            for (String indexClass : indexClasses) {
+                if (thisSchedule != null && indexClass.equals(thisSchedule.getClassName())) {
+                    schedule = thisSchedule;
+                } else {
+                    schedule = new IndexSchedule();
+                }
+                schedule.setType(indexType);
+                schedule.setFullRebuild(!StringUtils.nullOrEmpty(deleteIndex));
+                schedule.setClassName(indexClass);
+                if (!IndexType.SERVER_STARTUP.equals(indexType)) {
+                    schedule.setDate(cal.getTime());
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error occurred creating index schedule", e);
+        } 
+        return schedule;
+    }
+    
     /**
      * Run the index now.
      * @param request
@@ -405,6 +448,9 @@ public class AdminDataIndexController extends AbstractController {
             }
             schedules = indexScheduleDAO.getIndexSchedules();
         } 
+        
+        Portal portal = getRequestContext().getPortal();
+        
         JSONArray array = new JSONArray();
         for (IndexSchedule schedule : schedules) {
             Class clazz = null;
@@ -415,15 +461,15 @@ public class AdminDataIndexController extends AbstractController {
             }
             if (schedule.isFullRebuild()) {
                 if (clazz != null) {
-                    searchService.deleteIndex(clazz);
+                    searchService.deleteIndex(clazz, portal);
                 } else {
-                    searchService.deleteIndexes();
+                    searchService.deleteIndexes(portal);
                 }
             }
             if (clazz != null) {
-                searchService.createIndex(clazz);
+                searchService.createIndex(clazz, portal);
             } else {
-                searchService.createIndexes();
+                searchService.createIndexes(portal);
             }
             // update the last run time of the schedule
             schedule.setLastRun(new Date());
