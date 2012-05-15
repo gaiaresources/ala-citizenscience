@@ -4,8 +4,13 @@ import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonRank;
+import au.com.gaiaresources.bdrs.service.taxonomy.max.SpeciesProfileTaxonNameConsvCodeBuilder;
+import au.com.gaiaresources.bdrs.service.taxonomy.max.SpeciesProfileTaxonNameDateBuilder;
+import au.com.gaiaresources.bdrs.service.taxonomy.max.SpeciesProfileTaxonNameInformalBuilder;
+import au.com.gaiaresources.bdrs.service.taxonomy.max.SpeciesProfileTaxonNameNaturalisedStatusBuilder;
 import au.com.gaiaresources.taxonlib.ITemporalContext;
 import au.com.gaiaresources.taxonlib.importer.max.MaxImporter;
+import au.com.gaiaresources.taxonlib.importer.max.MaxNameRow;
 import au.com.gaiaresources.taxonlib.model.ITaxonName;
 import junit.framework.Assert;
 import org.apache.log4j.Logger;
@@ -13,6 +18,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 /**
@@ -66,7 +73,7 @@ public class BdrsMaxImporterTest extends AbstractBdrsMaxImporterTest {
 	/**
 	 * Assert taxonomy
 	 */
-	private void assertImport() {
+	private void assertImport() throws ParseException {
 
 		// check ancestor branch
 		{
@@ -94,31 +101,68 @@ public class BdrsMaxImporterTest extends AbstractBdrsMaxImporterTest {
 		}
 
 		// check species profile
+        SimpleDateFormat sourceFormatter = new SimpleDateFormat(SpeciesProfileTaxonNameDateBuilder.SOURCE_FORMAT_PATTERN);
+        SimpleDateFormat targetFormatter = new SimpleDateFormat(SpeciesProfileTaxonNameDateBuilder.TARGET_FORMAT_PATTERN);
 		{
 			IndicatorSpecies species = getIndicatorSpecies(MaxImporter.getId(
 									MaxImporter.SPECIES_ID_PREFIX, "12783"));
 			List<SpeciesProfile> infoItems = species.getInfoItems();
 
-			TaxonTestUtils.assertSpeciesProfileValue(infoItems,
-					BdrsMaxImporterRowHandler.INFO_ITEM_IS_CURRENT, "Y");
-			TaxonTestUtils.assertSpeciesProfileValue(infoItems,
-					BdrsMaxImporterRowHandler.INFO_ITEM_NATURALISED, "aa");
-			TaxonTestUtils.assertSpeciesProfileValue(infoItems,
-					BdrsMaxImporterRowHandler.INFO_ITEM_NATURALISED_STATUS, "N");
-			TaxonTestUtils.assertSpeciesProfileValue(infoItems,
-					BdrsMaxImporterRowHandler.INFO_ITEM_COMMENT, "This name is to be used in the Fl.of A. fide Chinnock per.cm");
-			TaxonTestUtils.assertSpeciesProfileValue(infoItems,
-					BdrsMaxImporterRowHandler.INFO_ITEM_NATURALISED_CERTAINTY, "bb");
-			TaxonTestUtils.assertSpeciesProfileValue(infoItems,
-					BdrsMaxImporterRowHandler.INFO_ITEM_IS_ERADICATED, "cc");
-			TaxonTestUtils.assertSpeciesProfileValue(infoItems,
-					BdrsMaxImporterRowHandler.INFO_ITEM_NATURALISED_COMMENTS, "dd");
-			TaxonTestUtils.assertSpeciesProfileValue(infoItems,
-					BdrsMaxImporterRowHandler.INFO_ITEM_INFORMAL, "ee");
-			TaxonTestUtils.assertSpeciesProfileValue(infoItems,
-					BdrsMaxImporterRowHandler.INFO_ITEM_CONSV_CODE, "ff");
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.AUTHOR.toString(), "(Kunze) B.Ollg.");
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.EDITOR.toString(), null);
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.REFERENCE.toString(), "Op.Bot. 92:176 (1987)");
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.COMMENTS.toString(), "This name is to be used in the Fl.of A. fide Chinnock per.cm");
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.IS_CURRENT.toString(), "Yes");
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.NATURALISED.toString(), "Yes");
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.NATURALISED_STATUS.toString(), SpeciesProfileTaxonNameNaturalisedStatusBuilder.CODE_LOOKUP.get("N"));
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.NATURALISED_CERTAINTY.toString(), null);
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.IS_ERADICATED.toString(), null);
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.NATURALISED_COMMENTS.toString(), "Fozzy");
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.INFORMAL.toString(), SpeciesProfileTaxonNameInformalBuilder.CODE_LOOKUP.get("MS"));
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.CONSV_CODE.toString(), SpeciesProfileTaxonNameConsvCodeBuilder.CODE_LOOKUP.get("T"));
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.ADDED_ON.toString(), targetFormatter.format(sourceFormatter.parse("31/10/1991")));
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.UPDATED_ON.toString(), targetFormatter.format(sourceFormatter.parse("10/12/2004")));
+        }
+        {
+            IndicatorSpecies species = getIndicatorSpecies(MaxImporter.getId(
+                    MaxImporter.SPECIES_ID_PREFIX, "12813"));
+            List<SpeciesProfile> infoItems = species.getInfoItems();
 
-		}
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.AUTHOR.toString(), "(L.) Pic.Serm.");
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.EDITOR.toString(), null);
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.REFERENCE.toString(), "Webbia 23:166 (1968)");
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.COMMENTS.toString(), null);
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.IS_CURRENT.toString(), "Yes");
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.NATURALISED.toString(), null);
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.NATURALISED_STATUS.toString(), SpeciesProfileTaxonNameNaturalisedStatusBuilder.CODE_LOOKUP.get("A"));
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.NATURALISED_CERTAINTY.toString(), null);
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.IS_ERADICATED.toString(), null);
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.NATURALISED_COMMENTS.toString(), "Wozzy");
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.INFORMAL.toString(), SpeciesProfileTaxonNameInformalBuilder.CODE_LOOKUP.get("PN"));
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.CONSV_CODE.toString(), SpeciesProfileTaxonNameConsvCodeBuilder.CODE_LOOKUP.get("X"));
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.ADDED_ON.toString(), targetFormatter.format(sourceFormatter.parse("4/11/1991")));
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.UPDATED_ON.toString(), targetFormatter.format(sourceFormatter.parse("10/12/2004")));
+        }
+        {
+            IndicatorSpecies species = getIndicatorSpecies(MaxImporter.getId(
+                    MaxImporter.SPECIES_ID_PREFIX, "2"));
+            List<SpeciesProfile> infoItems = species.getInfoItems();
+
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.AUTHOR.toString(), "L.");
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.EDITOR.toString(), null);
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.REFERENCE.toString(), "Sp.Pl. 2:1103 (1753)");
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.COMMENTS.toString(), null);
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.IS_CURRENT.toString(), "No");
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.NATURALISED.toString(), null);
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.NATURALISED_STATUS.toString(), SpeciesProfileTaxonNameNaturalisedStatusBuilder.CODE_LOOKUP.get("M"));
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.NATURALISED_CERTAINTY.toString(), "Yes");
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.IS_ERADICATED.toString(), "Yes");
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.NATURALISED_COMMENTS.toString(), "Bear");
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.INFORMAL.toString(), SpeciesProfileTaxonNameInformalBuilder.CODE_LOOKUP.get(""));
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.CONSV_CODE.toString(), SpeciesProfileTaxonNameConsvCodeBuilder.CODE_LOOKUP.get("1"));
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.ADDED_ON.toString(), targetFormatter.format(sourceFormatter.parse("1/01/1992")));
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.UPDATED_ON.toString(), targetFormatter.format(sourceFormatter.parse("10/12/2004")));
+        }
 
 		// check deprecated indicator species and common name
 		{			

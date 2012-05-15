@@ -1,17 +1,18 @@
 package au.com.gaiaresources.bdrs.service.taxonomy;
 
 import au.com.gaiaresources.bdrs.model.taxa.*;
+import au.com.gaiaresources.bdrs.service.taxonomy.max.*;
 import au.com.gaiaresources.taxonlib.ITaxonLibSession;
 import au.com.gaiaresources.taxonlib.ITemporalContext;
 import au.com.gaiaresources.taxonlib.importer.max.*;
 import au.com.gaiaresources.taxonlib.model.ITaxonConcept;
 import au.com.gaiaresources.taxonlib.model.ITaxonName;
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
+import java.sql.SQLException;
 import java.util.*;
 
 public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
@@ -19,43 +20,26 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
 	 * Taxon group name
 	 */
 	public static final String MAX_GROUP_NAME = "MAX";
-	
-	/**
-	 * Species profile item
-	 */
-	public static final String INFO_ITEM_IS_CURRENT = "IS_CURRENT";
-	/**
-	 * Species profile item
-	 */
-	public static final String INFO_ITEM_NATURALISED = "NATURALISED";
-	/**
-	 * Species profile item
-	 */
-	public static final String INFO_ITEM_NATURALISED_STATUS = "NATURALISED_STATUS";
-	/**
-	 * Species profile item
-	 */
-	public static final String INFO_ITEM_COMMENT = "COMMENT";
-	/**
-	 * Species profile item
-	 */
-	public static final String INFO_ITEM_NATURALISED_CERTAINTY = "NATURALISED_CERTAINTY";
-	/**
-	 * Species profile item
-	 */
-	public static final String INFO_ITEM_IS_ERADICATED = "IS_ERADICATED";
-	/**
-	 * Species profile item
-	 */
-	public static final String INFO_ITEM_NATURALISED_COMMENTS = "NATURALISED_COMMENTS";
-	/**
-	 * Species profile item
-	 */
-	public static final String INFO_ITEM_INFORMAL = "INFORMAL";
-	/**
-	 * Species profile item
-	 */
-	public static final String INFO_ITEM_CONSV_CODE = "CONSV_CODE";
+
+    static final SpeciesProfileBuilder[] PROFILE_BUILDER = new SpeciesProfileBuilder[] {
+        new SpeciesProfileBuilder(MaxNameRow.ColumnName.AUTHOR, "Author"),
+        new SpeciesProfileBuilder(MaxNameRow.ColumnName.EDITOR, "Editor"),
+        new SpeciesProfileBuilder(MaxNameRow.ColumnName.REFERENCE, "Literature Reference"),
+        new SpeciesProfileBuilder(MaxNameRow.ColumnName.COMMENTS, "Comments"),
+        new SpeciesProfileTaxonNameYesNoBuilder(MaxNameRow.ColumnName.IS_CURRENT, "Is currently accepted in Western Australia"),
+
+        new SpeciesProfileTaxonNameNaturalisedBuilder("Is naturalised into the environment"),
+        new SpeciesProfileTaxonNameNaturalisedStatusBuilder("Naturalised Status"),
+        new SpeciesProfileTaxonNameYesNoBuilder(MaxNameRow.ColumnName.NATURALISED_CERTAINTY, "Naturalised Certainty"),
+        new SpeciesProfileTaxonNameYesNoBuilder(MaxNameRow.ColumnName.IS_ERADICATED, "Is Eradicated"),
+        new SpeciesProfileBuilder(MaxNameRow.ColumnName.NATURALISED_COMMENTS, "Naturalised Comments"),
+
+        new SpeciesProfileTaxonNameInformalBuilder("Informal (Manuscript, Phrase or Published Name)"),
+        new SpeciesProfileTaxonNameConsvCodeBuilder("Conservation Code (assigned by Wildlife Branch)"),
+
+        new SpeciesProfileTaxonNameDateBuilder(MaxNameRow.ColumnName.ADDED_ON, "Added On (The date this taxon was first saved in the Max database)"),
+        new SpeciesProfileTaxonNameDateBuilder(MaxNameRow.ColumnName.UPDATED_ON, "Updated On (The date this taxon was last updated in the Max database)"),
+    };
 
     private SessionFactory sessionFactory;
     private Logger log = Logger.getLogger(getClass());
@@ -68,6 +52,7 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
     private SpeciesProfileDAO spDAO;
 
     private ITemporalContext temporalContext;
+    private ITaxonLibSession taxonLibSession;
 
     /**
 	 * Create a new row handler.
@@ -90,6 +75,7 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
 		if (spDAO == null) {
 			throw new IllegalArgumentException("SpeciesProfileDAO cannot be null");
 		}
+        this.taxonLibSession = taxonLibSession;
 		this.temporalContext = taxonLibSession.getTemporalContext(now);
 		this.taxaDAO = taxaDAO;
 		this.spDAO = spDAO;
@@ -133,7 +119,7 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
     }
 
     @Override
-    public void begin() {
+    public void begin() throws SQLException {
         if(this.operatingSession != null) {
             this.save();
         }
@@ -143,7 +129,7 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
     }
 
     @Override
-    public void save() {
+    public void save() throws SQLException {
         if(this.operatingSession == null) {
             log.warn("Attempt to save before a session has been created.");
             return;
@@ -153,6 +139,8 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
         if(tx.isActive()) {
             tx.commit();
         }
+        taxonLibSession.commit();
+        taxonLibSession.clearCache();
 
         this.operatingSession.close();
         this.operatingSession = null;
@@ -230,7 +218,7 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
                 	iSpecies.setParent(null);
                 }
                 
-                // do teh funky cast....
+                // do the funky cast....
                 // There are 2 duplicate TaxonRank enums. One in the BDRS namespace and one in the TaxonLib namespace...
                 TaxonRank rank = TaxonRank.valueOf(tn.getRank().toString());
                 if (rank == null) {
@@ -240,43 +228,14 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
                 
                 if (nameRow != null) {
                 	List<SpeciesProfile> infoItems = new ArrayList<SpeciesProfile>();
-                	// add species profile...
-                	addProfileInfoItem(infoItems, INFO_ITEM_IS_CURRENT, INFO_ITEM_IS_CURRENT, 
-                			"Is Current", 
-                			nameRow.getValue(MaxNameRow.ColumnName.IS_CURRENT));
-                	
-                	addProfileInfoItem(infoItems, INFO_ITEM_NATURALISED, INFO_ITEM_NATURALISED, 
-                			"Naturalised", 
-                			nameRow.getValue(MaxNameRow.ColumnName.NATURALISED));
-                	
-                	addProfileInfoItem(infoItems, INFO_ITEM_NATURALISED_STATUS, INFO_ITEM_NATURALISED_STATUS, 
-                			"Naturalised Status", 
-                			nameRow.getValue(MaxNameRow.ColumnName.NATURALISED_STATUS));
-                	
-                	addProfileInfoItem(infoItems, INFO_ITEM_NATURALISED_CERTAINTY, INFO_ITEM_NATURALISED_CERTAINTY, 
-                			"Naturalised Certainty", 
-                			nameRow.getValue(MaxNameRow.ColumnName.NATURALISED_CERTAINTY));
-                	
-                	addProfileInfoItem(infoItems, INFO_ITEM_NATURALISED_COMMENTS, INFO_ITEM_NATURALISED_COMMENTS, 
-                			"Naturalised Comments", 
-                			nameRow.getValue(MaxNameRow.ColumnName.NATURALISED_COMMENTS));
-                	
-                	addProfileInfoItem(infoItems, INFO_ITEM_IS_ERADICATED, INFO_ITEM_IS_ERADICATED, 
-                			"Is Eradicated", 
-                			nameRow.getValue(MaxNameRow.ColumnName.IS_ERADICATED));
-                	
-                	addProfileInfoItem(infoItems, INFO_ITEM_INFORMAL, INFO_ITEM_INFORMAL, 
-                			"Informal", 
-                			nameRow.getValue(MaxNameRow.ColumnName.INFORMAL));
-                			
-                	addProfileInfoItem(infoItems, INFO_ITEM_CONSV_CODE, INFO_ITEM_CONSV_CODE, 
-                			"Conservation Code", 
-                			nameRow.getValue(MaxNameRow.ColumnName.CONSV_CODE));
-                	
-                	addProfileInfoItem(infoItems, INFO_ITEM_COMMENT, INFO_ITEM_COMMENT, 
-                			"Comments", 
-                			nameRow.getValue(MaxNameRow.ColumnName.COMMENTS));
-                	
+
+                    for(SpeciesProfileBuilder builder : PROFILE_BUILDER) {
+                        SpeciesProfile sp = builder.createProfile(nameRow);
+                        if(sp != null) {
+                            sp = spDAO.save(this.operatingSession, sp);
+                            infoItems.add(sp);
+                        }
+                    }
                 	iSpecies.setInfoItems(infoItems);
                 }
 
@@ -306,25 +265,4 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
 	private String getSourceId(ITaxonName tn) {		
 		return tn.getId().toString();
 	}
-	
-	/**
-	 * Helper for creating SpeciesProfile items.
-	 * @param infoItems List of info items.
-	 * @param type Type of info item.
-	 * @param header Header of info item.
-	 * @param description Description of info item.
-	 * @param content Content of info item.
-	 */
-    private void addProfileInfoItem(List<SpeciesProfile> infoItems,
-            String type, String header, String description,
-            String content) {
-        SpeciesProfile sp = new SpeciesProfile();
-        sp.setType(type);
-        sp.setHeader(MaxImporter.MAX_SOURCE + "_" + header);
-        sp.setDescription(description);
-        sp.setContent(!StringUtils.isEmpty(content) ? content.trim() : "");
-        // prevent duplicates
-        spDAO.save(this.operatingSession, sp);
-        infoItems.add(sp);
-    }
 }

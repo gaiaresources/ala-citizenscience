@@ -565,7 +565,7 @@
         <dependency>
             <groupId>au.com.gaiaresources</groupId>
             <artifactId>taxonlib</artifactId>
-			<version>0.4</version>
+			<version>0.5</version>
             <scope>compile</scope>
         </dependency>
         <!-- Adding here to ensure the correct version.  Many prior 
