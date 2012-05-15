@@ -38,33 +38,35 @@
     </tbody>
 </table>
 
-<h3 class="field_guide_header">Identification</h3>
-<table>
-    <tbody>
-        #foreach($taxonAttr in ${taxon.attributes})
-            #if(${taxonAttr.attribute.tag})
-                <tr>
-                    <th class="textright">
-                        ${taxonAttr.attribute.description}
-                    </th>
-                    <td>
-                    #if(${AttributeType.IMAGE} == ${taxonAttr.getAttribute().getType()})
-                        <a href="${pageContext.request.contextPath}/files/download.htm?${taxonAttr.getFileURL()}">
-                            <img class="max_size_img" src="${pageContext.request.contextPath}/files/download.htm?${taxonAttr.getFileURL()}" alt="${taxonAttr.stringValue}"/>
-                        </a>
-                    #elseif(${AttributeType.FILE} == ${taxonAttr.getAttribute().getType()})
-                        <a href="${pageContext.request.contextPath}/files/download.htm?${taxonAttr.getFileURL()}">
+#if(!${taxon.attributes.isEmpty()})
+    <h3 class="field_guide_header">Identification</h3>
+    <table>
+        <tbody>
+            #foreach($taxonAttr in ${taxon.attributes})
+                #if(${taxonAttr.attribute.tag})
+                    <tr>
+                        <th class="textright">
+                            ${taxonAttr.attribute.description}
+                        </th>
+                        <td>
+                        #if(${AttributeType.IMAGE} == ${taxonAttr.getAttribute().getType()})
+                            <a href="${pageContext.request.contextPath}/files/download.htm?${taxonAttr.getFileURL()}">
+                                <img class="max_size_img" src="${pageContext.request.contextPath}/files/download.htm?${taxonAttr.getFileURL()}" alt="${taxonAttr.stringValue}"/>
+                            </a>
+                        #elseif(${AttributeType.FILE} == ${taxonAttr.getAttribute().getType()})
+                            <a href="${pageContext.request.contextPath}/files/download.htm?${taxonAttr.getFileURL()}">
+                                ${taxonAttr.stringValue}
+                            </a>
+                        #else
                             ${taxonAttr.stringValue}
-                        </a>
-                    #else
-                        ${taxonAttr.stringValue}
-                    #end
-                    </td>
-                </tr>
+                        #end
+                        </td>
+                    </tr>
+                #end
             #end
-        #end
-    </tbody>
-</table>
+        </tbody>
+    </table>
+#end
 
 <c:set var="profiledescription" value="" scope="page"></c:set>
 

@@ -11,9 +11,6 @@ import au.com.gaiaresources.taxonlib.model.ITaxonConcept;
 import au.com.gaiaresources.taxonlib.model.ITaxonConceptRelation;
 import au.com.gaiaresources.taxonlib.model.ITaxonName;
 import au.com.gaiaresources.taxonlib.model.StringSearchType;
-import au.com.gaiaresources.taxonlib.model.TaxonConcept;
-import au.com.gaiaresources.taxonlib.model.TaxonConceptRelation;
-import au.com.gaiaresources.taxonlib.model.TaxonName;
 
 /**
  * Helpers for testing. Most of these operate to extract a particular object out
@@ -22,10 +19,10 @@ import au.com.gaiaresources.taxonlib.model.TaxonName;
  */
 public class TaxonTestUtils {
 	
-	public static SpeciesProfile getProfileItemByType(List<SpeciesProfile> spList,
-            String type) {
+	public static SpeciesProfile getProfileItemByHeader(List<SpeciesProfile> spList,
+                                                        String header) {
         for (SpeciesProfile sp : spList) {
-            if (sp.getType().equals(type)) {
+            if (sp.getHeader().equals(header)) {
                 return sp;
             }
         }
@@ -33,10 +30,13 @@ public class TaxonTestUtils {
     }
 
     public static void assertSpeciesProfileValue(List<SpeciesProfile> spList,
-            String type, String expectedValue) {
-        SpeciesProfile sp = getProfileItemByType(spList, type);
-        Assert.assertNotNull("SpeciesProfile cannot be null", sp);
-        Assert.assertEquals("wrong value", expectedValue, sp.getContent());
+            String header, String expectedValue) {
+        SpeciesProfile sp = getProfileItemByHeader(spList, header);
+        if(expectedValue == null && sp == null) {
+            return;
+        } else {
+            Assert.assertEquals(expectedValue, sp.getContent());
+        }
     }
 
     public static ITaxonConcept getTaxonConceptById(

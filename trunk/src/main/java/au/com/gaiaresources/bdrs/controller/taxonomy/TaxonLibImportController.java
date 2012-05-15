@@ -10,7 +10,6 @@ import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.mode.ApplicationModeService;
 import au.com.gaiaresources.bdrs.service.mode.TaxonomyImportMode;
 import au.com.gaiaresources.bdrs.service.taxonomy.*;
-import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 import au.com.gaiaresources.taxonlib.ITaxonLibSession;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
