@@ -52,6 +52,7 @@ public class RecordFormEnhancer {
                 generator.addProperty(attributeName, Date.class);
                 break;
             case FILE:
+            case AUDIO:
             case IMAGE:
                 generator.addProperty(attributeName , MultipartFile.class);
                 generator.addProperty(attributeName + "FileName", String.class);

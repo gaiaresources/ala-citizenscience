@@ -951,6 +951,7 @@ public abstract class AbstractBulkDataService {
                 attrVal.setDateValue(dateFormat.parse(attributeValueStr));
                 break;
             case IMAGE:
+            case AUDIO:
             case FILE:
                 throw new UnsupportedOperationException(
                         "Spreadsheet upload of file data is not supported.");

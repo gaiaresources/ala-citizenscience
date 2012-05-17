@@ -42,7 +42,8 @@ bdrs.model.taxa.attributeType.AttributeType = function(value, code, name) {
      */
     this.isFileType = function() {
         return (bdrs.model.taxa.attributeType.value.IMAGE === this) || 
-            (bdrs.model.taxa.attributeType.value.FILE === this);
+            (bdrs.model.taxa.attributeType.value.FILE === this) || 
+            (bdrs.model.taxa.attributeType.value.AUDIO === this);
     };
     
     /**
@@ -79,5 +80,6 @@ bdrs.model.taxa.attributeType.MULTI_CHECKBOX = new bdrs.model.taxa.attributeType
 bdrs.model.taxa.attributeType.MULTI_SELECT = new bdrs.model.taxa.attributeType.AttributeType('MULTI_SELECT', 'MS', 'Multi Select');
 bdrs.model.taxa.attributeType.IMAGE = new bdrs.model.taxa.attributeType.AttributeType('IMAGE', 'IM', 'Image File');
 bdrs.model.taxa.attributeType.FILE = new bdrs.model.taxa.attributeType.AttributeType('FILE', 'FI', 'Data File');
+bdrs.model.taxa.attributeType.FILE = new bdrs.model.taxa.attributeType.AttributeType('AUDIO', 'AU', 'Audio File');
 
 

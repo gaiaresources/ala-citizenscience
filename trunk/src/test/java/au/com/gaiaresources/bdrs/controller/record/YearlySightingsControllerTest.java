@@ -298,6 +298,7 @@ public class YearlySightingsControllerTest extends RecordFormTest {
                         recAttr.setStringValue(Boolean.FALSE.toString());
                         break;
                     case FILE:
+                    case AUDIO:
                         recAttr.setStringValue("testDataFile.dat");
                         break;
                     case IMAGE:
@@ -470,6 +471,7 @@ public class YearlySightingsControllerTest extends RecordFormTest {
                     	value = String.valueOf(true);
                     	break;
                     case FILE:
+                    case AUDIO:
                         String file_filename = String.format("attribute_%d", attr.getId());
                         MockMultipartFile mockFileFile = new MockMultipartFile(key, file_filename, "audio/mpeg", file_filename.getBytes());
                         ((MockMultipartHttpServletRequest)request).addFile(mockFileFile);
@@ -585,6 +587,7 @@ public class YearlySightingsControllerTest extends RecordFormTest {
 	                	Assert.assertEquals(Boolean.parseBoolean(params.get(key)), Boolean.parseBoolean(recAttr.getStringValue()));
 	                	break;  
                     case FILE:
+                    case AUDIO:
                     case IMAGE:
                         Assert.assertEquals(params.get(key), recAttr.getStringValue());
                         break;

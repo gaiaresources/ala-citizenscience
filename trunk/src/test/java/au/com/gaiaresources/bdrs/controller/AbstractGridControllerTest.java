@@ -603,6 +603,7 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
         attrList.add(createAttribute(namePrefix + "_14", AttributeType.HTML_HORIZONTAL_RULE, attrRequired, scope));
         attrList.add(createAttribute(namePrefix + "_15", AttributeType.REGEX, attrRequired, scope));
         attrList.add(createAttribute(namePrefix + "_16", AttributeType.HTML_NO_VALIDATION, attrRequired, scope));
+        attrList.add(createAttribute(namePrefix + "_17", AttributeType.AUDIO, attrRequired, scope));
         return attrList;
     }
     
@@ -695,6 +696,7 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
             break;
             
         case IMAGE:
+        case AUDIO:
         case FILE:
             // the string value becomes the file name
             av.setStringValue(value);
@@ -772,6 +774,7 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
                 break;
                 
             case IMAGE:
+            case AUDIO:
             case FILE:
                 // the string value becomes the file name
                 // putting a space in here deliberately
@@ -875,6 +878,7 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
         }
             
         case IMAGE:
+        case AUDIO:
         case FILE:
         {
             // the string value becomes the file name
@@ -941,6 +945,7 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
         case MULTI_CHECKBOX:
         case MULTI_SELECT:
         case IMAGE:
+        case AUDIO:
         case FILE:
             Assert.assertEquals("string av should be equal = " + a.getTypeCode(), expectedValue, av.getStringValue());
             break;

@@ -474,6 +474,7 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
             break;
             
         case IMAGE:
+        case AUDIO:
         case FILE:
             // ignored
             break;
@@ -551,6 +552,7 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
             break;
             
         case IMAGE:
+        case AUDIO:
         case FILE:
             Assert.fail("Cannot properly assert this attribute type : " + a.getTypeCode());
             // ignored
@@ -596,6 +598,7 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
             break;
             
         case IMAGE:
+        case AUDIO:
         case FILE:
             Assert.fail("Cannot properly assert this attribute type : " + a.getTypeCode());
             // ignored

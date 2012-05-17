@@ -218,6 +218,7 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
         for (Attribute attrib : sortedAttributes) {
             if (!AttributeType.FILE.equals(attrib.getType())
                     && !AttributeType.IMAGE.equals(attrib.getType())
+                    && !AttributeType.AUDIO.equals(attrib.getType())
                     && !AttributeType.isHTMLType(attrib.getType())) {
                 
                 if (superHeaderRow.getCell(colIndex) == null) {
@@ -500,6 +501,7 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
             if(!AttributeScope.LOCATION.equals(attrib.getScope())) {
                 if (!AttributeType.FILE.equals(attrib.getType())
                         && !AttributeType.IMAGE.equals(attrib.getType())
+                        && !AttributeType.AUDIO.equals(attrib.getType())
                         && !AttributeType.isHTMLType(attrib.getType())) {
 
                     Cell namespaceCell = superHeaderRow.getCell(colIndex);
@@ -528,6 +530,7 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
                 for (Attribute attrib : cm.getAttributes()) {
                     if (!AttributeType.FILE.equals(attrib.getType())
                             && !AttributeType.IMAGE.equals(attrib.getType())
+                            && !AttributeType.AUDIO.equals(attrib.getType())
                             && !AttributeType.isHTMLType(attrib.getType())) {
                         
                         Cell namespaceCell = superHeaderRow.getCell(colIndex);
@@ -726,6 +729,7 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
                         attrValue = XlsCellUtil.getDateFormatter().format(d);
                         break;
                     case IMAGE:
+                    case AUDIO:
                     case FILE:
                         throw new UnsupportedOperationException(
                                 "Spreadsheet upload of file data is not supported.");

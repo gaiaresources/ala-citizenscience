@@ -282,6 +282,7 @@ public class LocationBaseControllerTest extends AbstractControllerTest {
                                     Boolean.parseBoolean(recAttr.getStringValue()));
                 break;  
             case FILE:
+            case AUDIO:
             case IMAGE:
                 Assert.assertEquals(params.get(key), recAttr.getStringValue());
                 break;
@@ -381,6 +382,7 @@ public class LocationBaseControllerTest extends AbstractControllerTest {
                     value = String.valueOf(true);
                     break;
                 case FILE:
+                case AUDIO:
                     String file_filename = String.format("attribute_%d", attr.getId());
                     MockMultipartFile mockFileFile = new MockMultipartFile(key,
                             file_filename, "audio/mpeg", file_filename.getBytes());

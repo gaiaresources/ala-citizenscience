@@ -445,6 +445,7 @@ public class LocationAttributeSurveyCreator {
                     case SINGLE_CHECKBOX:
                         attrVal.setBooleanValue(Boolean.TRUE.toString());
                         break;
+                    case AUDIO:
                     case FILE:
                         attrVal.setStringValue("testDataFile.dat");
                         fileData = createImage(-1, -1, attrVal.getStringValue());
@@ -592,6 +593,7 @@ public class LocationAttributeSurveyCreator {
                     case SINGLE_CHECKBOX:
                         recAttr.setBooleanValue(Boolean.TRUE.toString());
                         break;
+                    case AUDIO:
                     case FILE:
                         recAttr.setStringValue("testDataFile.dat");
                         fileData = createImage(-1, -1, recAttr.getStringValue());
@@ -681,6 +683,7 @@ public class LocationAttributeSurveyCreator {
                         case SINGLE_CHECKBOX:
                             recAttr.setStringValue(Boolean.FALSE.toString());
                             break;
+                        case AUDIO:
                         case FILE:
                             recAttr.setStringValue("testGroupDataFile.dat");
                             fileData = createImage(-1, -1, recAttr.getStringValue());

@@ -171,6 +171,7 @@ public class JsonService {
 		        break;
 		    // allow download of files and image attribute types
 		    case IMAGE:
+		    case AUDIO:
 		    case FILE:
 		        obj.accumulate(key, getAttributeValueFileDownloadLink(av, contextPath));
 		        break;

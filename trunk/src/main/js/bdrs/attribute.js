@@ -351,7 +351,7 @@ bdrs.attribute.createAttributeDisplayDiv = function(attributes, attributeSelecto
         var attr_type = bdrs.model.taxa.attributeType.code[att.attribute.typeCode];
         // If this is a file attribute, create a link.
         if(attr_type.isFileType()) {
-        	if (att.attribute.type === "FILE") {
+        	if (att.attribute.type === "FILE" || att.attribute.type === "AUDIO" ) {
 	            // make a link to download the file
 	        	attValueElem = jQuery('<div class="attributeValue" >' + 
 	        			'<a href="'+bdrs.contextPath+'/files/download.htm?'+att.fileURL+'">' +

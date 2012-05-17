@@ -220,6 +220,7 @@ public class ThresholdServiceTest extends AbstractGridControllerTest {
             case STRING_WITH_VALID_VALUES:
             case IMAGE:
             case FILE:
+            case AUDIO:
             case HTML:
             case HTML_NO_VALIDATION:
             case HTML_COMMENT:
@@ -334,6 +335,7 @@ public class ThresholdServiceTest extends AbstractGridControllerTest {
                 case STRING_WITH_VALID_VALUES:
                 case IMAGE:
                 case FILE:
+                case AUDIO:
                 case REGEX:
                 case BARCODE:
                 case TIME:
@@ -427,6 +429,7 @@ public class ThresholdServiceTest extends AbstractGridControllerTest {
                         case TEXT:
                         case STRING_WITH_VALID_VALUES:
                         case IMAGE:
+                        case AUDIO:
                         case FILE:
                             condition.setValue((String) attributeTypeValueLookup.get(attrType));
                             falseValue = condition.getValue() + "Wrong";

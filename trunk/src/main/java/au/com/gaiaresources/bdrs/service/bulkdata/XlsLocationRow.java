@@ -97,6 +97,7 @@ public class XlsLocationRow extends StyledRowImpl {
                 AttributeType attrType = attr.getType();
                 if (!AttributeType.FILE.equals(attrType)
                     && !AttributeType.IMAGE.equals(attrType)
+                    && !AttributeType.AUDIO.equals(attrType)
                     && !AttributeType.isHTMLType(attrType)) {
                 
                     AttributeValue attrVal = locAttrValMap.get(attr);
@@ -177,6 +178,7 @@ public class XlsLocationRow extends StyledRowImpl {
             AttributeType attrType = attr.getType();
             if (!AttributeType.FILE.equals(attrType)
                 && !AttributeType.IMAGE.equals(attrType)
+                && !AttributeType.AUDIO.equals(attrType)
                 && !AttributeType.isHTMLType(attrType)) {
                 
                 cell = row.createCell(colIndex++);
@@ -268,6 +270,7 @@ public class XlsLocationRow extends StyledRowImpl {
                         attrValue = XlsCellUtil.getDateFormatter().format(d);
                         break;
                     case IMAGE:
+                    case AUDIO:
                     case FILE:
                         throw new UnsupportedOperationException(
                                 "Spreadsheet upload of file data is not supported.");

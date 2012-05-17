@@ -258,6 +258,7 @@ public class CustomFormTestUtil {
                         value = String.valueOf(true);
                         valueMap.put(attr, value);
                         break;
+                    case AUDIO:
                     case FILE:
                         String file_filename = String.format("attribute_%d", attr.getId());
                         MockMultipartFile mockFileFile = new MockMultipartFile(key,
@@ -358,6 +359,7 @@ public class CustomFormTestUtil {
                         Assert.assertEquals(expected, recAttr.getStringValue());
                         break;
                     case FILE:
+                    case AUDIO:
                     case IMAGE:
                         Assert.assertTrue("File and Image validation not implemented", false);
                         break;

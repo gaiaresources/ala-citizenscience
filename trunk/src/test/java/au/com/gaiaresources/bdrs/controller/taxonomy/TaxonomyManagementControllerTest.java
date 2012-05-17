@@ -488,6 +488,7 @@ public class TaxonomyManagementControllerTest extends AbstractControllerTest {
                     value = Boolean.TRUE.toString();
                     break;
                 case FILE:
+                case AUDIO:
                     String file_filename = String.format("attribute_%d", attr.getId());
                     MockMultipartFile mockFileFile = new MockMultipartFile(key, file_filename, "audio/mpeg", file_filename.getBytes());
                     ((MockMultipartHttpServletRequest)request).addFile(mockFileFile);
@@ -615,6 +616,7 @@ public class TaxonomyManagementControllerTest extends AbstractControllerTest {
                     Assert.assertEquals(Boolean.parseBoolean(request.getParameter(key)), Boolean.parseBoolean(taxonAttr.getStringValue()));
                     break; 
                 case FILE:
+                case AUDIO:
                 case IMAGE:
                     Assert.assertEquals(request.getParameter(key), taxonAttr.getStringValue());
                     break;
@@ -705,6 +707,7 @@ public class TaxonomyManagementControllerTest extends AbstractControllerTest {
                     value = Boolean.FALSE.toString();
                     break;
                 case FILE:
+                case AUDIO:
                     String file_filename = String.format("attribute_%d", attr.getId());
                     MockMultipartFile mockFileFile = new MockMultipartFile(key, file_filename, "audio/mpeg", file_filename.getBytes());
                     ((MockMultipartHttpServletRequest)request).addFile(mockFileFile);
@@ -827,6 +830,7 @@ public class TaxonomyManagementControllerTest extends AbstractControllerTest {
                     Assert.assertEquals(Boolean.parseBoolean(request.getParameter(key)), Boolean.parseBoolean(taxonAttr.getStringValue()));
                     break; 
                 case FILE:
+                case AUDIO:
                 case IMAGE:
                     Assert.assertEquals(request.getParameter(key), taxonAttr.getStringValue());
                     break;
