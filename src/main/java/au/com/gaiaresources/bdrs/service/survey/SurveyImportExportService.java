@@ -93,7 +93,7 @@ public class SurveyImportExportService extends AbstractImportExportService<Surve
         for (AttributeValue attrVal : attributeValues) {
             Map<String, Object> flat = attrVal.flatten();
             AttributeType type = attrVal.getAttribute().getType();
-            if (AttributeType.IMAGE.equals(type) || AttributeType.FILE.equals(type)) {
+            if (AttributeType.IMAGE.equals(type) || AttributeType.FILE.equals(type) || AttributeType.AUDIO.equals(type)) {
                 flat.put(ImportHandler.FILE_CONTENT_KEY, encodeBase64(attrVal, attrVal.getStringValue()));
             }
             addToExport(exportData, attrVal, JSONObject.fromMapToJSONObject(flat));

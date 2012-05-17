@@ -851,6 +851,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 				recAttr.setDateValue(dateFormat.parse("11 may 2011"));
 				break;
 			case IMAGE:
+			case AUDIO:
 			case FILE:
 				throw new UnsupportedOperationException(
 						"Spreadsheet upload of file data is not supported.");
@@ -1816,6 +1817,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 						+ recAttr.getDateValue());
 				break;
 			case IMAGE:
+			case AUDIO:
 			case FILE:
 				throw new UnsupportedOperationException(
 						"Spreadsheet upload of file data is not supported.");

@@ -633,6 +633,7 @@ public class RecordDwcaWriter {
                 return av.getStringValue() != null ? av.getStringValue() : "";
 
             case IMAGE:
+            case AUDIO:
             case FILE:
                 // returns the full URL 
                 return redirService.getFileDownloadUrl(av, true);

@@ -408,6 +408,7 @@ public class RecordDeletionControllerTest extends AbstractControllerTest {
                     recAttr.setStringValue("<hr/>");
                     break;
                 case FILE:
+                case AUDIO:
                     recAttr.setStringValue("testDataFile.dat");
                     break;
                 case IMAGE:
@@ -499,6 +500,7 @@ public class RecordDeletionControllerTest extends AbstractControllerTest {
 	                case SINGLE_CHECKBOX:
 	                	recAttr.setStringValue(Boolean.FALSE.toString());
 	                	break;
+	                case AUDIO:
                     case FILE:
                         recAttr.setStringValue("testGroupDataFile.dat");
                         break;

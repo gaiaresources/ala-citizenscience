@@ -407,6 +407,7 @@ public class SingleSiteMultiTaxaControllerTest extends RecordFormTest {
                         value = String.valueOf(true);
                         valueMap.put(attr, value);
                         break;
+                    case AUDIO:
                     case FILE:
                         String file_filename = String.format("attribute_%d", attr.getId());
                         MockMultipartFile mockFileFile = new MockMultipartFile(key,
@@ -527,7 +528,8 @@ public class SingleSiteMultiTaxaControllerTest extends RecordFormTest {
 	            case SINGLE_CHECKBOX:
 	            	Assert.assertEquals(Boolean.parseBoolean(expected.toString()), 
 	            			Boolean.parseBoolean(recAttr.getStringValue()));
-	            	break;  
+	            	break; 
+	            case AUDIO:
                 case FILE:
                 case IMAGE:
                     String filename = ((MockMultipartFile) expected).getOriginalFilename();

@@ -553,6 +553,7 @@ public class TrackerControllerTest extends RecordFormTest {
                     recAttr.setBooleanValue(Boolean.TRUE.toString());
                     break;
                 case FILE:
+                case AUDIO:
                     recAttr.setStringValue("testDataFile.dat");
                     break;
                 case IMAGE:
@@ -641,7 +642,8 @@ public class TrackerControllerTest extends RecordFormTest {
                     recAttr.setStringValue(Boolean.FALSE.toString());
                     break;
                 case FILE:
-                    recAttr.setStringValue("testGroupDataFile.dat");
+                case AUDIO:
+                	recAttr.setStringValue("testGroupDataFile.dat");
                     break;
                 case IMAGE:
                     recAttr.setStringValue("testGroupImgFile.png");
@@ -844,6 +846,7 @@ public class TrackerControllerTest extends RecordFormTest {
                                         Boolean.parseBoolean(recAttr.getStringValue()));
                     break;  
                 case FILE:
+                case AUDIO:
                 case IMAGE:
                     Assert.assertEquals(params.get(key), recAttr.getStringValue());
                     break;
@@ -915,6 +918,7 @@ public class TrackerControllerTest extends RecordFormTest {
                     value = String.valueOf(true);
                     break;
                 case FILE:
+                case AUDIO:
                     String file_filename = String.format("attribute_%d", attr.getId());
                     MockMultipartFile mockFileFile = new MockMultipartFile(key,
                             file_filename, "audio/mpeg", file_filename.getBytes());
@@ -1000,6 +1004,7 @@ public class TrackerControllerTest extends RecordFormTest {
                 value = "wibble";
                 break;
             case FILE:
+            case AUDIO:
                 String file_filename = String.format("group_attribute_%d", attr.getId());
                 MockMultipartFile mockFileFile = new MockMultipartFile(key,
                         file_filename, "audio/mpeg", file_filename.getBytes());

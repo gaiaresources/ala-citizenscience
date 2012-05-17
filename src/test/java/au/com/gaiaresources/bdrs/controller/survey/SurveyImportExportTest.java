@@ -249,6 +249,9 @@ public class SurveyImportExportTest extends AbstractGridControllerTest {
         for (Attribute attr : expected) {
             attributeMap.put(attr.getName(), attr);
         }
+        
+        Assert.assertEquals(expected.size(), actual.size());
+
         for (Attribute actualAttr : actual) {
             Attribute expectedAttr = attributeMap.remove(actualAttr.getName());
             Assert.assertNotNull("Expected Metadata not found: " + actualAttr.getName(), expectedAttr);

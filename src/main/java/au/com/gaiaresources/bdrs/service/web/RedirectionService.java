@@ -110,8 +110,8 @@ public class RedirectionService {
             throw new IllegalStateException("Attribute av.attribute cannot be null");
         }
         Attribute a = av.getAttribute();
-        if (a.getType() != AttributeType.FILE && a.getType() != AttributeType.IMAGE) {
-            throw new IllegalArgumentException("AttributeValue av needs to be of type FILE or IMAGE to request download URL");
+        if (a.getType() != AttributeType.FILE && a.getType() != AttributeType.IMAGE && a.getType() != AttributeType.AUDIO) {
+            throw new IllegalArgumentException("AttributeValue av needs to be of type FILE, AUDIO or IMAGE to request download URL");
         }
         if (av.getId() == null) {
             throw new IllegalStateException("Integer av.id cannot be null");

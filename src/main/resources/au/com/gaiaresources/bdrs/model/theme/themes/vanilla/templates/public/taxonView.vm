@@ -57,6 +57,10 @@
                             <a href="${pageContext.request.contextPath}/files/download.htm?${taxonAttr.getFileURL()}">
                                 ${taxonAttr.stringValue}
                             </a>
+                        #elseif(${AttributeType.AUDIO} == ${taxonAttr.getAttribute().getType()})
+                            <a href="${pageContext.request.contextPath}/files/download.htm?${taxonAttr.getFileURL()}">
+                                ${taxonAttr.stringValue}
+                            </a>
                         #else
                             ${taxonAttr.stringValue}
                         #end

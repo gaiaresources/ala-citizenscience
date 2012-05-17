@@ -290,7 +290,7 @@ bdrs.taxonomy.displayTaxonProperties = function(taxon,
         if(attrToAttrValMap[groupAttr.id] !== undefined) {
             
             attrVal = attrToAttrValMap[groupAttr.id];
-            if(groupAttr.type === 'FILE') {
+            if(groupAttr.type === 'FILE' || groupAttr.type === 'AUDIO') {
                 displayElem = '<a href="'+bdrs.contextPath+'/files/download.htm?'+attrVal.fileURL+'">' + 
                                 attrVal.stringValue + '</a>';
             } else if(groupAttr.type === 'IMAGE') {

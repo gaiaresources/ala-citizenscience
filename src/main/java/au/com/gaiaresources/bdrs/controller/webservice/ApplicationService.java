@@ -670,9 +670,29 @@ public class ApplicationService extends AbstractController {
                 }
                 break;
                 
-            case FILE:
-                log.error("File (Record) Attribute Type is not supported.");
+            case AUDIO:
+                if(value != null && !value.isEmpty()) {
+                    base64 = value;
+                    // The mobile only uploads 3gp audio.
+                    filename = String.format("%s.3gp", UUID.randomUUID().toString());
+                    attrVal.setStringValue(filename);
+                } else {
+                    filename = null;
+                    base64 = null;
+                    attrVal.setStringValue("");
+                }
                 break;
+            case FILE:
+            	if(value != null && !value.isEmpty()) {
+                    base64 = value;
+                    filename = String.format(UUID.randomUUID().toString());
+                    attrVal.setStringValue(filename);
+                } else {
+                    filename = null;
+                    base64 = null;
+                    attrVal.setStringValue("");
+                }
+            	break;
             default:
                 throw new UnsupportedOperationException("Unsupported Attribute Type: "+attr.getType().toString());
         }

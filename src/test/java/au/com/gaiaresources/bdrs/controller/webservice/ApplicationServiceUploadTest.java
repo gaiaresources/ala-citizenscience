@@ -528,21 +528,22 @@ public class ApplicationServiceUploadTest extends AbstractControllerTest {
         List<Map<String,Object>> recAttrs = new ArrayList<Map<String, Object>>();
         if(record == null) {
             for(Attribute attr : survey.getAttributes()) {
-                if(!AttributeType.FILE.equals(attr.getType()) && !AttributeScope.LOCATION.equals(attr.getScope())) {
+                if(!AttributeType.FILE.equals(attr.getType()) && !AttributeScope.LOCATION.equals(attr.getScope())
+                		&& !AttributeType.AUDIO.equals(attr.getType())) {
                     recAttrs.add(createJSONRecordAttribute(attr, null, blankRecAttr));
                 }
             }
             
             if(method != null) {
                 for(Attribute attr : method.getAttributes()) {
-                    if(!AttributeType.FILE.equals(attr.getType())) {
+                    if(!AttributeType.FILE.equals(attr.getType()) && !AttributeType.AUDIO.equals(attr.getType())) {
                         recAttrs.add(createJSONRecordAttribute(attr, null, blankRecAttr));
                     }
                 }
                 if(Taxonomic.TAXONOMIC.equals(method.getTaxonomic()) || 
                 		Taxonomic.OPTIONALLYTAXONOMIC.equals(method.getTaxonomic())) {
                     for(Attribute attr : taxon.getTaxonGroup().getAttributes()) {
-                        if(!AttributeType.FILE.equals(attr.getType())) {
+                        if(!AttributeType.FILE.equals(attr.getType()) && !AttributeType.AUDIO.equals(attr.getType())) {
                             recAttrs.add(createJSONRecordAttribute(attr, null, blankRecAttr));
                         }
                     }

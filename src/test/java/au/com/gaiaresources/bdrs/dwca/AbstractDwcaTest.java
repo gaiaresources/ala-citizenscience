@@ -147,6 +147,7 @@ public abstract class AbstractDwcaTest extends AbstractGridControllerTest {
             Assert.fail("HTML elements should not be exported in DwC-A");
             
         case IMAGE:
+        case AUDIO:
         case FILE:
             return APPLICATION_URL + "/files/download.htm?" + av.getFileURL();
             

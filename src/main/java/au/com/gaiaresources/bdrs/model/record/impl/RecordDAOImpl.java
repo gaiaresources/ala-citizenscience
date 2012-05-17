@@ -371,6 +371,7 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
                 // attribute.setRecord(r);
                 switch (attValue.getKey().getType()) {
                 case IMAGE:
+                case AUDIO:
                 case FILE:
 //                    attrFile = fileAttributeMap.get(attValue.getKey());
 //                    // attrFile will always have size zero unless the file

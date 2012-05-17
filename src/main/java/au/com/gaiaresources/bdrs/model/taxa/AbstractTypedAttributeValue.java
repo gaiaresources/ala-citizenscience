@@ -66,6 +66,7 @@ public abstract class AbstractTypedAttributeValue extends PortalPersistentImpl i
         case MULTI_SELECT:
 
         case IMAGE:
+        case AUDIO:
         case FILE:
             return this.getStringValue();
 
@@ -173,6 +174,7 @@ public abstract class AbstractTypedAttributeValue extends PortalPersistentImpl i
             return StringUtils.hasLength(stringValue);
             
         case IMAGE:
+        case AUDIO:
         case FILE:
             // don't want to return an empty file name or a 'not recorded' file name
             return StringUtils.hasLength(stringValue) && !NOT_RECORDED.equals(stringValue);

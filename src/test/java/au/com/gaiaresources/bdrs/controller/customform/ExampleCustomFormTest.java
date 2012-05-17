@@ -77,10 +77,9 @@ public class ExampleCustomFormTest extends AbstractGridControllerTest {
         request.setMethod("GET");
         request.setRequestURI(renderURL);
         handle(request, response);
-
         // If everything works as desired, there should be no messages
         Assert.assertTrue("When a form render correctly there should be no messages",
-                getRequestContext().getMessageContents().isEmpty());
+                getRequestContext().getMessageContents().isEmpty());  
     }
 
     /**

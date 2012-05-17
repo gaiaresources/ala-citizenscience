@@ -38,6 +38,7 @@ public enum AttributeType implements E, JSONEnum {
     MULTI_SELECT("MS", "Multi Select"),
 
     IMAGE("IM", "Image File"),
+    AUDIO("AU", "Audio File"),
     FILE("FI", "Data File");
 
     private String code;

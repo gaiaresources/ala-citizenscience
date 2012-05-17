@@ -648,6 +648,7 @@ public class ShapeFileWriter {
             
             // not supported
             case IMAGE:
+            case AUDIO:
             case FILE:
                 // don't add
                 break;
@@ -704,6 +705,7 @@ public class ShapeFileWriter {
             
             // not supported
             case IMAGE:
+            case AUDIO:
             case FILE:
                 // don't add
                 break;

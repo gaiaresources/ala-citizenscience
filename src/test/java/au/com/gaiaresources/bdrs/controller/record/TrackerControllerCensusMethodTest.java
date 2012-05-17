@@ -417,6 +417,7 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
                 case STRING_WITH_VALID_VALUES:
                     value = attr.getOptions().iterator().next().getValue();
                     break;
+                case AUDIO:
                 case FILE:
                     String file_filename = String.format("group_attribute_%d", attr.getId());
                     MockMultipartFile mockFileFile = new MockMultipartFile(key, file_filename, "audio/mpeg", file_filename.getBytes());
@@ -478,6 +479,7 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
                 case STRING_WITH_VALID_VALUES:
                     Assert.assertEquals(params.get(key), recAttr.getStringValue());
                     break;
+                case AUDIO:
                 case FILE:
                 case IMAGE:
                     Assert.assertEquals(params.get(key), recAttr.getStringValue());
