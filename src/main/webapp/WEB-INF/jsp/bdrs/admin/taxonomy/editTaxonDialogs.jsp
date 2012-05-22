@@ -93,7 +93,6 @@
 
 
 <script type="text/javascript">
-bdrs.form.not_validated_form_selectors=['#saveManagedFile','#widgetSearchForm'];
     // ***********************************************************
     // Setup the managed files search results table as a jq-grid.
     // ***********************************************************
