@@ -42,5 +42,5 @@ bdrs.form.init_form_validation = function() {
         form_list = form_list.not(bdrs.form.not_validated_form_selectors.join(','));
     }
 
-    form_list.ketchup({attribute:'class'});
+    form_list.ketchup();
 }
