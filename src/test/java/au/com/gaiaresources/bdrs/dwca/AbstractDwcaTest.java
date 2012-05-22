@@ -149,7 +149,7 @@ public abstract class AbstractDwcaTest extends AbstractGridControllerTest {
         case IMAGE:
         case AUDIO:
         case FILE:
-            return APPLICATION_URL + "/files/download.htm?" + av.getFileURL();
+            return APPLICATION_URL + defaultPortal.getPortalContextPath()+"/files/download.htm?" + av.getFileURL();
             
         default:
             throw new IllegalStateException("Type not handled : " + a.getTypeCode());
