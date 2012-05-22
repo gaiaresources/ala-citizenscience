@@ -20,20 +20,20 @@
                     <c:out value="${ theme.name }"/>
                 </td>
                 <td>
-                    <input type="radio" name="active" onclick="blur();" onchange="window.document.location='${pageContext.request.contextPath}/bdrs/admin/theme/refreshTheme.htm?themeId=${ theme.id }'"
+                    <input type="radio" name="active" onclick="blur();" onchange="window.document.location='${portalContextPath}/bdrs/admin/theme/refreshTheme.htm?themeId=${ theme.id }'"
                         <c:if test="${ theme.active }">
                             checked="checked"
                         </c:if>
                     />
                 </td>
                 <td>
-                    <a href="${pageContext.request.contextPath}/bdrs/admin/theme/downloadTheme.htm?themeId=${ theme.id }">
+                    <a href="${portalContextPath}/bdrs/admin/theme/downloadTheme.htm?themeId=${ theme.id }">
                         Download
                     </a>
                 </td>
                 <td>
                     <c:if test="${ not theme.default }">
-                        <a href="${pageContext.request.contextPath}/bdrs/<c:if test="${editAsRoot}">root</c:if><c:if test="${editAsAdmin}">admin</c:if>/theme/edit.htm?themeId=${ theme.id }&portalId=${ portalId }">
+                        <a href="${portalContextPath}/bdrs/<c:if test="${editAsRoot}">root</c:if><c:if test="${editAsAdmin}">admin</c:if>/theme/edit.htm?themeId=${ theme.id }&portalId=${ portalId }">
                             Edit
                         </a>
                     </c:if>
@@ -43,5 +43,5 @@
     </tbody>
 </table>
 <div class="buttonpanel textright">
-    <input class="form_action" type="button" value="Add Theme" onclick="window.document.location='${pageContext.request.contextPath}/bdrs/<c:if test="${editAsRoot}">root</c:if><c:if test="${editAsAdmin}">admin</c:if>/theme/edit.htm?portalId=${ portalId }'"/>
+    <input class="form_action" type="button" value="Add Theme" onclick="window.document.location='${portalContextPath}/bdrs/<c:if test="${editAsRoot}">root</c:if><c:if test="${editAsAdmin}">admin</c:if>/theme/edit.htm?portalId=${ portalId }'"/>
 </div>

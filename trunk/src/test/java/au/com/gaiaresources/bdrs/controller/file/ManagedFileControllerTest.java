@@ -1,14 +1,17 @@
 package au.com.gaiaresources.bdrs.controller.file;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-
-import junit.framework.Assert;
+import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.json.JSONSerializer;
-
+import au.com.gaiaresources.bdrs.model.file.ManagedFile;
+import au.com.gaiaresources.bdrs.model.file.ManagedFileDAO;
+import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.security.UserDetails;
+import au.com.gaiaresources.bdrs.servlet.RequestContext;
+import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
+import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,14 +22,9 @@ import org.springframework.test.web.ModelAndViewAssert;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
-import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
-import au.com.gaiaresources.bdrs.model.file.ManagedFile;
-import au.com.gaiaresources.bdrs.model.file.ManagedFileDAO;
-import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.security.UserDetails;
-import au.com.gaiaresources.bdrs.servlet.RequestContext;
-import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 public class ManagedFileControllerTest extends AbstractControllerTest {
     
@@ -85,7 +83,7 @@ public class ManagedFileControllerTest extends AbstractControllerTest {
         ModelAndView mv = handle(request, response);
         Assert.assertTrue(mv.getView() instanceof RedirectView);
         RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals("/bdrs/user/managedfile/listing.htm", redirect.getUrl());
+        assertUrlEquals("/bdrs/user/managedfile/listing.htm", redirect.getUrl());
         
         Assert.assertEquals(0, managedFileDAO.getManagedFiles().size());
     }
@@ -127,7 +125,7 @@ public class ManagedFileControllerTest extends AbstractControllerTest {
         ModelAndView mv = handle(request, response);
         Assert.assertTrue(mv.getView() instanceof RedirectView);
         RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals("/bdrs/user/managedfile/listing.htm", redirect.getUrl());
+        assertUrlEquals("/bdrs/user/managedfile/listing.htm", redirect.getUrl());
         
         ManagedFile actual = managedFileDAO.getManagedFile(expected.getId());
         
@@ -172,7 +170,7 @@ public class ManagedFileControllerTest extends AbstractControllerTest {
         ModelAndView mv = handle(request, response);
         Assert.assertTrue(mv.getView() instanceof RedirectView);
         RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals("/bdrs/user/managedfile/listing.htm", redirect.getUrl());
+        assertUrlEquals("/bdrs/user/managedfile/listing.htm", redirect.getUrl());
         
         ManagedFile actual = null;
         for(ManagedFile mf : managedFileDAO.getManagedFiles()) {

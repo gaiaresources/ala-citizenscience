@@ -22,14 +22,15 @@ import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.survey.SurveyImportExportService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.servlet.RequestContext;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 import au.com.gaiaresources.bdrs.util.ImageUtil;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 import au.com.gaiaresources.bdrs.util.ZipUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,7 +39,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
 import javax.annotation.security.RolesAllowed;
 import javax.imageio.ImageIO;
@@ -363,11 +363,11 @@ public class SurveyBaseController extends AbstractController {
 
         ModelAndView mv;
         if (request.getParameter("saveAndContinue") != null) {
-            mv = new ModelAndView(new RedirectView(
+            mv = new ModelAndView(new PortalRedirectView(
                     "/bdrs/admin/survey/editTaxonomy.htm", true));
             mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
         } else {
-            mv = new ModelAndView(new RedirectView(
+            mv = new ModelAndView(new PortalRedirectView(
                     SURVEY_LISTING_URL, true));
         }
         return mv;
@@ -461,12 +461,12 @@ public class SurveyBaseController extends AbstractController {
 
         ModelAndView mv;
         if(request.getParameter("saveAndContinue") != null) {
-            mv = new ModelAndView(new RedirectView("/bdrs/admin/survey/edit.htm", true));
+            mv = new ModelAndView(new PortalRedirectView("/bdrs/admin/survey/edit.htm", true));
             mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
             mv.addObject("publish", "publish");
         }
         else {
-            mv = new ModelAndView(new RedirectView(SURVEY_LISTING_URL, true));
+            mv = new ModelAndView(new PortalRedirectView(SURVEY_LISTING_URL, true));
         }
         return mv;
     }
@@ -583,11 +583,11 @@ public class SurveyBaseController extends AbstractController {
 
         ModelAndView mv;
         if(request.getParameter("saveAndContinue") != null) {
-            mv = new ModelAndView(new RedirectView("/bdrs/admin/survey/editAttributes.htm", true));
+            mv = new ModelAndView(new PortalRedirectView("/bdrs/admin/survey/editAttributes.htm", true));
             mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
         }
         else {
-            mv = new ModelAndView(new RedirectView(SURVEY_LISTING_URL, true));
+            mv = new ModelAndView(new PortalRedirectView(SURVEY_LISTING_URL, true));
         }
         return mv;
     }
@@ -688,7 +688,7 @@ public class SurveyBaseController extends AbstractController {
             getRequestContext().addMessage("bdrs.survey.import.error.io");
         }
 
-        return new ModelAndView(new RedirectView(SurveyBaseController.SURVEY_LISTING_URL, true));
+        return new ModelAndView(new PortalRedirectView(SurveyBaseController.SURVEY_LISTING_URL, true));
     }
 
     private Survey getSurvey(String rawSurveyId) {
@@ -707,7 +707,7 @@ public class SurveyBaseController extends AbstractController {
     
     public static ModelAndView nullSurveyRedirect(RequestContext requestContext) {
         requestContext.addMessage(SurveyBaseController.SURVEY_DOES_NOT_EXIST_ERROR_KEY);
-        return new ModelAndView(new RedirectView(SurveyBaseController.SURVEY_LISTING_URL, true));
+        return new ModelAndView(new PortalRedirectView(SurveyBaseController.SURVEY_LISTING_URL, true));
     }
     
     /**
@@ -878,10 +878,10 @@ public class SurveyBaseController extends AbstractController {
         
         ModelAndView mv;
         if(request.getParameter("saveAndContinue") != null) {
-            mv = new ModelAndView(new RedirectView("/bdrs/admin/survey/locationListing.htm", true));
+            mv = new ModelAndView(new PortalRedirectView("/bdrs/admin/survey/locationListing.htm", true));
             mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
         } else {
-            mv = new ModelAndView(new RedirectView(SURVEY_LISTING_URL, true));
+            mv = new ModelAndView(new PortalRedirectView(SURVEY_LISTING_URL, true));
         }
         return mv;
     }

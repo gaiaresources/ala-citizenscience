@@ -10,7 +10,7 @@ bdrs.admin.adminEditContent =  {
 			return textArea;
 		},
 		loadContent: function(key) {
-			jQuery.ajax(bdrs.contextPath + "/webservice/content/loadContent.htm", 
+			jQuery.ajax(bdrs.portalContextPath + "/webservice/content/loadContent.htm",
       		{
 	      		type: "GET",
 				data: {key: key}
@@ -25,7 +25,7 @@ bdrs.admin.adminEditContent =  {
 			});
 		},
 		saveContent: function(key) {
-			jQuery.ajax(bdrs.contextPath + "/webservice/content/saveContent.htm", 
+			jQuery.ajax(bdrs.portalContextPath + "/webservice/content/saveContent.htm",
       		{
 	      		type: "POST",
 				data: {	key: key, value: bdrs.admin.adminEditContent.getTextarea().value}
@@ -49,7 +49,7 @@ bdrs.admin.adminEditContent =  {
 		resetContent: function() {
             var answer = confirm("Are you sure? All content on site will be reset!")
 		    if (answer) {
-		        window.location = bdrs.contextPath + "/admin/resetContentToDefault.htm";
+		        window.location = bdrs.portalContextPath + "/admin/resetContentToDefault.htm";
 		    }
 		},
 		resetCurrentContent: function() {
@@ -60,7 +60,7 @@ bdrs.admin.adminEditContent =  {
 			}
             var answer = confirm("Are you sure? The current content will be reset and any changes will be lost!")
             if (answer) {
-                window.location = bdrs.contextPath + "/admin/resetContentToDefault.htm?key=" + key;
+                window.location = bdrs.portalContextPath + "/admin/resetContentToDefault.htm?key=" + key;
             }
         },
         clearContent: function() {
@@ -145,7 +145,7 @@ bdrs.admin.contactTree = {
 		var node1 = bdrs.admin.contactTree.createRootNode("All Users");
 
 		jQuery.ajax({
-	        url: '${pageContext.request.contextPath}/webservice/user/getUsers.htm', 
+	        url: bdrs.portalContextPath + '/webservice/user/getUsers.htm',
 	        success: function(data, textStatus) {
 				node1["ChildNodes"] = bdrs.admin.contactTree.createUserNodes("user", data);
 	    	},
@@ -157,7 +157,7 @@ bdrs.admin.contactTree = {
 	createGroupsNode: function() {
 		var node2 = bdrs.admin.contactTree.createRootNode("Groups");
 	    jQuery.ajax({
-	        url: '${pageContext.request.contextPath}/webservice/user/getUsers.htm?queryType=group', 
+	        url: bdrs.portalContextPath + '/webservice/user/getUsers.htm?queryType=group',
 	        success: function(data, textStatus) {
 		         node2["ChildNodes"] = bdrs.admin.contactTree.createGroupProjectNodes("group", data);
 		    },
@@ -169,7 +169,7 @@ bdrs.admin.contactTree = {
 	createProjectsNode: function() {
 	    var node3 = bdrs.admin.contactTree.createRootNode("Projects");
 	    jQuery.ajax({
-	        url: '${pageContext.request.contextPath}/webservice/user/getUsers.htm?queryType=project', 
+	        url: bdrs.portalContextPath + '/webservice/user/getUsers.htm?queryType=project',
 	        success: function(data, textStatus) {
 		        node3["ChildNodes"] = bdrs.admin.contactTree.createGroupProjectNodes("project", data);
 		    },

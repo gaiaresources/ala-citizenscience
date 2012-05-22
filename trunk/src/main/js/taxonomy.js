@@ -37,7 +37,7 @@ bdrs.taxonomy.initListing = function(taxonAutocompleteSelector,
             params.q = request.term;
             params.depth = 2;
 
-            jQuery.getJSON(bdrs.contextPath+'/webservice/taxon/searchTaxon.htm', params, function(data, textStatus) {
+            jQuery.getJSON(bdrs.portalContextPath+'/webservice/taxon/searchTaxon.htm', params, function(data, textStatus) {
                 var label;
                 var result;
                 var taxon;
@@ -105,7 +105,7 @@ bdrs.taxonomy.initTaxonGroupAutocomplete = function(groupAutocompleteSelector, g
             var params = {};
             params.q = request.term;
 
-            jQuery.getJSON(bdrs.contextPath+'/webservice/taxon/searchTaxonGroup.htm', params, function(data, textStatus) {
+            jQuery.getJSON(bdrs.portalContextPath+'/webservice/taxon/searchTaxonGroup.htm', params, function(data, textStatus) {
                 var label;
                 var result;
                 var taxonGroup;
@@ -210,7 +210,7 @@ bdrs.taxonomy.displayTaxonProperties = function(taxon,
     
     // Attach the parent taxon click handlers
     jQuery(".taxonParent").click(function() {
-        jQuery.getJSON(bdrs.contextPath+'/webservice/taxon/getTaxonById.htm', {id: taxon.parent.id, depth: 2}, function(parentTaxon) {
+        jQuery.getJSON(bdrs.portalContextPath+'/webservice/taxon/getTaxonById.htm', {id: taxon.parent.id, depth: 2}, function(parentTaxon) {
             jQuery(taxonAutocompleteSelector).val(parentTaxon.scientificName);
 	        bdrs.taxonomy.displayTaxonProperties(parentTaxon,
 	                                             taxonAutocompleteSelector,
@@ -228,7 +228,7 @@ bdrs.taxonomy.displayTaxonProperties = function(taxon,
         
         var content;
         if(taxonProfile.fileType) {
-            var url = bdrs.contextPath+'/files/downloadByUUID.htm?uuid='+taxonProfile.content;            
+            var url = bdrs.portalContextPath+'/files/downloadByUUID.htm?uuid='+taxonProfile.content;
             if(taxonProfile.audioType) {
                 var player = jQuery("<audio></audio>").attr({src:url, controls:"controls"}).text(taxonProfile.content);
                 content = (jQuery('<span>').append(player).clone()).remove().html();
@@ -291,12 +291,12 @@ bdrs.taxonomy.displayTaxonProperties = function(taxon,
             
             attrVal = attrToAttrValMap[groupAttr.id];
             if(groupAttr.type === 'FILE' || groupAttr.type === 'AUDIO') {
-                displayElem = '<a href="'+bdrs.contextPath+'/files/download.htm?'+attrVal.fileURL+'">' + 
+                displayElem = '<a href="'+bdrs.portalContextPath+'/files/download.htm?'+attrVal.fileURL+'">' +
                                 attrVal.stringValue + '</a>';
             } else if(groupAttr.type === 'IMAGE') {
-                displayElem = '<a href="'+bdrs.contextPath+'/files/download.htm?'+attrVal.fileURL+'">' + 
+                displayElem = '<a href="'+bdrs.portalContextPath+'/files/download.htm?'+attrVal.fileURL+'">' +
                                 '<img class="max_size_img" src="' +
-                                bdrs.contextPath+'/files/download.htm?'+attrVal.fileURL +
+                                bdrs.portalContextPath+'/files/download.htm?'+attrVal.fileURL +
                                 '" alt="Missing Image"/></a>';
             } else {
                 displayElem = attrVal.stringValue;
@@ -356,7 +356,7 @@ bdrs.taxonomy.taxonGroupSearcher = {
         var params = {};
         params.q = request.term;
 
-        jQuery.getJSON(bdrs.contextPath+'/webservice/taxon/searchTaxonGroup.htm', params, function(data, textStatus) {
+        jQuery.getJSON(bdrs.portalContextPath+'/webservice/taxon/searchTaxonGroup.htm', params, function(data, textStatus) {
 
             var taxonGroup;
             var resultsArray = [];
@@ -422,7 +422,7 @@ bdrs.taxonomy.initEditTaxon = function(parentAutocompleteSelector, parentPkSelec
             var params = {};
             params.q = request.term;
 
-            jQuery.getJSON(bdrs.contextPath+'/webservice/taxon/searchTaxon.htm', params, function(data, textStatus) {
+            jQuery.getJSON(bdrs.portalContextPath+'/webservice/taxon/searchTaxon.htm', params, function(data, textStatus) {
                 var label;
                 var result;
                 var taxon;
@@ -483,7 +483,7 @@ bdrs.taxonomy.initEditTaxon = function(parentAutocompleteSelector, parentPkSelec
                 param.taxonPk = taxonPkElem.val();
             }
             
-            jQuery.get(bdrs.contextPath+'/bdrs/admin/taxonomy/ajaxTaxonAttributeTable.htm', param, function(data) {
+            jQuery.get(bdrs.portalContextPath+'/bdrs/admin/taxonomy/ajaxTaxonAttributeTable.htm', param, function(data) {
                 var taxonAttributeWrapperElem = jQuery(taxonAttributeWrapperSelector);
                 
                 taxonAttributeWrapperElem.append(data);
@@ -500,7 +500,7 @@ bdrs.taxonomy.initEditTaxon = function(parentAutocompleteSelector, parentPkSelec
                         var bits = this.element[0].id.split('_');
                         params.attribute = bits[bits.length-1];
             
-                        jQuery.getJSON('${pageContext.request.contextPath}/webservice/attribute/searchValues.htm', params, function(data, textStatus) {
+                        jQuery.getJSON(bdrs.portalContextPath+'/webservice/attribute/searchValues.htm', params, function(data, textStatus) {
                             callback(data);
                         });
                     },
@@ -535,7 +535,7 @@ bdrs.taxonomy.initEditTaxon = function(parentAutocompleteSelector, parentPkSelec
             }
             param.groupPk = jQuery(groupPkSelector).val();
             param.index = jQuery(newProfileIndexSelector).val();
-            jQuery.get(bdrs.contextPath+'/bdrs/admin/taxonomy/ajaxTaxonProfileTemplate.htm', param, function(data) {
+            jQuery.get(bdrs.portalContextPath+'/bdrs/admin/taxonomy/ajaxTaxonProfileTemplate.htm', param, function(data) {
                 
                 // Hide the table body to prevent any flickering as the dom is
                 // modified.
@@ -636,7 +636,7 @@ bdrs.taxonomy.addNewProfile = function(newProfileIndexSelector, profileTableSele
     var params = {};
     params.index = profileIndex;
     
-    jQuery.get(bdrs.contextPath+'/bdrs/admin/taxonomy/ajaxAddProfile.htm', params, function(data) {
+    jQuery.get(bdrs.portalContextPath+'/bdrs/admin/taxonomy/ajaxAddProfile.htm', params, function(data) {
         // add the new row
         var table = jQuery(profileTableSelector); 
         var row = jQuery(data);
@@ -719,7 +719,7 @@ bdrs.taxonomy.importALAProfile = function(guidListSelector, taxonGroupNameSelect
     // Use closures and recursion to queue up our ajax requests.
     var ajaxImportFunc = function(guidArray, taxonGroupName, shortProfile) {
         jQuery.ajax({
-            url: bdrs.contextPath + "/bdrs/admin/taxonomy/importNewProfiles.htm",
+            url: bdrs.portalContextPath + "/bdrs/admin/taxonomy/importNewProfiles.htm",
             type: "POST",
             data: {
                 "guids": guidArray[i],
@@ -844,7 +844,8 @@ bdrs.taxonomy.initEditTaxonGroupMembers = function(urlPrefix, groupId) {
         width: '100%',
         height: "100%",
         multiselect: true,
-        onSelectRow: updateBulkActionButtonStatus
+        onSelectRow: updateBulkActionButtonStatus,
+        onSelectAll: updateBulkActionButtonStatus
     });
 
 

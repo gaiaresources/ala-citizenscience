@@ -64,7 +64,7 @@
         };
         
 		var layerArray = new Array();
-		var layer = bdrs.map.addKmlLayer(map, "Record Layer", "${pageContext.request.contextPath}/bdrs/map/getRecord.htm?recordPk=${recordId}", layerOptions);
+		var layer = bdrs.map.addKmlLayer(map, "Record Layer", "${portalContextPath}/bdrs/map/getRecord.htm?recordPk=${recordId}", layerOptions);
         layerArray.push(layer);
 		
 		layer.events.register('loadend', layer, function(event){

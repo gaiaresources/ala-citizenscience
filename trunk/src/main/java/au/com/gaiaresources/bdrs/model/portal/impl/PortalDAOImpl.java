@@ -36,22 +36,47 @@ public class PortalDAOImpl extends AbstractDAOImpl implements PortalDAO {
      */
     @Override
     public Portal getPortalByName(Session sesh, String portalName) {
-        if(sesh == null) {
-            sesh = getSessionFactory().getCurrentSession();
+
+        return findByUniqueProperty(sesh, "name", portalName);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Portal getPortalByUrlPrefix(Session session, String alias) {
+
+        return findByUniqueProperty(session, "urlPrefix", alias);
+    }
+
+    /**
+     * Performs the supplied query expecting 0 or 1 results.  If more than 1 is returned a warning is issued
+     * and the first result returned.
+     * @param session the Session to use, may be null.
+     * @param propertyName the name of the unique property to query on.
+     * @param propertyValue the value of the property to query on.
+     * @return the Portal with the matching property or null if no such Portal exists.
+     */
+    private Portal findByUniqueProperty(Session session, String propertyName, String propertyValue) {
+        if(session == null) {
+            session = getSessionFactory().getCurrentSession();
         }
-        
-        List<Portal> portalList = find(sesh, "from Portal p where p.name = ?", portalName);
+
+        String query =  "from Portal p where p."+propertyName+" = ?";
+
+        List<Portal> portalList = find(session, query, propertyValue);
         if(portalList.isEmpty()) {
             return null;
         }
-        
+
         if(portalList.size() > 1) {
-            log.warn(String.format("More than one portals with the name \"%s\" found. Returning the first.", portalName));
+            String warning = "More than one portals with the property \"%s\" found. Returning the first.";
+            log.warn(String.format(warning, propertyName));
         }
-        
+
         return portalList.get(0);
     }
-    
+
     @Override
     public List<Portal> getPortals() {
         return this.getPortals(null);

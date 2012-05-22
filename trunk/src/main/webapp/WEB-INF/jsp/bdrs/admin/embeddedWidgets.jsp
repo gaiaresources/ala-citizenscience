@@ -8,8 +8,8 @@
 	<li>an 'Image Slideshow' widget that will show a slideshow of all the images in an image gallery</li>
 </ul>
 <p>
-    To create a widget, go to the <a href="${pageContext.request.contextPath}/bdrs/public/embedded/widgetBuilder.htm">Embedded Widgets</a> page.
+    To create a widget, go to the <a href="${portalContextPath}/bdrs/public/embedded/widgetBuilder.htm">Embedded Widgets</a> page.
 </p>
 <p>
-    To create an image gallery to be used in an 'Image Slideshow' widget, go to the <a href="${pageContext.request.contextPath}/bdrs/admin/gallery/listing.htm">Manage Galleries</a> page.
+    To create an image gallery to be used in an 'Image Slideshow' widget, go to the <a href="${portalContextPath}/bdrs/admin/gallery/listing.htm">Manage Galleries</a> page.
 </p>

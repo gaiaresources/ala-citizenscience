@@ -1,23 +1,5 @@
 package au.com.gaiaresources.bdrs.controller.user;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Map.Entry;
-
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
-import org.springframework.security.authentication.encoding.PasswordEncoder;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
-
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
@@ -27,6 +9,17 @@ import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.user.UserMetaData;
 import au.com.gaiaresources.bdrs.service.user.UserMetaData.UserMetaDataType;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
+import org.springframework.security.authentication.encoding.PasswordEncoder;
+import org.springframework.web.servlet.ModelAndView;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 public class UserProfileControllerTest extends AbstractControllerTest {
 

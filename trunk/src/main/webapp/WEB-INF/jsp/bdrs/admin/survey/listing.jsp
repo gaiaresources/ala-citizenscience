@@ -10,7 +10,7 @@
 
     <div class="buttonpanel textright">
         <a id="maximiseLink" class="text-left" href="javascript:bdrs.util.maximise('#maximiseLink', '#projectListingContainer', 'Enlarge Table', 'Shrink Table')">Enlarge Table</a>
-        <input class="form_action" type="button" value="Add Project" onclick="window.document.location='${pageContext.request.contextPath}/bdrs/admin/survey/edit.htm';"/>
+        <input class="form_action" type="button" value="Add Project" onclick="window.document.location='${portalContextPath}/bdrs/admin/survey/edit.htm';"/>
     </div>
     
     <table class="datatable textcenter">
@@ -37,37 +37,37 @@
                         <fmt:formatDate pattern="dd MMM yyyy" value="${survey.endDate}"/>
                     </td>
                     <td>
-                        <a href="${pageContext.request.contextPath}/bdrs/admin/survey/edit.htm?surveyId=${survey.id}">
+                        <a href="${portalContextPath}/bdrs/admin/survey/edit.htm?surveyId=${survey.id}">
                             <c:out value="${survey.name}"/>
                         </a>
                     </td>
                     <td>
-                        <a href="${pageContext.request.contextPath}/bdrs/admin/survey/editTaxonomy.htm?surveyId=${survey.id}">
+                        <a href="${portalContextPath}/bdrs/admin/survey/editTaxonomy.htm?surveyId=${survey.id}">
                             Edit
                         </a>
                     </td>
                     <td>
-                        <a href="${pageContext.request.contextPath}/bdrs/admin/survey/editAttributes.htm?surveyId=${survey.id}">
+                        <a href="${portalContextPath}/bdrs/admin/survey/editAttributes.htm?surveyId=${survey.id}">
                             Edit
                         </a>
                     </td>
                     <td>
-                        <a href="${pageContext.request.contextPath}/bdrs/admin/survey/editMap.htm?surveyId=${survey.id}">
+                        <a href="${portalContextPath}/bdrs/admin/survey/editMap.htm?surveyId=${survey.id}">
                             Edit
                         </a>
                     </td>
                     <td>
-                        <a href="${pageContext.request.contextPath}/bdrs/admin/survey/locationListing.htm?surveyId=${survey.id}">
+                        <a href="${portalContextPath}/bdrs/admin/survey/locationListing.htm?surveyId=${survey.id}">
                             Edit
                         </a>
                     </td>
                     <td>
-                        <a href="${pageContext.request.contextPath}/bdrs/admin/survey/editUsers.htm?surveyId=${survey.id}">
+                        <a href="${portalContextPath}/bdrs/admin/survey/editUsers.htm?surveyId=${survey.id}">
                             Edit
                         </a>
                     </td>
                     <td>
-                        <a href="${pageContext.request.contextPath}/bdrs/admin/survey/edit.htm?surveyId=${survey.id}&publish=publish">
+                        <a href="${portalContextPath}/bdrs/admin/survey/edit.htm?surveyId=${survey.id}&publish=publish">
                             Edit
                         </a>
                     </td>

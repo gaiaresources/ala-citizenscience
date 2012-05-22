@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 
 import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.controller.DisplayTagHelper;
@@ -121,7 +121,7 @@ public class UserGroupController extends AbstractController {
             HttpServletRequest request, HttpServletResponse response) {
         // A cascaded delete would be good here....
         groupDAO.delete(groupId[0]);    
-        return new ModelAndView(new RedirectView(LISTING_URL, true));
+        return new ModelAndView(new PortalRedirectView(LISTING_URL, true));
     }
     
     @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR})
@@ -246,7 +246,7 @@ public class UserGroupController extends AbstractController {
         sb.append("=");
         sb.append(groupId.toString());
         
-        ModelAndView mv = new ModelAndView(new RedirectView(sb.toString(), true));
+        ModelAndView mv = new ModelAndView(new PortalRedirectView(sb.toString(), true));
         return mv;
     }
     

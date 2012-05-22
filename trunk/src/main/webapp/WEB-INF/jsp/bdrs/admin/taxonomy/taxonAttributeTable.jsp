@@ -21,7 +21,7 @@ jQuery(function() {
             var bits = this.element[0].id.split('_');
             params.attribute = bits[bits.length-1];
 
-            jQuery.getJSON('${pageContext.request.contextPath}/webservice/attribute/searchValues.htm', params, function(data, textStatus) {
+            jQuery.getJSON('${portalContextPath}/webservice/attribute/searchValues.htm', params, function(data, textStatus) {
                 callback(data);
             });
         },

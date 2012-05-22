@@ -5,11 +5,11 @@
 <jsp:useBean id="survey" type="au.com.gaiaresources.bdrs.model.survey.Survey" scope="request"/>
 <h1>Edit Project: Locations</h1>
 <cw:getContent key="admin/editProject/editLocations" />
-<form method="POST" action="${pageContext.request.contextPath}/bdrs/admin/survey/locationListing.htm">
+<form method="POST" action="${portalContextPath}/bdrs/admin/survey/locationListing.htm">
     <input type="hidden" name="surveyId" value="${ survey.id }"/>
     <div class="input_container">
         <div class="textright buttonpanel">
-            <input title="Add a location from another project." id="addExistingLocationButton" class="form_action" type="button" value="Add Existing Location" /><input title="Create a new location for this project." class="form_action" type="button" value="Create Location" onclick="window.document.location='${pageContext.request.contextPath}/bdrs/admin/survey/editLocation.htm?surveyId=${ survey.id }';"/>
+            <input title="Add a location from another project." id="addExistingLocationButton" class="form_action" type="button" value="Add Existing Location" /><input title="Create a new location for this project." class="form_action" type="button" value="Create Location" onclick="window.document.location='${portalContextPath}/bdrs/admin/survey/editLocation.htm?surveyId=${ survey.id }';"/>
         </div>
         <table id="location_listing" class="datatable">
             <thead>
@@ -27,7 +27,7 @@
                     <jsp:useBean id="location" type="au.com.gaiaresources.bdrs.model.location.Location"/>
                     <tr>
                         <td class="name">
-                            <input type="hidden" name="location" value="${ location.id }"/><a href="${pageContext.request.contextPath}/bdrs/admin/survey/editLocation.htm?surveyId=${ survey.id }&locationId=${ location.id }">${ location.name }</a>
+                            <input type="hidden" name="location" value="${ location.id }"/><a href="${portalContextPath}/bdrs/admin/survey/editLocation.htm?surveyId=${ survey.id }&locationId=${ location.id }">${ location.name }</a>
                         </td>
                         <td class="textcenter">
                             <a id="delete_${location.id}" href="javascript: void(0);" onclick="jQuery(this).parents('tr').hide().find('select, input, textarea').attr('disabled', 'disabled'); return false;"><img src="${pageContext.request.contextPath}/images/icons/delete.png" alt="Delete" class="vertmiddle"/></a>

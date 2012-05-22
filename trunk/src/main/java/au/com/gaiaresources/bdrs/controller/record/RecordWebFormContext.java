@@ -16,7 +16,7 @@ import au.com.gaiaresources.bdrs.service.web.RedirectionService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;
@@ -357,7 +357,7 @@ public class RecordWebFormContext {
         
         ModelAndView mv;
         if (request.getParameter(PARAM_SUBMIT_AND_ADD_ANOTHER) != null) {
-            mv = new ModelAndView(new RedirectView(
+            mv = new ModelAndView(new PortalRedirectView(
                     SURVEY_RENDER_REDIRECT_URL, true));
             mv.addObject(PARAM_SURVEY_ID, survey.getId());
             if (cm != null) {
@@ -374,11 +374,11 @@ public class RecordWebFormContext {
             } else {
                 switch (survey.getFormSubmitAction()) {
                 case STAY_ON_FORM:
-                    mv = new ModelAndView(new RedirectView(redirectionService.getViewRecordUrl(r), true));   
+                    mv = new ModelAndView(new PortalRedirectView(redirectionService.getViewRecordUrl(r), true));
                     break;
                 case MY_SIGHTINGS:
                 default:
-                    mv = new ModelAndView(new RedirectView(redirectionService.getMySightingsUrl(survey), true));
+                    mv = new ModelAndView(new PortalRedirectView(redirectionService.getMySightingsUrl(survey), true));
                     // highlight the record that has been created...
                     RecordWebFormContext.addRecordHighlightId(mv, r);
                     break;

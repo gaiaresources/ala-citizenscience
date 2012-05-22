@@ -1,22 +1,21 @@
 package au.com.gaiaresources.bdrs.servlet;
 
+import au.com.gaiaresources.bdrs.email.EmailService;
+import au.com.gaiaresources.bdrs.model.portal.Portal;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
+import au.com.gaiaresources.bdrs.util.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
-
-import au.com.gaiaresources.bdrs.email.EmailService;
-import au.com.gaiaresources.bdrs.util.StringUtils;
 
 /**
  * Whenever an unhandled exception occurs during controller handling we end up here.
@@ -45,15 +44,15 @@ public class HandlerExceptionResolver implements org.springframework.web.servlet
         if(ex instanceof AccessDeniedException) {
             if(request.getRemoteUser() == null) {
                 // Go to the login page
-                mv = new ModelAndView(new RedirectView("/home.htm", true));
+                mv = new ModelAndView(new PortalRedirectView("/home.htm", true));
                 mv.addObject("signin", true);
                 // save the URL requested to the session so you will be redirected after login
                 if (request.getMethod().equals("GET")) {
-                    request.getSession().setAttribute(BdrsWebConstants.SAVED_REQUEST_KEY, getRequestURL(request));
+                    request.getSession().setAttribute(BdrsWebConstants.SAVED_REQUEST_KEY, UrlAssembler.assembleUrlFor(request));
                 }
             } else {
                 // Go to the home page
-                mv = new ModelAndView(new RedirectView("/authenticated/redirect.htm", true));
+                mv = new ModelAndView(new PortalRedirectView("/authenticated/redirect.htm", true));
                 // add the message
                 RequestContextHolder.getContext().addMessage(ex.getMessage());
             }
@@ -103,37 +102,8 @@ public class HandlerExceptionResolver implements org.springframework.web.servlet
                 logger.error("Parameters : " + parameters.toString());
             }
 
-            mv = new ModelAndView(new RedirectView("/error/500.htm", true));
+            mv = new ModelAndView(new PortalRedirectView("/error/500.htm", true));
         }
         return mv;
-    }
-
-    /**
-     * Creates a String representation of an HttpRequest with parameters.
-     * @param request the request to construct the url from
-     * @return a String representation of an HttpRequest, including parameters
-     */
-    private String getRequestURL(HttpServletRequest request) {
-        // reconstruct the url with parameters
-        StringBuilder builder = new StringBuilder(request.getRequestURL());
-        Map<String, String[]> map = request.getParameterMap();
-        if (!map.isEmpty()) {
-            builder.append("?");
-        }
-        for (Entry<String, String[]> entry : map.entrySet()) {
-            String key = entry.getKey();
-            String[] valueList = entry.getValue();
-            for (String string : valueList) {
-                builder.append(key);
-                builder.append("=");
-                builder.append(string);
-                builder.append("&");
-            }
-        }
-        if (builder.toString().endsWith("&")) {
-            // remove the trailing &
-            builder.setLength(builder.length()-1);
-        }
-        return builder.toString();
     }
 }

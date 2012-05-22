@@ -24,6 +24,8 @@
 		    </c:otherwise>
 		</c:choose>
 
+        <c:set var="portalContextPath" scope="request" value="${pageContext.request.contextPath}${currentPortal.portalContextPath}"/>
+
         <meta name="keywords" content="<tiles:getAsString name="metaKeywords"/>"/>
         <meta name="description" content="<tiles:getAsString name="metaDescription"/>"/>
         
@@ -35,7 +37,7 @@
         <!-- Include the BDRS default layout styles -->
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css${version}/bdrs/bdrs.css" type="text/css"/>
 
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/css${version}/ketchup/jquery.ketchup.css" type="text/css"/>
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css${version}/ketchup-0.3.2/jquery.ketchup.css" type="text/css"/>
         
         <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/jquery-1.6.2.min.js"></script>
 
@@ -47,10 +49,17 @@
         <link rel="stylesheet" href="${pageContext.request.contextPath}/js${version}/colorpicker/css/colorpicker.css" type="text/css"/>
         <script src="${pageContext.request.contextPath}/js${version}/colorpicker/js/colorpicker.js" type="text/javascript"></script>
         
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/ketchup/jquery.ketchup.js"></script>
+        <%--<script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/ketchup/jquery.ketchup.js"></script>--%>
+        <%--<script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/ketchup/jquery.ketchup.messages.js"></script>--%>
+        <%--<script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/ketchup/jquery.ketchup.validations.basic.js"></script>--%>
+
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/ketchup-0.3.2/jquery.ketchup.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/ketchup/jquery.ketchup.messages.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/ketchup/jquery.ketchup.validations.basic.js"></script>
-        
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/ketchup-0.3.2/jquery.ketchup.validations.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/ketchup-0.3.2/scaffold.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/ketchup-0.3.2/jquery.ketchup.helpers.js"></script>
+
+
         <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/jquery.cj-simple-slideshow.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/jquery.tablednd_0_5.js"></script>
 		
@@ -85,23 +94,23 @@
         <!-- Theme css and js file includes -->
         <c:if test="${ theme != null }">
             <c:forEach items="${ theme.cssFiles }" var="cssFile">
-	            <link rel="stylesheet" href="${pageContext.request.contextPath}/files/download.htm?className=au.com.gaiaresources.bdrs.model.theme.Theme&id=${ theme.id }&fileName=<%= Theme.THEME_DIR_PROCESSED %>/${ cssFile }" type="text/css">
+	            <link rel="stylesheet" href="${portalContextPath}/files/download.htm?className=au.com.gaiaresources.bdrs.model.theme.Theme&id=${ theme.id }&fileName=<%= Theme.THEME_DIR_PROCESSED %>/${ cssFile }" type="text/css">
 	        </c:forEach>
 	        <c:forEach items="${ theme.jsFiles }" var="jsFile">
-	            <script type="text/javascript" src="${pageContext.request.contextPath}/files/download.htm?className=au.com.gaiaresources.bdrs.model.theme.Theme&id=${ theme.id }&fileName=<%= Theme.THEME_DIR_PROCESSED %>/${ jsFile }"></script>
+	            <script type="text/javascript" src="${portalContextPath}/files/download.htm?className=au.com.gaiaresources.bdrs.model.theme.Theme&id=${ theme.id }&fileName=<%= Theme.THEME_DIR_PROCESSED %>/${ jsFile }"></script>
 	        </c:forEach>
         </c:if>
 		
 		<!-- IE7 specific styles and hard coded IE7 file in theme -->
         <!--[if IE 7]>
 		    <link rel="stylesheet" href="${pageContext.request.contextPath}/css${version}/bdrs/bdrs-ie7.css" type="text/css"/>
-            <link rel="stylesheet" href="${pageContext.request.contextPath}/files/download.htm?className=au.com.gaiaresources.bdrs.model.theme.Theme&id=${ theme.id }&fileName=<%= Theme.THEME_DIR_PROCESSED %>/css/base-ie7.css" type="text/css">
+            <link rel="stylesheet" href="${portalContextPath}/files/download.htm?className=au.com.gaiaresources.bdrs.model.theme.Theme&id=${ theme.id }&fileName=<%= Theme.THEME_DIR_PROCESSED %>/css/base-ie7.css" type="text/css">
         <![endif]-->
 		
 		<!-- Hard coded IE8 file in theme -->
         <!--[if IE 8]>
 		    <link rel="stylesheet" href="${pageContext.request.contextPath}/css${version}/bdrs/bdrs-ie8.css" type="text/css"/>
-            <link rel="stylesheet" href="${pageContext.request.contextPath}/files/download.htm?className=au.com.gaiaresources.bdrs.model.theme.Theme&id=${ theme.id }&fileName=<%= Theme.THEME_DIR_PROCESSED %>/css/base-ie8.css" type="text/css">
+            <link rel="stylesheet" href="${portalContextPath}/files/download.htm?className=au.com.gaiaresources.bdrs.model.theme.Theme&id=${ theme.id }&fileName=<%= Theme.THEME_DIR_PROCESSED %>/css/base-ie8.css" type="text/css">
         <![endif]-->
         
 		<script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/jquery-blockui/jquery.blockUI.js"></script>
@@ -130,7 +139,8 @@
 			};
 			 
             jQuery(function () {
-                bdrs.contextPath = '${pageContext.request.contextPath}'; 
+                bdrs.contextPath = '${pageContext.request.contextPath}';
+                bdrs.portalContextPath = '${portalContextPath}';
                 bdrs.ident = '<%= context.getUser() == null ? "" : context.getUser().getRegistrationKey() %>';
                 bdrs.dateFormat = 'dd M yy';
 				
@@ -155,6 +165,7 @@
         <c:forEach var="jsFile" items="${customJS}">
             <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/${jsFile}"></script>
         </c:forEach>
+
     </head>
 
     <body>

@@ -22,9 +22,15 @@
 	        <tr>
 	            <th><label for="name">Name:</label></th>
 	            <td>
-	               <input class="validate(required)" type="text" name="name" value="${ portal.name }"/>
+	               <input id="name" class="validate(required)" type="text" name="name" value="${ portal.name }"/>
 	            </td>
 	        </tr>
+            <tr>
+                <th><label for="urlPrefix">URL Prefix:</label></th>
+                <td>
+                    <input id="urlPrefix" class="validate(maxlength(10), wordOrBlank, portalPrefix)" type="text" name="urlPrefix" value="${ portal.urlPrefix }"/>
+                </td>
+            </tr>
 	        <tr>
                 <th><label for="default">Default:</label></th>
                 <td>
@@ -43,31 +49,31 @@
                            Yes
                        </c:when>
                        <c:otherwise>
-                           <input type="checkbox" name="default" value="true"/>
+                           <input id="default" type="checkbox" name="default" value="true"/>
                        </c:otherwise>
                    </c:choose>
                 </td>
             </tr>
             <tr>
-                <th><label for="default">Active:</label></th>
+                <th><label for="active">Active:</label></th>
                 <td>
                     <c:choose>
                         <c:when test="${ (portal == context.portal) || portal.default }">
                             <%-- It is not possible to deactivate your current portal --%>
                             <c:choose>
                                 <c:when test="${ portal.active }">
-                                    <input type="hidden" name="active" value="true" checked="checked"/>
+                                    <input type="hidden" name="active" value="true"/>
                                     Yes
                                 </c:when>
                                 <c:otherwise>
                                     <!-- I do not see how you got here but for the sake of completeness -->
-                                    <input type="hidden" name="active" value="true"/>
+                                    <input type="hidden" name="active" value="false"/>
                                     No
                                 </c:otherwise>
                             </c:choose>
                         </c:when>
                         <c:otherwise>
-                            <input type="checkbox" name="active" value="true"
+                            <input id="active" type="checkbox" name="active" value="true"
                                 <c:if test="${ portal.active }">
                                     checked="checked"
                                 </c:if>
@@ -136,4 +142,25 @@
     </div>
 	
 </form>
+<script>
 
+    jQuery.fn.ketchup.validation('portalPrefix', function(element, value) {
+        var valid;
+        jQuery.ajax({
+            url: '${portalContextPath}/bdrs/root/portal/ajaxValidatePortalPrefix.htm',
+            dataType: 'json',
+            data: {portalId:${portal.id}, urlPrefix:value},
+            async: false,
+            success: function(result) {
+                console.log(result);
+                console.log(result.valid);
+                valid = result.valid;
+            }
+        });
+        return valid;
+    });
+
+
+    jQuery.extend(jQuery.fn.ketchup.messages, {'portalPrefix':'URL prefix is already in use.'});
+
+</script>

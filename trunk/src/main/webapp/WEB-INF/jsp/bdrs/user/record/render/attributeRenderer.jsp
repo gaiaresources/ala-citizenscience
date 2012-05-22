@@ -528,9 +528,9 @@
     <c:when test="${ formField.attribute.type == 'IMAGE'}">
         <c:if test="${ formField.attributeValue != null && formField.attributeValue.stringValue != null }">
             <div id="${ formPrefix }attribute_img_${ formField.attribute.id }">
-                <a href="${pageContext.request.contextPath}/files/download.htm?<%= formField.getAttributeValue().getFileURL() %>">
+                <a href="${portalContextPath}/files/download.htm?<%= formField.getAttributeValue().getFileURL() %>">
                     <img width="250"
-                        src="${pageContext.request.contextPath}/files/download.htm?<%= formField.getAttributeValue().getFileURL() %>"
+                        src="${portalContextPath}/files/download.htm?<%= formField.getAttributeValue().getFileURL() %>"
                         alt="Missing Image"/>
                 </a>
             </div>
@@ -565,7 +565,7 @@
         
         <c:if test="${ formField.attributeValue != null && formField.attributeValue.stringValue != null }">
             <div id="${sectionName}">
-                <a href="${pageContext.request.contextPath}/files/download.htm?<%= formField.getAttributeValue().getFileURL() %>">
+                <a href="${portalContextPath}/files/download.htm?<%= formField.getAttributeValue().getFileURL() %>">
                     <c:out value="${ formField.attributeValue.stringValue }"/>
                 </a>
             </div>

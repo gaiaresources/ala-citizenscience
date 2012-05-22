@@ -29,7 +29,7 @@
 <script type="text/javascript">
     // creates a little helper object and does some data init. See the object definition in bdrs.js 
     // for more details....
-    var ${widgetId}_GridHelper = new bdrs.JqGrid("#${widgetId}", '${pageContext.request.contextPath}/bdrs/admin/censusMethod/search.htm', '${baseQueryString}');
+    var ${widgetId}_GridHelper = new bdrs.JqGrid("#${widgetId}", '${portalContextPath}/bdrs/admin/censusMethod/search.htm', '${baseQueryString}');
     
     ${widgetId}_GridHelper.actionLinkFormatter = function(cellvalue, options, rowObject) {
         var links = new Array();

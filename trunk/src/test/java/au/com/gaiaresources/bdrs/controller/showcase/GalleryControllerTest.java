@@ -1,12 +1,18 @@
 package au.com.gaiaresources.bdrs.controller.showcase;
 
-import java.io.File;
-import java.util.List;
-
+import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
+import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataHelper;
+import au.com.gaiaresources.bdrs.file.FileService;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.json.JSONSerializer;
-
+import au.com.gaiaresources.bdrs.model.file.ManagedFile;
+import au.com.gaiaresources.bdrs.model.file.ManagedFileDAO;
+import au.com.gaiaresources.bdrs.model.showcase.Gallery;
+import au.com.gaiaresources.bdrs.model.showcase.GalleryDAO;
+import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
+import au.com.gaiaresources.bdrs.util.ImageUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,18 +21,9 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.mock.web.MockMultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
-import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
-import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataHelper;
-import au.com.gaiaresources.bdrs.file.FileService;
-import au.com.gaiaresources.bdrs.model.file.ManagedFile;
-import au.com.gaiaresources.bdrs.model.file.ManagedFileDAO;
-import au.com.gaiaresources.bdrs.model.showcase.Gallery;
-import au.com.gaiaresources.bdrs.model.showcase.GalleryDAO;
-import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
-import au.com.gaiaresources.bdrs.util.ImageUtil;
+import java.io.File;
+import java.util.List;
 
 public class GalleryControllerTest extends AbstractControllerTest {
 
@@ -134,9 +131,7 @@ public class GalleryControllerTest extends AbstractControllerTest {
         Assert.assertEquals("new name", g.getName());
         Assert.assertEquals("new description", g.getDescription());
         
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals(GalleryController.EDIT_URL + "?" + GalleryController.GALLERY_PK_VIEW + "=" + g.getId().toString(), redirect.getUrl());
+        assertRedirect(mv, GalleryController.EDIT_URL + "?" + GalleryController.GALLERY_PK_VIEW + "=" + g.getId().toString());
     }
     
     @Test
@@ -159,9 +154,7 @@ public class GalleryControllerTest extends AbstractControllerTest {
         
         ModelAndView mv = this.handle(request, response);
         
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals(GalleryController.EDIT_URL + "?" + GalleryController.GALLERY_PK_VIEW + "=" + g2.getId().toString(), redirect.getUrl());
+        assertRedirect(mv, GalleryController.EDIT_URL + "?" + GalleryController.GALLERY_PK_VIEW + "=" + g2.getId().toString());
         
         Assert.assertEquals(2, galleryDAO.count().longValue());
         
@@ -219,9 +212,7 @@ public class GalleryControllerTest extends AbstractControllerTest {
         
         ModelAndView mv = this.handle(request, response);
         
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals(GalleryController.EDIT_URL + "?" + GalleryController.GALLERY_PK_VIEW + "=" + g2.getId().toString(), redirect.getUrl());
+        assertRedirect(mv, GalleryController.EDIT_URL + "?" + GalleryController.GALLERY_PK_VIEW + "=" + g2.getId().toString());
         
         Assert.assertEquals(2, galleryDAO.count().longValue());
         
@@ -280,9 +271,7 @@ public class GalleryControllerTest extends AbstractControllerTest {
         
         ModelAndView mv = this.handle(request, response);
         
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals(GalleryController.EDIT_URL + "?" + GalleryController.GALLERY_PK_VIEW + "=" + g2.getId().toString(), redirect.getUrl());
+        assertRedirect(mv, GalleryController.EDIT_URL + "?" + GalleryController.GALLERY_PK_VIEW + "=" + g2.getId().toString());
         
         Assert.assertEquals(2, galleryDAO.count().longValue());
         
@@ -347,9 +336,7 @@ public class GalleryControllerTest extends AbstractControllerTest {
         
         ModelAndView mv = this.handle(request, response);
         
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals(GalleryController.EDIT_URL + "?" + GalleryController.GALLERY_PK_VIEW + "=" + g2.getId().toString(), redirect.getUrl());
+        assertRedirect(mv, GalleryController.EDIT_URL + "?" + GalleryController.GALLERY_PK_VIEW + "=" + g2.getId().toString());
         
         Assert.assertEquals(2, galleryDAO.count().longValue());
         
@@ -399,10 +386,7 @@ public class GalleryControllerTest extends AbstractControllerTest {
         request.setParameter(GalleryController.PARAM_DESCRIPTION, "new description");
         
         ModelAndView mv = this.handle(request, response);
-        
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals(GalleryController.EDIT_URL + "?" + GalleryController.GALLERY_PK_VIEW + "=" + g2.getId().toString(), redirect.getUrl());
+        assertRedirect(mv, GalleryController.EDIT_URL + "?" + GalleryController.GALLERY_PK_VIEW + "=" + g2.getId().toString());
         
         Assert.assertEquals(2, galleryDAO.count().longValue());
         
@@ -457,10 +441,8 @@ public class GalleryControllerTest extends AbstractControllerTest {
         request.setParameter(GalleryController.PARAM_DESCRIPTION, "new description");
         
         ModelAndView mv = this.handle(request, response);
-        
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals(GalleryController.EDIT_URL + "?" + GalleryController.GALLERY_PK_VIEW + "=" + g2.getId().toString(), redirect.getUrl());
+
+        assertRedirect(mv, GalleryController.EDIT_URL + "?" + GalleryController.GALLERY_PK_VIEW + "=" + g2.getId().toString());
         
         Assert.assertEquals(2, galleryDAO.count().longValue());
         

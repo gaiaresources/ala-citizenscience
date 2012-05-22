@@ -6,7 +6,7 @@
 
 <cw:getContent key="admin/editPreferences" />
 
-<form method="POST" action="${pageContext.request.contextPath}/bdrs/admin/preference/preference.htm">
+<form method="POST" action="${portalContextPath}/bdrs/admin/preference/preference.htm">
 
     <div class="buttonpanel textright">
         <input class="form_action" type="submit" value="Save Preferences"/>

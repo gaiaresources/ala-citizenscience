@@ -27,7 +27,7 @@
 <script type="text/javascript">
     // creates a little helper object and does some data init. See the object definition in bdrs.js 
     // for more details....
-    var ${widgetId}Grid = new bdrs.JqGrid("#${widgetId}", '${pageContext.request.contextPath}/webservice/user/searchUsers.htm', '${baseQueryString}');
+    var ${widgetId}Grid = new bdrs.JqGrid("#${widgetId}", '${portalContextPath}/webservice/user/searchUsers.htm', '${baseQueryString}');
     
     //jQuery("#${widgetId}").data("url", ${widgetId}Grid.createUrl());
     

@@ -1,9 +1,8 @@
-
 <table style="width: 100%; height: 21px;" align="left" border="0" cellpadding="0" cellspacing="0">
     <tbody>
         <tr>
-            <td style="width:20%" valign="top"><span style="font-size: 8pt;"><a target="_blank" href="${pageContext.request.contextPath}/termsAndConditions.htm">Terms &amp; Conditions</a></span></td>
-            <td style="width:20%" valign="top"><span style="font-size: 8pt;"><a target="_blank" href="${pageContext.request.contextPath}/privacyStatement.htm">Privacy Statement</a></span></td>
+            <td style="width:20%" valign="top"><span style="font-size: 8pt;"><a target="_blank" href="${portalContextPath}/termsAndConditions.htm">Terms &amp; Conditions</a></span></td>
+            <td style="width:20%" valign="top"><span style="font-size: 8pt;"><a target="_blank" href="${portalContextPath}/privacyStatement.htm">Privacy Statement</a></span></td>
             <td style="width: 40%;" valign="top" align="right"><span style="font-size: 8pt;">Powered by the <a href="http://code.google.com/p/ala-citizenscience/" target="_blank">Biological Data Recording System</a></span></td>
         </tr>
     </tbody>

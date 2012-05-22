@@ -18,7 +18,7 @@
 		<c:choose>
 		    <c:when test="${not empty parentRecordList}">
 			    <c:forEach var="r" items="${parentRecordList}" varStatus="loopStatus">
-			        <a href="${pageContext.request.contextPath}/bdrs/user/surveyRenderRedirect.htm?recordId=${r.id}&selectedTab=${selectedTab}"><c:out value="${r.censusMethod.name}" />&nbsp;</a>
+			        <a href="${portalContextPath}/bdrs/user/surveyRenderRedirect.htm?recordId=${r.id}&selectedTab=${selectedTab}"><c:out value="${r.censusMethod.name}" />&nbsp;</a>
 					<c:if test="${not loopStatus.last}">
 						<span class="breadcrumbSeparator">&nbsp;>&nbsp;&nbsp;</span>
 					</c:if>
@@ -41,7 +41,7 @@
 		<c:if test="${ recordWebFormContext.editable }">
 			<div class="buttonpanel right">
 		       <input type="button" value="Add Sub Record" class="form_action"
-			    onclick="javascript:window.location = '${pageContext.request.contextPath}/bdrs/user/surveyRenderRedirect.htm?surveyId=${survey.id}&censusMethodId=${cm.id}&parentRecordId=${record.id}'" />
+			    onclick="javascript:window.location = '${portalContextPath}/bdrs/user/surveyRenderRedirect.htm?surveyId=${survey.id}&censusMethodId=${cm.id}&parentRecordId=${record.id}'" />
 		    </div>
 		</c:if>
 		<h3><c:out value="${cm.name}" /></h3>

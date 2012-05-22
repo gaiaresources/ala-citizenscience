@@ -1,18 +1,16 @@
 package au.com.gaiaresources.bdrs.servlet.filter;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import au.com.gaiaresources.bdrs.controller.HomePageController;
+import au.com.gaiaresources.bdrs.servlet.BdrsSavedRequestAwareAuthenticationSuccessHandler;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import org.apache.log4j.Logger;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import au.com.gaiaresources.bdrs.controller.HomePageController;
-import au.com.gaiaresources.bdrs.servlet.BdrsSavedRequestAwareAuthenticationSuccessHandler;
-import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Overrides the behaviour of the default Spring authentication filter to work nicely
@@ -26,7 +24,7 @@ public class BdrsAuthenticationFilter extends
 
     private Logger log = Logger.getLogger(getClass());
     
-    private static final String RESTFUL_PORTAL_PATTERN_STR = "(" + PortalSelectionFilter.BASE_RESTFUL_PORTAL_PATTERN + ")?";
+    private static final String RESTFUL_PORTAL_PATTERN_STR = "(" + PortalSelectionFilterMatcher.BASE_RESTFUL_PORTAL_PATTERN + ")?";
     
     private Pattern authenticationPattern;
     private BdrsSavedRequestAwareAuthenticationSuccessHandler successHandler;

@@ -11,15 +11,19 @@ import au.com.gaiaresources.bdrs.security.RecaptchaService;
 
 @Controller
 public class RecaptchaController extends AbstractController {
+
+    public static final String RECAPTCHA_URL = "/recaptcha.htm";
+
     @Autowired
     private RecaptchaService recaptcha;
+
     
-    @RequestMapping(value = "/recaptcha.htm", method = RequestMethod.GET)
+    @RequestMapping(value = RECAPTCHA_URL, method = RequestMethod.GET)
     public String render() {
         return "recaptcha";
     }
     
-    @RequestMapping(value = "/recaptcha.htm", method = RequestMethod.POST)
+    @RequestMapping(value = RECAPTCHA_URL, method = RequestMethod.POST)
     public ModelAndView validate(@RequestParam("recaptcha_challenge_field") String challenge,
                                  @RequestParam("recaptcha_response_field") String response) 
     {

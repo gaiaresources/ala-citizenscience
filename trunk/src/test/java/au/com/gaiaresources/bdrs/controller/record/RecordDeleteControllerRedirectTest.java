@@ -1,10 +1,5 @@
 package au.com.gaiaresources.bdrs.controller.record;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.servlet.ModelAndView;
-
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.controller.review.sightings.SightingsController;
 import au.com.gaiaresources.bdrs.model.record.Record;
@@ -14,6 +9,10 @@ import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.security.Role;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.servlet.ModelAndView;
 
 public class RecordDeleteControllerRedirectTest extends AbstractControllerTest {
 
@@ -123,7 +122,7 @@ public class RecordDeleteControllerRedirectTest extends AbstractControllerTest {
         ModelAndView mv = handle(request, response);
         
         if (redirect) {
-            assertRedirect(mv, TEST_REDIRECT_URL);
+            assertRedirect(mv, TEST_REDIRECT_URL, false);
         }
         
         if (authOk) {

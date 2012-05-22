@@ -17,7 +17,7 @@
     </c:when>
 </c:choose>
 
-<form id="record_filter_form" method="get" action="${pageContext.request.contextPath}/map/addRecordBaseMapLayer.htm" onsubmit="bdrs.map.addRecordLayerHandler('#record_filter_form', '#record_map_layers');return false;">
+<form id="record_filter_form" method="get" action="${portalContextPath}/map/addRecordBaseMapLayer.htm" onsubmit="bdrs.map.addRecordLayerHandler('#record_filter_form', '#record_map_layers');return false;">
     <c:forEach var='item' items='${pageContext.request.parameterMap}'>
         <input type="hidden" name="${item.key}" value="${item.value[0]}"/>
     </c:forEach>

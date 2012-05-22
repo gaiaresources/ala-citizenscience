@@ -1,8 +1,12 @@
 package au.com.gaiaresources.bdrs.controller.admin;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
+import au.com.gaiaresources.bdrs.model.group.Group;
+import au.com.gaiaresources.bdrs.model.group.GroupDAO;
+import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.model.user.UserDAO;
+import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.util.StringUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,13 +16,8 @@ import org.springframework.security.authentication.encoding.PasswordEncoder;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
-import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
-import au.com.gaiaresources.bdrs.model.group.Group;
-import au.com.gaiaresources.bdrs.model.group.GroupDAO;
-import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.model.user.UserDAO;
-import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.util.StringUtils;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class UserGroupControllerTest extends AbstractControllerTest {
 
@@ -149,7 +148,7 @@ public class UserGroupControllerTest extends AbstractControllerTest {
         ModelAndView mv = this.handle(request, response);
         Assert.assertTrue(mv.getView() instanceof RedirectView);
         RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals(UserGroupController.LISTING_URL, redirect.getUrl());
+        assertUrlEquals(UserGroupController.LISTING_URL, redirect.getUrl());
     }
     
     private String createIdList(Integer...integers) {
@@ -167,7 +166,7 @@ public class UserGroupControllerTest extends AbstractControllerTest {
     private void assertRedirectOk(ModelAndView mv, Integer expectedGroupId) {
         Assert.assertTrue(mv.getView() instanceof RedirectView);
         RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals(UserGroupController.EDIT_URL + "?groupId=" + expectedGroupId.toString(), redirect.getUrl());
+        assertUrlEquals(UserGroupController.EDIT_URL + "?groupId=" + expectedGroupId.toString(), redirect.getUrl());
     }
     
     @Test

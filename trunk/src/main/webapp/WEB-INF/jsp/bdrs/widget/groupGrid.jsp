@@ -18,7 +18,7 @@
 
     // creates a little helper object and does some data init. See the object definition in bdrs.js 
     // for more details....
-    var ${widgetId}Grid = new bdrs.JqGrid("#${widgetId}", '${pageContext.request.contextPath}/webservice/group/searchGroups.htm', '${baseQueryString}');
+    var ${widgetId}Grid = new bdrs.JqGrid("#${widgetId}", '${portalContextPath}/webservice/group/searchGroups.htm', '${baseQueryString}');
     
     ${widgetId}Grid.actionLinkFormatter = function(cellvalue, options, rowObject) {
         var links = new Array();

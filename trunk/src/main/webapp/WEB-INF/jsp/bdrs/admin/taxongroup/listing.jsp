@@ -12,7 +12,7 @@
 
 <div class="input_container">
     <div class="buttonpanel textright">
-        <input class="form_action" type="button" value="Add Taxon Group" onclick="window.document.location='${pageContext.request.contextPath}/bdrs/admin/taxongroup/edit.htm';"/>
+        <input class="form_action" type="button" value="Add Taxon Group" onclick="window.document.location='${portalContextPath}/bdrs/admin/taxongroup/edit.htm';"/>
     </div>
     <table id="taxon_group_listing" class="datatable">
         <thead>
@@ -27,19 +27,19 @@
                 <tr>
                     <td class="thumb">
                         <c:if test="${ group.thumbNail != null }">
-                            <a href="${pageContext.request.contextPath}/bdrs/admin/taxongroup/edit.htm?pk=${ group.id }">
-                                <img height="64" src="${pageContext.request.contextPath}/files/download.htm?<%= group.getThumbnailFileURL() %>" alt="${ group.thumbNail }"/>                                                
+                            <a href="${portalContextPath}/bdrs/admin/taxongroup/edit.htm?pk=${ group.id }">
+                                <img height="64" src="${portalContextPath}/files/download.htm?<%= group.getThumbnailFileURL() %>" alt="${ group.thumbNail }"/>
                             </a>
                         </c:if>
                     </td>
                     <td class="name">
-                        <a href="${pageContext.request.contextPath}/bdrs/admin/taxongroup/edit.htm?pk=${ group.id }">${ group.name }</a>
+                        <a href="${portalContextPath}/bdrs/admin/taxongroup/edit.htm?pk=${ group.id }">${ group.name }</a>
                     </td>
                 </tr>
             </c:forEach>
         </tbody>
     </table>
     <div class="buttonpanel textright">
-        <input class="form_action" type="button" value="Add Taxon Group" onclick="window.document.location='${pageContext.request.contextPath}/bdrs/admin/taxongroup/edit.htm';"/>
+        <input class="form_action" type="button" value="Add Taxon Group" onclick="window.document.location='${portalContextPath}/bdrs/admin/taxongroup/edit.htm';"/>
     </div>
 </div>

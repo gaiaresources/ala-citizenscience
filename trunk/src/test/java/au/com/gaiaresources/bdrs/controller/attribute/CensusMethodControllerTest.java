@@ -1,26 +1,11 @@
 package au.com.gaiaresources.bdrs.controller.attribute;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-
-import au.com.gaiaresources.bdrs.model.taxa.AttributeVisibility;
-import junit.framework.Assert;
-import au.com.gaiaresources.bdrs.json.JSONArray;
-import au.com.gaiaresources.bdrs.json.JSONObject;
-import au.com.gaiaresources.bdrs.json.JSONSerializer;
-
-import org.apache.log4j.Logger;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
-
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.controller.insecure.taxa.ComparePersistentImplByWeight;
 import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataHelper;
+import au.com.gaiaresources.bdrs.json.JSONArray;
+import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.json.JSONSerializer;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
@@ -29,12 +14,21 @@ import au.com.gaiaresources.bdrs.model.method.Taxonomic;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
+import au.com.gaiaresources.bdrs.model.taxa.*;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import junit.framework.Assert;
+import org.apache.log4j.Logger;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
 public class CensusMethodControllerTest extends AbstractControllerTest {
     
@@ -264,7 +258,7 @@ public class CensusMethodControllerTest extends AbstractControllerTest {
         ModelAndView mv = handle(request, response);
         Assert.assertTrue(mv.getView() instanceof RedirectView);
         RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals("/bdrs/admin/censusMethod/listing.htm", redirect.getUrl());
+        assertUrlEquals("/bdrs/admin/censusMethod/listing.htm", redirect.getUrl());
         
         List<CensusMethod> censusMethodList = cmDAO.search(null, newName, null).getList();
         Assert.assertEquals(censusMethodList.size(), 1);

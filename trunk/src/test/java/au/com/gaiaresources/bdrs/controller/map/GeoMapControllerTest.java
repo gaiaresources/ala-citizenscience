@@ -1,14 +1,14 @@
 package au.com.gaiaresources.bdrs.controller.map;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import junit.framework.Assert;
-
+import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
+import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataHelper;
+import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.json.JSONSerializer;
-
+import au.com.gaiaresources.bdrs.model.map.*;
+import au.com.gaiaresources.bdrs.security.Role;
+import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,16 +16,8 @@ import org.springframework.test.web.ModelAndViewAssert;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
-import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
-import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataHelper;
-import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
-import au.com.gaiaresources.bdrs.model.map.AssignedGeoMapLayer;
-import au.com.gaiaresources.bdrs.model.map.GeoMap;
-import au.com.gaiaresources.bdrs.model.map.GeoMapDAO;
-import au.com.gaiaresources.bdrs.model.map.GeoMapLayer;
-import au.com.gaiaresources.bdrs.model.map.GeoMapLayerDAO;
-import au.com.gaiaresources.bdrs.model.map.GeoMapLayerSource;
-import au.com.gaiaresources.bdrs.security.Role;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GeoMapControllerTest extends AbstractControllerTest {
 
@@ -170,7 +162,7 @@ public class GeoMapControllerTest extends AbstractControllerTest {
         
         Assert.assertTrue(mv.getView() instanceof RedirectView);
         RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals(GeoMapController.LISTING_URL, redirect.getUrl());
+        assertUrlEquals(GeoMapController.LISTING_URL, redirect.getUrl());
         
         PagedQueryResult<GeoMap> pagedResult = geoMapDAO.search(null, "new name", null, null, null, null);
         
@@ -230,7 +222,7 @@ public class GeoMapControllerTest extends AbstractControllerTest {
         
         Assert.assertTrue(mv.getView() instanceof RedirectView);
         RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals(GeoMapController.LISTING_URL, redirect.getUrl());
+        assertUrlEquals(GeoMapController.LISTING_URL, redirect.getUrl());
         
         PagedQueryResult<GeoMap> pagedResult = geoMapDAO.search(null, null, null, map1.getId(), null, null);
         

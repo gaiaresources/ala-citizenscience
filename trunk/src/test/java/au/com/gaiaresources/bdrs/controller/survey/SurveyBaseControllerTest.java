@@ -1,19 +1,16 @@
 package au.com.gaiaresources.bdrs.controller.survey;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.imageio.ImageIO;
-
+import au.com.gaiaresources.bdrs.controller.AbstractGridControllerTest;
+import au.com.gaiaresources.bdrs.model.map.BaseMapLayer;
+import au.com.gaiaresources.bdrs.model.map.BaseMapLayerSource;
+import au.com.gaiaresources.bdrs.model.map.GeoMapLayerDAO;
+import au.com.gaiaresources.bdrs.model.metadata.Metadata;
+import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
+import au.com.gaiaresources.bdrs.model.survey.Survey;
+import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
+import au.com.gaiaresources.bdrs.model.survey.SurveyFormSubmitAction;
+import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import org.apache.commons.io.FilenameUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -23,20 +20,14 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.mock.web.MockMultipartHttpServletRequest;
 import org.springframework.test.web.ModelAndViewAssert;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
-import au.com.gaiaresources.bdrs.controller.AbstractGridControllerTest;
-import au.com.gaiaresources.bdrs.model.map.BaseMapLayer;
-import au.com.gaiaresources.bdrs.model.map.BaseMapLayerSource;
-import au.com.gaiaresources.bdrs.model.map.GeoMapLayer;
-import au.com.gaiaresources.bdrs.model.map.GeoMapLayerDAO;
-import au.com.gaiaresources.bdrs.model.metadata.Metadata;
-import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
-import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
-import au.com.gaiaresources.bdrs.model.survey.SurveyFormSubmitAction;
-import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.*;
+import java.util.List;
 
 public class SurveyBaseControllerTest extends AbstractGridControllerTest {
     
@@ -108,9 +99,7 @@ public class SurveyBaseControllerTest extends AbstractGridControllerTest {
         
         ModelAndView mv = handle(request, response);
         
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals("/bdrs/admin/survey/listing.htm", redirect.getUrl());
+        assertRedirect(mv, "/bdrs/admin/survey/listing.htm");
         
         Survey survey = surveyDAO.getSurveyByName(params.get("name"));
         Assert.assertEquals(survey.getName(), params.get("name"));
@@ -166,9 +155,7 @@ public class SurveyBaseControllerTest extends AbstractGridControllerTest {
         
         ModelAndView mv = handle(request, response);
         
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals("/bdrs/admin/survey/editTaxonomy.htm", redirect.getUrl());
+        assertRedirect(mv, "/bdrs/admin/survey/editTaxonomy.htm");
         
         Survey survey = surveyDAO.getSurveyByName(params.get("name"));
         Assert.assertEquals(survey.getName(), params.get("name"));
@@ -229,9 +216,7 @@ public class SurveyBaseControllerTest extends AbstractGridControllerTest {
         request.setParameter("saveAndContinue", "true");
         
         ModelAndView mv = handle(request, response);
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals("/bdrs/admin/survey/locationListing.htm", redirect.getUrl());
+        assertRedirect(mv, "/bdrs/admin/survey/locationListing.htm");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "surveyId");
         
         // assert that the survey settings have been saved properly

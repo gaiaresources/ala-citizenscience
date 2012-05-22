@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 
 import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.model.preference.Preference;
@@ -128,7 +128,7 @@ public class PreferenceController extends AbstractController {
         }
 
         getRequestContext().addMessage("preference.save.success");
-        return new ModelAndView(new RedirectView(
+        return new ModelAndView(new PortalRedirectView(
                 "/bdrs/admin/preference/preference.htm", true));
     }
 

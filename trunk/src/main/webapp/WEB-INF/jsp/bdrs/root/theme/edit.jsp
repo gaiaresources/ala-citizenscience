@@ -92,7 +92,7 @@
 	                           <c:choose>
 	                               <c:when test="<%= themeFile.canEdit() %>">
 	                               
-	                                   <a href="${pageContext.request.contextPath}/bdrs/<c:if test="${editAsRoot}">root</c:if><c:if test="${editAsAdmin}">admin</c:if>/theme/editThemeFile.htm?themeId=${ editTheme.id }&themeFileName=<%= themeFile.getFileName() %>">
+	                                   <a href="${portalContextPath}/bdrs/<c:if test="${editAsRoot}">root</c:if><c:if test="${editAsAdmin}">admin</c:if>/theme/editThemeFile.htm?themeId=${ editTheme.id }&themeFileName=<%= themeFile.getFileName() %>">
                                            <c:out value="<%= themeFile.getDisplayName() %>"/>
                                        </a>
 	                               </c:when>
@@ -118,7 +118,7 @@
         <c:if test="${ editTheme.id != null }">
             <a href="javascript: void(0);" onclick="jQuery('#advanced_editing').toggle();">Advanced Editing</a>
             <span>&nbsp;|&nbsp;</span>
-            <input class="form_action" type="button" value="Download Theme" name="download" onclick="window.document.location='${pageContext.request.contextPath}/bdrs/admin/theme/downloadTheme.htm?themeId=${ editTheme.id }';"/>
+            <input class="form_action" type="button" value="Download Theme" name="download" onclick="window.document.location='${portalContextPath}/bdrs/admin/theme/downloadTheme.htm?themeId=${ editTheme.id }';"/>
         </c:if>
         <input class="form_action" type="submit" value="Revert Theme" name="revert" onclick="return confirm('Reverting this theme will delete all local changes. Do you wish to continue?');"/>
         <input class="form_action" type="submit" value="Save Theme"/>

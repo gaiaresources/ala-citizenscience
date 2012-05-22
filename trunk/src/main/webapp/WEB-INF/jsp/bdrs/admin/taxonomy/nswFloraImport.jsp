@@ -11,7 +11,7 @@
 	<p>
 		Save your NSW Flora spreadsheet as a CSV file and upload it here.
 	</p>
-	<form method="POST" enctype="multipart/form-data" action="${pageContext.request.contextPath}/bdrs/admin/taxonomy/taxonLibImport.htm"
+	<form method="POST" enctype="multipart/form-data" action="${portalContextPath}/bdrs/admin/taxonomy/taxonLibImport.htm"
 	target="iframe_target">
 	    <input type="hidden" name="importSource" value="NSW_FLORA" />
 	    <table class="form_table">

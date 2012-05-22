@@ -12,7 +12,7 @@ bdrs.preferences.addPreferenceRow = function(categoryId, indexSelector, tableSel
         categoryId: categoryId,
         index: index
     };
-    jQuery.get(bdrs.contextPath+"/bdrs/admin/preference/ajaxAddPreferenceRow.htm", params, function(data) {
+    jQuery.get(bdrs.portalContextPath+"/bdrs/admin/preference/ajaxAddPreferenceRow.htm", params, function(data) {
         jQuery(tableSelector).find("tbody").append(data);
         jQuery('form').ketchup();
     });

@@ -19,7 +19,7 @@
 
 <cw:getContent key="admin/editProject/editLocation" />
 
-<form method="POST" action="${pageContext.request.contextPath}/bdrs/admin/survey/editLocation.htm" enctype="multipart/form-data">
+<form method="POST" action="${portalContextPath}/bdrs/admin/survey/editLocation.htm" enctype="multipart/form-data">
     <input type="hidden" name="surveyId" value="${survey.id}"/>
     <c:if test="${location != null}">
         <input type="hidden" name="locationId" value="${location.id}"/>
@@ -101,7 +101,7 @@
         <div class="buttonpanel">
             <div class="textright buttonpanel">
                 <span class="error" id="wktErrorMessage"></span>
-                <input type="button" class="form_action" name="goback" value="Go Back" onclick="window.document.location='${pageContext.request.contextPath}/bdrs/admin/survey/locationListing.htm?surveyId=${survey.id}'"/>
+                <input type="button" class="form_action" name="goback" value="Go Back" onclick="window.document.location='${portalContextPath}/bdrs/admin/survey/locationListing.htm?surveyId=${survey.id}'"/>
                 <input id="saveLocation" type="submit" class="form_action" name="save" value="Save"/>
             </div>
         </div>

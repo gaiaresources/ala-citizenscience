@@ -1,4 +1,3 @@
-
 <!--  DIALOGS -->
 <div id="htmlEditorDialog" title="HTML Editor">
     <label>Edit the HTML content that you want to display in the editor below: </label>
@@ -9,7 +8,7 @@
 
     <h3><a href="#">Upload New File</a></h3>
     <div>
-        <form id="saveManagedFile" method="POST" enctype="multipart/form-data" action="${pageContext.request.contextPath}/bdrs/user/managedfile/service/edit.htm">
+        <form id="saveManagedFile" method="POST" enctype="multipart/form-data" action="${portalContextPath}/bdrs/user/managedfile/service/edit.htm">
 
             A file attached here will be added to the managed files interface and be associated with the selected Taxon Profile Element.
 
@@ -94,12 +93,12 @@
 
 
 <script type="text/javascript">
-
+bdrs.form.not_validated_form_selectors=['#saveManagedFile','#widgetSearchForm'];
     // ***********************************************************
     // Setup the managed files search results table as a jq-grid.
     // ***********************************************************
     var downloadURL = function(file) {
-        return '${pageContext.request.contextPath}/files/download.htm?'+file;
+        return '${portalContextPath}/files/download.htm?'+file;
     };
 
     var previewFormatter = function(cellvalue, options, rowObject) {
@@ -145,7 +144,7 @@
 
     jQuery("#managedFilesList").jqGrid('navGrid','#pager2',{edit:false,add:false,del:false});
 
-    var SEARCH_USER_URL = '${pageContext.request.contextPath}/bdrs/user/managedfile/service/search.htm';
+    var SEARCH_USER_URL = '${portalContextPath}/bdrs/user/managedfile/service/search.htm';
 
     function getUserSearchUrl() {
         var params = jQuery("#searchForm").serialize();

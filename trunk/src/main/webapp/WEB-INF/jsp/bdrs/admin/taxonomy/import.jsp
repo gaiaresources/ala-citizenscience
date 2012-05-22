@@ -6,7 +6,7 @@
 
 <div class="atlas_import_container">
     <cw:getContent key="admin/taxonomy/listing" />
-    <form id="importTaxonForm" method="POST" action="${pageContext.request.contextPath}/bdrs/admin/taxonomy/importNewProfiles.htm">
+    <form id="importTaxonForm" method="POST" action="${portalContextPath}/bdrs/admin/taxonomy/importNewProfiles.htm">
             <div class="input_container">
         <table class="form_table">
                 <tbody>

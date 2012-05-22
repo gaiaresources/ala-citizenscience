@@ -60,7 +60,7 @@
 	        Download your template below for your project. There is help, a list of
 	        locations and a taxonomy checklist included in the downloaded template.
 	    </p>
-	    <form id="downloadTemplateForm" action="${pageContext.request.contextPath}/bulkdata/spreadsheetTemplate.htm" method="get">
+	    <form id="downloadTemplateForm" action="${portalContextPath}/bulkdata/spreadsheetTemplate.htm" method="get">
 	        <table class="form_table bulkDataTableForm">
 	            <tbody>
 	                <tr>
@@ -123,7 +123,7 @@
 	
 	<h3>Step 2: Download Template Shapefile</h3>
 
-	<form id="downloadShapefileTemplateForm" action="${pageContext.request.contextPath}/bulkdata/shapefileTemplate.htm" method="get">
+	<form id="downloadShapefileTemplateForm" action="${portalContextPath}/bulkdata/shapefileTemplate.htm" method="get">
         <table class="form_table bulkDataTableForm">
             <tbody>
             	<tr>
@@ -181,7 +181,7 @@
 	
 	<h3>Step 3: Upload Shapefile</h3>
     <div>
-    	<form id="uploadShapefileForm" action="${pageContext.request.contextPath}/bulkdata/uploadShapefile.htm" method="post" enctype="multipart/form-data">
+    	<form id="uploadShapefileForm" action="${portalContextPath}/bulkdata/uploadShapefile.htm" method="post" enctype="multipart/form-data">
 		    <table class="form_table bulkDataTableForm">
 		        <tbody>
 		            <tr>

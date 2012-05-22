@@ -22,7 +22,7 @@
 	</c:if>
 
 	<c:if test="${ not preview and recordWebFormContext.editable}">
-        <form method="POST" action="${pageContext.request.contextPath}/bdrs/user/tracker.htm" enctype="multipart/form-data">
+        <form method="POST" action="${portalContextPath}/bdrs/user/tracker.htm" enctype="multipart/form-data">
     </c:if>
         <input type="hidden" name="parentRecordId" value="${parentRecordId}"/>
         <input type="hidden" name="surveyId" value="${survey.id}"/>
@@ -148,7 +148,7 @@
                 params.attribute = bits[bits.length-1];
                 
 
-                jQuery.getJSON('${pageContext.request.contextPath}/webservice/attribute/searchValues.htm', params, function(data, textStatus) {
+                jQuery.getJSON('${portalContextPath}/webservice/attribute/searchValues.htm', params, function(data, textStatus) {
                     callback(data);
                 });
             },

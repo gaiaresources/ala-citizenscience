@@ -1,31 +1,5 @@
 package au.com.gaiaresources.bdrs.controller.record;
 
-import java.math.BigDecimal;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import junit.framework.Assert;
-
-import org.apache.log4j.Logger;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.mock.web.MockMultipartHttpServletRequest;
-import org.springframework.test.web.ModelAndViewAssert;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
-
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordAttributeFormField;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyFormField;
@@ -40,19 +14,26 @@ import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
-import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.*;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import junit.framework.Assert;
+import org.apache.log4j.Logger;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.mock.web.MockMultipartHttpServletRequest;
+import org.springframework.test.web.ModelAndViewAssert;
+import org.springframework.web.servlet.ModelAndView;
+
+import java.math.BigDecimal;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * Tests all aspects of the <code>YearlySightingsControllerTest</code>.
@@ -516,9 +497,7 @@ public class YearlySightingsControllerTest extends RecordFormTest {
         request.setParameters(params);
         ModelAndView mv = handle(request, response);
         
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals(redirectionService.getMySightingsUrl(survey), redirect.getUrl());
+        assertRedirect(mv, redirectionService.getMySightingsUrl(survey));
         
         Assert.assertEquals(300, recordDAO.countAllRecords().intValue());
         

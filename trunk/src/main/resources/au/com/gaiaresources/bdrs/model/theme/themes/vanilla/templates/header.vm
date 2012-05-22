@@ -4,9 +4,9 @@
     <div id="header" class="header">
 #{end}
     #{if}(${context.user})
-        <a href="${pageContext.request.contextPath}/authenticated/redirect.htm"></a>
+        <a href="${portalContextPath}/authenticated/redirect.htm"></a>
     #{else}
-        <a href="${pageContext.request.contextPath}/home.htm"></a>
+        <a href="${portalContextPath}/home.htm"></a>
     #{end}
         <div id="portalName">
     #{if}(!${context.portal})
@@ -22,7 +22,7 @@
             <a title="Sign out / Log out" href="${pageContext.request.contextPath}/logout">Sign Out</a>
         </div>
         <div>
-            <a title="Open user profile for ${context.user.firstName} ${context.user.lastName}" href="${pageContext.request.contextPath}/user/editProfile.htm">
+            <a title="Open user profile for ${context.user.firstName} ${context.user.lastName}" href="${portalContextPath}/user/editProfile.htm">
                 Logged in as ${context.user.name}
             </a>
         </div>

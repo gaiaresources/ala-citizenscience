@@ -120,7 +120,7 @@
         <div>
             <p>
                 Congratulations. Your data has been imported and is visible
-                in your <a href="${pageContext.request.contextPath}/map/mySightings.htm">My Sightings</a> page.
+                in your <a href="${portalContextPath}/map/mySightings.htm">My Sightings</a> page.
             </p>
         </div>
     </c:otherwise>

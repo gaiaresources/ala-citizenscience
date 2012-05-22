@@ -1,15 +1,12 @@
 package au.com.gaiaresources.bdrs.model.portal;
 
-import javax.persistence.AttributeOverride;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-
+import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import org.apache.log4j.Logger;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hsqldb.lib.StringUtil;
 
-import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
+import javax.persistence.*;
 
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -23,6 +20,7 @@ public class Portal extends PersistentImpl {
     private String name;
     private boolean isDefault = false;
     private boolean isActive = true;
+    private String urlPrefix;
 
     public Portal() {
         super();
@@ -55,11 +53,28 @@ public class Portal extends PersistentImpl {
         return isActive;
     }
 
+    @Column(name = "URL_PREFIX", unique = true)
+    public String getUrlPrefix() {
+        return urlPrefix;
+    }
+
+    public void setUrlPrefix(String urlPrefix) {
+        this.urlPrefix = urlPrefix;
+    }
+
     /**
      * Sets if this portal is accessible.
      * @param isActive true if the portal is accessible, false otherwise.
      */
     public void setActive(boolean isActive) {
         this.isActive = isActive;
+    }
+
+    @Transient
+    public String getPortalContextPath() {
+        if (StringUtil.isEmpty(getUrlPrefix())) {
+            return "/portal/"+getId();
+        }
+        return "/"+getUrlPrefix();
     }
 }

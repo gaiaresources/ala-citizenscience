@@ -136,7 +136,7 @@
     };
 
     var sendEmail = function() {
-        jQuery.ajax(bdrs.contextPath + "/admin/sendMessage.htm", 
+        jQuery.ajax(bdrs.portalContextPath + "/admin/sendMessage.htm",
         {
             type: "POST",
             data: { to: jQuery('#toUsers').val(), subject: jQuery('#subject').val(), 
@@ -164,7 +164,7 @@
     	var node1 = createRootNode("All Users");
 
         jQuery.ajax({
-            url: '${pageContext.request.contextPath}/webservice/user/getUsers.htm', 
+            url: '${portalContextPath}/webservice/user/getUsers.htm',
             success: function(data, textStatus) {
              node1["ChildNodes"] = createUserNodes("user", data);
         },
@@ -176,7 +176,7 @@
     var createGroupsNode = function() {
     	var node2 = createRootNode("Groups");
         jQuery.ajax({
-            url: '${pageContext.request.contextPath}/webservice/user/getUsers.htm?queryType=group', 
+            url: '${portalContextPath}/webservice/user/getUsers.htm?queryType=group',
             success: function(data, textStatus) {
              
              node2["ChildNodes"] = createGroupProjectNodes("group", data);
@@ -189,7 +189,7 @@
     var createProjectsNode = function() {
         var node3 = createRootNode("Projects");
         jQuery.ajax({
-            url: '${pageContext.request.contextPath}/webservice/user/getUsers.htm?queryType=project', 
+            url: '${portalContextPath}/webservice/user/getUsers.htm?queryType=project',
             success: function(data, textStatus) {
              
             node3["ChildNodes"] = createGroupProjectNodes("project", data);

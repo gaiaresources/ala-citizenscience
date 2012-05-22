@@ -18,14 +18,14 @@
     <div class="sepBottom">
         <h1>
             <div class="left">Share a Sighting</div>
-            <!-- a class="right" href="${pageContext.request.contextPath}/fieldguide/taxon.htm?id=${ taxon.id }">Species Page</a-->
+            <!-- a class="right" href="${portalContextPath}/fieldguide/taxon.htm?id=${ taxon.id }">Species Page</a-->
             <div class="clear"></div>
         </h1>
     </div>
     
     
     <c:if test="${ not preview }">
-    <form method="POST" action="${pageContext.request.contextPath}/bdrs/user/atlas.htm" enctype="multipart/form-data">
+    <form method="POST" action="${portalContextPath}/bdrs/user/atlas.htm" enctype="multipart/form-data">
         <input type="hidden" name="surveyId" value="${survey.id}"/>
         <input type="hidden" id="redirecturl" name="redirecturl" value="/review/sightings/advancedReview.htm"/>
         <c:if test="${record != null}">
@@ -49,8 +49,8 @@
                     <c:choose>
                         <c:when test="<%= profile.getType().equals(profile.SPECIES_PROFILE_THUMBNAIL) %>">
                                 <a class="left" href="http://bie.ala.org.au/species/${ taxon.scientificName }">
-                                <!-- a class="left" href="${pageContext.request.contextPath}/files/downloadByUUID.htm?uuid=${ profile.content }"-->
-                                    <img class="thumb" src="${pageContext.request.contextPath}/files/downloadByUUID.htm?uuid=${ profile.content }"/>
+                                <!-- a class="left" href="${portalContextPath}/files/downloadByUUID.htm?uuid=${ profile.content }"-->
+                                    <img class="thumb" src="${portalContextPath}/files/downloadByUUID.htm?uuid=${ profile.content }"/>
                                 </a>
                             
                         </c:when>
@@ -182,8 +182,8 @@
             <c:choose>
                 <c:when test="${ preview }">
                     <div class="buttonpanel textright">
-                        <input class="form_action" type="button" value="Go Back" onclick="window.document.location='${pageContext.request.contextPath}/bdrs/admin/survey/editAttributes.htm?surveyId=${survey.id}'"/>
-                        <input class="form_action" type="button" value="Continue" onclick="window.document.location='${pageContext.request.contextPath}/bdrs/admin/survey/locationListing.htm?surveyId=${survey.id}'"/>
+                        <input class="form_action" type="button" value="Go Back" onclick="window.document.location='${portalContextPath}/bdrs/admin/survey/editAttributes.htm?surveyId=${survey.id}'"/>
+                        <input class="form_action" type="button" value="Continue" onclick="window.document.location='${portalContextPath}/bdrs/admin/survey/locationListing.htm?surveyId=${survey.id}'"/>
                     </div>
                 </c:when>
                 <c:when test="${not preview and recordWebFormContext.editable}">
@@ -253,7 +253,7 @@
 
     bdrs.survey.location.updateLocation = function(pk, surveyId) {
         if(pk > 0) {
-            jQuery.get("${pageContext.request.contextPath}/webservice/location/getLocationById.htm", {id: pk, surveyId: surveyId}, function(data) {
+            jQuery.get("${portalContextPath}/webservice/location/getLocationById.htm", {id: pk, surveyId: surveyId}, function(data) {
                 var wkt = new OpenLayers.Format.WKT(bdrs.map.wkt_options);
                 var feature = wkt.read(data.location);
                 var point = feature.geometry.getCentroid().transform(
@@ -316,7 +316,7 @@
             var recordId = jQuery('#recordId').val();
             var redirecturl = jQuery('#redirecturl').val();
             
-            var url = bdrs.contextPath+"/bdrs/user/deleteRecord.htm";
+            var url = bdrs.portalContextPath+"/bdrs/user/deleteRecord.htm";
             var param = {
                 recordId: recordId,
                 redirecturl: redirecturl
@@ -442,7 +442,7 @@
                 params.attribute = bits[bits.length-1];
                 
 
-                jQuery.getJSON('${pageContext.request.contextPath}/webservice/attribute/searchValues.htm', params, function(data, textStatus) {
+                jQuery.getJSON('${portalContextPath}/webservice/attribute/searchValues.htm', params, function(data, textStatus) {
                     callback(data);
                 });
             },

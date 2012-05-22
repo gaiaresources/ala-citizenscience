@@ -5,8 +5,8 @@
     <jsp:useBean id="mfMap" type="java.util.Map<java.lang.String, au.com.gaiaresources.bdrs.model.file.ManagedFile>" scope="request"/>
     <c:forEach var="uuid" items="${gallery.fileUUIDS}">
     	<jsp:useBean id="uuid" type="java.lang.String" />
-		<a rel="lightbox" href="${pageContext.request.contextPath}/bdrs/public/gallery/fullImg.htm?uuid=${uuid}">
-        <img src="${pageContext.request.contextPath}/bdrs/public/gallery/slideshowImg.htm?uuid=${uuid}" width="${slideshowWidth}" height="${slideshowHeight}" 
+		<a rel="lightbox" href="${portalContextPath}/bdrs/public/gallery/fullImg.htm?uuid=${uuid}">
+        <img src="${portalContextPath}/bdrs/public/gallery/slideshowImg.htm?uuid=${uuid}" width="${slideshowWidth}" height="${slideshowHeight}"
 		alt="
 		<p>
 		  <c:out value="<%= mfMap.get(uuid).getDescription() %>" />

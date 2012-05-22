@@ -13,7 +13,7 @@
 
 <cw:getContent key="admin/map/editMapLayer" />
 
-<form id="mapLayerForm" action="${pageContext.request.contextPath}/bdrs/admin/mapLayer/edit.htm" method="POST">
+<form id="mapLayerForm" action="${portalContextPath}/bdrs/admin/mapLayer/edit.htm" method="POST">
     <c:if test="${ geoMapLayer.id != null }">
     <input type="hidden" name="geoMapLayerPk" value="${geoMapLayer.id}" />
     </c:if>
@@ -60,7 +60,7 @@
         <tr title="A managed file UUID. Depending on the layer source it may be a KML file or a shapefile.">
             <td><label for="fileId">File Identifier (UUID):</label></td>
             <td><input id="fileId" type="text" style="width:40em" name="mfuuid" value="<c:out value="${geoMapLayer.managedFileUUID}" />" size="40" autocomplete="off" onchange="setWriteFileToDatabase();" />
-			     <div>Upload and browse your files in the <a href="${pageContext.request.contextPath}/bdrs/user/managedfile/listing.htm" target="_blank">managed file interface. (Opens in new window)</a></div>
+			     <div>Upload and browse your files in the <a href="${portalContextPath}/bdrs/user/managedfile/listing.htm" target="_blank">managed file interface. (Opens in new window)</a></div>
 			     <div id="shapefile_instructions">The uploaded file must be a zipped up shapefile containing a minimum of the .shp, .dbf, .shx and .prj files.</div>
 			</td>
         </tr>
@@ -128,7 +128,7 @@
 		  }
 		  if ($('#radio_shapefile').attr('checked') && $('#writeToDatabase').attr('checked')) {
                 var uuid = $('#fileId').val();
-				$.ajax("${pageContext.request.contextPath}/bdrs/map/checkShapefile.htm", {
+				$.ajax("${portalContextPath}/bdrs/map/checkShapefile.htm", {
 				    data: {
 						mfuuid: uuid
 					},

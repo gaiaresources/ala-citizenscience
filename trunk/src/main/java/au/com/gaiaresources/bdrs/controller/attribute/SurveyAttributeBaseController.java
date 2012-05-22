@@ -1,34 +1,5 @@
 package au.com.gaiaresources.bdrs.controller.attribute;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.annotation.security.RolesAllowed;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.ws.http.HTTPException;
-
-import au.com.gaiaresources.bdrs.model.threshold.ActionType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.propertyeditors.CustomDateEditor;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.ServletRequestDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
-
 import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.controller.RenderController;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
@@ -48,11 +19,33 @@ import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.model.threshold.ActionType;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.content.ContentService;
 import au.com.gaiaresources.bdrs.service.property.PropertyService;
 import au.com.gaiaresources.bdrs.service.threshold.ThresholdService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.propertyeditors.CustomDateEditor;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.annotation.security.RolesAllowed;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.ws.http.HTTPException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.Map.Entry;
 
 @RolesAllowed( {Role.POWERUSER,Role.SUPERVISOR,Role.ADMIN} )
 @Controller
@@ -227,7 +220,7 @@ public class SurveyAttributeBaseController extends AbstractController {
             for (Entry<String,String> error : errorMap.entrySet()) {
                 getRequestContext().addMessage("bdrs.survey.attributes.parsingError", new Object[]{error.getKey(), error.getValue()});
             }
-            mv = new ModelAndView(new RedirectView("/bdrs/admin/survey/editAttributes.htm", true));
+            mv = new ModelAndView(new PortalRedirectView("/bdrs/admin/survey/editAttributes.htm", true));
             mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
             mv.addAllObjects(getFailedAttributeObjects(failAttributeList));
             return mv;
@@ -236,16 +229,16 @@ public class SurveyAttributeBaseController extends AbstractController {
         getRequestContext().addMessage("bdrs.survey.attributes.success", new Object[]{survey.getName()});
         
         if(request.getParameter("saveAndContinue") != null) {
-            mv = new ModelAndView(new RedirectView("/bdrs/admin/survey/editMap.htm", true));
+            mv = new ModelAndView(new PortalRedirectView("/bdrs/admin/survey/editMap.htm", true));
             mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
         }
         else if(request.getParameter("saveAndPreview") != null) {
-            mv = new ModelAndView(new RedirectView(RenderController.SURVEY_RENDER_REDIRECT_URL, true));
+            mv = new ModelAndView(new PortalRedirectView(RenderController.SURVEY_RENDER_REDIRECT_URL, true));
             mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
             mv.addObject("preview", "preview");
         }
         else {
-            mv = new ModelAndView(new RedirectView("/bdrs/admin/survey/listing.htm", true));
+            mv = new ModelAndView(new PortalRedirectView("/bdrs/admin/survey/listing.htm", true));
         }
         return mv;
     }

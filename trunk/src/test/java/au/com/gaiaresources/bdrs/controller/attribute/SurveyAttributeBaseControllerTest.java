@@ -1,22 +1,5 @@
 package au.com.gaiaresources.bdrs.controller.attribute;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import au.com.gaiaresources.bdrs.model.taxa.AttributeVisibility;
-import junit.framework.Assert;
-
-import org.apache.log4j.Logger;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.web.ModelAndViewAssert;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
-
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertySetting;
@@ -28,17 +11,22 @@ import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
 import au.com.gaiaresources.bdrs.model.method.Taxonomic;
-import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
+import au.com.gaiaresources.bdrs.model.taxa.*;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import junit.framework.Assert;
+import org.apache.log4j.Logger;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.web.ModelAndViewAssert;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
+
+import java.util.*;
 
 public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
 
@@ -148,7 +136,7 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
         ModelAndView mv = handle(request, response);
         Assert.assertTrue(mv.getView() instanceof RedirectView);
         RedirectView view = (RedirectView)mv.getView();
-        Assert.assertEquals("redirect to listing page", SurveyBaseController.SURVEY_LISTING_URL, view.getUrl());
+        assertUrlEquals("redirect to listing page", SurveyBaseController.SURVEY_LISTING_URL, view.getUrl());
         
         assertRedirectAndErrorCode(mv, SurveyBaseController.SURVEY_LISTING_URL, SurveyBaseController.SURVEY_DOES_NOT_EXIST_ERROR_KEY);
     }
@@ -310,7 +298,7 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
         ModelAndView mv = handle(request, response);
         Assert.assertTrue(mv.getView() instanceof RedirectView);
         RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals("/bdrs/admin/survey/listing.htm", redirect.getUrl());
+        assertUrlEquals("/bdrs/admin/survey/listing.htm", redirect.getUrl());
 
         Survey actualSurvey = surveyDAO.get(new Integer(params.get(BdrsWebConstants.PARAM_SURVEY_ID)));
         Assert.assertEquals(survey.getId(), actualSurvey.getId());
@@ -377,7 +365,7 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
         ModelAndView mv = handle(request, response);
         Assert.assertTrue(mv.getView() instanceof RedirectView);
         RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals("/bdrs/admin/survey/listing.htm", redirect.getUrl());
+        assertUrlEquals("/bdrs/admin/survey/listing.htm", redirect.getUrl());
 
         Survey actualSurvey = surveyDAO.get(new Integer(params.get(BdrsWebConstants.PARAM_SURVEY_ID)));
         Assert.assertEquals(survey.getId(), actualSurvey.getId());
@@ -460,7 +448,7 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
         ModelAndView mv = handle(request, response);
         Assert.assertTrue(mv.getView() instanceof RedirectView);
         RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals("/bdrs/admin/survey/listing.htm", redirect.getUrl());
+        assertUrlEquals("/bdrs/admin/survey/listing.htm", redirect.getUrl());
 
         Survey actualSurvey = surveyDAO.get(new Integer(params.get(BdrsWebConstants.PARAM_SURVEY_ID)));
         Assert.assertEquals(survey.getId(), actualSurvey.getId());
@@ -529,7 +517,7 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
         ModelAndView mv = handle(request, response);
         Assert.assertTrue(mv.getView() instanceof RedirectView);
         RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals("/bdrs/admin/survey/listing.htm", redirect.getUrl());
+        assertUrlEquals("/bdrs/admin/survey/listing.htm", redirect.getUrl());
 
         Survey actualSurvey = surveyDAO.get(new Integer(params.get(BdrsWebConstants.PARAM_SURVEY_ID)));
         Assert.assertEquals(survey.getId(), actualSurvey.getId());
@@ -553,7 +541,7 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
         ModelAndView mv = handle(request, response);
         Assert.assertTrue(mv.getView() instanceof RedirectView);
         RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals("/bdrs/admin/survey/editMap.htm", redirect.getUrl());
+        assertUrlEquals("/bdrs/admin/survey/editMap.htm", redirect.getUrl());
     }
 
     @Test
@@ -572,7 +560,7 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
         ModelAndView mv = handle(request, response);
         Assert.assertTrue(mv.getView() instanceof RedirectView);
         RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals("/bdrs/user/surveyRenderRedirect.htm", redirect.getUrl());
+        assertUrlEquals("/bdrs/user/surveyRenderRedirect.htm", redirect.getUrl());
         ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.PARAM_SURVEY_ID);
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "preview");
     }

@@ -1,20 +1,5 @@
 package au.com.gaiaresources.bdrs.controller.portal;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import junit.framework.Assert;
-
-import org.apache.log4j.Logger;
-import org.hibernate.Filter;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.web.ModelAndViewAssert;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
-
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
 import au.com.gaiaresources.bdrs.model.portal.Portal;
@@ -26,6 +11,18 @@ import au.com.gaiaresources.bdrs.model.theme.ThemeDAO;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 import au.com.gaiaresources.bdrs.servlet.filter.PortalSelectionFilter;
+import junit.framework.Assert;
+import org.apache.log4j.Logger;
+import org.hibernate.Filter;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.web.ModelAndViewAssert;
+import org.springframework.web.servlet.ModelAndView;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 public class PortalControllerTest extends AbstractControllerTest {
     
@@ -118,9 +115,7 @@ public class PortalControllerTest extends AbstractControllerTest {
         }
         
         ModelAndView mv = handle(request, response);
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals("/bdrs/root/portal/listing.htm", redirect.getUrl());
+        assertRedirect(mv, "/bdrs/root/portal/listing.htm");
         
         Portal actual = portalDAO.getPortal(portal.getId());
         Assert.assertEquals(request.getParameter("name"), actual.getName());
@@ -171,9 +166,7 @@ public class PortalControllerTest extends AbstractControllerTest {
         }
         
         ModelAndView mv = handle(request, response);
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals("/bdrs/root/portal/listing.htm", redirect.getUrl());
+        assertRedirect(mv, "/bdrs/root/portal/listing.htm");
         
         Portal actual = portalDAO.getPortal(defaultPortal.getId());
         Assert.assertEquals(request.getParameter("name"), actual.getName());
@@ -240,9 +233,7 @@ public class PortalControllerTest extends AbstractControllerTest {
         }
         
         ModelAndView mv = handle(request, response);
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals("/bdrs/root/portal/listing.htm", redirect.getUrl());
+        assertRedirect(mv, "/bdrs/root/portal/listing.htm");
         
         Portal actual = portalDAO.getPortalByName(null, request.getParameter("name"));
         Assert.assertEquals(request.getParameter("default"), String.valueOf(actual.isDefault()));
@@ -362,7 +353,7 @@ public class PortalControllerTest extends AbstractControllerTest {
             
             if (decoyPortal.isDefault()) {
                 RequestContextHolder.getContext().setPortal(decoyPortal);
-                request.setAttribute(PortalSelectionFilter.PORTAL_ID_KEY, decoyPortal.getId());
+                request.setAttribute(PortalSelectionFilter.PORTAL_KEY, decoyPortal);
                 Filter filter = sessionFactory.getCurrentSession().getEnabledFilter(PortalPersistentImpl.PORTAL_FILTER_NAME);
                 filter.setParameter("portalId", decoyPortal.getId());
             }

@@ -49,7 +49,7 @@ bdrs.bulkdata.init = function() {
     jQuery("#surveyShapefileTemplateSelect").change(function() {
         var surveyId = jQuery("#surveyShapefileTemplateSelect").val();
         // populate census method items...
-        jQuery.getJSON(bdrs.contextPath + "/bdrs/user/censusMethod/getSurveyCensusMethods.htm", {surveyId:surveyId}, createCensusMethodOptionItems);
+        jQuery.getJSON(bdrs.portalContextPath + "/bdrs/user/censusMethod/getSurveyCensusMethods.htm", {surveyId:surveyId}, createCensusMethodOptionItems);
     });
     
     // trigger change events to initialise UI
@@ -79,7 +79,7 @@ bdrs.bulkdata.getChecklistFunc = function(format, surveySelector) {
             alert("Please select a project to download the checklist.");
             return false;
         }
-        window.document.location=bdrs.contextPath+'/webservice/survey/checklist.htm?format='+format+'&surveyId='+val; 
+        window.document.location=bdrs.portalContextPath+'/webservice/survey/checklist.htm?format='+format+'&surveyId='+val;
     }, true);
 };
 

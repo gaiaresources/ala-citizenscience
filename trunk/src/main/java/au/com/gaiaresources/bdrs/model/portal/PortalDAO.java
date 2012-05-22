@@ -18,6 +18,14 @@ public interface PortalDAO extends TransactionDAO {
     
     Portal getPortalByName(Session sesh, String portalName);
 
+    /**
+     * Returns the Portal identified by the supplied alias, or null if none exists.
+     * @param session the Session to use for the query.
+     * @param alias the alias to search for.
+     * @return the Poral with the supplied alias, or null if none exists.
+     */
+    Portal getPortalByUrlPrefix(Session session, String alias);
+
     List<Portal> getPortals();
     List<Portal> getPortals(Session sesh);
     

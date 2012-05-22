@@ -197,7 +197,7 @@ bdrs.map.validateWktInput = function(wktSelector, wktMessageSelector, validHandl
     };
         
     jQuery.ajax({
-        url:  bdrs.contextPath + "/webservice/location/isValidWkt.htm",
+        url:  bdrs.portalContextPath + "/webservice/location/isValidWkt.htm",
         data: jQuery.param(requestParams, true),
         success: function(data, textStatus, jqXhr) {
             if (data.isValid) {

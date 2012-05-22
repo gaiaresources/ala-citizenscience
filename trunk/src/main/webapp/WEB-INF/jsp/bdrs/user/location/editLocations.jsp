@@ -9,7 +9,7 @@
 
 <cw:getContent key="user/locations/edit.vm" />
 
-<form method="POST" action="${pageContext.request.contextPath}/bdrs/location/editUserLocations.htm">
+<form method="POST" action="${portalContextPath}/bdrs/location/editUserLocations.htm">
     <c:if test="${redirect != null}">
         <input type="hidden" name="redirect" value="${redirect}"/>
     </c:if>

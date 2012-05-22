@@ -33,7 +33,7 @@ To record a sighting of a species click on the <i><b>Record Now</b></i> button i
 	// Sets the jqGrid parameters and triggers a reload. Then updates the page header.
     bdrs.fieldGuide.reloadTaxaGrid = function(params){
     			jQuery("#taxaList").jqGrid().setGridParam({
-		            url:'${pageContext.request.contextPath}/fieldguide/listTaxa.htm' + params,
+		            url:'${portalContextPath}/fieldguide/listTaxa.htm' + params,
                     page:1,
                     lastsort:-1,
                     sortname:''}).trigger("reloadGrid");
@@ -44,10 +44,10 @@ To record a sighting of a species click on the <i><b>Record Now</b></i> button i
     jQuery(function() {
         // Initialize the grid
         var actionLinkFormatter = function(cellvalue, options, rowObject) {
-	            return '<form method="get" action="${pageContext.request.contextPath}/bdrs/user/taxonSurveyRenderRedirect.htm">' +
+	            return '<form method="get" action="${portalContextPath}/bdrs/user/taxonSurveyRenderRedirect.htm">' +
 	                         '<div class="buttonpanel">' +
 	                           '<input type="hidden" name="speciesId" value="' + rowObject.id +'">' +
-	                           '<input type="hidden" name="redirectURL" value="${pageContext.request.contextPath}/fieldguide/taxon.htm?id=' + rowObject.id +'">' +
+	                           '<input type="hidden" name="redirectURL" value="${portalContextPath}/fieldguide/taxon.htm?id=' + rowObject.id +'">' +
 	                           '<input class="button form_action" type="submit" value="Record Now">' +
 	                         '</div>' +
 	                       '</form>';
@@ -55,15 +55,15 @@ To record a sighting of a species click on the <i><b>Record Now</b></i> button i
 
 	        	var thumbnailFormatter = function(cellvalue, options, rowObject) {
 		            if (cellvalue != undefined && cellvalue != '') {
-		                return '<a href="${pageContext.request.contextPath}/fieldguide/taxon.htm?id=' + rowObject.id +'">' +
-		                          '<img class="max_size_img" src="${pageContext.request.contextPath}/files/downloadByUUID.htm?uuid=' + cellvalue + '"/>' +
+		                return '<a href="${portalContextPath}/fieldguide/taxon.htm?id=' + rowObject.id +'">' +
+		                          '<img class="max_size_img" src="${portalContextPath}/files/downloadByUUID.htm?uuid=' + cellvalue + '"/>' +
 		                       '</a>';
 		            }
 		            return '';
 	        	};
 
     			var nameLinkFormatter = function(cellvalue, options, rowObject) {
-            		return '<a href="${pageContext.request.contextPath}/fieldguide/taxon.htm?id=' + rowObject.id +'">' + cellvalue + '</a>';
+            		return '<a href="${portalContextPath}/fieldguide/taxon.htm?id=' + rowObject.id +'">' + cellvalue + '</a>';
         		};
 
     			var initParams = "";
@@ -74,7 +74,7 @@ To record a sighting of a species click on the <i><b>Record Now</b></i> button i
 				#end
 
     	        jQuery("#taxaList").jqGrid({
-                url: '${pageContext.request.contextPath}/fieldguide/listTaxa.htm' + initParams,
+                url: '${portalContextPath}/fieldguide/listTaxa.htm' + initParams,
                 datatype: "json",
                 mtype: "GET",
                 colNames:['Scientific Name','Common Name', '', ''],

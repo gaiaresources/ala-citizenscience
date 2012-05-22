@@ -20,14 +20,14 @@ bdrs.menu.initHover = function() {
 bdrs.menu.populateMapMenu = function(mapMenuItemSelector) {
     // populate map menu...
     var popMapMenuParams = {};
-    jQuery.getJSON(bdrs.contextPath + "/bdrs/public/webservice/getAvailableMaps.htm", popMapMenuParams, function(data) {
+    jQuery.getJSON(bdrs.portalContextPath + "/bdrs/public/webservice/getAvailableMaps.htm", popMapMenuParams, function(data) {
         var menu = jQuery(mapMenuItemSelector);
         // Append items since we want to keep the 'my sightings' map at the top
         for(var i=0; i<data.length; ++i) {
             var geoMap = data[i];
             var menuitem = jQuery("<li></li>").attr({"title":geoMap.description});
             var link =  jQuery("<a></a>").attr({
-                'href': bdrs.contextPath + "/bdrs/map/view.htm?geoMapId="+geoMap.id
+                'href': bdrs.portalContextPath + "/bdrs/map/view.htm?geoMapId="+geoMap.id
             }).text(geoMap.name);
             menuitem.append(link);
             menu.append(menuitem);
@@ -47,7 +47,7 @@ bdrs.menu.populateSurveyItems = function(registrationKey, contribMenuSelector, p
 			if (data && data.length > 0) {
 				// the first item is the default census method.
 				var defaultCensusMethod = data[0];
-				parentLink.attr("href", bdrs.contextPath + "/bdrs/user/surveyRenderRedirect.htm?surveyId="+surveyId+"&censusMethodId="+defaultCensusMethod.id);
+				parentLink.attr("href", bdrs.portalContextPath + "/bdrs/user/surveyRenderRedirect.htm?surveyId="+surveyId+"&censusMethodId="+defaultCensusMethod.id);
 			}
 			
             for(var j=0; j<data.length; ++j) {
@@ -56,7 +56,7 @@ bdrs.menu.populateSurveyItems = function(registrationKey, contribMenuSelector, p
                 var cmElemId = "method_"+censusMethod.id;
                 cmMenuItem.attr({id:cmElemId});
                 var link =  jQuery("<a></a>").attr({
-                    'href': bdrs.contextPath + "/bdrs/user/surveyRenderRedirect.htm?surveyId="+surveyId+"&censusMethodId="+censusMethod.id
+                    'href': bdrs.portalContextPath + "/bdrs/user/surveyRenderRedirect.htm?surveyId="+surveyId+"&censusMethodId="+censusMethod.id
                 }).text(censusMethod.name);
                 cmMenuItem.append(link);
                 censusMethodList.append(cmMenuItem);
@@ -64,7 +64,7 @@ bdrs.menu.populateSurveyItems = function(registrationKey, contribMenuSelector, p
             surveyMenuItem.append(censusMethodList);
         };
     };
-    jQuery.getJSON(bdrs.contextPath + "/webservice/survey/surveysForUser.htm", params, function(data) {
+    jQuery.getJSON(bdrs.portalContextPath + "/webservice/survey/surveysForUser.htm", params, function(data) {
         var menu = jQuery(contribMenuSelector);
 
         var survey;
@@ -74,13 +74,13 @@ bdrs.menu.populateSurveyItems = function(registrationKey, contribMenuSelector, p
             survey = data[i];
             var menuitem = jQuery("<li></li>").attr({"title":survey.description});
             var link =  jQuery("<a></a>").attr({
-                'href': bdrs.contextPath + "/bdrs/user/surveyRenderRedirect.htm?surveyId="+survey.id
+                'href': bdrs.portalContextPath + "/bdrs/user/surveyRenderRedirect.htm?surveyId="+survey.id
             }).text(survey.name);
             menuitem.append(link);
             menu.append(menuitem);
             
             // populate census method items...
-            jQuery.getJSON(bdrs.contextPath + "/bdrs/user/censusMethod/getSurveyCensusMethods.htm", {surveyId:survey.id}, getMenuRenderFcn(menuitem, survey.id, link)); 
+            jQuery.getJSON(bdrs.portalContextPath + "/bdrs/user/censusMethod/getSurveyCensusMethods.htm", {surveyId:survey.id}, getMenuRenderFcn(menuitem, survey.id, link));
         }
     });
 };

@@ -25,8 +25,8 @@
 
     <div class="buttonpanel textright">
         <input id="editTaxon" disabled="disabled" class="form_action" type="button" value="Edit Taxon"
-               onclick="window.document.location='${pageContext.request.contextPath}/bdrs/admin/taxonomy/edit.htm?pk='+jQuery('#selectedTaxonPk').val();"/>
-        <input class="form_action" type="button" value="Add Taxon" onclick="window.document.location='${pageContext.request.contextPath}/bdrs/admin/taxonomy/edit.htm';"/>
+               onclick="window.document.location='${portalContextPath}/bdrs/admin/taxonomy/edit.htm?pk='+jQuery('#selectedTaxonPk').val();"/>
+        <input class="form_action" type="button" value="Add Taxon" onclick="window.document.location='${portalContextPath}/bdrs/admin/taxonomy/edit.htm';"/>
     </div>
 
     <div id="taxonProperties">
@@ -34,8 +34,8 @@
 
     <div id="buttonPanelBottom" class="buttonpanel textright" style="display:none">
         <input class="form_action" type="button" value="Edit Taxon"
-            onclick="window.document.location='${pageContext.request.contextPath}/bdrs/admin/taxonomy/edit.htm?pk='+jQuery('#selectedTaxonPk').val();"/>
-        <input class="form_action" type="button" value="Add Taxon" onclick="window.document.location='${pageContext.request.contextPath}/bdrs/admin/taxonomy/edit.htm';"/>
+            onclick="window.document.location='${portalContextPath}/bdrs/admin/taxonomy/edit.htm?pk='+jQuery('#selectedTaxonPk').val();"/>
+        <input class="form_action" type="button" value="Add Taxon" onclick="window.document.location='${portalContextPath}/bdrs/admin/taxonomy/edit.htm';"/>
     </div>
 
 
@@ -53,7 +53,7 @@
 
     });
     <c:if test="${not empty taxonPk}">
-        jQuery.getJSON('${pageContext.request.contextPath}/webservice/taxon/getTaxonById.htm?id=${taxonPk}&depth=2', function(taxon) {
+        jQuery.getJSON('${portalContextPath}/webservice/taxon/getTaxonById.htm?id=${taxonPk}&depth=2', function(taxon) {
             bdrs.taxonomy.displayTaxonProperties(taxon,
                     '#taxonomySearch',
                     '#selectedTaxonPk',

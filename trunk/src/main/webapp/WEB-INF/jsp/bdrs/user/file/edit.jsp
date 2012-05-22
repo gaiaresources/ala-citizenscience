@@ -31,27 +31,27 @@
 	               <td id="file_preview">
 	                   <c:choose>
 	                       <c:when test='<%= "image/png".equals(managedFile.getContentType()) %>'>
-	                           <a href="${pageContext.request.contextPath}/files/download.htm?<%= managedFile.getFileURL() %>">
-                                   <img src="${pageContext.request.contextPath}/files/download.htm?<%= managedFile.getFileURL() %>" width="250"/>
+	                           <a href="${portalContextPath}/files/download.htm?<%= managedFile.getFileURL() %>">
+                                   <img src="${portalContextPath}/files/download.htm?<%= managedFile.getFileURL() %>" width="250"/>
                                </a>
 	                       </c:when>
 	                       <c:when test='<%= "image/jpg".equals(managedFile.getContentType()) %>'>
-	                           <a href="${pageContext.request.contextPath}/files/download.htm?<%= managedFile.getFileURL() %>">
-                                   <img src="${pageContext.request.contextPath}/files/download.htm?<%= managedFile.getFileURL() %>" width="250"/>
+	                           <a href="${portalContextPath}/files/download.htm?<%= managedFile.getFileURL() %>">
+                                   <img src="${portalContextPath}/files/download.htm?<%= managedFile.getFileURL() %>" width="250"/>
                                </a>
                            </c:when>
                            <c:when test='<%= "image/jpeg".equals(managedFile.getContentType()) %>'>
-                               <a href="${pageContext.request.contextPath}/files/download.htm?<%= managedFile.getFileURL() %>">
-                                   <img src="${pageContext.request.contextPath}/files/download.htm?<%= managedFile.getFileURL() %>" width="250"/>
+                               <a href="${portalContextPath}/files/download.htm?<%= managedFile.getFileURL() %>">
+                                   <img src="${portalContextPath}/files/download.htm?<%= managedFile.getFileURL() %>" width="250"/>
                                </a>
                            </c:when>
                            <c:when test='<%= "image/gif".equals(managedFile.getContentType()) %>'>
-                               <a href="${pageContext.request.contextPath}/files/download.htm?<%= managedFile.getFileURL() %>">
-                                   <img src="${pageContext.request.contextPath}/files/download.htm?<%= managedFile.getFileURL() %>" width="250"/>
+                               <a href="${portalContextPath}/files/download.htm?<%= managedFile.getFileURL() %>">
+                                   <img src="${portalContextPath}/files/download.htm?<%= managedFile.getFileURL() %>" width="250"/>
                                </a>
                            </c:when>
                            <c:otherwise>
-                               <a href="${pageContext.request.contextPath}/files/download.htm?<%= managedFile.getFileURL() %>">
+                               <a href="${portalContextPath}/files/download.htm?<%= managedFile.getFileURL() %>">
                                    <c:out value="${ managedFile.filename }"/>
                                </a>
                            </c:otherwise>

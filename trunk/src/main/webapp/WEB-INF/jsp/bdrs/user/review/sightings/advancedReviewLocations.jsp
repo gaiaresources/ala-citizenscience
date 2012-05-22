@@ -210,7 +210,7 @@
     
     // action to perform on the View Records button click
     var showRecordReviewWithFormOptions = function() {
-       var url = bdrs.contextPath + "/review/sightings/advancedReview.htm?locations="+locations;
+       var url = bdrs.portalContextPath + "/review/sightings/advancedReview.htm?locations="+locations;
        window.location = url;
     };
    
@@ -222,7 +222,7 @@
        // don't filter this by locations
        jQuery("#locations").val('');
        
-       jQuery.get(bdrs.contextPath+bdrs.advancedReview.JSON_URL+jQuery("form").serialize(), {}, function(data) {
+       jQuery.get(bdrs.portalContextPath+bdrs.advancedReview.JSON_URL+jQuery("form").serialize(), {}, function(data) {
            var featureArray = [];
            var selFeatureArr = [];
            // use the selection geometry to determine the map zoom
@@ -276,7 +276,7 @@
    
    var refreshCount = function() {
        var queryParams = jQuery('#facetForm').serialize();
-       jQuery.getJSON(bdrs.contextPath + bdrs.advancedReview.COUNT_URL + queryParams, {}, function(data) {
+       jQuery.getJSON(bdrs.portalContextPath + bdrs.advancedReview.COUNT_URL + queryParams, {}, function(data) {
            var count = parseInt(data);
            jQuery("#count").html(count + " location" + (count == 1 ? "" : "s") + " returned");
        });

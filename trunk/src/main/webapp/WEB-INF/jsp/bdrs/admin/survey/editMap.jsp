@@ -14,7 +14,7 @@
     <tiles:putAttribute name="mapZoom" value="${survey.mapZoom}"/>
 </tiles:insertDefinition>
 
-<form method="POST" action="${pageContext.request.contextPath}/bdrs/admin/survey/editMap.htm" onsubmit="setCenterAndZoom();">
+<form method="POST" action="${portalContextPath}/bdrs/admin/survey/editMap.htm" onsubmit="setCenterAndZoom();">
     <input type="hidden" name="surveyId" value="${survey.id}"/>
     <div>
         <h2>Base Layers</h2>

@@ -52,7 +52,7 @@
         jQuery("#username").keyup(function (object) {
             var params = {};
             params.q = object.target.value;
-            jQuery.getJSON('${pageContext.request.contextPath}/webservice/user/checkUsername.htm', params, function(data, textStatus) {
+            jQuery.getJSON('${portalContextPath}/webservice/user/checkUsername.htm', params, function(data, textStatus) {
                 if(data['available']) {
                     jQuery("#avail").removeClass('hidden');
                     jQuery("#unavail").addClass('hidden');

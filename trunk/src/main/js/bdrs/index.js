@@ -39,7 +39,7 @@ bdrs.index.runIndex = function() {
     jQuery.blockUI({ message: '<h1 id="blockerMessage">Building Indexes</h1>' });
     
     jQuery.ajax({
-        url: bdrs.contextPath + "/admin/index/runIndex.htm",
+        url: bdrs.portalContextPath + "/admin/index/runIndex.htm",
         type: "GET",
         data: jQuery("form").serialize(),
         success: function(data) {
@@ -54,7 +54,7 @@ bdrs.index.runIndex = function() {
                 var index = data[i];
                 console.log(index);
                 // create a new row
-                index.contextPath = bdrs.contextPath;
+                index.contextPath = bdrs.portalContextPath;
                 var row = jQuery.tmpl(compiled_tmpl, index);
                 row.data('indexSchedule', index);
                 

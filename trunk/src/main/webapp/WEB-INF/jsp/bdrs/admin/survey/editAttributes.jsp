@@ -5,7 +5,7 @@
 <%@page import="au.com.gaiaresources.bdrs.controller.attribute.RecordPropertyAttributeFormField"%>
 
 <h2>Edit Project: Choose Fields</h2>
-<form method="POST" action="${pageContext.request.contextPath}/bdrs/admin/survey/editAttributes.htm">
+<form method="POST" action="${portalContextPath}/bdrs/admin/survey/editAttributes.htm">
     <input type="hidden" name="surveyId" value="${survey.id}"/>
 
     <p>
@@ -13,7 +13,7 @@
         see on the data entry form for your project.
     </p>
     <p>
-        <span class="highlight">Highlighted</span> rows indicate fields for which thresholds exist. Click <a href="${pageContext.request.contextPath}/bdrs/admin/threshold/listing.htm">here</a> to add/edit thresholds.
+        <span class="highlight">Highlighted</span> rows indicate fields for which thresholds exist. Click <a href="${portalContextPath}/bdrs/admin/threshold/listing.htm">here</a> to add/edit thresholds.
     </p>
 
     <div class="textright buttonpanel">

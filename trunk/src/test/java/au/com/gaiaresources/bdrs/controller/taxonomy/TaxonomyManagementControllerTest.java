@@ -1,18 +1,17 @@
 package au.com.gaiaresources.bdrs.controller.taxonomy;
 
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
+import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
+import au.com.gaiaresources.bdrs.json.JSONArray;
+import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.model.preference.Preference;
+import au.com.gaiaresources.bdrs.model.preference.PreferenceCategory;
+import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
+import au.com.gaiaresources.bdrs.model.taxa.*;
+import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.property.PropertyService;
+import au.com.gaiaresources.bdrs.service.web.AtlasService;
 import junit.framework.Assert;
-
 import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,28 +21,11 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.mock.web.MockMultipartHttpServletRequest;
 import org.springframework.test.web.ModelAndViewAssert;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
-import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
-import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
-import au.com.gaiaresources.bdrs.json.JSONArray;
-import au.com.gaiaresources.bdrs.json.JSONObject;
-import au.com.gaiaresources.bdrs.model.preference.Preference;
-import au.com.gaiaresources.bdrs.model.preference.PreferenceCategory;
-import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile;
-import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfileDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
-import au.com.gaiaresources.bdrs.model.taxa.TaxonRank;
-import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
-import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.service.property.PropertyService;
-import au.com.gaiaresources.bdrs.service.web.AtlasService;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class TaxonomyManagementControllerTest extends AbstractControllerTest {
 
@@ -510,11 +492,9 @@ public class TaxonomyManagementControllerTest extends AbstractControllerTest {
         }
         
         ModelAndView mv = handle(request, response);
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView) mv.getView();
-        
+
         IndicatorSpecies taxon = taxaDAO.getIndicatorSpecies(speciesA.getId());
-        Assert.assertEquals("/bdrs/admin/taxonomy/listing.htm?taxonPk="+taxon.getId(), redirect.getUrl());
+        assertRedirect(mv, "/bdrs/admin/taxonomy/listing.htm?taxonPk="+taxon.getId());
         
         Assert.assertEquals(request.getParameter("scientificName"), taxon.getScientificName());
         Assert.assertEquals(request.getParameter("commonName"), taxon.getCommonName());
@@ -742,13 +722,11 @@ public class TaxonomyManagementControllerTest extends AbstractControllerTest {
         }
         
         ModelAndView mv = handle(request, response);
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView) mv.getView();
-        
+
         IndicatorSpecies taxon = taxaDAO.getIndicatorSpeciesByScientificName(sessionFactory.getCurrentSession(),
                                                                              request.getParameter("scientificName"));
 
-        Assert.assertEquals("/bdrs/admin/taxonomy/listing.htm?taxonPk="+taxon.getId(), redirect.getUrl());
+        assertRedirect(mv, "/bdrs/admin/taxonomy/listing.htm?taxonPk="+taxon.getId());
         Assert.assertEquals(request.getParameter("scientificName"), taxon.getScientificName());
         Assert.assertEquals(request.getParameter("commonName"), taxon.getCommonName());
         Assert.assertEquals(request.getParameter("taxonRank"), taxon.getTaxonRank().toString());

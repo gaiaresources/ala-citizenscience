@@ -27,7 +27,7 @@ bdrs.review.record.DOWNLOAD_LINK = '<a href="${ url }">${ text }</a>';
  */
 bdrs.review.record.displayRecordInfo = function(record) {
 
-    record.contextPath = bdrs.contextPath;
+    record.contextPath = bdrs.portalContextPath;
     
     var dialog_elem = jQuery.tmpl(bdrs.review.record.RECORD_INFO_DIALOG, record);
     var body = dialog_elem.find("tbody");
@@ -105,7 +105,7 @@ bdrs.review.record.displayRecordInfo = function(record) {
                 // The span is here because .html will drop the root elem.
                 tmpl_params._htmlValue = jQuery("<span/>").append(jQuery.tmpl(bdrs.review.record.DOWNLOAD_LINK, {
                     'text': attr_val.stringValue.trim(), 
-                    'url': [bdrs.contextPath, bdrs.url.FILE_DOWNLOAD, '?', attr_val.fileURL].join('')
+                    'url': [bdrs.portalContextPath, bdrs.url.FILE_DOWNLOAD, '?', attr_val.fileURL].join('')
     
                 })).html();
             } else {

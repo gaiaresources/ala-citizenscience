@@ -1,18 +1,17 @@
 package au.com.gaiaresources.bdrs.controller.admin;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
-
-import javax.annotation.security.RolesAllowed;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import au.com.gaiaresources.bdrs.controller.AbstractController;
+import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
+import au.com.gaiaresources.bdrs.json.JSONArray;
+import au.com.gaiaresources.bdrs.json.JSONException;
+import au.com.gaiaresources.bdrs.model.user.RegistrationService;
+import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.model.user.UserDAO;
+import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.user.UserImportExportService;
+import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
+import au.com.gaiaresources.bdrs.util.ZipUtils;
 import org.apache.log4j.Logger;
 import org.displaytag.tags.TableTagParameters;
 import org.displaytag.util.ParamEncoder;
@@ -27,19 +26,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
-import au.com.gaiaresources.bdrs.controller.AbstractController;
-import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
-import au.com.gaiaresources.bdrs.json.JSONArray;
-import au.com.gaiaresources.bdrs.json.JSONException;
-import au.com.gaiaresources.bdrs.model.user.RegistrationService;
-import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.model.user.UserDAO;
-import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.service.user.UserImportExportService;
-import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
-import au.com.gaiaresources.bdrs.util.ZipUtils;
+import javax.annotation.security.RolesAllowed;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 @RolesAllowed({ Role.ADMIN, Role.SUPERVISOR })
 @Controller
@@ -243,6 +241,6 @@ public class EditUsersController extends AbstractController {
             getRequestContext().addMessage("bdrs.user.import.error.io");
         }
 
-        return new ModelAndView(new RedirectView(EditUsersController.USER_LISTING_URL, true));
+        return new ModelAndView(new PortalRedirectView(EditUsersController.USER_LISTING_URL, true));
     }
 }

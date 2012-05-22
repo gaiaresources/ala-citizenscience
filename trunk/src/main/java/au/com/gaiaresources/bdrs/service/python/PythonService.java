@@ -6,14 +6,11 @@ import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.python.AbstractPythonRenderable;
 import au.com.gaiaresources.bdrs.python.PyBDRS;
 import au.com.gaiaresources.bdrs.python.PyResponse;
-import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 import org.apache.commons.codec.binary.Base64;
-import org.springframework.web.bind.ServletRequestDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -52,7 +49,7 @@ public class PythonService {
         }
 
         File target = new File(renderable.getContentDir(), filePath);
-        ModelAndView mv = new ModelAndView(new RedirectView(DownloadFileController.FILE_DOWNLOAD_URL, true));
+        ModelAndView mv = new ModelAndView(new PortalRedirectView(DownloadFileController.FILE_DOWNLOAD_URL, true));
         mv.addObject(DownloadFileController.CLASS_NAME_QUERY_PARAM, renderable.getClass().getCanonicalName());
         mv.addObject(DownloadFileController.INSTANCE_ID_QUERY_PARAM, renderable.getId());
         mv.addObject(DownloadFileController.FILENAME_QUERY_PARAM, target.getPath());

@@ -1,5 +1,6 @@
 package au.com.gaiaresources.bdrs.service.web;
 
+import au.com.gaiaresources.bdrs.servlet.UrlAssembler;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
@@ -119,10 +120,16 @@ public class RedirectionService {
         if (av.getStringValue() == null) {
             throw new IllegalStateException("String av.stringValue cannot be null");
         }
-        return (fullUrl ? this.domainAndContextPath : "") + DownloadFileController.FILE_DOWNLOAD_URL + "?" + av.getFileURL();
+        String url = DownloadFileController.FILE_DOWNLOAD_URL + "?" + av.getFileURL();
+
+        if (fullUrl) {
+            url = this.domainAndContextPath + UrlAssembler.assembleUrlFor(url);
+        }
+        return url;
     }
     
     public String getUserListUrl() {
         return EditUsersController.USER_LISTING_URL;
     }
+
 }

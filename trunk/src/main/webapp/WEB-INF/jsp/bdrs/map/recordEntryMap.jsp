@@ -116,7 +116,7 @@
                     // cluster strategy doesn't work properly for polygons
                     includeClusterStrategy: true
                 };
-                layer = bdrs.map.addKmlLayer(bdrs.map.baseMap, "${assignedLayer.layer.name}", "${pageContext.request.contextPath}/bdrs/map/getLayer.htm?layerPk=${assignedLayer.layer.id}", layerOptions);
+                layer = bdrs.map.addKmlLayer(bdrs.map.baseMap, "${assignedLayer.layer.name}", "${portalContextPath}/bdrs/map/getLayer.htm?layerPk=${assignedLayer.layer.id}", layerOptions);
             </c:when>
             <c:when test="${assignedLayer.layer.layerSource == \"KML\"}">
                 var layerOptions = {
@@ -124,7 +124,7 @@
                     // cluster strategy doesn't work properly for polygons
                     includeClusterStrategy: false
                 };
-                layer = bdrs.map.addKmlLayer(bdrs.map.baseMap, "${assignedLayer.layer.name}", "${pageContext.request.contextPath}/bdrs/map/getLayer.htm?layerPk=${assignedLayer.layer.id}", layerOptions);
+                layer = bdrs.map.addKmlLayer(bdrs.map.baseMap, "${assignedLayer.layer.name}", "${portalContextPath}/bdrs/map/getLayer.htm?layerPk=${assignedLayer.layer.id}", layerOptions);
             </c:when>
             </c:choose>
             if (layer) {
@@ -174,7 +174,7 @@
         } else if (loc && loc.val() > 0) {
             // add the location on initial screen render
             jQuery.ajax({
-                url: '${pageContext.request.contextPath}/webservice/location/getLocationById.htm?id='+loc.val(), 
+                url: '${portalContextPath}/webservice/location/getLocationById.htm?id='+loc.val(),
                 success: function(data) {
                     var wkt = new OpenLayers.Format.WKT(bdrs.map.wkt_options);
                     var feature = wkt.read(data.location);

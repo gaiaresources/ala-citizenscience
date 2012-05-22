@@ -10,7 +10,7 @@
     <h2><tiles:insertAttribute name="header" ignore="true"/></h2>
 </c:if>
 
-<form id="uploadSpreadsheetForm" action="${pageContext.request.contextPath}/bulkdata/upload.htm" method="post" enctype="multipart/form-data">
+<form id="uploadSpreadsheetForm" action="${portalContextPath}/bulkdata/upload.htm" method="post" enctype="multipart/form-data">
     <c:if test="${ showHelp }">
         <p>
             Once you have filled out your template, upload it below. When you 

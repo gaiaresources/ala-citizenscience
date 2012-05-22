@@ -8,7 +8,7 @@
             #elseif(${item.path.startsWith('javascript')} || ${item.path.contains("://")})
                 href="${item.path}">${item.name}
             #else
-                href="${pageContext.request.contextPath}/${item.path}">${item.name}
+                href="${portalContextPath}/${item.path}">${item.name}
             #end
         </a>
         #if(not ${item.items.isEmpty()})

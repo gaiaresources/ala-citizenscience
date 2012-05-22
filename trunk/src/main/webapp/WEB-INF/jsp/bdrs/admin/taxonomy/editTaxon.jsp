@@ -19,7 +19,7 @@
 </c:choose>
 
 <cw:getContent key="admin/taxonomy/editTaxonomy" />
-<form id="speciesForm" method="POST" action="${pageContext.request.contextPath}/bdrs/admin/taxonomy/edit.htm" enctype="multipart/form-data">
+<form id="speciesForm" method="POST" action="${portalContextPath}/bdrs/admin/taxonomy/edit.htm" enctype="multipart/form-data">
     <div class="textright buttonpanel">
         <input type="submit" class="form_action" value="Save"/>
     </div>
@@ -279,7 +279,7 @@
         } else {
             var answer = confirm("Are you sure? Existing entries imported from ALA will be replaced!")
             if (answer) {
-                var url = '${pageContext.request.contextPath}/bdrs/admin/taxonomy/import.htm?pk='
+                var url = '${portalContextPath}/bdrs/admin/taxonomy/import.htm?pk='
                     + (taxonPk ? taxonPk : '') +
                     (guid ? '&guid='+guid : '');
                 window.document.location = url;

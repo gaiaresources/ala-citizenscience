@@ -389,3 +389,7 @@ $.fn.ketchup.validation('attrOptionCommaSeparated', function(element, value) {
     }
     return attrOptionCommaSeparatedRegex.test(value);
 });
+
+jQuery.fn.ketchup.validation('wordOrBlank', function(element, value) {
+    return jQuery.fn.ketchup.validations['regExpOrBlank'](element, value, '[\\w|_|-]+');
+});
