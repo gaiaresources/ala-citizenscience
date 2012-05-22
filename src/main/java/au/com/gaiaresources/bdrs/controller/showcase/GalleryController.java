@@ -1,28 +1,5 @@
 package au.com.gaiaresources.bdrs.controller.showcase;
 
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.annotation.security.RolesAllowed;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
-
 import au.com.gaiaresources.bdrs.controller.file.AbstractDownloadFileController;
 import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataBuilder;
 import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataHelper;
@@ -36,8 +13,29 @@ import au.com.gaiaresources.bdrs.model.showcase.Gallery;
 import au.com.gaiaresources.bdrs.model.showcase.GalleryDAO;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.managedFile.ManagedFileService;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 import au.com.gaiaresources.bdrs.util.FileUtils;
 import au.com.gaiaresources.bdrs.util.ImageUtil;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.annotation.security.RolesAllowed;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Controller
 public class GalleryController extends AbstractDownloadFileController {
@@ -174,22 +172,22 @@ public class GalleryController extends AbstractDownloadFileController {
                 }
             }
             if (errorImages) {
-                ModelAndView mv = new ModelAndView(new RedirectView(getRedirectToEditPageUrl(gallery.getId()), true));
+                ModelAndView mv = new ModelAndView(new PortalRedirectView(getRedirectToEditPageUrl(gallery.getId()), true));
                 getRequestContext().addMessage("bdrs.gallery.save.badImages", new Object[]{gallery.getName()});
                 return mv;
             }
             if (errorParams) {
-                ModelAndView mv = new ModelAndView(new RedirectView(getRedirectToEditPageUrl(gallery.getId()), true));
+                ModelAndView mv = new ModelAndView(new PortalRedirectView(getRedirectToEditPageUrl(gallery.getId()), true));
                 getRequestContext().addMessage("bdrs.gallery.save.badParams", new Object[]{gallery.getName()});
                 return mv;
             }
             if (imgMissing) {
-                ModelAndView mv = new ModelAndView(new RedirectView(getRedirectToEditPageUrl(gallery.getId()), true));
+                ModelAndView mv = new ModelAndView(new PortalRedirectView(getRedirectToEditPageUrl(gallery.getId()), true));
                 getRequestContext().addMessage("bdrs.gallery.save.missingFullImage", new Object[]{gallery.getName()});
                 return mv;
             }
             if (slideshowMissing) {
-                ModelAndView mv = new ModelAndView(new RedirectView(getRedirectToEditPageUrl(gallery.getId()), true));
+                ModelAndView mv = new ModelAndView(new PortalRedirectView(getRedirectToEditPageUrl(gallery.getId()), true));
                 getRequestContext().addMessage("bdrs.gallery.save.missingSlideshowImage", new Object[]{gallery.getName()});
                 return mv;
             }
@@ -254,7 +252,7 @@ public class GalleryController extends AbstractDownloadFileController {
         } else {
             gallery = galleryDAO.update(gallery);
         }
-        ModelAndView mv = new ModelAndView(new RedirectView(getRedirectToEditPageUrl(gallery.getId()), true));
+        ModelAndView mv = new ModelAndView(new PortalRedirectView(getRedirectToEditPageUrl(gallery.getId()), true));
         getRequestContext().addMessage("bdrs.gallery.save.success", new Object[]{gallery.getName()});
         return mv;
     }
@@ -271,7 +269,7 @@ public class GalleryController extends AbstractDownloadFileController {
             @RequestParam(value=GALLERY_PK_SAVE, defaultValue="0") Integer pk) {
         Gallery gm = galleryDAO.get(pk);
         galleryDAO.delete(gm);
-        ModelAndView mv = new ModelAndView(new RedirectView(LIST_URL, true));
+        ModelAndView mv = new ModelAndView(new PortalRedirectView(LIST_URL, true));
         return mv;
     }
     

@@ -1,32 +1,5 @@
 package au.com.gaiaresources.bdrs.controller.theme;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintStream;
-import java.io.Writer;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.annotation.security.RolesAllowed;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
-
 import au.com.gaiaresources.bdrs.controller.file.AbstractDownloadFileController;
 import au.com.gaiaresources.bdrs.file.FileService;
 import au.com.gaiaresources.bdrs.model.file.ManagedFile;
@@ -40,6 +13,22 @@ import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.theme.ThemeService;
 import au.com.gaiaresources.bdrs.servlet.Interceptor;
 import au.com.gaiaresources.bdrs.servlet.RequestContext;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.annotation.security.RolesAllowed;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Allows the creation, update and deletion of Themes and ThemeElements. 
@@ -344,7 +333,7 @@ public class ThemeController extends AbstractDownloadFileController {
             }
         }
         
-        ModelAndView mv = new ModelAndView(new RedirectView(redirectUrl, true));
+        ModelAndView mv = new ModelAndView(new PortalRedirectView(redirectUrl, true));
         mv.addObject("portalId", theme.getPortal().getId());
         mv.addObject("themeId", theme.getId());
         
@@ -562,7 +551,7 @@ public class ThemeController extends AbstractDownloadFileController {
             getRequestContext().addMessage("bdrs.theme.update.fail", new Object[]{theme.getName(), e.getMessage()});
         }
 
-        ModelAndView mv = new ModelAndView(new RedirectView(redirectUrl, true));
+        ModelAndView mv = new ModelAndView(new PortalRedirectView(redirectUrl, true));
         mv.addObject("portalId", portal.getId());
         mv.addObject("themeId", theme.getId());
         

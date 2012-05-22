@@ -1,14 +1,16 @@
 package au.com.gaiaresources.bdrs.controller.map;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.annotation.security.RolesAllowed;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import au.com.gaiaresources.bdrs.controller.AbstractController;
+import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataBuilder;
+import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataHelper;
+import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataRow;
+import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
+import au.com.gaiaresources.bdrs.db.impl.PaginationFilter;
 import au.com.gaiaresources.bdrs.json.JSONArray;
-
+import au.com.gaiaresources.bdrs.model.map.*;
+import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.map.GeoMapService;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -16,21 +18,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
-import au.com.gaiaresources.bdrs.controller.AbstractController;
-import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataBuilder;
-import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataHelper;
-import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataRow;
-import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
-import au.com.gaiaresources.bdrs.db.impl.PaginationFilter;
-import au.com.gaiaresources.bdrs.model.map.AssignedGeoMapLayer;
-import au.com.gaiaresources.bdrs.model.map.GeoMap;
-import au.com.gaiaresources.bdrs.model.map.GeoMapDAO;
-import au.com.gaiaresources.bdrs.model.map.GeoMapLayer;
-import au.com.gaiaresources.bdrs.model.map.GeoMapLayerDAO;
-import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.service.map.GeoMapService;
+import javax.annotation.security.RolesAllowed;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.List;
 
 @Controller
 public class GeoMapController extends AbstractController {
@@ -132,7 +125,7 @@ public class GeoMapController extends AbstractController {
         
         if (mapLayerPkList == null && mapLayerVisible == null) {
             // save successfully with no map layers assigned!
-            ModelAndView mv = new ModelAndView(new RedirectView(LISTING_URL, true));
+            ModelAndView mv = new ModelAndView(new PortalRedirectView(LISTING_URL, true));
             return mv;
         }
         
@@ -169,7 +162,7 @@ public class GeoMapController extends AbstractController {
            
         mapLayerDAO.save(mapLayerList);
         
-        ModelAndView mv = new ModelAndView(new RedirectView(LISTING_URL, true));
+        ModelAndView mv = new ModelAndView(new PortalRedirectView(LISTING_URL, true));
         return mv; 
     }
     

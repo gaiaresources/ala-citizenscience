@@ -19,7 +19,6 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.mock.web.MockMultipartHttpServletRequest;
 import org.springframework.test.web.ModelAndViewAssert;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
 import java.io.File;
 import java.io.IOException;
@@ -78,8 +77,7 @@ public class ReportControllerTest extends AbstractGridControllerTest {
         req.addFile(getTestReport(testReportName));
 
         ModelAndView mv = handle(request, response);
-        RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals(ReportController.REPORT_LISTING_URL, redirect.getUrl());
+        assertRedirect(mv, ReportController.REPORT_LISTING_URL);
 
         JSONObject config = getConfigFile(testReportName);
         String reportName = config.getString(ReportController.JSON_CONFIG_NAME);
@@ -110,8 +108,7 @@ public class ReportControllerTest extends AbstractGridControllerTest {
         req.addFile(getTestReport(testReportName));
 
         ModelAndView mv = handle(request, response);
-        RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals(ReportController.REPORT_LISTING_URL, redirect.getUrl());
+        assertRedirect(mv, ReportController.REPORT_LISTING_URL);
 
         JSONObject config = getConfigFile(testReportName);
         String reportName = config.getString(ReportController.JSON_CONFIG_NAME);
@@ -163,8 +160,7 @@ public class ReportControllerTest extends AbstractGridControllerTest {
         req.addFile(getTestReport(testReportName));
 
         ModelAndView mv = handle(request, response);
-        RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals(ReportController.REPORT_LISTING_URL, redirect.getUrl());
+        assertRedirect(mv, ReportController.REPORT_LISTING_URL);
 
         // We have the correct number of error message
         Assert.assertEquals(1, getRequestContext().getMessages().size());
@@ -193,8 +189,7 @@ public class ReportControllerTest extends AbstractGridControllerTest {
         req.addFile(getTestReport(testReportName));
 
         ModelAndView mv = handle(request, response);
-        RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals(ReportController.REPORT_LISTING_URL, redirect.getUrl());
+        assertRedirect(mv, ReportController.REPORT_LISTING_URL);
 
         // We have the correct number of error message
         Assert.assertEquals(1, getRequestContext().getMessages().size());
@@ -223,8 +218,7 @@ public class ReportControllerTest extends AbstractGridControllerTest {
         req.addFile(getTestReport(testReportName));
 
         ModelAndView mv = handle(request, response);
-        RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals(ReportController.REPORT_LISTING_URL, redirect.getUrl());
+        assertRedirect(mv, ReportController.REPORT_LISTING_URL);
 
         // We have the correct number of error message
         Assert.assertEquals(1, getRequestContext().getMessages().size());
@@ -253,8 +247,7 @@ public class ReportControllerTest extends AbstractGridControllerTest {
         req.addFile(getTestReport(testReportName));
 
         ModelAndView mv = handle(request, response);
-        RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals(ReportController.REPORT_LISTING_URL, redirect.getUrl());
+        assertRedirect(mv, ReportController.REPORT_LISTING_URL);
 
         // We have the correct number of error message
         Assert.assertEquals(1, getRequestContext().getMessages().size());
@@ -283,8 +276,7 @@ public class ReportControllerTest extends AbstractGridControllerTest {
         req.addFile(getTestReport(testReportName));
 
         ModelAndView mv = handle(request, response);
-        RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals(ReportController.REPORT_LISTING_URL, redirect.getUrl());
+        assertRedirect(mv, ReportController.REPORT_LISTING_URL);
 
         // We have the correct number of error message
         Assert.assertEquals(1, getRequestContext().getMessages().size());

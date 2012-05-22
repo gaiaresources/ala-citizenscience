@@ -4,7 +4,7 @@
 <h1>Record Listing</h1>
 
 <div class="textright">
-    <a href="${pageContext.request.contextPath}/bdrs/user/record/download.htm?${pageContext.request.queryString}">Download XLS</a>
+    <a href="${portalContextPath}/bdrs/user/record/download.htm?${pageContext.request.queryString}">Download XLS</a>
 </div>
 <table class="datatable textcenter">
     <thead>
@@ -19,7 +19,7 @@
         <c:forEach var='rec' items='${recordList}'>
             <tr>
                 <td>
-                    <a href="${pageContext.request.contextPath}/bdrs/user/surveyRenderRedirect.htm?surveyId=${rec.survey.id}&recordId=${rec.id}">
+                    <a href="${portalContextPath}/bdrs/user/surveyRenderRedirect.htm?surveyId=${rec.survey.id}&recordId=${rec.id}">
                         <span class="nowrap"><fmt:formatDate pattern="dd MMM yyyy" value="${rec.when}"/></span>
                     </a>
                 </td>

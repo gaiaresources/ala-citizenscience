@@ -58,7 +58,7 @@ bdrs.embed.widgetBuilder = {
 		var embedParams = {
             domain: this.domain,
             port: this.port,
-            contextPath: bdrs.contextPath,
+            contextPath: bdrs.portalContextPath,
             feature: featureElem.val()
         };
 		
@@ -78,13 +78,13 @@ bdrs.embed.widgetBuilder = {
         embedScript.attr({
             "id" : embedParams.targetId,
             "type": "text/javascript",
-            "src": "http://" + document.location.hostname + (port?":"+port:"") + bdrs.contextPath+"/bdrs/public/embedded/bdrs-embed.js?"+jQuery.param(embedParams)
+            "src": "http://" + document.location.hostname + (port?":"+port:"") + bdrs.portalContextPath+"/bdrs/public/embedded/bdrs-embed.js?"+jQuery.param(embedParams)
         });
         
         embedSrcElem.text(bdrs.embed.widgetBuilder.elemToString(embedScript[0]));
         
         embedParams.targetId = 'widget_target';
-        embedScript.attr("src", bdrs.contextPath+"/bdrs/public/embedded/bdrs-embed.js?"+jQuery.param(embedParams));
+        embedScript.attr("src", bdrs.portalContextPath+"/bdrs/public/embedded/bdrs-embed.js?"+jQuery.param(embedParams));
         
         var targetSpan = jQuery("<span></span>");
         targetSpan.attr({"id":  embedParams.targetId });

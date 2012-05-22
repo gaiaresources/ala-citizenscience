@@ -53,7 +53,7 @@ public class RecordCommentControllerTest extends AbstractGridControllerTest {
         Assert.assertEquals(commentText, comment.getCommentText());
 
         RedirectionService service = new RedirectionService("");
-        Assert.assertEquals(service.getViewRecordUrl(r1, comment.getId()), ((RedirectView)mav.getView()).getUrl());
+        assertUrlEquals(service.getViewRecordUrl(r1, comment.getId()), ((RedirectView)mav.getView()).getUrl());
     }
 
     @Test
@@ -104,7 +104,7 @@ public class RecordCommentControllerTest extends AbstractGridControllerTest {
         Comment comment =  r1.getComments().get(0);
         RedirectionService service = new RedirectionService("");
         Assert.assertEquals(commentText, comment.getCommentText());
-        Assert.assertEquals(service.getViewRecordUrl(r1, comment.getId()), ((RedirectView)mav.getView()).getUrl());
+        assertRedirect(mav, service.getViewRecordUrl(r1, comment.getId()));
     }
 
     /**
@@ -149,7 +149,7 @@ public class RecordCommentControllerTest extends AbstractGridControllerTest {
         Assert.assertEquals(commentText, comment.getCommentText());
 
         RedirectionService service = new RedirectionService("");
-        Assert.assertEquals(service.getViewRecordUrl(r1, comment.getId()), ((RedirectView)mav.getView()).getUrl());
+        assertRedirect(mav, service.getViewRecordUrl(r1, comment.getId()));
     }
 
     /**
@@ -195,7 +195,7 @@ public class RecordCommentControllerTest extends AbstractGridControllerTest {
         Assert.assertTrue(comment.isDeleted());
 
         RedirectionService service = new RedirectionService("");
-        Assert.assertEquals(service.getViewRecordUrl(r1, comment.getId()), ((RedirectView)mav.getView()).getUrl());
+        assertRedirect(mav, service.getViewRecordUrl(r1, comment.getId()));
     }
 
     /**

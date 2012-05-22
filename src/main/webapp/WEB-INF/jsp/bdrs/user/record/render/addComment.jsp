@@ -10,7 +10,7 @@
         <c:set var="elementId" value="commentInput"/>
     </c:otherwise>
 </c:choose>
-<form id="addCommentForm" method="POST" action="${pageContext.request.contextPath}/bdrs/user/comment/add.htm">
+<form id="addCommentForm" method="POST" action="${portalContextPath}/bdrs/user/comment/add.htm">
     <input type="hidden" name="recordId" value="${record.id}"/>
     <input type="hidden" name="commentId" value="${commentId}"/>
     <div><label for="${elementId}">Enter your comment (1000 characters or less)</label></div>

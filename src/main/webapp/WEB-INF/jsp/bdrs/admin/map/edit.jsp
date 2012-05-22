@@ -7,10 +7,10 @@
         <h1>Add Map</h1>
 		<p>
 			You can create a Map, and then assign Map Layers that you have already 
-			<a href="${pageContext.request.contextPath}/bdrs/admin/mapLayer/listing.htm">created</a> or 
-			<a href="${pageContext.request.contextPath}/bdrs/admin/mapLayer/listing.htm">edited</a> using this interface.  
+			<a href="${portalContextPath}/bdrs/admin/mapLayer/listing.htm">created</a> or
+			<a href="${portalContextPath}/bdrs/admin/mapLayer/listing.htm">edited</a> using this interface.
 			If you need to Edit an existing Map, use the 
-			<a href="${pageContext.request.contextPath}/bdrs/admin/map/listing.htm">Edit Map interface</a> instead.
+			<a href="${portalContextPath}/bdrs/admin/map/listing.htm">Edit Map interface</a> instead.
 			Note that maps will not be visible in the system until the Publish box is checked.
 		</p>
     </c:when>
@@ -18,14 +18,14 @@
         <h1>Edit Map</h1>
 		<p>
 			Here you can edit an existing Map.  You will firstly have needed to use the 
-			<a href="${pageContext.request.contextPath}/bdrs/admin/map/edit.htm">Add Map</a> 
+			<a href="${portalContextPath}/bdrs/admin/map/edit.htm">Add Map</a>
 			interface, and added Map Layers to it as well.
 			Note that maps will not be visible in the system until the Publish box is checked.
 		</p>
     </c:otherwise>
 </c:choose>
 
-<form method="POST" action="${pageContext.request.contextPath}/bdrs/admin/map/edit.htm">
+<form method="POST" action="${portalContextPath}/bdrs/admin/map/edit.htm">
     <input type="hidden" name="geoMapPk" value="${geoMap.id}" />
     <table>
         <tr>
@@ -159,7 +159,7 @@
         </td>                                                                                   
         <td class="textcenter">                                                                     
             <a href="javascript: void(0);" onclick="jQuery(this).parents('tr').hide().find('select, input, textarea').attr('disabled', 'disabled').removeClass(); return false;">   
-            <img src="${pageContext.request.contextPath}/images/icons/delete.png" alt="Delete" class="vertmiddle"/>                                                                         
+            <img src="${pageContext.request.contextPath}/images/icons/delete.png" alt="Delete" class="vertmiddle"/>
             </a>                                                                                    
         </td>                                                                                       
     </tr>    

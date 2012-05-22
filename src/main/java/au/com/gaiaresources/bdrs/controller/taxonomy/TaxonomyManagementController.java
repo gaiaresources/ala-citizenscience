@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 
 import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
@@ -431,7 +431,7 @@ public class TaxonomyManagementController extends AbstractController {
 
         
         getRequestContext().addMessage("taxonomy.save.success", new Object[]{ taxon.getScientificName() });
-        return new ModelAndView(new RedirectView("/bdrs/admin/taxonomy/listing.htm?taxonPk="+taxon.getId(), true));
+        return new ModelAndView(new PortalRedirectView("/bdrs/admin/taxonomy/listing.htm?taxonPk="+taxon.getId(), true));
     }
     
     @RolesAllowed( { Role.ADMIN })

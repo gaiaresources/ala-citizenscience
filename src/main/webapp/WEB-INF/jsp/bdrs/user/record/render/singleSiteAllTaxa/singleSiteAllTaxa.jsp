@@ -28,7 +28,7 @@
 </c:if>
     
     <c:if test="${ not preview && recordWebFormContext.editable }">
-        <form method="POST" action="${pageContext.request.contextPath}/bdrs/user/singleSiteAllTaxa.htm" enctype="multipart/form-data">
+        <form method="POST" action="${portalContextPath}/bdrs/user/singleSiteAllTaxa.htm" enctype="multipart/form-data">
     </c:if>
     <input type="hidden" name="surveyId" value="${survey.id}"/>
     

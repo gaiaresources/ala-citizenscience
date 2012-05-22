@@ -9,8 +9,8 @@ to approve Users, as well.
 </p>
 
 <ul>
-	<li><a href="${pageContext.request.contextPath}/bdrs/admin/userManagement/approveUsers.htm">Approve Users</a>&nbsp;- approve user accounts that require approval</li>
-	<li><a href="${pageContext.request.contextPath}/admin/userSearch.htm">Edit Users</a>&nbsp;- edit the details of the individual users</li>
-	<li><a href="${pageContext.request.contextPath}/bdrs/admin/group/listing.htm">Edit Groups</a>&nbsp;- edit and add groups, and then assign users to that group</li>
-	<li><a href="${pageContext.request.contextPath}/admin/emailUsers.htm">Email Users</a>&nbsp;- email all or some of the users in the system</li>
+	<li><a href="${portalContextPath}/bdrs/admin/userManagement/approveUsers.htm">Approve Users</a>&nbsp;- approve user accounts that require approval</li>
+	<li><a href="${portalContextPath}/admin/userSearch.htm">Edit Users</a>&nbsp;- edit the details of the individual users</li>
+	<li><a href="${portalContextPath}/bdrs/admin/group/listing.htm">Edit Groups</a>&nbsp;- edit and add groups, and then assign users to that group</li>
+	<li><a href="${portalContextPath}/admin/emailUsers.htm">Email Users</a>&nbsp;- email all or some of the users in the system</li>
 </ul>

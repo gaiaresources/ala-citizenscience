@@ -25,13 +25,13 @@ import au.com.gaiaresources.bdrs.service.python.PythonService;
 import au.com.gaiaresources.bdrs.service.taxonomy.BdrsTaxonLibException;
 import au.com.gaiaresources.bdrs.service.taxonomy.TaxonLibSessionFactory;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 import jep.Jep;
 import jep.JepException;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -187,7 +187,7 @@ public class ReportService extends PythonService {
                     RequestContextHolder.getContext().addMessage("bdrs.report.render.error");
                 }
                 // We can't render the page, so redirect back to the listing page.
-                return new ModelAndView(new RedirectView(ReportController.REPORT_LISTING_URL, true));
+                return new ModelAndView(new PortalRedirectView(ReportController.REPORT_LISTING_URL, true));
             } else {
                 // Set the header of the Python report if there is one.
                 // This allows the python report to provide file downloads if
@@ -246,7 +246,7 @@ public class ReportService extends PythonService {
     }
 
     private ModelAndView redirectToListing() {
-    	return new ModelAndView(new RedirectView(ReportController.REPORT_LISTING_URL, true));
+    	return new ModelAndView(new PortalRedirectView(ReportController.REPORT_LISTING_URL, true));
     }
 
     /**

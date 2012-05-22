@@ -347,7 +347,7 @@ public class ContentService {
             }
             try {
                 if (!params.containsKey(BDRS_APPLICATION_URL)) {
-                    params.put(BDRS_APPLICATION_URL, getRequestURL(requestPath) + "/portal/"+portal.getId());
+                    params.put(BDRS_APPLICATION_URL, getRequestURL(requestPath) + portal.getPortalContextPath());
                 }
             } catch (Exception e) {
                 // catch an illegal argument exception

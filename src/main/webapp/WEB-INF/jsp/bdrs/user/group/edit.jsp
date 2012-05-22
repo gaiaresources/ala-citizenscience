@@ -45,7 +45,7 @@
     <a href="javascript: bdrs.util.confirmExec('Are you sure you want to remove the selected users', removeUsersCallback);" class="delete"/>Remove</a>
     &nbsp;|&nbsp;
     <!-- 
-    <input class="form_action" type="button" value="Add Users" onclick="window.document.location='${pageContext.request.contextPath}/bdrs/admin/group/addUsers.htm'"/></div>
+    <input class="form_action" type="button" value="Add Users" onclick="window.document.location='${portalContextPath}/bdrs/admin/group/addUsers.htm'"/></div>
      -->
     <input id="addUsers" class="form_action" type="button" value="Add Users" /></div>
 
@@ -99,7 +99,7 @@
 	                        groupId: ${group.id},
 	                        userIds: selected.join(',')
 	                    };
-	                    bdrs.postWith('${pageContext.request.contextPath}/bdrs/admin/group/addUsers.htm', postParam);
+	                    bdrs.postWith('${portalContextPath}/bdrs/admin/group/addUsers.htm', postParam);
 	                }
                     $( this ).dialog( "close" );
                 },
@@ -123,7 +123,7 @@
 	                        groupId: ${group.id},
 	                        groupIds: selected.join(',')
 	                    };
-	                    bdrs.postWith('${pageContext.request.contextPath}/bdrs/admin/group/addGroups.htm', postParam);
+	                    bdrs.postWith('${portalContextPath}/bdrs/admin/group/addGroups.htm', postParam);
 	                }
                     $( this ).dialog( "close" );
                 },
@@ -157,7 +157,7 @@
 	            groupId: ${group.id},
 	            groupIds: selected.join(',')
 	        };
-	        bdrs.postWith('${pageContext.request.contextPath}/bdrs/admin/group/removeGroups.htm', postParam);
+	        bdrs.postWith('${portalContextPath}/bdrs/admin/group/removeGroups.htm', postParam);
 	    }
     };
     
@@ -168,7 +168,7 @@
 	            groupId: ${group.id},
 	            userIds: selected.join(',')
 	        };
-	        bdrs.postWith('${pageContext.request.contextPath}/bdrs/admin/group/removeUsers.htm', postParam);
+	        bdrs.postWith('${portalContextPath}/bdrs/admin/group/removeUsers.htm', postParam);
 	    }
     };
 </script>

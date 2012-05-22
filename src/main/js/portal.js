@@ -14,7 +14,7 @@ bdrs.portal.addPortalEntryPoint = function(portalEntryPointTableSelector, indexS
     var index = parseInt(indexElem.val(), 10);
     indexElem.val(index + 1);
     
-    jQuery.get(bdrs.contextPath+'/bdrs/root/portal/ajaxAddPortalEntryPoint.htm',
+    jQuery.get(bdrs.portalContextPath+'/bdrs/root/portal/ajaxAddPortalEntryPoint.htm',
             {'index': index}, function(data) {
 
         var table = jQuery(portalEntryPointTableSelector); 
@@ -36,7 +36,7 @@ bdrs.portal.testPortalEntryPointPattern = function(testResultSelector) {
     var testResultElem = jQuery(testResultSelector);
     testResultElem.empty();
     
-    var url = bdrs.contextPath+"/bdrs/root/portal/ajaxTestPortalEntryPointPattern.htm?"+jQuery("form").serialize();
+    var url = bdrs.portalContextPath+"/bdrs/root/portal/ajaxTestPortalEntryPointPattern.htm?"+jQuery("form").serialize();
     jQuery.getJSON(url, function(data) {
          console.log(data);
         // Matched Portal

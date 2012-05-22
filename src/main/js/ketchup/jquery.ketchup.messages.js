@@ -41,5 +41,6 @@ $.fn.ketchup.messages = {
   'time':               'Must be time in 24 hour format, hh:mm',
   'timeOrBlank':        'Must be time in 24 hour format, hh:mm or blank',
   'attrOptionIntWithRange': 'Must be 2 numbers separated by a comma with the second number greater than the first number e.g. 10,20',
-  'attrOptionCommaSeparated': 'Must have two or more comma separated values e.g. red,green,blue'
+  'attrOptionCommaSeparated': 'Must have two or more comma separated values e.g. red,green,blue',
+  'wordOrBlank':        'Must include only numbers, letters, _ or -'
 };

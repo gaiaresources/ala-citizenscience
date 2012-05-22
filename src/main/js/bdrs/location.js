@@ -285,7 +285,7 @@ bdrs.location.addLocationRow = function(tableBodySelector, locationJsonObj, olFe
 		locationJsonObj.newLocation = true;
         locationJsonObj.index = bdrs.location.index++;  // post increment!
     }
-	
+	// This is used to resolve images in the template so we don't want the portal path here.
 	locationJsonObj.bdrsContextPath = bdrs.contextPath;
 	
     // render the row from our precompiled template...
@@ -813,7 +813,7 @@ bdrs.location.LOCATION_LISTING_ROW_TMPL = '\
 <tr>\
     <td class="name">\
         <input type="hidden" name="location" value="${ id }"/>\
-        <a href="${contextPath}/bdrs/admin/survey/editLocation.htm?surveyId=${ surveyId }&locationId=${ id }">${ name }</a>\
+        <a href="${portalContextPath}/bdrs/admin/survey/editLocation.htm?surveyId=${ surveyId }&locationId=${ id }">${ name }</a>\
     </td>\
     <td class="textcenter">\
         <a id="delete_${location.id}" href="javascript: void(0);" onclick="jQuery(this).parents(\'tr\').hide().find(\'select, input, textarea\').attr(\'disabled\', \'disabled\'); return false;">\
@@ -847,7 +847,7 @@ bdrs.location.createGetSurveyLocationsForUserDialogGrid = function(gridSelector,
     var compiledRowTemplate = jQuery.template(bdrs.location.LOCATION_LISTING_ROW_TMPL);																	
 																		
 	jQuery(gridSelector).jqGrid({
-            url: bdrs.contextPath + '/bdrs/location/getSurveyLocationsForUser.htm?surveyId=' + surveyId,
+            url: bdrs.portalContextPath + '/bdrs/location/getSurveyLocationsForUser.htm?surveyId=' + surveyId,
             datatype: "json",
             mtype: "GET",
             colNames:['Name','Description'],
@@ -892,7 +892,9 @@ bdrs.location.createGetSurveyLocationsForUserDialogGrid = function(gridSelector,
 						"id": rowId,
 						"name": rowData.name,
 						"surveyId": surveyId,
-						"contextPath": bdrs.contextPath
+						"contextPath": bdrs.contextPath,
+                        "portalContextPath": bdrs.portalContextPath
+
 					};
 					var processedRow = jQuery.tmpl(compiledRowTemplate, data);
                     tbodyNode.append(processedRow);

@@ -342,7 +342,7 @@ public class UserService extends AbstractController {
     	        Filter filter = sesh.getEnabledFilter(PortalPersistentImpl.PORTAL_FILTER_NAME);
     	        filter.setParameter(PortalPersistentImpl.PORTAL_FILTER_PORTALID_PARAMETER_NAME, portal.getId());
     	        
-    	        request.getSession().setAttribute(PortalSelectionFilter.PORTAL_ID_KEY, portal.getId());
+    	        request.getSession().setAttribute(PortalSelectionFilter.PORTAL_KEY, portal);
     	    }
     	}
 

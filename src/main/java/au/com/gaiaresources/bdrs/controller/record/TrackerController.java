@@ -1,19 +1,30 @@
 package au.com.gaiaresources.bdrs.controller.record;
 
-import java.io.IOException;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.annotation.security.RolesAllowed;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import au.com.gaiaresources.bdrs.controller.RenderController;
+import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField;
+import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormFieldFactory;
+import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
+import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
+import au.com.gaiaresources.bdrs.deserialization.record.*;
+import au.com.gaiaresources.bdrs.message.Message;
+import au.com.gaiaresources.bdrs.model.location.Location;
+import au.com.gaiaresources.bdrs.model.location.LocationService;
+import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
+import au.com.gaiaresources.bdrs.model.method.CensusMethod;
+import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
+import au.com.gaiaresources.bdrs.model.method.Taxonomic;
+import au.com.gaiaresources.bdrs.model.record.Record;
+import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordService;
+import au.com.gaiaresources.bdrs.model.survey.Survey;
+import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
+import au.com.gaiaresources.bdrs.model.taxa.*;
+import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.content.ContentService;
+import au.com.gaiaresources.bdrs.service.web.RedirectionService;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -24,43 +35,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
-import au.com.gaiaresources.bdrs.controller.AbstractController;
-import au.com.gaiaresources.bdrs.controller.RenderController;
-import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField;
-import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormFieldFactory;
-import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
-import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
-import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
-import au.com.gaiaresources.bdrs.deserialization.record.RecordDeserializer;
-import au.com.gaiaresources.bdrs.deserialization.record.RecordDeserializerResult;
-import au.com.gaiaresources.bdrs.deserialization.record.RecordEntry;
-import au.com.gaiaresources.bdrs.deserialization.record.RecordKeyLookup;
-import au.com.gaiaresources.bdrs.message.Message;
-import au.com.gaiaresources.bdrs.model.location.Location;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
-import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
-import au.com.gaiaresources.bdrs.model.method.CensusMethod;
-import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
-import au.com.gaiaresources.bdrs.model.method.Taxonomic;
-import au.com.gaiaresources.bdrs.model.record.Record;
-import au.com.gaiaresources.bdrs.model.record.RecordDAO;
-import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeUtil;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeValueUtil;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
-import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.service.content.ContentService;
-import au.com.gaiaresources.bdrs.service.web.RedirectionService;
-import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import javax.annotation.security.RolesAllowed;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.*;
 
 /**
  * Controller for the default 'tracker' form.
@@ -594,7 +575,7 @@ public class TrackerController extends RecordController {
             getRequestContext().setSessionAttribute(MV_WKT, request.getParameter(PARAM_WKT));
             
             String redirectURL = request.getRequestURI().replace(ContentService.getContextPath(request.getRequestURL().toString()), "");
-            ModelAndView mv = new ModelAndView(new RedirectView(redirectURL, true));
+            ModelAndView mv = new ModelAndView(new PortalRedirectView(redirectURL, true));
             mv.addObject(MV_ERROR_MAP, res.getErrorMap());
 
             mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, surveyPk);
@@ -617,7 +598,7 @@ public class TrackerController extends RecordController {
         // Tracker form has a special case : switching tabs
         if (request.getParameter(PARAM_SUBMIT_AND_SWITCH_TO_SUB_RECORD_TAB) != null) {
             // A tab change has been requested
-            mv = new ModelAndView(new RedirectView(
+            mv = new ModelAndView(new PortalRedirectView(
                RenderController.SURVEY_RENDER_REDIRECT_URL, true));
                mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
                mv.addObject(BdrsWebConstants.PARAM_CENSUS_METHOD_ID, Integer.valueOf(censusMethodId));
@@ -733,6 +714,6 @@ public class TrackerController extends RecordController {
      */
     private ModelAndView nullSurveyError() {
         getRequestContext().addMessage(NO_SURVEY_ERROR_KEY, new Object[]{defaultTab()});
-        return new ModelAndView(new RedirectView(redirectionService.getMySightingsUrl(null), true));
+        return new ModelAndView(new PortalRedirectView(redirectionService.getMySightingsUrl(null), true));
     }
 }

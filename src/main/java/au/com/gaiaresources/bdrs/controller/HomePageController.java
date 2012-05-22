@@ -1,28 +1,26 @@
 package au.com.gaiaresources.bdrs.controller;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
-
 import au.com.gaiaresources.bdrs.message.Message;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
 
 @Controller
 public class HomePageController extends AbstractController {
@@ -42,6 +40,7 @@ public class HomePageController extends AbstractController {
 //    private static final String[] DEVICES_WITH_APP = { "Android"};
 
     public static final String HOME_URL = "/home.htm";
+    public static final String REDIRECT_HOME_URL = "/redirectHome.htm";
     public static final String AUTHENTICATED_REDIRECT_URL = "/authenticated/redirect.htm";
     public static final String LOGIN_FAILED_URL = "/loginfailed.htm";
 
@@ -56,7 +55,7 @@ public class HomePageController extends AbstractController {
 //		
 //		if ((sessionType != null) && sessionType.equals("mobile")) {
 //			// view mobile, forced by user
-//			view.setView(new RedirectView(request.getSession().getServletContext().getContextPath() + "/mobile/"));
+//			view.setView(new PortalRedirectView(request.getSession().getServletContext().getContextPath() + "/mobile/"));
 //		} else if ((sessionType != null) && sessionType.equals("desktop")) {
 //			
 //			// view desktop, forced by user session
@@ -90,7 +89,7 @@ public class HomePageController extends AbstractController {
 //					view.addObject("publicSurveys", surveyDAO.getActivePublicSurveys(true));
 //				}
 //			} else {
-//				RedirectView redirectView = new RedirectView("/mobile/", true, true, true);
+//				RedirectView redirectView = new PortalRedirectView("/mobile/", true, true, true);
 //				String deviceOs = deviceDAO.getCapabilityValue(d, "device_os");
 //				if (deviceOs != null){
 //					view.addObject("hasApp", deviceOs);
@@ -115,6 +114,19 @@ public class HomePageController extends AbstractController {
         }
         return view;
     }
+
+    /**
+     * Sends a redirect to the home page.  Used after sign out to preserve the portal prefix.
+     * @param request the HTTP request being processed.
+     * @param response the HTTP response being produced.
+     * @return returns a redirect to /home.htm applying the portal prefix if required.
+     */
+    @RequestMapping(value = REDIRECT_HOME_URL, method = RequestMethod.GET)
+    public ModelAndView redirectHome(HttpServletRequest request,
+                               HttpServletResponse response) {
+        return new ModelAndView(new PortalRedirectView(HOME_URL, true, true, false));
+    }
+
 
     /**
      * If the http request contains a parameter called "redirectUrl",  the user will be redirected to the
@@ -200,7 +212,7 @@ public class HomePageController extends AbstractController {
             urlparams = referer.substring(referer.indexOf('?'));
         }
 
-        return new ModelAndView(new RedirectView("/home.htm" + urlparams, true));
+        return new ModelAndView(new PortalRedirectView("/home.htm" + urlparams, true));
     }
 
     /**

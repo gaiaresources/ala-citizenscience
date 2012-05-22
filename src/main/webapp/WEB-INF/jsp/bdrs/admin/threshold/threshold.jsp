@@ -7,7 +7,7 @@
 <h1>Add Threshold</h1>
 <cw:getContent key="admin/thresholdEdit" />
 
-<form method="post" action="${pageContext.request.contextPath}/bdrs/admin/threshold/edit.htm">
+<form method="post" action="${portalContextPath}/bdrs/admin/threshold/edit.htm">
 	
 	<table class="form_table">
         <tr>

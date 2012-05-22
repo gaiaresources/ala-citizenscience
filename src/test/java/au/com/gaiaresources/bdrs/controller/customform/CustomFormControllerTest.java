@@ -13,7 +13,6 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.mock.web.MockMultipartHttpServletRequest;
 import org.springframework.test.web.ModelAndViewAssert;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
 import java.io.File;
 import java.io.IOException;
@@ -65,8 +64,7 @@ public class CustomFormControllerTest extends AbstractGridControllerTest {
         req.addFile(getTestCustomForm(testCustomFormName));
 
         ModelAndView mv = handle(request, response);
-        RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals(CustomFormController.FORM_LISTING_URL, redirect.getUrl());
+        assertRedirect(mv, CustomFormController.FORM_LISTING_URL);
 
         JSONObject config = getConfigFile(testCustomFormName);
         String formName = config.getString(CustomFormController.JSON_CONFIG_NAME);
@@ -94,8 +92,7 @@ public class CustomFormControllerTest extends AbstractGridControllerTest {
         req.addFile(getTestCustomForm(testCustomFormName));
 
         ModelAndView mv = handle(request, response);
-        RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals(CustomFormController.FORM_LISTING_URL, redirect.getUrl());
+        assertRedirect(mv, CustomFormController.FORM_LISTING_URL);
 
         // We have the correct number of error message
         Assert.assertEquals(1, getRequestContext().getMessages().size());
@@ -124,8 +121,7 @@ public class CustomFormControllerTest extends AbstractGridControllerTest {
         req.addFile(getTestCustomForm(testCustomFormName));
 
         ModelAndView mv = handle(request, response);
-        RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals(CustomFormController.FORM_LISTING_URL, redirect.getUrl());
+        assertRedirect(mv, CustomFormController.FORM_LISTING_URL);
 
         // We have the correct number of error message
         Assert.assertEquals(1, getRequestContext().getMessages().size());
@@ -154,8 +150,7 @@ public class CustomFormControllerTest extends AbstractGridControllerTest {
         req.addFile(getTestCustomForm(testCustomFormName));
 
         ModelAndView mv = handle(request, response);
-        RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals(CustomFormController.FORM_LISTING_URL, redirect.getUrl());
+        assertRedirect(mv, CustomFormController.FORM_LISTING_URL);
 
         // We have the correct number of error message
         Assert.assertEquals(1, getRequestContext().getMessages().size());
@@ -184,8 +179,7 @@ public class CustomFormControllerTest extends AbstractGridControllerTest {
         req.addFile(getTestCustomForm(testCustomFormName));
 
         ModelAndView mv = handle(request, response);
-        RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals(CustomFormController.FORM_LISTING_URL, redirect.getUrl());
+        assertRedirect(mv, CustomFormController.FORM_LISTING_URL);
 
         // We have the correct number of error message
         Assert.assertEquals(1, getRequestContext().getMessages().size());

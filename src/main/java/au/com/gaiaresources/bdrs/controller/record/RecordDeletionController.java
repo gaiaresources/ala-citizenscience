@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 
 import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.message.Message;
@@ -149,6 +149,6 @@ public class RecordDeletionController extends RecordController {
                 }
             }
         }
-        return new ModelAndView(new RedirectView(redirectURL, true));
+        return new ModelAndView(new PortalRedirectView(redirectURL, true));
     }
 }

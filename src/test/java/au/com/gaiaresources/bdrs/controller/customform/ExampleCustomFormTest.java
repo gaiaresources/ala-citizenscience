@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockMultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
 import java.io.File;
 import java.util.HashSet;
@@ -50,8 +49,7 @@ public class ExampleCustomFormTest extends AbstractGridControllerTest {
         req.addFile(CustomFormTestUtil.getTestForm(formDir, testCustomFormName));
 
         ModelAndView mv = handle(request, response);
-        RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals(CustomFormController.FORM_LISTING_URL, redirect.getUrl());
+        assertRedirect(mv, CustomFormController.FORM_LISTING_URL);
 
         JSONObject config = CustomFormTestUtil.getConfigFile(formDir);
         String formName = config.getString(CustomFormController.JSON_CONFIG_NAME);

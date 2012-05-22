@@ -90,7 +90,7 @@
         } else if (loc && loc.val() > 0) {
             // add the location on initial screen render
             jQuery.ajax({
-                url: '${pageContext.request.contextPath}/webservice/location/getLocationById.htm?id='+loc.val(), 
+                url: '${portalContextPath}/webservice/location/getLocationById.htm?id='+loc.val(),
                 success: function(data) {
                     var wkt = new OpenLayers.Format.WKT(bdrs.map.wkt_options);
                     var feature = wkt.read(data.location);

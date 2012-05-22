@@ -86,6 +86,7 @@ bdrs.getParameterByName = function(name){
 };
 
 bdrs.contextPath = "";
+bdrs.portalContextPath = "";
 bdrs.ident = "";
 bdrs.dateFormat = 'dd M yy';
 
@@ -1334,7 +1335,7 @@ bdrs.map.downloadRecordsForActiveLayers = function(map, format) {
             throw 'invalid record download format';
         }
         params.mapLayerId = mapLayerIds;
-        var url = bdrs.contextPath + "/bdrs/map/downloadRecords.htm?" + jQuery.param(params, true);
+        var url = bdrs.portalContextPath + "/bdrs/map/downloadRecords.htm?" + jQuery.param(params, true);
         window.document.location = url;
     }
 };
@@ -1881,14 +1882,14 @@ bdrs.map.createContentState = function(itemArray, popup, mapServerQueryManager){
                 var viewRecordRow = jQuery("<tr><td></td></tr>");
                 viewRecordRow.attr('colspan', '2');
                 var surveyId = item["surveyId"];
-                var recordUrl = bdrs.contextPath + "/bdrs/user/surveyRenderRedirect.htm?surveyId=" + surveyId + "&recordId=" + recordId;
+                var recordUrl = bdrs.portalContextPath + "/bdrs/user/surveyRenderRedirect.htm?surveyId=" + surveyId + "&recordId=" + recordId;
                 jQuery("<a>View&nbsp;Record</a>").attr('href', recordUrl).appendTo(viewRecordRow.find("td"));
                 tbody.append(viewRecordRow);
             }
             if (bdrs.authenticated) {
                 var requestRecordInfoRow = jQuery("<tr><td></td></tr>");
                 requestRecordInfoRow.attr('colspan', '2');
-                var requestRecordInfoUrl = bdrs.contextPath + "/bdrs/user/contactRecordOwner.htm?recordId=" + recordId;
+                var requestRecordInfoUrl = bdrs.portalContextPath + "/bdrs/user/contactRecordOwner.htm?recordId=" + recordId;
                 jQuery("<a>Contact&nbsp;Owner</a>").attr('href', requestRecordInfoUrl).appendTo(requestRecordInfoRow.find("td"));
                 tbody.append(requestRecordInfoRow);
             }
@@ -2226,7 +2227,7 @@ bdrs.map.zoomToLocations = function(arrayLocation){
 };
 
 bdrs.map.zoomToLocationsById = function(locIds){
-    jQuery.getJSON(bdrs.contextPath + "/webservice/location/getLocationsById.htm", {
+    jQuery.getJSON(bdrs.portalContextPath + "/webservice/location/getLocationsById.htm", {
         ids: JSON.stringify(locIds)
     }, function(data){
         var wkt = new OpenLayers.Format.WKT(bdrs.map.wkt_options);
@@ -2440,7 +2441,7 @@ bdrs.map.initAjaxFeatureLookupClickHandler = function(map, options){
             };
             
             jQuery.ajax({
-                url: bdrs.contextPath + '/bdrs/map/getFeatureInfo.htm',
+                url: bdrs.portalContextPath + '/bdrs/map/getFeatureInfo.htm',
                 data: jQuery.param(ajaxParams, true),
                 success: function(data, textStatus, jqXhr){
                     if (data.items && jQuery.isArray(data.items) && data.items.length > 0) {
@@ -2562,7 +2563,7 @@ bdrs.survey.deleteAjaxRecord = function(userIdent, recordId, recordSelector, msg
         if(confirm('Are you sure you want to delete this record?')) {
             var statusMsg;
             jQuery.ajax({
-                url: bdrs.contextPath + "/webservice/record/deleteRecord.htm",
+                url: bdrs.portalContextPath + "/webservice/record/deleteRecord.htm",
                 type: "POST",
                 data: {
                     ident: userIdent,
@@ -2594,7 +2595,7 @@ bdrs.survey.location.LOCATION_LAYER_NAME = 'Location Layer';
 
 bdrs.survey.location.updateLocation = function(pk, surveyId, options) {
     if(pk > 0) {
-        jQuery.get(bdrs.contextPath+"/webservice/location/getLocationById.htm", {id: pk, surveyId: surveyId}, function(data) {
+        jQuery.get(bdrs.portalContextPath+"/webservice/location/getLocationById.htm", {id: pk, surveyId: surveyId}, function(data) {
             var wkt = new OpenLayers.Format.WKT(bdrs.map.wkt_options);
             var feature = wkt.read(data.location);
             var point = feature.geometry.getCentroid().transform(

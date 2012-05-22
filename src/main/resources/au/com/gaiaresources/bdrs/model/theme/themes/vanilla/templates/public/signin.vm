@@ -4,7 +4,7 @@ Welcome to the Biological Data Recording System.
 </p>
 <p class="pageContent">
     If you have not already registered, you can do so 
-    <a href="${pageContext.request.contextPath}/vanilla/usersignup.htm">here</a>.
+    <a href="${portalContextPath}/vanilla/usersignup.htm">here</a>.
 </p>
 <p class="pageContent">
     If you already have a Username and Password, please sign in below.
@@ -41,7 +41,7 @@ Welcome to the Biological Data Recording System.
         <tr>
             <td/>
             <td>
-                <a href="${pageContext.request.contextPath}/reminder.htm">Forgot your password?</a>
+                <a href="${portalContextPath}/reminder.htm">Forgot your password?</a>
             </td>
         </tr>
     </table>

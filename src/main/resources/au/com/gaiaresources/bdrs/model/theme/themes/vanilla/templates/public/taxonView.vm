@@ -14,7 +14,7 @@
             class="scientificName"
         #end
     >
-        <a href="${pageContext.request.contextPath}/fieldguide/taxon.htm?id=${taxon.id}">
+        <a href="${portalContextPath}/fieldguide/taxon.htm?id=${taxon.id}">
             ${taxon.scientificName}
         </a>
     </td>
@@ -50,15 +50,15 @@
                         </th>
                         <td>
                         #if(${AttributeType.IMAGE} == ${taxonAttr.getAttribute().getType()})
-                            <a href="${pageContext.request.contextPath}/files/download.htm?${taxonAttr.getFileURL()}">
-                                <img class="max_size_img" src="${pageContext.request.contextPath}/files/download.htm?${taxonAttr.getFileURL()}" alt="${taxonAttr.stringValue}"/>
+                            <a href="${portalContextPath}/files/download.htm?${taxonAttr.getFileURL()}">
+                                <img class="max_size_img" src="${portalContextPath}/files/download.htm?${taxonAttr.getFileURL()}" alt="${taxonAttr.stringValue}"/>
                             </a>
                         #elseif(${AttributeType.FILE} == ${taxonAttr.getAttribute().getType()})
-                            <a href="${pageContext.request.contextPath}/files/download.htm?${taxonAttr.getFileURL()}">
+                            <a href="${portalContextPath}/files/download.htm?${taxonAttr.getFileURL()}">
                                 ${taxonAttr.stringValue}
                             </a>
                         #elseif(${AttributeType.AUDIO} == ${taxonAttr.getAttribute().getType()})
-                            <a href="${pageContext.request.contextPath}/files/download.htm?${taxonAttr.getFileURL()}">
+                            <a href="${portalContextPath}/files/download.htm?${taxonAttr.getFileURL()}">
                                 ${taxonAttr.stringValue}
                             </a>
                         #else
@@ -84,8 +84,8 @@
                 #set($profiledescription=${profile.description})
             #end
             #if(${profile.isImgType()})
-                <a class="left" href="${pageContext.request.contextPath}/files/downloadByUUID.htm?uuid=${profile.content}">
-                    <img class="max_size_img" src="${pageContext.request.contextPath}/files/downloadByUUID.htm?uuid=${profile.content}"/>
+                <a class="left" href="${portalContextPath}/files/downloadByUUID.htm?uuid=${profile.content}">
+                    <img class="max_size_img" src="${portalContextPath}/files/downloadByUUID.htm?uuid=${profile.content}"/>
                 </a>
                 
                 <cw:getManagedFile uuid="${profile.content}" var="managedFile"/>
@@ -109,7 +109,7 @@
                 <div class="clear"></div>
             #end
             #if(${profile.isAudioType()})
-                <audio src="${pageContext.request.contextPath}/files/downloadByUUID.htm?uuid=${profile.content}" 
+                <audio src="${portalContextPath}/files/downloadByUUID.htm?uuid=${profile.content}"
                     controls="controls" preload>
                     ${profile.content}
                 </audio>

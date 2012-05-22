@@ -7,8 +7,8 @@
 <c:choose>
     <c:when test="${ recordWebFormContext.preview }">
         <div class="buttonpanel textright">
-            <input class="form_action" type="button" value="Go Back" onclick="window.document.location='${pageContext.request.contextPath}/bdrs/admin/survey/editAttributes.htm?surveyId=${recordWebFormContext.surveyId}'"/>
-            <input class="form_action" type="button" value="Continue" onclick="window.document.location='${pageContext.request.contextPath}/bdrs/admin/survey/locationListing.htm?surveyId=${recordWebFormContext.surveyId}'"/>
+            <input class="form_action" type="button" value="Go Back" onclick="window.document.location='${portalContextPath}/bdrs/admin/survey/editAttributes.htm?surveyId=${recordWebFormContext.surveyId}'"/>
+            <input class="form_action" type="button" value="Continue" onclick="window.document.location='${portalContextPath}/bdrs/admin/survey/locationListing.htm?surveyId=${recordWebFormContext.surveyId}'"/>
         </div>
     </c:when>
     <c:otherwise>

@@ -93,6 +93,16 @@
         </property>
         <property name="order" value="1" />
     </bean>
+
+    <bean id="portalUrlHandlerMapping" class="au.com.gaiaresources.bdrs.servlet.PortalUrlHandlerMapping">
+        <property name="interceptors">
+            <list>
+                <ref bean="interceptor" />
+                <ref bean="recaptchaInterceptor" />
+            </list>
+        </property>
+        <property name="order" value="2" />
+    </bean>
 	
 	<!-- authentication entry point -->
 	<bean id="bdrsAuthenticationEntryPoint" class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint">

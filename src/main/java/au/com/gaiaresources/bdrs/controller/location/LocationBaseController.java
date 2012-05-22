@@ -1,37 +1,6 @@
 package au.com.gaiaresources.bdrs.controller.location;
 
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.annotation.security.RolesAllowed;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.ws.http.HTTPException;
-
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.propertyeditors.CustomDateEditor;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.ServletRequestDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
-
 import au.com.gaiaresources.bdrs.controller.AbstractController;
-import au.com.gaiaresources.bdrs.controller.attribute.AttributeFormFieldFactory;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormFieldFactory;
 import au.com.gaiaresources.bdrs.controller.record.RecordWebFormContext;
@@ -48,21 +17,37 @@ import au.com.gaiaresources.bdrs.model.location.LocationDAO;
 import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
-import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
-import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.*;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
-
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 import com.vividsolutions.jts.geom.Geometry;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.propertyeditors.CustomDateEditor;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.annotation.security.RolesAllowed;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.ws.http.HTTPException;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Controller
 public class LocationBaseController extends AbstractController {
@@ -208,7 +193,7 @@ public class LocationBaseController extends AbstractController {
             log.error(iae.getMessage(), iae);
         }
 
-        ModelAndView mv = new ModelAndView(new RedirectView(redirect, true));
+        ModelAndView mv = new ModelAndView(new PortalRedirectView(redirect, true));
         return mv;
     }
 
@@ -303,11 +288,11 @@ public class LocationBaseController extends AbstractController {
 
         ModelAndView mv;
         if(request.getParameter("saveAndContinue") != null) {
-            mv = new ModelAndView(new RedirectView("/bdrs/admin/survey/editUsers.htm", true));
+            mv = new ModelAndView(new PortalRedirectView("/bdrs/admin/survey/editUsers.htm", true));
             mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
         }
         else {
-            mv = new ModelAndView(new RedirectView("/bdrs/admin/survey/listing.htm", true));
+            mv = new ModelAndView(new PortalRedirectView("/bdrs/admin/survey/listing.htm", true));
         }
         return mv;
     }
@@ -415,7 +400,7 @@ public class LocationBaseController extends AbstractController {
             getRequestContext().addMessage("bdrs.survey.locations.success", new Object[]{survey.getName()});
         }
         
-        ModelAndView mv = new ModelAndView(new RedirectView("/bdrs/admin/survey/locationListing.htm", true));
+        ModelAndView mv = new ModelAndView(new PortalRedirectView("/bdrs/admin/survey/locationListing.htm", true));
         mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
         return mv;
     }

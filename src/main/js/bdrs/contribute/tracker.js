@@ -74,7 +74,7 @@ bdrs.contribute.tracker.getTrackerUrl = function(selectedTab, surveyId, censusMe
 	if (recordId) {
 	   params.push("recordId=" + recordId);	
 	}
-    return bdrs.contextPath + bdrs.contribute.tracker.TRACKER_URL + "?" + params.join("&");
+    return bdrs.portalContextPath + bdrs.contribute.tracker.TRACKER_URL + "?" + params.join("&");
 };
 
 /**
@@ -142,13 +142,13 @@ bdrs.contribute.tracker.createRecordGrid = function(targetDivSelector, parentRec
         var links = [];
 		// Open record tab for selected record in read only mode
 		links.push('<a title="Open record for viewing" href="'
-          + bdrs.contextPath 
+          + bdrs.portalContextPath
           + '/bdrs/user/surveyRenderRedirect.htm?selectedTab='
           + bdrs.contribute.tracker.TAB_RECORD+'&recordId=' 
           + rowId + '">View</a>');
 		// Open related reecords tab for selected record in read only mode  
         links.push('<a title="Browse to this record while staying in the related records tab" href="'
-		  + bdrs.contextPath 
+		  + bdrs.portalContextPath
 		  + '/bdrs/user/surveyRenderRedirect.htm?selectedTab='
 		  + bdrs.contribute.tracker.TAB_SUB_RECORD+'&recordId=' 
 		  + rowId + '">Browse</a>');
@@ -164,7 +164,7 @@ bdrs.contribute.tracker.createRecordGrid = function(targetDivSelector, parentRec
 
 	// create the grid
     jQuery(table).jqGrid({
-            url: bdrs.contextPath + "/webservice/record/getChildRecords.htm",
+            url: bdrs.portalContextPath + "/webservice/record/getChildRecords.htm",
 			postData: {
 				parentRecordId: parentRecordId,
 				censusMethodId : censusMethodId

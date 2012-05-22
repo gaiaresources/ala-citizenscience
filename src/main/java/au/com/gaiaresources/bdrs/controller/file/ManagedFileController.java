@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 
 import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataBuilder;
@@ -91,7 +91,7 @@ public class ManagedFileController extends AbstractController {
                                  @RequestParam(value="license", required=true) String license) throws IOException {      
         MultipartFile file = request.getFile("file").getSize() > 0 ? request.getFile("file") : null;
         mfService.saveManagedFile(pk, description, credit, license, file);
-        return new ModelAndView(new RedirectView("/bdrs/user/managedfile/listing.htm", true));
+        return new ModelAndView(new PortalRedirectView("/bdrs/user/managedfile/listing.htm", true));
     }
 
     @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR})
@@ -115,7 +115,7 @@ public class ManagedFileController extends AbstractController {
             }
         }
         
-        return new ModelAndView(new RedirectView("/bdrs/user/managedfile/listing.htm", true));
+        return new ModelAndView(new PortalRedirectView("/bdrs/user/managedfile/listing.htm", true));
     }
     
     public String getPageNumberParamName() {

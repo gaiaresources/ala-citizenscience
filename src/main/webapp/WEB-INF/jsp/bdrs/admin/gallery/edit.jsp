@@ -13,7 +13,7 @@
 
 <cw:getContent key="admin/gallery/editGallery" />
 
-<form method="POST" enctype="multipart/form-data" action="${pageContext.request.contextPath}/bdrs/admin/gallery/edit.htm">
+<form method="POST" enctype="multipart/form-data" action="${portalContextPath}/bdrs/admin/gallery/edit.htm">
     <input type="hidden" name="galleryPk" value="${gallery.id}" />
 	<h3>Gallery Properties</h3>
 	
@@ -65,8 +65,8 @@
             <!-- if the uuid exists the file has been previously uploaded --> 
             {{if (uuid)}}
             <div class="imageGalleryEditImageContainer">
-            <a href="${pageContext.request.contextPath}/bdrs/public/gallery/fullImg.htm?uuid=${'${'}uuid}">
-                <img src="${pageContext.request.contextPath}/bdrs/public/gallery/fullImg.htm?uuid=${'${'}uuid}" alt="No image uploaded" width="250" border="30"/>
+            <a href="${portalContextPath}/bdrs/public/gallery/fullImg.htm?uuid=${'${'}uuid}">
+                <img src="${portalContextPath}/bdrs/public/gallery/fullImg.htm?uuid=${'${'}uuid}" alt="No image uploaded" width="250" border="30"/>
             </a>
             </div>
             {{/if}}
@@ -77,8 +77,8 @@
         <td valign="top">
             {{if (uuid)}}
             <div class="imageGalleryEditImageContainer">
-            <a href="${pageContext.request.contextPath}/bdrs/public/gallery/slideshowImg.htm?uuid=${'${'}uuid}">
-                <img src="${pageContext.request.contextPath}/bdrs/public/gallery/slideshowImg.htm?uuid=${'${'}uuid}" width="250" alt="No slide show image uploaded" />
+            <a href="${portalContextPath}/bdrs/public/gallery/slideshowImg.htm?uuid=${'${'}uuid}">
+                <img src="${portalContextPath}/bdrs/public/gallery/slideshowImg.htm?uuid=${'${'}uuid}" width="250" alt="No slide show image uploaded" />
             </a>
             </div>
             <div style="padding-top:2px;" class="imageGalleryInput">                       
@@ -112,7 +112,7 @@
         </td>
         <td class="textcenter">                                                                     
             <a href="javascript: void(0);" onclick="jQuery(this).parents('tr').hide().find('select, input, textarea').attr('disabled', 'disabled').removeClass(); return false;">   
-            <img src="${pageContext.request.contextPath}/images/icons/delete.png" alt="Delete" class="vertmiddle"/>                                                                         
+            <img src="${pageContext.request.contextPath}/images/icons/delete.png" alt="Delete" class="vertmiddle"/>
             </a>
         </td>
     </tr>

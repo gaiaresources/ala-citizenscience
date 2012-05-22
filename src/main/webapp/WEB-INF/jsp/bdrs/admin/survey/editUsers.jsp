@@ -8,7 +8,7 @@
 <jsp:useBean id="context" scope="request" type="au.com.gaiaresources.bdrs.servlet.RequestContext"></jsp:useBean>
 
 <h1>Edit Project: Access</h1>
-<form method="POST" action="${pageContext.request.contextPath}/bdrs/admin/survey/editUsers.htm">
+<form method="POST" action="${portalContextPath}/bdrs/admin/survey/editUsers.htm">
     <input type="hidden" name="surveyId" value="${survey.id}"/>
 
     <div>
@@ -143,7 +143,7 @@
                        params.q = request.term;
                        params.ident = '${context.user.registrationKey}';
 
-                       jQuery.getJSON('${pageContext.request.contextPath}/webservice/user/searchUserAndGroup.htm', params, function(data, textStatus) {
+                       jQuery.getJSON('${portalContextPath}/webservice/user/searchUserAndGroup.htm', params, function(data, textStatus) {
                            var result;
                            var resultsArray = [];
 

@@ -196,9 +196,13 @@ public abstract class AbstractControllerTest extends AbstractTransactionalTest {
     }
     
     protected void assertRedirect(ModelAndView mav, String url) {
+        assertRedirect(mav, url, true);
+    }
+
+    protected void assertRedirect(ModelAndView mav, String url, boolean prependPortalToExpected) {
         Assert.assertTrue("should be redirect view", mav.getView() instanceof RedirectView);
         RedirectView view = (RedirectView)mav.getView();
-        Assert.assertEquals("assert redirect url", url, view.getUrl());
+        assertUrlEquals("assert redirect url", url, view.getUrl(), prependPortalToExpected);
     }
     
     protected void assertRedirectAndErrorCode(ModelAndView mav, String url, String errorCode) {
@@ -279,7 +283,42 @@ public abstract class AbstractControllerTest extends AbstractTransactionalTest {
             commit();
         }
     }
-    
+
+    /**
+     * Checks a URL, first pre-pending the portal id to the expected URL.
+     * @param expected the expected URL, minus the portal prefix.
+     * @param actual the actual URL.
+     */
+    protected void assertUrlEquals(String expected, String actual) {
+        assertUrlEquals("", expected, actual);
+    }
+
+    /**
+     * Checks a URL, first pre-pending the portal id to the expected URL.
+     * @param comment the JUnit test description
+     * @param expected the expected URL, minus the portal prefix.
+     * @param actual the actual URL.
+     */
+    protected void assertUrlEquals(String comment, String expected, String actual) {
+        assertUrlEquals(comment, expected, actual, true);
+    }
+
+    /**
+     * Checks a URL, first pre-pending the portal id to the expected URL.
+     * @param comment the JUnit test description
+     * @param expected the expected URL, minus the portal prefix.
+     * @param actual the actual URL.
+     * @param prependPortalToExpected set to true if /portal/{id} should be prepended to the expected URL.
+     */
+    protected void assertUrlEquals(String comment, String expected, String actual, boolean prependPortalToExpected) {
+        if (prependPortalToExpected) {
+            expected = "/portal/"+defaultPortal.getId()+expected;
+        }
+        Assert.assertEquals(comment, expected, actual);
+    }
+
+
+
     private class SimpleServerProxy implements Container {
         @Override
         public void handle(Request simpleRequest, Response simpleResponse) {

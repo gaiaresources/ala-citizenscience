@@ -15,7 +15,7 @@
         </c:if>
         </span>
 
-        <c:set var="formAction"><c:url value="/bdrs/user/comment/delete.htm"/></c:set>
+        <c:set var="formAction" value="${portalContextPath}/bdrs/user/comment/delete.htm"/>
         <form id="deleteComment${tmpComment.id}" action="${formAction}" method="POST">
             <input type="hidden" name="commentId" value="${tmpComment.id}"/>
             <input type="hidden" name="recordId" value="${record.id}"/>

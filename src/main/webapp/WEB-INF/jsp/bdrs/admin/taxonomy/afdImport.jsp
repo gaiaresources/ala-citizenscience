@@ -14,7 +14,7 @@
         The AFD has several files that already come in CSV format. You may upload each file individually or concatenate
         the CSV files (not including the headers) to do the upload in one http request.
     </p>
-    <form method="POST" enctype="multipart/form-data" action="${pageContext.request.contextPath}/bdrs/admin/taxonomy/taxonLibImport.htm"
+    <form method="POST" enctype="multipart/form-data" action="${portalContextPath}/bdrs/admin/taxonomy/taxonLibImport.htm"
 	target="iframe_target">
         <input type="hidden" name="importSource" value="AFD"/>
         <table class="form_table">

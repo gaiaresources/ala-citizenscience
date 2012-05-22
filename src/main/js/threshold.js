@@ -16,7 +16,7 @@ bdrs.threshold.handlers.changePropertyPath = function(classNameSelector, propert
         params.index = index;
     }
     
-    jQuery.get(bdrs.contextPath+"/bdrs/admin/threshold/ajaxChangePropertyPath.htm", params, function(data) {
+    jQuery.get(bdrs.portalContextPath+"/bdrs/admin/threshold/ajaxChangePropertyPath.htm", params, function(data) {
         var pathElem = jQuery(propertyPathElem);
         var subPathElem = jQuery(data);
         pathElem.after(subPathElem);
@@ -45,7 +45,7 @@ bdrs.threshold.handlers.changeActionType = function(actionTypeSelector, actionCe
         params.index = index;
     }
     
-    jQuery.get(bdrs.contextPath+"/bdrs/admin/threshold/ajaxActionValueForActionType.htm", params, function(data) {
+    jQuery.get(bdrs.portalContextPath+"/bdrs/admin/threshold/ajaxActionValueForActionType.htm", params, function(data) {
         jQuery(actionCellSelector).append(data);
     });
 };
@@ -61,7 +61,7 @@ bdrs.threshold.addCondition = function(indexSelector, classNameSelector, conditi
         index: index
     };
     
-    jQuery.get(bdrs.contextPath+"/bdrs/admin/threshold/ajaxAddCondition.htm", params, function(data) {
+    jQuery.get(bdrs.portalContextPath+"/bdrs/admin/threshold/ajaxAddCondition.htm", params, function(data) {
         var conditionContainerElem = jQuery(conditionContainerSelector);
         var condition = jQuery(data);
         conditionContainerElem.append(condition);
@@ -80,7 +80,7 @@ bdrs.threshold.addAction = function(indexSelector, classNameSelector, actionTabl
         index: index
     };
     
-    jQuery.get(bdrs.contextPath+"/bdrs/admin/threshold/ajaxAddAction.htm", params, function(data) {
+    jQuery.get(bdrs.portalContextPath+"/bdrs/admin/threshold/ajaxAddAction.htm", params, function(data) {
         var actionTableBodyElem = jQuery(actionTableSelector).find("tbody");
         actionTableBodyElem.append(data);
     });

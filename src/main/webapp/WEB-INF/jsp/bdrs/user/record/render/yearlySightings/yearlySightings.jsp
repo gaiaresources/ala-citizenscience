@@ -27,7 +27,7 @@
         day. 
     </p>
     <c:if test="${ not preview }">
-        <form method="post" action="${pageContext.request.contextPath}/bdrs/user/yearlySightings.htm" enctype="multipart/form-data">
+        <form method="post" action="${portalContextPath}/bdrs/user/yearlySightings.htm" enctype="multipart/form-data">
     </c:if>
         <input type="hidden" id="ident" name="ident" value="<%= context.getUser() == null ? null : context.getUser().getRegistrationKey() %>"/>
         <input type="hidden" id="surveyId" name="surveyId" value="${survey.id}"/>
@@ -71,7 +71,7 @@
                                 </select>
                                 <input type="text" name="locationId" class="validate(required)" style="width: 0px; visibility: hidden;"/>
                                 <c:if test="${ predefinedLocationsOnly == false }">
-                                    <a href="${pageContext.request.contextPath}/bdrs/location/editUserLocations.htm?redirect=/bdrs/user/yearlySightings.htm%3FsurveyId=${survey.id}">Add Location</a>
+                                    <a href="${portalContextPath}/bdrs/location/editUserLocations.htm?redirect=/bdrs/user/yearlySightings.htm%3FsurveyId=${survey.id}">Add Location</a>
                                 </c:if>
                             </c:when>
                             <c:otherwise>

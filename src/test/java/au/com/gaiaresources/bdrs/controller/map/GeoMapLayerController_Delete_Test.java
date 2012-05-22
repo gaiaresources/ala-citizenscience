@@ -1,8 +1,11 @@
 package au.com.gaiaresources.bdrs.controller.map;
 
-import java.util.LinkedList;
-import java.util.List;
-
+import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
+import au.com.gaiaresources.bdrs.geometry.GeometryBuilder;
+import au.com.gaiaresources.bdrs.model.map.*;
+import au.com.gaiaresources.bdrs.model.survey.Survey;
+import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
+import au.com.gaiaresources.bdrs.security.Role;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Before;
@@ -12,19 +15,8 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.view.RedirectView;
 
-import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
-import au.com.gaiaresources.bdrs.geometry.GeometryBuilder;
-import au.com.gaiaresources.bdrs.model.map.AssignedGeoMapLayer;
-import au.com.gaiaresources.bdrs.model.map.GeoMap;
-import au.com.gaiaresources.bdrs.model.map.GeoMapDAO;
-import au.com.gaiaresources.bdrs.model.map.GeoMapFeature;
-import au.com.gaiaresources.bdrs.model.map.GeoMapFeatureDAO;
-import au.com.gaiaresources.bdrs.model.map.GeoMapLayer;
-import au.com.gaiaresources.bdrs.model.map.GeoMapLayerDAO;
-import au.com.gaiaresources.bdrs.model.map.GeoMapLayerSource;
-import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
-import au.com.gaiaresources.bdrs.security.Role;
+import java.util.LinkedList;
+import java.util.List;
 
 public class GeoMapLayerController_Delete_Test extends AbstractControllerTest {
 
@@ -108,7 +100,7 @@ public class GeoMapLayerController_Delete_Test extends AbstractControllerTest {
         ModelAndView mv = handle(request, response);
         View view = mv.getView();
         Assert.assertTrue(view instanceof RedirectView);
-        Assert.assertEquals(GeoMapLayerController.LISTING_URL, ((RedirectView)view).getUrl());
+        assertUrlEquals(GeoMapLayerController.LISTING_URL, ((RedirectView)view).getUrl());
         
         // all of the assigned layers associated with layer 1 will be deleted
         Assert.assertEquals(3, layerDAO.getForMap(map.getId()).size());

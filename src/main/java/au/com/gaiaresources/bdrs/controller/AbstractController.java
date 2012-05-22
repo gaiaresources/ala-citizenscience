@@ -4,13 +4,13 @@ import au.com.gaiaresources.bdrs.db.TransactionCallback;
 import au.com.gaiaresources.bdrs.servlet.Interceptor;
 import au.com.gaiaresources.bdrs.servlet.RequestContext;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.HtmlUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -121,6 +121,6 @@ public abstract class AbstractController {
      * @return
      */
     protected ModelAndView redirect(String url) {
-        return new ModelAndView(new RedirectView(url, true));
+        return new ModelAndView(new PortalRedirectView(url, true));
     }
 }

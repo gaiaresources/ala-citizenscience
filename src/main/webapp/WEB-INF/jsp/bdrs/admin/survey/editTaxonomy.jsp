@@ -10,7 +10,7 @@
 
 <cw:getContent key="admin/editProject/editTaxonomy" />
 
-<form method="POST" action="${pageContext.request.contextPath}/bdrs/admin/survey/editTaxonomy.htm">
+<form method="POST" action="${portalContextPath}/bdrs/admin/survey/editTaxonomy.htm">
     <input type="hidden" name="surveyId" value="${survey.id}"/>
 	<div class="input_container">
 	    <div>
@@ -153,7 +153,7 @@
 	            var params = {};
 	            params.q = request.term;
 	
-	            jQuery.getJSON('${pageContext.request.contextPath}/webservice/taxon/searchTaxon.htm', params, function(data, textStatus) {
+	            jQuery.getJSON('${portalContextPath}/webservice/taxon/searchTaxon.htm', params, function(data, textStatus) {
 	                var label;
 	                var result;
 	                var taxon;
@@ -227,7 +227,7 @@
 	            var params = {};
 	            params.q = request.term;
 	
-	            jQuery.getJSON('${pageContext.request.contextPath}/webservice/taxon/searchTaxonGroup.htm', params, function(data, textStatus) {
+	            jQuery.getJSON('${portalContextPath}/webservice/taxon/searchTaxonGroup.htm', params, function(data, textStatus) {
 	                var label;
 	                var result;
 	                var taxonGroup;

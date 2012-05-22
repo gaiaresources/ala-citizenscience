@@ -99,7 +99,7 @@ bdrs.contribute.yearlysightings.insertRecordAttribute = function(recAttr) {
 		// Repopulate files
 		var fileInput = jQuery("#attribute_file_" + attrId);
 		if (fileInput.length > 0) {
-			var fileUrl = bdrs.contextPath + "/files/download.htm?" + recAttr.fileURL;
+			var fileUrl = bdrs.portalContextPath + "/files/download.htm?" + recAttr.fileURL;
 			if (fileInput.hasClass("image_file")) {
 				// Images
 				var img = jQuery("<img/>");
@@ -203,7 +203,7 @@ bdrs.contribute.yearlysightings.loadCellData = function(locationId, surveyId, id
             surveyId: surveyId,
             ident: ident
         };
-        jQuery.getJSON(bdrs.contextPath+'/webservice/record/getRecordsForLocation.htm', param, function(data) {
+        jQuery.getJSON(bdrs.portalContextPath+'/webservice/record/getRecordsForLocation.htm', param, function(data) {
             var rec;
             for(var i=0; i<data.length; i++) {
                 rec = data[i];
@@ -224,7 +224,7 @@ bdrs.contribute.yearlysightings.loadCellData = function(locationId, surveyId, id
                         recordAttributeId: rec.attributes[j],
                         ident: jQuery('#ident').val()
                     };
-                    jQuery.getJSON(bdrs.contextPath+"/webservice/record/getRecordAttributeById.htm", param, bdrs.contribute.yearlysightings.insertRecordAttribute);
+                    jQuery.getJSON(bdrs.portalContextPath+"/webservice/record/getRecordAttributeById.htm", param, bdrs.contribute.yearlysightings.insertRecordAttribute);
                 } // End for-loop request for survey scope attributes
             }
         });
@@ -276,7 +276,7 @@ bdrs.contribute.singleSiteMultiTaxa.addSighting = function(sightingIndexSelector
     
     var surveyId = jQuery(surveyIdSelector).val();
     
-    var url = bdrs.contextPath+"/bdrs/user/singleSiteMultiTaxa/sightingRow.htm";
+    var url = bdrs.portalContextPath+"/bdrs/user/singleSiteMultiTaxa/sightingRow.htm";
     var param = {
         sightingIndex: sightingIndex,
         surveyId: surveyId
@@ -353,7 +353,7 @@ bdrs.contribute.singleSiteAllTaxa.addSighting = function(sightingIndexSelector, 
   
   var surveyId = jQuery(surveyIdSelector).val();
   
-  var url = bdrs.contextPath+"/bdrs/user/singleSiteAllTaxa/sightingTableAllTaxa.htm";
+  var url = bdrs.portalContextPath+"/bdrs/user/singleSiteAllTaxa/sightingTableAllTaxa.htm";
   var param = {
       sightingIndex: sightingIndex,
       surveyId: surveyId
@@ -438,7 +438,7 @@ bdrs.contribute.initSpeciesAutocomplete = function(args) {
 
             // Issue Request
             if(attributeTbodySelector !== null && attributeTbodySelector !== undefined) {
-                jQuery.get(bdrs.contextPath+"/bdrs/user/ajaxTrackerTaxonAttributeTable.htm", params, function(data) {
+                jQuery.get(bdrs.portalContextPath+"/bdrs/user/ajaxTrackerTaxonAttributeTable.htm", params, function(data) {
                     jQuery(attributeTbodySelector).append(data);
                 });
             }
@@ -471,7 +471,7 @@ bdrs.contribute.getAutocompleteSourceFcn = function(showScientificName) {
 		var params = {};
 		params.q = request.term;
 		params.surveyId = jQuery(this.element).data("surveyId");
-		jQuery.getJSON(bdrs.contextPath + '/webservice/survey/speciesForSurvey.htm', params, function(data, textStatus){
+		jQuery.getJSON(bdrs.portalContextPath + '/webservice/survey/speciesForSurvey.htm', params, function(data, textStatus){
 			var label;
 			var result;
 			var taxon;

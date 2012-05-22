@@ -13,8 +13,8 @@
     <p> 
         The Max flora database has 4 tables that we need to export as CSV after which we can upload the files here.
     </p>
-    <form method="POST" enctype="multipart/form-data" action="${pageContext.request.contextPath}/bdrs/admin/taxonomy/taxonLibImport.htm"
-    target="iframe_target">
+    <form method="POST" enctype="multipart/form-data" action="${portalContextPath}/bdrs/admin/taxonomy/taxonLibImport.htm"
+          target="iframe_target">
         <input type="hidden" name="importSource" value="MAX"/>
         <table class="form_table">
             <tbody>

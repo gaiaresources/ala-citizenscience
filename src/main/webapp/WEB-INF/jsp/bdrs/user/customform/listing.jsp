@@ -8,7 +8,7 @@
 
 <sec:authorize ifAnyGranted="ROLE_ADMIN,ROLE_ROOT">
 	<div class="buttonpanel sepBottom">
-	    <form method="POST" action="${pageContext.request.contextPath}/customform/add.htm" enctype="multipart/form-data">
+	    <form method="POST" action="${portalContextPath}/customform/add.htm" enctype="multipart/form-data">
 	        <input id="add_customform_file" name="form_file" type="file" style="visibility:hidden"/>
 		    <input id="add_customform_button" class="form_action right" type="button" value="Add Custom Form"/>
 	    </form>
@@ -26,7 +26,7 @@
                 </div>
                 <sec:authorize ifAnyGranted="ROLE_ADMIN,ROLE_ROOT">
         	        <div class="right delete_customform_container">
-        	            <form method="POST" action="${pageContext.request.contextPath}/customform/delete.htm">
+        	            <form method="POST" action="${portalContextPath}/customform/delete.htm">
         	                <input type="hidden" name="formId" value="${ customform.id }"/>
         	                <a href="javascript:void(0);" class="delete delete_customform">Delete</a>
         	            </form>

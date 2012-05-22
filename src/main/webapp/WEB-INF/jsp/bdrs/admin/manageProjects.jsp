@@ -8,6 +8,6 @@
 </p>
 
 <ul>
-	<li><a href="${pageContext.request.contextPath}/bdrs/admin/survey/listing.htm">Edit Projects</a>&nbsp; - here you can change the setup for your Projects, inluding the Forms and Fields</li>
-	<li><a href="${pageContext.request.contextPath}/bdrs/admin/censusMethod/listing.htm">Manage Census Methods</a>&nbsp; - here you can set up Census Methods, which are alternate forms that allow for the capture of project related data (that might not necessarily be taxonomic)</li>
+	<li><a href="${portalContextPath}/bdrs/admin/survey/listing.htm">Edit Projects</a>&nbsp; - here you can change the setup for your Projects, inluding the Forms and Fields</li>
+	<li><a href="${portalContextPath}/bdrs/admin/censusMethod/listing.htm">Manage Census Methods</a>&nbsp; - here you can set up Census Methods, which are alternate forms that allow for the capture of project related data (that might not necessarily be taxonomic)</li>
 </ul>

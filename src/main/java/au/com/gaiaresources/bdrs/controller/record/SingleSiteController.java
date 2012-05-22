@@ -29,7 +29,7 @@ import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 
 import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField;
@@ -259,7 +259,7 @@ public abstract class SingleSiteController extends RecordController {
         }
         // strip the context path out of the URL
         String redirectURL = request.getRequestURI().replace(ContentService.getContextPath(request.getRequestURL().toString()), "");
-        ModelAndView mv = new ModelAndView(new RedirectView(redirectURL, true));
+        ModelAndView mv = new ModelAndView(new PortalRedirectView(redirectURL, true));
         Map<String, String> errorMap = new HashMap<String, String>();
         for (RecordDeserializerResult result : results) {
             errorMap.putAll(result.getErrorMap());

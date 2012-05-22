@@ -7,7 +7,7 @@
 <cw:getContent key="admin/manageThresholds" />
 
 <div class="buttonpanel textright">
-    <input class="form_action" type="button" value="Add Threshold" onclick="window.document.location='${pageContext.request.contextPath}/bdrs/admin/threshold/edit.htm';"/>
+    <input class="form_action" type="button" value="Add Threshold" onclick="window.document.location='${portalContextPath}/bdrs/admin/threshold/edit.htm';"/>
 </div>
 
 <table class="datatable textcenter">
@@ -22,7 +22,7 @@
         <c:forEach var='entry' items='${ displayNameThresholdMap }'>
             <tr>
                 <td>
-                    <a href="${pageContext.request.contextPath}/bdrs/admin/threshold/edit.htm?thresholdId=${ entry.key.id }">
+                    <a href="${portalContextPath}/bdrs/admin/threshold/edit.htm?thresholdId=${ entry.key.id }">
                         <c:out value="${ entry.value }"/>
                     </a>
                 </td>

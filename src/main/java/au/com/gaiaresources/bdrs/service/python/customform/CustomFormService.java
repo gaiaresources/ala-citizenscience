@@ -23,13 +23,13 @@ import au.com.gaiaresources.bdrs.service.python.PythonService;
 import au.com.gaiaresources.bdrs.service.taxonomy.BdrsTaxonLibException;
 import au.com.gaiaresources.bdrs.service.taxonomy.TaxonLibSessionFactory;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 import jep.Jep;
 import jep.JepException;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -163,7 +163,7 @@ public class CustomFormService extends PythonService {
                 // We can't render the page, so redirect back to the listing page.
                 return redirectToDefaultRenderer(request);
             } else if(pyResponse.isRedirect()) {
-                return new ModelAndView(new RedirectView(pyResponse.getRedirectURL(), true), pyResponse.getRedirectParams());
+                return new ModelAndView(new PortalRedirectView(pyResponse.getRedirectURL(), true), pyResponse.getRedirectParams());
             } else {
                 // Set the header of the Python custom form if there is one.
                 // This allows the python custom form to provide file downloads if
@@ -238,7 +238,7 @@ public class CustomFormService extends PythonService {
      * @return a model and view redirect to the default survey renderer.
      */
     private ModelAndView redirectToDefaultRenderer(HttpServletRequest request) {
-        ModelAndView mv = new ModelAndView(new RedirectView(RenderController.SURVEY_RENDER_REDIRECT_URL, true));
+        ModelAndView mv = new ModelAndView(new PortalRedirectView(RenderController.SURVEY_RENDER_REDIRECT_URL, true));
         mv.addObject(RenderController.PARAM_REDIRECT_URL, TrackerController.EDIT_URL);
         mv.addAllObjects(request.getParameterMap());
         return mv;

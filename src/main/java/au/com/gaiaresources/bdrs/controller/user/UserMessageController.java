@@ -1,28 +1,25 @@
 package au.com.gaiaresources.bdrs.controller.user;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.annotation.security.RolesAllowed;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import au.com.gaiaresources.bdrs.controller.AbstractController;
+import au.com.gaiaresources.bdrs.email.EmailService;
+import au.com.gaiaresources.bdrs.model.record.Record;
+import au.com.gaiaresources.bdrs.model.record.RecordDAO;
+import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.web.RedirectionService;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
-import au.com.gaiaresources.bdrs.controller.AbstractController;
-import au.com.gaiaresources.bdrs.email.EmailService;
-import au.com.gaiaresources.bdrs.model.record.Record;
-import au.com.gaiaresources.bdrs.model.record.RecordDAO;
-import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.service.content.ContentService;
-import au.com.gaiaresources.bdrs.service.web.RedirectionService;
-import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import javax.annotation.security.RolesAllowed;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Calling it UserMessage vs UserEmail or anything like that because eventually this will not default
@@ -115,7 +112,7 @@ public class UserMessageController extends AbstractController {
                                              emailParams);
         }
         
-        ModelAndView mv = new ModelAndView(new RedirectView(redirService.getMySightingsUrl(rec.getSurvey()), true));
+        ModelAndView mv = new ModelAndView(new PortalRedirectView(redirService.getMySightingsUrl(rec.getSurvey()), true));
         getRequestContext().addMessage("bdrs.user.message.success");
         return mv;
     }

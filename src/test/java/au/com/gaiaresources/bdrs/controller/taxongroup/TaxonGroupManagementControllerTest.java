@@ -1,12 +1,11 @@
 package au.com.gaiaresources.bdrs.controller.taxongroup;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import au.com.gaiaresources.bdrs.model.taxa.AttributeVisibility;
+import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
+import au.com.gaiaresources.bdrs.controller.attribute.AttributeFormField;
+import au.com.gaiaresources.bdrs.controller.insecure.taxa.ComparePersistentImplByWeight;
+import au.com.gaiaresources.bdrs.model.taxa.*;
+import au.com.gaiaresources.bdrs.security.Role;
 import junit.framework.Assert;
-
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -14,18 +13,10 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.mock.web.MockMultipartHttpServletRequest;
 import org.springframework.test.web.ModelAndViewAssert;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
-import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
-import au.com.gaiaresources.bdrs.controller.attribute.AttributeFormField;
-import au.com.gaiaresources.bdrs.controller.insecure.taxa.ComparePersistentImplByWeight;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
-import au.com.gaiaresources.bdrs.security.Role;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class TaxonGroupManagementControllerTest extends AbstractControllerTest {
     
@@ -112,9 +103,7 @@ public class TaxonGroupManagementControllerTest extends AbstractControllerTest {
         }
         
         ModelAndView mv = handle(request, response);
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals("/bdrs/admin/taxongroup/listing.htm", redirect.getUrl());
+        assertRedirect(mv, "/bdrs/admin/taxongroup/listing.htm");
         
         List<? extends TaxonGroup> groups = taxaDAO.getTaxonGroups();
         Assert.assertEquals(groups.size(), 1);
@@ -300,9 +289,7 @@ public class TaxonGroupManagementControllerTest extends AbstractControllerTest {
         }
         
         ModelAndView mv = handle(request, response);
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals("/bdrs/admin/taxongroup/listing.htm", redirect.getUrl());
+        assertRedirect(mv, "/bdrs/admin/taxongroup/listing.htm");
         
         TaxonGroup actualGroup = taxaDAO.getTaxonGroup(group.getId());
         Assert.assertEquals(request.getParameter("name"), actualGroup.getName());

@@ -68,7 +68,7 @@ bdrs.advancedReview.getInitViewStyleDivFcn = function(tableSelector) {
             html.push('<span class="nowrap">');
             if (bdrs.isAdmin || bdrs.authenticatedUserId == record.user.id) {
                 html.push('<a href="');
-                html.push(bdrs.contextPath);
+                html.push(bdrs.portalContextPath);
                 html.push('/bdrs/user/surveyRenderRedirect.htm?surveyId=');
                 html.push(record.survey.id);
                 html.push('&recordId=');
@@ -186,7 +186,7 @@ bdrs.advancedReview.initMapView = function(formSelector, mapId, mapOptions, idSe
     bdrs.map.baseMap.events.register('removeLayer', null, bdrs.map.removeFeaturePoupUpHandler);
     
     var queryParams = jQuery(formSelector).serialize();
-    var kmlURL = bdrs.contextPath + "/review/sightings/advancedReviewKMLSightings.htm?" + queryParams;
+    var kmlURL = bdrs.portalContextPath + "/review/sightings/advancedReviewKMLSightings.htm?" + queryParams;
     var selectedId = jQuery(idSelector).val();
     var style = bdrs.map.createOpenlayersStyleMap(selectedId.toString());
     
@@ -211,6 +211,6 @@ bdrs.advancedReview.initMapView = function(formSelector, mapId, mapOptions, idSe
 bdrs.advancedReview.renderReport = function(formSelector, reportId) {
     var query_params = jQuery(formSelector).serialize();
     query_params += "&reportId="+reportId;
-    var url = bdrs.contextPath + "/review/sightings/advancedReviewReport.htm?"+query_params;
+    var url = bdrs.portalContextPath + "/review/sightings/advancedReviewReport.htm?"+query_params;
     document.location = url;
 };

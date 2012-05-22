@@ -50,7 +50,7 @@ bdrs.user.getLastFirstUsername = function(user) {
  * location object sent by the server in JSON.
  */
 bdrs.user.bookmarkUserLocation = function(locationName, latitude, longitude, isDefault, callback) {
-    var url = bdrs.contextPath + "/webservice/location/bookmarkUserLocation.htm";
+    var url = bdrs.portalContextPath + "/webservice/location/bookmarkUserLocation.htm";
     var params = {
         ident : bdrs.ident,
         locationName : locationName,

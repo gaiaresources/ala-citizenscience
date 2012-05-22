@@ -22,7 +22,7 @@
             </c:when>
         </c:choose> 
     >
-        <a href="${pageContext.request.contextPath}/fieldguide/taxon.htm?id=${ taxon.id }">
+        <a href="${portalContextPath}/fieldguide/taxon.htm?id=${ taxon.id }">
             <c:out value="${ taxon.scientificName }"/>
         </a>
     </td>

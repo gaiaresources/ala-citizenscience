@@ -4,7 +4,7 @@
 <tiles:useAttribute name="surveyId" />
 <tiles:useAttribute name="recordId" />
 
-<a title="unlock form for editing" href="${pageContext.request.contextPath}/bdrs/user/surveyRenderRedirect.htm?surveyId=${surveyId}&recordId=${recordId}&editForm=true
+<a title="unlock form for editing" href="${portalContextPath}/bdrs/user/surveyRenderRedirect.htm?surveyId=${surveyId}&recordId=${recordId}&editForm=true
 <%-- for forms with multiple tabs which is currently only the tracker form --%>
 <c:if test="${!empty selectedTab}">
 	&selectedTab=${selectedTab}

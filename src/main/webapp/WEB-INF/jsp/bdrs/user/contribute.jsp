@@ -12,12 +12,12 @@ Currently, the list of Projects that you can access includes:
 <ul>
     <c:forEach items="${surveys}" var="survey">
         <li>
-            <a href="${pageContext.request.contextPath}/bdrs/user/surveyRenderRedirect.htm?surveyId=${survey.id}">${ survey.name }</a>
+            <a href="${portalContextPath}/bdrs/user/surveyRenderRedirect.htm?surveyId=${survey.id}">${ survey.name }</a>
             <c:if test="${survey.description != null && survey.description != ''}"> - ${survey.description}</c:if>
         </li>
     </c:forEach>
     <li>
-        <a href="${pageContext.request.contextPath}/bulkdata/bulkdata.htm">Bulk Data Entry</a>
+        <a href="${portalContextPath}/bulkdata/bulkdata.htm">Bulk Data Entry</a>
         - Upload a spreadsheet or ESRI Shapefile containing sightings.
     </li>
 </ul>

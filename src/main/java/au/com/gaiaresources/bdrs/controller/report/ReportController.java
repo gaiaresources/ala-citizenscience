@@ -13,6 +13,7 @@ import au.com.gaiaresources.bdrs.model.report.ReportDAO;
 import au.com.gaiaresources.bdrs.model.report.impl.ReportView;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.python.report.ReportService;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 import au.com.gaiaresources.bdrs.util.FileUtils;
 import au.com.gaiaresources.bdrs.util.ImageUtil;
 import au.com.gaiaresources.bdrs.util.ZipUtils;
@@ -27,7 +28,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
 import javax.annotation.security.RolesAllowed;
 import javax.imageio.ImageIO;
@@ -288,7 +288,7 @@ public class ReportController extends AbstractController {
             }
         }
         
-        return new ModelAndView(new RedirectView(REPORT_LISTING_URL, true));
+        return new ModelAndView(new PortalRedirectView(REPORT_LISTING_URL, true));
     }
     
     /**
@@ -313,7 +313,7 @@ public class ReportController extends AbstractController {
             getRequestContext().addMessage("bdrs.report.delete.not_found");
         }
         
-        return new ModelAndView(new RedirectView(REPORT_LISTING_URL, true));
+        return new ModelAndView(new PortalRedirectView(REPORT_LISTING_URL, true));
     }
     
     /**

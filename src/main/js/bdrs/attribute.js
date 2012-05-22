@@ -31,7 +31,7 @@ bdrs.attribute.VALIDATION_CLASS.put(bdrs.model.taxa.attributeType.STRING_WITH_VA
 bdrs.attribute.addAttributeRow = function(tableSelector, showScope, isTag, showVisibility) {
     var index = bdrs.attribute.addAttributeCount++;
 
-    jQuery.get(bdrs.contextPath+'/bdrs/admin/attribute/ajaxAddAttribute.htm',
+    jQuery.get(bdrs.portalContextPath+'/bdrs/admin/attribute/ajaxAddAttribute.htm',
             {'index': index, 'showScope': showScope, 'isTag': isTag, 'showVisibility': showVisibility}, function(data) {
 
         var table = jQuery(tableSelector); 
@@ -354,14 +354,14 @@ bdrs.attribute.createAttributeDisplayDiv = function(attributes, attributeSelecto
         	if (att.attribute.type === "FILE" || att.attribute.type === "AUDIO" ) {
 	            // make a link to download the file
 	        	attValueElem = jQuery('<div class="attributeValue" >' + 
-	        			'<a href="'+bdrs.contextPath+'/files/download.htm?'+att.fileURL+'">' +
+	        			'<a href="'+bdrs.portalContextPath+'/files/download.htm?'+att.fileURL+'">' +
 	                    att.value+'</a></div>');
 	        } else if (att.attribute.type === "IMAGE") {
 	            // make a link to download the file
 	        	attValueElem = jQuery('<div class="attributeValue" >' + 
-	        			'<a href="'+bdrs.contextPath+'/files/download.htm?'+att.fileURL+'">' +
+	        			'<a href="'+bdrs.portalContextPath+'/files/download.htm?'+att.fileURL+'">' +
 	        			'<img width="250"'+
-	                        'src="'+bdrs.contextPath+'/files/download.htm?'+att.fileURL+'"' +
+	                        'src="'+bdrs.portalContextPath+'/files/download.htm?'+att.fileURL+'"' +
 	                        'alt="Missing Image"/></a></div>');
 	        } 
         } else if (attr_type.isHtmlType()) {
@@ -401,7 +401,7 @@ bdrs.attribute.getRowOptions = function(row) {
 bdrs.attribute.checkForThreshold = function(row, surveyId) {
 	var options = bdrs.attribute.getRowOptions(row);
 	jQuery.extend(options, {"surveyId": surveyId});
-	jQuery.get(bdrs.contextPath+'/bdrs/admin/attribute/ajaxCheckThresholdForAttribute.htm',
+	jQuery.get(bdrs.portalContextPath+'/bdrs/admin/attribute/ajaxCheckThresholdForAttribute.htm',
             options, 
             function(data) {
 		        if (data === 'true') {

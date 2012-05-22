@@ -3,19 +3,20 @@
  */
 package au.com.gaiaresources.bdrs.controller.insecure.taxa;
 
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.security.RolesAllowed;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import au.com.gaiaresources.bdrs.controller.AbstractController;
+import au.com.gaiaresources.bdrs.controller.record.AtlasController;
+import au.com.gaiaresources.bdrs.controller.record.TrackerController;
+import au.com.gaiaresources.bdrs.controller.record.YearlySightingsController;
+import au.com.gaiaresources.bdrs.model.content.Content;
+import au.com.gaiaresources.bdrs.model.content.ContentDAO;
+import au.com.gaiaresources.bdrs.model.survey.Survey;
+import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
+import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
+import au.com.gaiaresources.bdrs.model.taxa.*;
+import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,27 +27,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
-import au.com.gaiaresources.bdrs.controller.AbstractController;
-import au.com.gaiaresources.bdrs.controller.record.AtlasController;
-import au.com.gaiaresources.bdrs.controller.record.TrackerController;
-import au.com.gaiaresources.bdrs.controller.record.YearlySightingsController;
-import au.com.gaiaresources.bdrs.model.content.Content;
-import au.com.gaiaresources.bdrs.model.content.ContentDAO;
-import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
-import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpeciesAttribute;
-import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile;
-import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfileDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
-import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import javax.annotation.security.RolesAllowed;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.UnsupportedEncodingException;
+import java.util.*;
 
 /**
  * A controller class to load data into the field guide pages
@@ -275,7 +261,7 @@ public class FieldGuideController extends AbstractController {
                 // add a message that no surveys were found for the species
                 getRequestContext().addMessage("bdrs.survey.noneForTaxa", new String[]{species.getCommonName()});
                 log.warn("No surveys found for species id "+speciesId);
-                return new ModelAndView(new RedirectView(request.getParameter("redirectURL")), request.getParameterMap());
+                return new ModelAndView(new PortalRedirectView(request.getParameter("redirectURL")), request.getParameterMap());
             } else if (surveys.size() > 1) {
                 // Redirect to survey chooser so the use
                 ModelAndView surveyChooser = new ModelAndView(VIEW_RECORD_NOW_SURVEY_CHOOSER);
@@ -289,7 +275,7 @@ public class FieldGuideController extends AbstractController {
         } catch (Exception e) {
             log.error("Error occurred rendering survey for species id: "+request.getParameter(PARAM_SPECIES_ID), e);
             getRequestContext().addMessage("bdrs.survey.taxonomy.error");
-            return new ModelAndView(new RedirectView(request.getParameter("redirectURL")), request.getParameterMap());
+            return new ModelAndView(new PortalRedirectView(request.getParameter("redirectURL")), request.getParameterMap());
         }
     }
 

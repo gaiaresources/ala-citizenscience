@@ -1,46 +1,37 @@
 package au.com.gaiaresources.bdrs.controller.theme;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.*;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-import java.util.zip.ZipOutputStream;
-
-import javax.imageio.ImageIO;
-
-import junit.framework.Assert;
+import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
+import au.com.gaiaresources.bdrs.file.FileService;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
-
+import au.com.gaiaresources.bdrs.model.file.ManagedFile;
+import au.com.gaiaresources.bdrs.model.file.ManagedFileDAO;
+import au.com.gaiaresources.bdrs.model.portal.Portal;
+import au.com.gaiaresources.bdrs.model.theme.*;
+import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.theme.ThemeService;
+import au.com.gaiaresources.bdrs.util.ZipUtils;
+import edu.emory.mathcs.backport.java.util.Collections;
+import junit.framework.Assert;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.ModelAndViewAssert;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
-import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
-import au.com.gaiaresources.bdrs.file.FileService;
-import au.com.gaiaresources.bdrs.model.file.ManagedFile;
-import au.com.gaiaresources.bdrs.model.file.ManagedFileDAO;
-import au.com.gaiaresources.bdrs.model.portal.Portal;
-import au.com.gaiaresources.bdrs.model.theme.Theme;
-import au.com.gaiaresources.bdrs.model.theme.ThemeDAO;
-import au.com.gaiaresources.bdrs.model.theme.ThemeElement;
-import au.com.gaiaresources.bdrs.model.theme.ThemeElementType;
-import au.com.gaiaresources.bdrs.model.theme.ThemePage;
-import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.service.theme.ThemeService;
-import au.com.gaiaresources.bdrs.service.web.RedirectionService;
-import au.com.gaiaresources.bdrs.util.ZipUtils;
-import edu.emory.mathcs.backport.java.util.Collections;
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.*;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 public class ThemeControllerAsAdminTest  extends AbstractControllerTest {
     private static final int IMAGE_WIDTH = 128;
@@ -55,11 +46,11 @@ public class ThemeControllerAsAdminTest  extends AbstractControllerTest {
     private static final String TEST_CSS_MODIFIED_DEFAULT_CONTENT_TMPL = ".horizontal-menu {background-image: url("+REQUEST_CONTEXT_PATH+"/files/download.htm?className=au.com.gaiaresources.bdrs.model.theme.Theme&id=%d&fileName=processed/../images/default.gif);background-repeat: repeat-x;}";
     
     private static final String TEST_TEMPLATE_FILE_PATH = "templates/template.vm"; 
-    private static final String TEST_TEMPLATE_RAW_CONTENT = "<a href=\"${pageContext.request.contextPath}/authenticated/redirect.htm\" class=\"nounder\"><img src=\"${asset}images/wild_backyards.jpg\" id=\"logo\"/></a>";
+    private static final String TEST_TEMPLATE_RAW_CONTENT = "<a href=\"${portalContextPath}/authenticated/redirect.htm\" class=\"nounder\"><img src=\"${asset}images/wild_backyards.jpg\" id=\"logo\"/></a>";
     // we now expect $asset to be overwritten at the unzipping/processing stage so the 2 strings below becomes...
     // note there is no context path. I assume this is because there is no context path when running these tests
-    private static final String TEST_TEMPLATE_DEFAULT_CONTENT = "<a href=\"${pageContext.request.contextPath}/authenticated/redirect.htm\" class=\"nounder\"><img src=\""+REQUEST_CONTEXT_PATH+"/files/download.htm?className=au.com.gaiaresources.bdrs.model.theme.Theme&id=%d&fileName=processed/images/wild_backyards.jpg\" id=\"logo\"/></a>";
-    private static final String TEST_TEMPLATE_CUSTOM_CONTENT = "<a href=\"${pageContext.request.contextPath}/authenticated/redirect.htm\" class=\"nounder\"><img src=\""+REQUEST_CONTEXT_PATH+"/files/download.htm?className=au.com.gaiaresources.bdrs.model.theme.Theme&id=%d&fileName=processed/images/wild_backyards.jpg\" id=\"logo\"/></a>";
+    private static final String TEST_TEMPLATE_DEFAULT_CONTENT = "<a href=\"${portalContextPath}/authenticated/redirect.htm\" class=\"nounder\"><img src=\""+REQUEST_CONTEXT_PATH+"/files/download.htm?className=au.com.gaiaresources.bdrs.model.theme.Theme&id=%d&fileName=processed/images/wild_backyards.jpg\" id=\"logo\"/></a>";
+    private static final String TEST_TEMPLATE_CUSTOM_CONTENT = "<a href=\"${portalContextPath}/authenticated/redirect.htm\" class=\"nounder\"><img src=\""+REQUEST_CONTEXT_PATH+"/files/download.htm?className=au.com.gaiaresources.bdrs.model.theme.Theme&id=%d&fileName=processed/images/wild_backyards.jpg\" id=\"logo\"/></a>";
     
     private static final String TEST_JS_FILE_PATH = "js/javascript.js";
     private static final String TEST_JS_RAW_CONTENT = "function foobar(a){ var b=${js.foobar.b};var c=a+b;return c;}";
@@ -206,9 +197,7 @@ public class ThemeControllerAsAdminTest  extends AbstractControllerTest {
         
         ModelAndView mv = handle(request, response);
         ModelAndViewAssert.assertModelAttributeValue(mv, "portalId", portal.getId());
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals(ThemeController.ADMIN_EDIT_URL, redirect.getUrl());
+        assertRedirect(mv, ThemeController.ADMIN_EDIT_URL);
         
         Theme actualTheme = themeDAO.getTheme((Integer)mv.getModel().get("themeId"));
         Assert.assertEquals(theme.getName(), actualTheme.getName());
@@ -278,9 +267,7 @@ public class ThemeControllerAsAdminTest  extends AbstractControllerTest {
         
         ModelAndView mv = handle(request, response);
         ModelAndViewAssert.assertModelAttributeValue(mv, "portalId", portal.getId());
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals(ThemeController.ADMIN_EDIT_URL, redirect.getUrl());
+        assertRedirect(mv, ThemeController.ADMIN_EDIT_URL);
         
         // Check that the save theme files have been decompressed and processed correctly.
         // Check the raw file directory.
@@ -324,9 +311,7 @@ public class ThemeControllerAsAdminTest  extends AbstractControllerTest {
         
         ModelAndView mv = handle(request, response);
         ModelAndViewAssert.assertModelAttributeValue(mv, "portalId", portal.getId());
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals(ThemeController.ADMIN_EDIT_URL, redirect.getUrl());
+        assertRedirect(mv, ThemeController.ADMIN_EDIT_URL);
         
         // Check that the save theme files have been decompressed and processed correctly.
         // Check the raw file directory.
@@ -370,9 +355,7 @@ public class ThemeControllerAsAdminTest  extends AbstractControllerTest {
 
         ModelAndView mv = handle(request, response);
         ModelAndViewAssert.assertModelAttributeValue(mv, "portalId", portal.getId());
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals(ThemeController.ADMIN_EDIT_URL, redirect.getUrl());
+        assertRedirect(mv, ThemeController.ADMIN_EDIT_URL);
         
         Theme actualTheme = themeDAO.getTheme((Integer)mv.getModel().get("themeId"));
         Assert.assertEquals(theme.getName(), actualTheme.getName());

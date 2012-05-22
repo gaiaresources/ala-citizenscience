@@ -20,11 +20,11 @@
        <tiles:putAttribute name="multiselect" value="false"/>
        <tiles:putAttribute name="scrollbars" value="false" />
        <tiles:putAttribute name="showActions" value="true" />
-       <tiles:putAttribute name="editUrl" value="${pageContext.request.contextPath}/bdrs/admin/gallery/edit.htm" />
-       <tiles:putAttribute name="deleteUrl" value="${pageContext.request.contextPath}/bdrs/admin/gallery/delete.htm" />
+       <tiles:putAttribute name="editUrl" value="${portalContextPath}/bdrs/admin/gallery/edit.htm" />
+       <tiles:putAttribute name="deleteUrl" value="${portalContextPath}/bdrs/admin/gallery/delete.htm" />
 </tiles:insertDefinition>
 
 <div class="buttonpanel textright">
-    <input class="form_action" type="button" value="Add Gallery" onclick="window.location = '${pageContext.request.contextPath}/bdrs/admin/gallery/edit.htm';"/>
+    <input class="form_action" type="button" value="Add Gallery" onclick="window.location = '${portalContextPath}/bdrs/admin/gallery/edit.htm';"/>
 </div>
 

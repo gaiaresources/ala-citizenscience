@@ -1,23 +1,21 @@
 package au.com.gaiaresources.bdrs.controller.preference;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.web.ModelAndViewAssert;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
-
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.model.preference.Preference;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceCategory;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
 import au.com.gaiaresources.bdrs.model.preference.impl.PreferenceDAOImpl;
 import au.com.gaiaresources.bdrs.security.Role;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.web.ModelAndViewAssert;
+import org.springframework.web.servlet.ModelAndView;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class PreferenceControllerTest extends AbstractControllerTest {
     
@@ -82,9 +80,7 @@ public class PreferenceControllerTest extends AbstractControllerTest {
         request.setRequestURI("/bdrs/admin/preference/preference.htm");
         
         ModelAndView mv = handle(request, response);
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals("/bdrs/admin/preference/preference.htm", redirect.getUrl());
+        assertRedirect(mv, "/bdrs/admin/preference/preference.htm");
         
         // Assert edited prefs
         for(Map.Entry<String, String> expectedValueEntry : expectedPrefValueMap.entrySet()) {
@@ -123,9 +119,7 @@ public class PreferenceControllerTest extends AbstractControllerTest {
         request.setRequestURI("/bdrs/admin/preference/preference.htm");
         
         ModelAndView mv = handle(request, response);
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals("/bdrs/admin/preference/preference.htm", redirect.getUrl());
+        assertRedirect(mv, "/bdrs/admin/preference/preference.htm");
         
         for(Preference pref : prefDAO.getPreferences().values()) {
             Assert.assertNull(pref.getPortal());

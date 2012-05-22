@@ -21,7 +21,7 @@
 <c:choose>
     <c:when test="${survey.id != null }">
         <div class="textright">
-            <a href="${pageContext.request.contextPath}/bdrs/admin/survey/export.htm?surveyId=${ survey.id }"
+            <a href="${portalContextPath}/bdrs/admin/survey/export.htm?surveyId=${ survey.id }"
                 title="Exports Projects, Census Methods and Attributes">
                 Export Project
             </a>
@@ -29,7 +29,7 @@
     </c:when>
     <c:otherwise>
         <div class="buttonpanel sepBottom">
-            <form method="POST" action="${pageContext.request.contextPath}/bdrs/admin/survey/import.htm" enctype="multipart/form-data">
+            <form method="POST" action="${portalContextPath}/bdrs/admin/survey/import.htm" enctype="multipart/form-data">
                 <input id="import_survey_file" name="survey_file" type="file" style="visibility:hidden"/>
                 <input id="import_survey_button" class="form_action right" type="button" value="Import Survey"/>
             </form>
@@ -38,7 +38,7 @@
     </c:otherwise>
 </c:choose>
 
-<form method="POST" action="${pageContext.request.contextPath}/bdrs/admin/survey/edit.htm" enctype="multipart/form-data">
+<form method="POST" action="${portalContextPath}/bdrs/admin/survey/edit.htm" enctype="multipart/form-data">
     <c:if test="${survey.id != null }">
         <input type="hidden" name="surveyId" value="${survey.id}"/>
     </c:if>
@@ -99,9 +99,9 @@
                         <c:if test="${ logo_md != null }">
                             <jsp:useBean id="logo_md" type="au.com.gaiaresources.bdrs.model.metadata.Metadata" scope="page"/>
                             <div id="<%= Metadata.SURVEY_LOGO %>_img">
-                                <a href="${pageContext.request.contextPath}/files/download.htm?<%= logo_md.getFileURL() %>">
+                                <a href="${portalContextPath}/files/download.htm?<%= logo_md.getFileURL() %>">
                                     <img width="250"
-                                        src="${pageContext.request.contextPath}/files/download.htm?<%= logo_md.getFileURL() %>"
+                                        src="${portalContextPath}/files/download.htm?<%= logo_md.getFileURL() %>"
                                         alt="Missing Image"/>
                                 </a>
                             </div>

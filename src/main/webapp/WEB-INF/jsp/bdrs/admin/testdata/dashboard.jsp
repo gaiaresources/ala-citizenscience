@@ -79,7 +79,7 @@
         </tbody>
     </table>
     <div class="buttonpanel textright">
-        <a id="clearTestData" href="${pageContext.request.contextPath}/bdrs/admin/testdata/clearData.htm" class="delete">Empty</a>
+        <a id="clearTestData" href="${portalContextPath}/bdrs/admin/testdata/clearData.htm" class="delete">Empty</a>
         &nbsp;|&nbsp;
         <input class="form_action" type="submit" value="Create Test Data"/>
     </div>
@@ -111,7 +111,7 @@
                     var url = jQuery("#clearTestData").attr("href");
                     bdrs.message.set("Please wait while existing test data is deleted");
                     jQuery.post(url, function(data) {
-                        window.document.location = '${pageContext.request.contextPath}/authenticated/redirect.htm';
+                        window.document.location = '${portalContextPath}/authenticated/redirect.htm';
                     });
                 });
                 return false;

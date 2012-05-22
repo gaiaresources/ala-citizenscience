@@ -207,7 +207,7 @@ bdrs.review.mysightings.get_tab_from_handle = function(tab_handle) {
  */
 bdrs.review.mysightings.get_kml_url = function() {
     return [
-        bdrs.contextPath,
+        bdrs.portalContextPath,
         '/map/ajaxMySightingsKML.htm?',
         jQuery(bdrs.review.mysightings.SEARCH_CRITERIA_FORM_SELECTOR).serialize()
     ].join('');
@@ -293,7 +293,7 @@ bdrs.review.mysightings.table_tab_display_change_handler = function(event, is_se
     
         // Retrieve the table content
         var json_url = [
-            bdrs.contextPath,
+            bdrs.portalContextPath,
             '/map/ajaxMySightingsJSON.htm?',
             jQuery(bdrs.review.mysightings.SEARCH_CRITERIA_FORM_SELECTOR).serialize()
         ].join('');
@@ -306,7 +306,7 @@ bdrs.review.mysightings.table_tab_display_change_handler = function(event, is_se
 	            rec = data[i];
 
 	            // Preprocessing and Formatting
-	            rec.contextPath = bdrs.contextPath;
+	            rec.contextPath = bdrs.portalContextPath;
 	            rec._when = rec._when_formatted.replace(/ /gi, "&nbsp;");
 	            if(rec.species === null || rec.species === undefined) {
 	                rec.species = bdrs.review.mysightings.NON_TAXONOMIC_SPECIES_PLACEHOLDER;
@@ -345,7 +345,7 @@ bdrs.review.mysightings.table_tab_display_change_handler = function(event, is_se
  */
 bdrs.review.mysightings.generate_page_numbers = function() {
     var rec_count_url = [
-        bdrs.contextPath,
+        bdrs.portalContextPath,
         '/map/ajaxMySightingsRecordCount.htm?',
         jQuery(bdrs.review.mysightings.SEARCH_CRITERIA_FORM_SELECTOR).serialize()
     ].join('');
@@ -490,9 +490,7 @@ bdrs.review.mysightings.update_permalink = function() {
 	    window.location.protocol,
 	    "//",
 	    window.location.host,
-        bdrs.contextPath,
-        '/portal/',
-        bdrs.review.mysightings.PORTAL_ID,
+        bdrs.portalContextPath,
         '/',
         bdrs.review.mysightings.RELATIVE_PATH_FROM_CONTEXT,
         '?',
@@ -517,7 +515,7 @@ bdrs.review.mysightings.updateTaxonGroups = function(survey_id) {
         params.surveyId = survey_id;
     }
     
-    url = bdrs.contextPath + url;
+    url = bdrs.portalContextPath + url;
 
     // Update the Taxon Groups
     jQuery.getJSON(url, params, function(data) {
@@ -592,7 +590,7 @@ bdrs.review.mysightings.init = function(portal_id) {
             
             bdrs.review.mysightings.update_permalink();
         } else {        
-	        var survey_url = bdrs.contextPath + '/webservice/survey/getSurvey.htm';
+	        var survey_url = bdrs.portalContextPath + '/webservice/survey/getSurvey.htm';
 	        jQuery.getJSON(survey_url, {'surveyId' : survey_id, 'ident' : bdrs.ident }, function(data) {
 	            var startDate = new Date(data.startDate);
 	            var startDateStr = bdrs.util.formatDate(startDate);

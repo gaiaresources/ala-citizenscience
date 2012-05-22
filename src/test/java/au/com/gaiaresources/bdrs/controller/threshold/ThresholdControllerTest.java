@@ -1,40 +1,24 @@
 package au.com.gaiaresources.bdrs.controller.threshold;
 
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
+import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
+import au.com.gaiaresources.bdrs.model.record.Record;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
+import au.com.gaiaresources.bdrs.model.threshold.*;
+import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.threshold.ThresholdService;
+import au.com.gaiaresources.bdrs.util.ModerationUtil;
 import junit.framework.Assert;
-
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.ModelAndViewAssert;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
-import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
-import au.com.gaiaresources.bdrs.model.record.Record;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
-import au.com.gaiaresources.bdrs.model.threshold.Action;
-import au.com.gaiaresources.bdrs.model.threshold.ActionEvent;
-import au.com.gaiaresources.bdrs.model.threshold.ActionType;
-import au.com.gaiaresources.bdrs.model.threshold.Condition;
-import au.com.gaiaresources.bdrs.model.threshold.Operator;
-import au.com.gaiaresources.bdrs.model.threshold.PathDescriptor;
-import au.com.gaiaresources.bdrs.model.threshold.Threshold;
-import au.com.gaiaresources.bdrs.model.threshold.ThresholdDAO;
-import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.service.threshold.ThresholdService;
-import au.com.gaiaresources.bdrs.util.ModerationUtil;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * Tests all aspects of the <code>ThresholdController</code>.
@@ -148,9 +132,7 @@ public class ThresholdControllerTest extends AbstractControllerTest {
         request.addParameter("new_action", new String[] { "0", "1" });
 
         ModelAndView mv = handle(request, response);
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals("/bdrs/admin/threshold/listing.htm", redirect.getUrl());
+        assertRedirect(mv, "/bdrs/admin/threshold/listing.htm");
 
         List<Threshold> thresholdList = thresholdDAO.getEnabledThresholdByClassName(params.get("class_name"));
         // add one for the default moderation threshold created on portal init
@@ -283,9 +265,7 @@ public class ThresholdControllerTest extends AbstractControllerTest {
 
             request.setParameters(params);
             ModelAndView mv = handle(request, response);
-            Assert.assertTrue(mv.getView() instanceof RedirectView);
-            RedirectView redirect = (RedirectView) mv.getView();
-            Assert.assertEquals("/bdrs/admin/threshold/listing.htm", redirect.getUrl());
+            assertRedirect(mv, "/bdrs/admin/threshold/listing.htm");
             params.clear();
             request.removeAllParameters();
         }
@@ -527,9 +507,7 @@ public class ThresholdControllerTest extends AbstractControllerTest {
                 actionA.getId().toString(), actionB.getId().toString() });
 
         ModelAndView mv = handle(request, response);
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals("/bdrs/admin/threshold/listing.htm", redirect.getUrl());
+        assertRedirect(mv, "/bdrs/admin/threshold/listing.htm");
 
         threshold = thresholdDAO.getThreshold(threshold.getId());
         

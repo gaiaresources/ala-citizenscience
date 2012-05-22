@@ -14,7 +14,7 @@
 		<tr>
 			<td title="${survey.description}">${survey.name}</td>
 			<td class="textcenter">
-				<form method="get" action="${pageContext.request.contextPath}/bdrs/user/taxonSurveyRenderRedirect.htm">
+				<form method="get" action="${portalContextPath}/bdrs/user/taxonSurveyRenderRedirect.htm">
                     <div class="buttonpanel">
                         <input type="hidden" name="speciesId" value="${species.id}"/>
                         <input type="hidden" name="surveyId" value="${survey.id}"/>

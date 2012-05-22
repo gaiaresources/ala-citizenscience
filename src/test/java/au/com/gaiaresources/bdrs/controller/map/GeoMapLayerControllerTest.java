@@ -1,33 +1,15 @@
 package au.com.gaiaresources.bdrs.controller.map;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
-import au.com.gaiaresources.bdrs.json.JSONArray;
-import au.com.gaiaresources.bdrs.json.JSONObject;
-import au.com.gaiaresources.bdrs.json.JSONSerializer;
-
-import org.apache.log4j.Logger;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
-
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataHelper;
 import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
 import au.com.gaiaresources.bdrs.file.FileService;
+import au.com.gaiaresources.bdrs.json.JSONArray;
+import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.json.JSONSerializer;
 import au.com.gaiaresources.bdrs.model.file.ManagedFile;
 import au.com.gaiaresources.bdrs.model.file.ManagedFileDAO;
-import au.com.gaiaresources.bdrs.model.map.GeoMapFeature;
-import au.com.gaiaresources.bdrs.model.map.GeoMapFeatureDAO;
-import au.com.gaiaresources.bdrs.model.map.GeoMapLayer;
-import au.com.gaiaresources.bdrs.model.map.GeoMapLayerDAO;
-import au.com.gaiaresources.bdrs.model.map.GeoMapLayerSource;
+import au.com.gaiaresources.bdrs.model.map.*;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
@@ -38,6 +20,18 @@ import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 import au.com.gaiaresources.bdrs.spatial.ShapeFileReader;
+import org.apache.log4j.Logger;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
 
 public class GeoMapLayerControllerTest extends AbstractControllerTest {
 
@@ -162,7 +156,7 @@ public class GeoMapLayerControllerTest extends AbstractControllerTest {
         
         // return to listing page
         RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals(GeoMapLayerController.LISTING_URL, redirect.getUrl());
+        assertUrlEquals(GeoMapLayerController.LISTING_URL, redirect.getUrl());
         
         PagedQueryResult<GeoMapLayer> result = layerDAO.search(null, "hello world", null);
         
@@ -199,7 +193,7 @@ public class GeoMapLayerControllerTest extends AbstractControllerTest {
         
         // return to listing page
         RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals(GeoMapLayerController.LISTING_URL, redirect.getUrl());
+        assertUrlEquals(GeoMapLayerController.LISTING_URL, redirect.getUrl());
         
         PagedQueryResult<GeoMapLayer> result = layerDAO.search(null, "hello world", null);
         
@@ -239,7 +233,7 @@ public class GeoMapLayerControllerTest extends AbstractControllerTest {
         
         // return to listing page
         RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals(GeoMapLayerController.LISTING_URL, redirect.getUrl());
+        assertUrlEquals(GeoMapLayerController.LISTING_URL, redirect.getUrl());
         
         PagedQueryResult<GeoMapLayer> result = layerDAO.search(null, "hello world", null);
         
@@ -279,7 +273,7 @@ public class GeoMapLayerControllerTest extends AbstractControllerTest {
         
         // return to listing page
         RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals(GeoMapLayerController.LISTING_URL, redirect.getUrl());
+        assertUrlEquals(GeoMapLayerController.LISTING_URL, redirect.getUrl());
         
         PagedQueryResult<GeoMapLayer> result = layerDAO.search(null, "edited name", null);
         
@@ -320,7 +314,7 @@ public class GeoMapLayerControllerTest extends AbstractControllerTest {
         
         // return to listing page
         RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals(GeoMapLayerController.LISTING_URL, redirect.getUrl());
+        assertUrlEquals(GeoMapLayerController.LISTING_URL, redirect.getUrl());
         
         PagedQueryResult<GeoMapLayer> result = layerDAO.search(null, "edited name", null);
         
@@ -364,7 +358,7 @@ public class GeoMapLayerControllerTest extends AbstractControllerTest {
         
         // return to listing page
         RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals(GeoMapLayerController.LISTING_URL, redirect.getUrl());
+        assertUrlEquals(GeoMapLayerController.LISTING_URL, redirect.getUrl());
         
         PagedQueryResult<GeoMapLayer> result = layerDAO.search(null, "edited name", null);
         
@@ -438,7 +432,7 @@ public class GeoMapLayerControllerTest extends AbstractControllerTest {
         
         // return to listing page
         RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals(GeoMapLayerController.LISTING_URL, redirect.getUrl());
+        assertUrlEquals(GeoMapLayerController.LISTING_URL, redirect.getUrl());
         
         PagedQueryResult<GeoMapLayer> result = layerDAO.search(null, "edited name", null);
         
@@ -512,7 +506,7 @@ public class GeoMapLayerControllerTest extends AbstractControllerTest {
         
         // return to listing page
         RedirectView redirect = (RedirectView)mv.getView();
-        Assert.assertEquals(GeoMapLayerController.LISTING_URL, redirect.getUrl());
+        assertUrlEquals(GeoMapLayerController.LISTING_URL, redirect.getUrl());
         
         PagedQueryResult<GeoMapLayer> result = layerDAO.search(null, "edited name", null);
         

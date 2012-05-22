@@ -97,7 +97,7 @@
                     <c:otherwise>
                         Misconfigured Project. No species available.</br>
                         <sec:authorize ifAnyGranted="ROLE_ADMIN">
-                            <a href="${pageContext.request.contextPath}/bdrs/admin/survey/editTaxonomy.htm?surveyId=${ formField.survey.id }">
+                            <a href="${portalContextPath}/bdrs/admin/survey/editTaxonomy.htm?surveyId=${ formField.survey.id }">
                                 Assign a species now.
                             </a>
                         </sec:authorize>

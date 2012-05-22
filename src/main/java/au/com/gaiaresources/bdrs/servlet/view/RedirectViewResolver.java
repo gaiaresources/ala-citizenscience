@@ -1,12 +1,17 @@
 package au.com.gaiaresources.bdrs.servlet.view;
 
-import java.util.Locale;
-
 import org.springframework.core.Ordered;
 import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.ViewResolver;
-import org.springframework.web.servlet.view.RedirectView;
+import org.springframework.web.servlet.view.UrlBasedViewResolver;
 
+import java.util.Locale;
+
+/**
+ * Resolved String based view names prefixed with redirect: or redirectWithoutModel:.
+ * The reason for handling redirect: is to allow the URL to be decorated with a prefix that identifies the
+ * current portal.
+ */
 public class RedirectViewResolver implements ViewResolver, Ordered {
 
     // Uses this prefix to avoid interference with the default behaviour
@@ -22,8 +27,13 @@ public class RedirectViewResolver implements ViewResolver, Ordered {
     public View resolveViewName(String viewName, Locale arg1) throws Exception {
         if (viewName.startsWith(REDIRECT_URL_PREFIX)) {
             String redirectUrl = viewName.substring(REDIRECT_URL_PREFIX.length());
-            return new RedirectView(redirectUrl, true, true, false);
+            return new PortalRedirectView(redirectUrl, true, true, false);
         }
+        else if (viewName.startsWith(UrlBasedViewResolver.REDIRECT_URL_PREFIX)) {
+            String redirectUrl = viewName.substring(UrlBasedViewResolver.REDIRECT_URL_PREFIX.length());
+            return new PortalRedirectView(redirectUrl, true, true);
+        }
+
         return null;
     }
 

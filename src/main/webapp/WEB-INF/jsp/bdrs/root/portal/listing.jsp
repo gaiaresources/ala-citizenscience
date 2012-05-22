@@ -6,13 +6,14 @@
 
 <div class="input_container">
 	<div class="buttonpanel textright">
-	    <input class="form_action" type="button" value="Add Portal" onclick="window.document.location='${pageContext.request.contextPath}/bdrs/root/portal/edit.htm'"/>
+	    <input class="form_action" type="button" value="Add Portal" onclick="window.document.location='${portalContextPath}/bdrs/root/portal/edit.htm'"/>
 	</div>
 	
 	<table class="datatable textcenter">
 	    <thead>
 	        <tr>
 	            <th>Portal Name</th>
+                <th>URL Prefix</th>
 	            <th>Is Default</th>
 	            <th>Is Active</th>
 	        </tr>
@@ -21,10 +22,13 @@
 	        <c:forEach var="portal" items="${portalList}">
 	            <tr>
 	                <td>
-	                    <a href="${pageContext.request.contextPath}/bdrs/root/portal/edit.htm?id=${ portal.id }">
+	                    <a href="${portalContextPath}/bdrs/root/portal/edit.htm?id=${ portal.id }">
 	                        <c:out value="${ portal.name }"/>
 	                    </a>
 	                </td>
+                    <td>
+                        <c:out value="${portal.urlPrefix}"/>
+                    </td>
 	                <td>
 	                    <c:choose>
 	                        <c:when test="${ portal.default }">

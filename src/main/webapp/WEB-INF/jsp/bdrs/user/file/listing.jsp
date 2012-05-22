@@ -37,10 +37,10 @@ user that last updated the Managed File will be displayed.</strong>
 </div>
 
 <div class="buttonpanel textright">
-<form id="deleteMedia" action="${pageContext.request.contextPath}/bdrs/user/managedfile/delete.htm" method="POST">
+<form id="deleteMedia" action="${portalContextPath}/bdrs/user/managedfile/delete.htm" method="POST">
     <a href="javascript: bdrs.util.confirmExec('Are you sure you want to delete the selected media?', addSelectedMediaToForm);" class="delete"/>Delete</a>
     &nbsp;|&nbsp;
-    <input class="form_action" type="button" value="Add Media" onclick="window.document.location='${pageContext.request.contextPath}/bdrs/user/managedfile/edit.htm'"/>
+    <input class="form_action" type="button" value="Add Media" onclick="window.document.location='${portalContextPath}/bdrs/user/managedfile/edit.htm'"/>
 </form>
 </div>
 
@@ -55,10 +55,10 @@ user that last updated the Managed File will be displayed.</strong>
     	
     	
     	var downloadURL = function(file) {
-    		return '${pageContext.request.contextPath}/files/download.htm?'+file;
+    		return '${portalContextPath}/files/download.htm?'+file;
     	};
     	var actionLinkFormatter = function(cellvalue, options, rowObject) {
-	        var editLink = ('<a title="Edit managed file" style="color:blue" href="${pageContext.request.contextPath}/bdrs/user/managedfile/edit.htm?id=' + rowObject.id + '">Edit</a>');
+	        var editLink = ('<a title="Edit managed file" style="color:blue" href="${portalContextPath}/bdrs/user/managedfile/edit.htm?id=' + rowObject.id + '">Edit</a>');
 	        return editLink;
 	    };
 	    var previewFormatter = function(cellvalue, options, rowObject) {
@@ -102,7 +102,7 @@ user that last updated the Managed File will be displayed.</strong>
 	    jQuery("#managedFilesList").jqGrid('navGrid','#pager2',{edit:false,add:false,del:false});
 	});
 	
-	var SEARCH_USER_URL = '${pageContext.request.contextPath}/bdrs/user/managedfile/service/search.htm';
+	var SEARCH_USER_URL = '${portalContextPath}/bdrs/user/managedfile/service/search.htm';
 	
 	function getUserSearchUrl() {
 		var params = jQuery("#searchForm").serialize();

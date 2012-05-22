@@ -1,28 +1,5 @@
 package au.com.gaiaresources.bdrs.controller.record;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.mock.web.MockMultipartHttpServletRequest;
-import org.springframework.test.web.ModelAndViewAssert;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
-
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordAttributeFormField;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyFormField;
@@ -36,17 +13,23 @@ import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
-import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.*;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.mock.web.MockMultipartHttpServletRequest;
+import org.springframework.test.web.ModelAndViewAssert;
+import org.springframework.web.servlet.ModelAndView;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * Tests all aspects of the <code>SingleSiteMultiTaxaController</code>.
@@ -445,9 +428,7 @@ public class SingleSiteMultiTaxaControllerTest extends RecordFormTest {
         ModelAndView mv = handle(request, response);
         Assert.assertEquals(2, recordDAO.countAllRecords().intValue());
 
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView) mv.getView();
-        Assert.assertEquals(redirectionService.getMySightingsUrl(survey), redirect.getUrl());
+        assertRedirect(mv, redirectionService.getMySightingsUrl(survey));
 
         sightingIndex = 0;
         for (IndicatorSpecies taxon : new IndicatorSpecies[] { speciesA,
@@ -555,9 +536,7 @@ public class SingleSiteMultiTaxaControllerTest extends RecordFormTest {
             Assert.assertEquals("record should be set to same visibility as the survey default record visibility", survey.getDefaultRecordVisibility(), r.getRecordVisibility());
         }
 
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        redirect = (RedirectView) mv.getView();
-        Assert.assertEquals("/bdrs/user/surveyRenderRedirect.htm", redirect.getUrl());
+        assertRedirect(mv, "/bdrs/user/surveyRenderRedirect.htm");
         
         this.assertMessageCode(SingleSiteController.MSG_CODE_SUCCESS_ADD_ANOTHER);
     }

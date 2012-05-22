@@ -27,7 +27,7 @@ Welcome. If you already have a Username and Password, please sign in below.
         <tr>
             <td/>
             <td>
-                <a href="${pageContext.request.contextPath}/reminder.htm">Forgot your password?</a>
+                <a href="${portalContextPath}/reminder.htm">Forgot your password?</a>
             </td>
         </tr>
     </table>

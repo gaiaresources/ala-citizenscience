@@ -1,34 +1,6 @@
 package au.com.gaiaresources.bdrs.controller.record;
 
-import java.math.BigDecimal;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import junit.framework.Assert;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.mock.web.MockMultipartHttpServletRequest;
-import org.springframework.test.web.ModelAndViewAssert;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
-
-import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField;
-import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordAttributeFormField;
-import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
-import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyFormField;
-import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
+import au.com.gaiaresources.bdrs.controller.attribute.formfield.*;
 import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
@@ -41,19 +13,24 @@ import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
-import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.*;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import junit.framework.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.mock.web.MockMultipartHttpServletRequest;
+import org.springframework.test.web.ModelAndViewAssert;
+import org.springframework.web.servlet.ModelAndView;
+
+import java.math.BigDecimal;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * Tests all aspects of the <code>TrackerController</code>.
@@ -753,10 +730,8 @@ public class TrackerControllerTest extends RecordFormTest {
         request.setParameters(params);
         ModelAndView mv = handle(request, response);
 
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView) mv.getView();
         if (passExpected) {
-            Assert.assertEquals(redirectionService.getMySightingsUrl(survey), redirect.getUrl());
+            assertRedirect(mv, redirectionService.getMySightingsUrl(survey));
             Assert.assertEquals(1, recordDAO.countRecords(getRequestContext().getUser()).intValue());
             Record rec = recordDAO.getRecords(getRequestContext().getUser()).get(0);
 
@@ -857,7 +832,7 @@ public class TrackerControllerTest extends RecordFormTest {
                 }
             }
         } else {
-            Assert.assertEquals("/bdrs/user/tracker.htm", redirect.getUrl());
+            assertRedirect(mv, "/bdrs/user/tracker.htm");
             Assert.assertEquals(0, recordDAO.countRecords(getRequestContext().getUser()).intValue());
             
         }
@@ -1092,11 +1067,9 @@ public class TrackerControllerTest extends RecordFormTest {
  
         request.setParameters(params);
         ModelAndView mv = handle(request, response);
- 
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView) mv.getView();
+
         if (passExpected) {
-            Assert.assertEquals(redirectionService.getMySightingsUrl(survey), redirect.getUrl());
+            assertRedirect(mv, redirectionService.getMySightingsUrl(survey));
             Assert.assertEquals(1, recordDAO.countRecords(getRequestContext().getUser()).intValue());
             Record rec = recordDAO.getRecords(getRequestContext().getUser()).get(0);
  
@@ -1116,7 +1089,7 @@ public class TrackerControllerTest extends RecordFormTest {
  
             Assert.assertEquals(rec.getNotes(), params.get("notes"));
         } else {
-            Assert.assertEquals("/bdrs/user/tracker.htm", redirect.getUrl());
+            assertRedirect(mv, "/bdrs/user/tracker.htm");
             Assert.assertEquals(0, recordDAO.countRecords(getRequestContext().getUser()).intValue());
         }
     }
@@ -1159,11 +1132,9 @@ public class TrackerControllerTest extends RecordFormTest {
         
         request.setParameters(params);
         ModelAndView mv = handle(request, response);
- 
-        Assert.assertTrue(mv.getView() instanceof RedirectView);
-        RedirectView redirect = (RedirectView) mv.getView();
+
         if (passExpected) {
-            Assert.assertEquals("Error in redirection: ", redirectionService.getMySightingsUrl(simpleSurvey), redirect.getUrl());
+            assertRedirect(mv, redirectionService.getMySightingsUrl(simpleSurvey));
             Assert.assertEquals(1, recordDAO.countRecords(getRequestContext().getUser()).intValue());
             Record rec = recordDAO.getRecords(getRequestContext().getUser()).get(0);
  
@@ -1189,7 +1160,7 @@ public class TrackerControllerTest extends RecordFormTest {
  
             Assert.assertEquals(rec.getNotes(), params.get("notes"));
         } else {
-            Assert.assertEquals("/bdrs/user/tracker.htm", redirect.getUrl());
+            assertRedirect(mv, "/bdrs/user/tracker.htm");
             Assert.assertEquals(0, recordDAO.countRecords(getRequestContext().getUser()).intValue());
         }
     }

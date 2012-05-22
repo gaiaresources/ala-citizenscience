@@ -31,10 +31,10 @@
 		
 	</form>
 	<div class="buttonpanel textright">
-			<form method="POST" action="${pageContext.request.contextPath}/admin/importUsers.htm" enctype="multipart/form-data">
+			<form method="POST" action="${portalContextPath}/admin/importUsers.htm" enctype="multipart/form-data">
 				<input id="import_users_file" name="users_file" type="file" style="visibility:hidden"/>
             	<input id="import_users_button" name="importUsers" type="button" value="Import Users" class="form_action" />
-            	<input id="exportUsers" name="exportUsers" type="button" onclick="window.document.location='${pageContext.request.contextPath}/admin/exportUsers.htm?'+jQuery('#userSearchForm').serialize();" value="Export Users" class="form_action" />
+            	<input id="exportUsers" name="exportUsers" type="button" onclick="window.document.location='${portalContextPath}/admin/exportUsers.htm?'+jQuery('#userSearchForm').serialize();" value="Export Users" class="form_action" />
             </form>
         </div>
         <div class="clear"></div>
@@ -50,7 +50,7 @@
     jQuery(function() {
 		var actionLinkFormatter = function(cellvalue, options, rowObject) {
 	        var links = new Array();
-			links.push('<a title="Edit account details" class="fixedLink" href="${pageContext.request.contextPath}/admin/editProfile.htm?USER_ID=' + rowObject.id + '">Edit</a>');
+			links.push('<a title="Edit account details" class="fixedLink" href="${portalContextPath}/admin/editProfile.htm?USER_ID=' + rowObject.id + '">Edit</a>');
 			<c:if test="${approveUsers}">
 			     links.push('<a title="Approve account" class="fixedLink" href="javascript:approveUser(' + rowObject.id + ')">Approve</a>');
 			</c:if>
@@ -82,7 +82,7 @@
 	
 	    jQuery("#userList").jqGrid('navGrid','#pager2',{edit:false,add:false,del:false});
 	    var userSearchFormParams = jQuery("#userSearchForm").serialize();
-	    jQuery("#downloadXLS").data("xlsURL", "${pageContext.request.contextPath}/webservice/user/downloadUsers.htm?"+userSearchFormParams);
+	    jQuery("#downloadXLS").data("xlsURL", "${portalContextPath}/webservice/user/downloadUsers.htm?"+userSearchFormParams);
 	    
 	    bdrs.user.listing.init();
 	});
@@ -98,7 +98,7 @@
         timeoutHnd = setTimeout(gridReload,500)
     }
 	
-	var SEARCH_USER_URL = '${pageContext.request.contextPath}/webservice/user/searchUsers.htm';
+	var SEARCH_USER_URL = '${portalContextPath}/webservice/user/searchUsers.htm';
 	
 	function getUserSearchUrl() {
 		var params = jQuery("#userSearchForm").serialize();
@@ -107,7 +107,7 @@
 
     function gridReload(){
         var userSearchFormParams = jQuery("#userSearchForm").serialize();
-        jQuery("#downloadXLS").data("xlsURL", "${pageContext.request.contextPath}/webservice/user/downloadUsers.htm?"+userSearchFormParams);
+        jQuery("#downloadXLS").data("xlsURL", "${portalContextPath}/webservice/user/downloadUsers.htm?"+userSearchFormParams);
 		jQuery("#userList").jqGrid('setGridParam',{
             url:getUserSearchUrl(),
             page:1}).trigger("reloadGrid");
@@ -131,7 +131,7 @@
 	function approveUser(id) {
 		$.ajax({
 			type: "POST",
-			url:"${pageContext.request.contextPath}/admin/approveUser.htm",
+			url:"${portalContextPath}/admin/approveUser.htm",
 			data: {
 				userPk: id
 			},

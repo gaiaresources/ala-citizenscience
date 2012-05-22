@@ -8,7 +8,7 @@
 <cw:getContent key="admin/groupListing" />
 
 <div class="buttonpanel textright">
-    <input class="form_action" type="button" value="Add Group" onclick="bdrs.postWith('${pageContext.request.contextPath}/bdrs/admin/group/create.htm', {});"/>
+    <input class="form_action" type="button" value="Add Group" onclick="bdrs.postWith('${portalContextPath}/bdrs/admin/group/create.htm', {});"/>
 </div>
 
 <tiles:insertDefinition name="groupGrid">
@@ -16,8 +16,8 @@
        <tiles:putAttribute name="multiselect" value="false"/>
        <tiles:putAttribute name="scrollbars" value="false" />
        <tiles:putAttribute name="showActions" value="true" />
-       <tiles:putAttribute name="editUrl" value="${pageContext.request.contextPath}/bdrs/admin/group/edit.htm" />
-       <tiles:putAttribute name="deleteUrl" value="${pageContext.request.contextPath}/bdrs/admin/group/delete.htm" />
+       <tiles:putAttribute name="editUrl" value="${portalContextPath}/bdrs/admin/group/edit.htm" />
+       <tiles:putAttribute name="deleteUrl" value="${portalContextPath}/bdrs/admin/group/delete.htm" />
 </tiles:insertDefinition>
 
 

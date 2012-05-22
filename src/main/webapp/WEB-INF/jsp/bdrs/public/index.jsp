@@ -16,7 +16,7 @@
                 <c:if test="${ portal.active }">
 	                <tr>
 	                    <td>
-	                        <a href="${pageContext.request.contextPath}/portal/${portal.id}/home.htm">
+	                        <a href="${pageContext.request.contextPath}${portal.portalContextPath}/home.htm">
 	                            ${portal.name}
 	                        </a>
 	                    </td>

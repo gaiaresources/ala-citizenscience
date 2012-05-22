@@ -7,6 +7,6 @@
 </p>
 
 <ul>
-	<li><a href="${pageContext.request.contextPath}/bdrs/root/portal/listing.htm">Manage Portals</a>&nbsp;- Add, edit and remove Portals from the Site</li>
-	<li><a href="${pageContext.request.contextPath}/bdrs/admin/testdata/dashboard.htm">Create Test Data</a>&nbsp;- Create test data for your Portal for testing purposes</li>
+	<li><a href="${portalContextPath}/bdrs/root/portal/listing.htm">Manage Portals</a>&nbsp;- Add, edit and remove Portals from the Site</li>
+	<li><a href="${portalContextPath}/bdrs/admin/testdata/dashboard.htm">Create Test Data</a>&nbsp;- Create test data for your Portal for testing purposes</li>
 </ul>

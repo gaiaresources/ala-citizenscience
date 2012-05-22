@@ -114,7 +114,7 @@ bdrs.advancedReview.initTableView = function(formSelector,
  */
 bdrs.advancedReview.loadTableContent = function(formSelector, tableSelector, viewStyle) {
     // AJAX load the content for the table
-    var url = bdrs.contextPath + bdrs.advancedReview.JSON_URL;
+    var url = bdrs.portalContextPath + bdrs.advancedReview.JSON_URL;
     var queryParams = jQuery(formSelector).serialize();
 
     var getRecordsHandlerFcn;
@@ -145,7 +145,7 @@ bdrs.advancedReview.getInitViewStyleTableFcn = function(tableSelector) {
         for(var i=0; i<recordArray.length; i++) {
             var record = recordArray[i];
             // add the context path onto the js object...
-            record.contextPath = bdrs.contextPath;
+            record.contextPath = bdrs.portalContextPath;
             // Start of sighting
             if (bdrs.authenticated) {
                 record.authenticated = true;
@@ -198,7 +198,7 @@ bdrs.advancedReview.doBulkAction = function(noneSelectedMessage, confirmMessage,
     
     if (confirm(confirmMessage)) {
 
-        var url = bdrs.contextPath + path;
+        var url = bdrs.portalContextPath + path;
         var param = {
             recordId: idArray,
             // return to the current page with the current facet settings.
@@ -229,7 +229,7 @@ bdrs.advancedReview.initMapView = function(formSelector, mapId, mapOptions, idSe
     bdrs.map.baseMap.events.register('removeLayer', null, bdrs.map.removeFeaturePoupUpHandler);
     
     var queryParams = jQuery(formSelector).serialize();
-    var kmlURL = bdrs.contextPath + bdrs.advancedReview.KML_URL + queryParams;
+    var kmlURL = bdrs.portalContextPath + bdrs.advancedReview.KML_URL + queryParams;
     var selectedId = jQuery(idSelector).val();
     var style = bdrs.map.createOpenlayersStyleMap(selectedId.toString());
     
@@ -292,7 +292,7 @@ bdrs.advancedReview.initFacets = function(formSelector, facetSelector) {
 bdrs.advancedReview.renderReport = function(formSelector, reportId) {
     var query_params = jQuery(formSelector).serialize();
     query_params += "&reportId="+reportId;
-    var url = bdrs.contextPath + "/review/sightings/advancedReviewReport.htm?"+query_params;
+    var url = bdrs.portalContextPath + "/review/sightings/advancedReviewReport.htm?"+query_params;
     document.location = url;
 };
 
@@ -305,7 +305,7 @@ bdrs.advancedReview.renderReport = function(formSelector, reportId) {
 bdrs.advancedReview.initRecordDownload = function(formSelector, downloadSelector) {
     jQuery(downloadSelector).click(function(event) {
         var queryParams = jQuery(formSelector).serialize();
-        var downloadURL = bdrs.contextPath + bdrs.advancedReview.DOWNLOAD_URL + queryParams;
+        var downloadURL = bdrs.portalContextPath + bdrs.advancedReview.DOWNLOAD_URL + queryParams;
         window.document.location = downloadURL; 
     }); 
 };

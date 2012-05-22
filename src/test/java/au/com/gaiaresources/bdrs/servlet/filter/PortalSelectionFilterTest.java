@@ -1,19 +1,7 @@
 package au.com.gaiaresources.bdrs.servlet.filter;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-
-import junit.framework.Assert;
-
-import org.apache.log4j.Logger;
-import org.hibernate.Filter;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mock.web.MockFilterChain;
-
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
+import au.com.gaiaresources.bdrs.controller.portal.PortalPrefixValidator;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
@@ -21,6 +9,17 @@ import au.com.gaiaresources.bdrs.model.portal.Portal;
 import au.com.gaiaresources.bdrs.model.portal.PortalDAO;
 import au.com.gaiaresources.bdrs.model.portal.PortalEntryPoint;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
+import junit.framework.Assert;
+import org.apache.log4j.Logger;
+import org.hibernate.Filter;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockFilterChain;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PortalSelectionFilterTest extends AbstractControllerTest {
 
@@ -30,6 +29,8 @@ public class PortalSelectionFilterTest extends AbstractControllerTest {
     private PortalDAO portalDAO;
     @Autowired
     private MetadataDAO metadataDAO;
+    @Autowired
+    private PortalPrefixValidator validator;
     
     private MockFilterChain chain;
     private PortalSelectionFilter filter;
@@ -49,7 +50,7 @@ public class PortalSelectionFilterTest extends AbstractControllerTest {
             } else if ("sessionFactory".equals(field.getName())) {
                 value = sessionFactory;
             } else if("portalMatcher".equals(field.getName())) {
-                value = new PortalSelectionFilterMatcher(portalDAO);
+                value = new PortalSelectionFilterMatcher(portalDAO, validator);
             }
 
             if(value != null) {
@@ -73,9 +74,9 @@ public class PortalSelectionFilterTest extends AbstractControllerTest {
         request.setRequestURI(request.getContextPath()+"/myportal/");
         filter.doFilter(request, response, chain);
         
-        Object portalId = request.getSession().getAttribute(PortalSelectionFilter.PORTAL_ID_KEY);
-        Assert.assertEquals(expectedPortal.getId(), new Integer(portalId.toString()));
-        Assert.assertEquals(REQUEST_CONTEXT_PATH + PortalSelectionFilter.DEFAULT_REDIRECT_URL, response.getRedirectedUrl());
+        Portal portal = (Portal)request.getSession().getAttribute(PortalSelectionFilter.PORTAL_KEY);
+        Assert.assertEquals(expectedPortal.getId(), portal.getId());
+        Assert.assertEquals(REQUEST_CONTEXT_PATH + "/portal/"+ expectedPortal.getId() + PortalSelectionFilter.DEFAULT_REDIRECT_URL, response.getRedirectedUrl());
     }
     
     /**
@@ -92,9 +93,9 @@ public class PortalSelectionFilterTest extends AbstractControllerTest {
        
         request.setRequestURI(request.getContextPath()+"/myportal/");
         filter.doFilter(request, response, chain);
-        
-        Object portalId = request.getSession().getAttribute(PortalSelectionFilter.PORTAL_ID_KEY);
-        Assert.assertEquals(expectedPortal.getId(), new Integer(portalId.toString()));
+
+        Portal portal = (Portal)request.getSession().getAttribute(PortalSelectionFilter.PORTAL_KEY);
+        Assert.assertEquals(expectedPortal.getId(), portal.getId());
         Assert.assertEquals(customRedirect, response.getRedirectedUrl());
     }
     
@@ -112,9 +113,9 @@ public class PortalSelectionFilterTest extends AbstractControllerTest {
        
         request.setRequestURI(request.getContextPath()+"/myportal/");
         filter.doFilter(request, response, chain);
-        
-        Object portalId = request.getSession().getAttribute(PortalSelectionFilter.PORTAL_ID_KEY);
-        Assert.assertEquals(expectedPortal.getId(), new Integer(portalId.toString()));
+
+        Portal portal = (Portal)request.getSession().getAttribute(PortalSelectionFilter.PORTAL_KEY);
+        Assert.assertEquals(expectedPortal.getId(), portal.getId());
         Assert.assertEquals(redirectURL,response.getRedirectedUrl());
     }
     
@@ -131,9 +132,9 @@ public class PortalSelectionFilterTest extends AbstractControllerTest {
        
         request.setRequestURI(request.getContextPath()+"/non_matching_portal/");
         filter.doFilter(request, response, chain);
-        
-        Object portalId = request.getSession().getAttribute(PortalSelectionFilter.PORTAL_ID_KEY);
-        Assert.assertEquals(expectedPortal.getId(), new Integer(portalId.toString()));
+
+        Portal portal = (Portal)request.getSession().getAttribute(PortalSelectionFilter.PORTAL_KEY);
+        Assert.assertEquals(expectedPortal.getId(), portal.getId());
         Assert.assertFalse(response.isCommitted());
         Assert.assertNull(response.getRedirectedUrl());
     }
@@ -155,9 +156,9 @@ public class PortalSelectionFilterTest extends AbstractControllerTest {
        
         request.setRequestURI(request.getContextPath()+"/non_matching_portal/");
         filter.doFilter(request, response, chain);
-        
-        Object portalId = request.getSession().getAttribute(PortalSelectionFilter.PORTAL_ID_KEY);
-        Assert.assertEquals(expectedPortal.getId(), new Integer(portalId.toString()));
+
+        Portal portal = (Portal)request.getSession().getAttribute(PortalSelectionFilter.PORTAL_KEY);
+        Assert.assertEquals(expectedPortal.getId(), portal.getId());
         Assert.assertFalse(response.isCommitted());
         Assert.assertNull(response.getRedirectedUrl());
     }
@@ -174,9 +175,9 @@ public class PortalSelectionFilterTest extends AbstractControllerTest {
        
         request.setRequestURI(request.getContextPath()+"/non_matching_portal/");
         filter.doFilter(request, response, chain);
-        
-        Object portalId = request.getSession().getAttribute(PortalSelectionFilter.PORTAL_ID_KEY);
-        Assert.assertEquals(expectedPortal.getId(), new Integer(portalId.toString()));
+
+        Portal portal = (Portal)request.getSession().getAttribute(PortalSelectionFilter.PORTAL_KEY);
+        Assert.assertEquals(expectedPortal.getId(), portal.getId());
         Assert.assertFalse(response.isCommitted());
         Assert.assertNull(response.getRedirectedUrl());
     }
@@ -200,9 +201,9 @@ public class PortalSelectionFilterTest extends AbstractControllerTest {
        
         request.setRequestURI(request.getContextPath()+"/non_matching_portal/");
         filter.doFilter(request, response, chain);
-        
-        Object portalId = request.getSession().getAttribute(PortalSelectionFilter.PORTAL_ID_KEY);
-        Assert.assertEquals(expectedPortal.getId(), new Integer(portalId.toString()));
+
+        Portal portal = (Portal)request.getSession().getAttribute(PortalSelectionFilter.PORTAL_KEY);
+        Assert.assertEquals(expectedPortal.getId(), portal.getId());
         Assert.assertFalse(response.isCommitted());
         Assert.assertNull(response.getRedirectedUrl());    }
     
@@ -228,10 +229,10 @@ public class PortalSelectionFilterTest extends AbstractControllerTest {
        
         request.setRequestURI(request.getContextPath()+"/does_not_matter/");
         filter.doFilter(request, response, chain);
-        
-        Object portalId = request.getSession().getAttribute(PortalSelectionFilter.PORTAL_ID_KEY);
-        Assert.assertEquals(expectedPortal.getId(), new Integer(portalId.toString()));
-        Assert.assertEquals(REQUEST_CONTEXT_PATH + PortalSelectionFilter.DEFAULT_REDIRECT_URL, response.getRedirectedUrl());
+
+        Portal portal = (Portal)request.getSession().getAttribute(PortalSelectionFilter.PORTAL_KEY);
+        Assert.assertEquals(expectedPortal.getId(), portal.getId());
+        Assert.assertEquals(REQUEST_CONTEXT_PATH + "/portal/"+ expectedPortal.getId()+ PortalSelectionFilter.DEFAULT_REDIRECT_URL, response.getRedirectedUrl());
     }
     
     @Test
@@ -269,9 +270,10 @@ public class PortalSelectionFilterTest extends AbstractControllerTest {
         request.setMethod("GET");
         request.setRequestURI(String.format("/portal/%d/home.htm", currentPortal.getId()));
         filter.doFilter(request, response, chain);
-        
-        Object portalId = request.getSession().getAttribute(PortalSelectionFilter.PORTAL_ID_KEY);
-        Assert.assertEquals(currentPortal.getId(), new Integer(portalId.toString()));
+
+        Portal portal = (Portal)request.getSession().getAttribute(PortalSelectionFilter.PORTAL_KEY);
+        Assert.assertEquals(currentPortal.getId(), portal.getId());
+
     }
     
     @Test
@@ -286,9 +288,10 @@ public class PortalSelectionFilterTest extends AbstractControllerTest {
         request.setMethod("GET");
         request.setRequestURI(String.format("/portal/%d/home.htm", deactivated.getId()));
         filter.doFilter(request, response, chain);
-        
-        Object portalId = request.getSession().getAttribute(PortalSelectionFilter.PORTAL_ID_KEY);
-        Assert.assertEquals(defaultPortal.getId(), new Integer(portalId.toString()));
+
+        Portal portal = (Portal)request.getSession().getAttribute(PortalSelectionFilter.PORTAL_KEY);
+        Assert.assertEquals(defaultPortal.getId(), portal.getId());
+
     }
     
     @Test
@@ -308,8 +311,8 @@ public class PortalSelectionFilterTest extends AbstractControllerTest {
         }
         
         // Reassigned over to the default portal
-        Object portalId = request.getSession().getAttribute(PortalSelectionFilter.PORTAL_ID_KEY);
-        Assert.assertEquals(defaultPortal.getId(), new Integer(portalId.toString()));
+        Portal portal = (Portal)request.getSession().getAttribute(PortalSelectionFilter.PORTAL_KEY);
+        Assert.assertEquals(defaultPortal.getId(), portal.getId());
     }
     
     @Test
@@ -329,8 +332,8 @@ public class PortalSelectionFilterTest extends AbstractControllerTest {
         }
         
         // Reassigned over to the default portal
-        Object portalId = request.getSession().getAttribute(PortalSelectionFilter.PORTAL_ID_KEY);
-        Assert.assertEquals(expectedPortal.getId(), new Integer(portalId.toString()));
+        Portal portal = (Portal)request.getSession().getAttribute(PortalSelectionFilter.PORTAL_KEY);
+        Assert.assertEquals(expectedPortal.getId(), portal.getId());
     }
     
     @Test
@@ -341,9 +344,9 @@ public class PortalSelectionFilterTest extends AbstractControllerTest {
         request.setMethod("GET");
         request.setRequestURI(String.format("/portal/%d/map/mySightings.htm", currentPortal.getId()));
         filter.doFilter(request, response, chain);
-        
-        Object portalId = request.getSession().getAttribute(PortalSelectionFilter.PORTAL_ID_KEY);
-        Assert.assertEquals(currentPortal.getId(), new Integer(portalId.toString()));
+
+        Portal portal = (Portal)request.getSession().getAttribute(PortalSelectionFilter.PORTAL_KEY);
+        Assert.assertEquals(currentPortal.getId(), portal.getId());
     }
     
     private void createTestPortals(boolean includeDefault, String redirectUrl) throws Exception {
@@ -367,7 +370,7 @@ public class PortalSelectionFilterTest extends AbstractControllerTest {
             
             if(decoyPortal.isDefault()) {
                 RequestContextHolder.getContext().setPortal(decoyPortal);
-                request.setAttribute(PortalSelectionFilter.PORTAL_ID_KEY, decoyPortal.getId());
+                request.setAttribute(PortalSelectionFilter.PORTAL_KEY, decoyPortal);
                 Filter filter = sessionFactory.getCurrentSession().getEnabledFilter(PortalPersistentImpl.PORTAL_FILTER_NAME);
                 filter.setParameter("portalId", decoyPortal.getId());
             }

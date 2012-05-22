@@ -1,20 +1,25 @@
 package au.com.gaiaresources.bdrs.servlet;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
+import au.com.gaiaresources.bdrs.controller.RecaptchaController;
+import au.com.gaiaresources.bdrs.service.web.RedirectionService;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.view.RedirectView;
 
-import au.com.gaiaresources.bdrs.controller.RecaptchaController;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 public class RecaptchaInterceptor extends HandlerInterceptorAdapter {
     private static final String RECAPTCHA_PERFORMED_SESSION_ATTRIBUTE = "climatewatch.recaptcha.performed";
     private static final String REDIRECT_TO_AFTER_RECAPTCHA_SESSION_ATTRIBUTE = "climatewatch.after.recaptcha.redirect";
     private Logger log = Logger.getLogger(getClass());
+
+    @Autowired
+    private RedirectionService redirectionService;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -22,10 +27,10 @@ public class RecaptchaInterceptor extends HandlerInterceptorAdapter {
             HttpSession s = request.getSession();
             Object recaptchaPerformed = s.getAttribute(RECAPTCHA_PERFORMED_SESSION_ATTRIBUTE);
             if (recaptchaPerformed == null) {
-                String r = request.getRequestURL().toString();
-                String redirect = r.substring(0, r.indexOf(request.getServletPath())) + "/recaptcha.htm";
+                String redirect = UrlAssembler.assembleUrlFor(request, RecaptchaController.RECAPTCHA_URL);
+                String currentUrl = UrlAssembler.assembleUrlFor(request);
                 response.sendRedirect(redirect);
-                s.setAttribute(REDIRECT_TO_AFTER_RECAPTCHA_SESSION_ATTRIBUTE, r);
+                s.setAttribute(REDIRECT_TO_AFTER_RECAPTCHA_SESSION_ATTRIBUTE, currentUrl);
                 return false;
             }
         }
@@ -45,12 +50,12 @@ public class RecaptchaInterceptor extends HandlerInterceptorAdapter {
                     request.getSession().setAttribute(RECAPTCHA_PERFORMED_SESSION_ATTRIBUTE, Boolean.TRUE);
                     redirectTo = (String) request.getSession().getAttribute(REDIRECT_TO_AFTER_RECAPTCHA_SESSION_ATTRIBUTE);
                     if (redirectTo == null || redirectTo.length() == 0) {
-                        rv = new RedirectView("/home.htm", true);
+                        rv = new PortalRedirectView("/home.htm", true);
                     } else {
-                        rv = new RedirectView(redirectTo, false);
+                        rv = new PortalRedirectView(redirectTo, true);
                     }
                 } else {
-                    rv = new RedirectView("/recaptcha.htm", true);
+                    rv = new PortalRedirectView(RecaptchaController.RECAPTCHA_URL, true);
                 }
                 modelAndView.getModel().clear();
                 modelAndView.setView(rv);

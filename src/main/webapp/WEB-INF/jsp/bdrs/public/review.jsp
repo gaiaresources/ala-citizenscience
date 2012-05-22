@@ -14,25 +14,25 @@ At this time, you can Review your Sightings by:
 <sec:authorize ifAnyGranted="ROLE_ADMIN,ROLE_SUPERVISOR,ROLE_POWER_USER,ROLE_USER">
     <c:set var="divWidth" value="100"></c:set>
     <div class="left" style="width: 48%; padding: 5px;">
-        <a href="${pageContext.request.contextPath}/map/mySightings.htm">
+        <a href="${portalContextPath}/map/mySightings.htm">
             <h2>My Sightings</h2>
         </a>
         <p>This form shows you your own Sightings, and lets you filter it by a few simple parameters.
-        <a href="${pageContext.request.contextPath}/map/mySightings.htm">Click here</a>
+        <a href="${portalContextPath}/map/mySightings.htm">Click here</a>
         </p>
-        <a href="${pageContext.request.contextPath}/map/mySightings.htm">
+        <a href="${portalContextPath}/map/mySightings.htm">
             <img style="width: 100%;" src="${pageContext.request.contextPath}/images/bdrs/review/my_sightings.png">
         </a>
     </div>
 </sec:authorize>
 <div class="left" style="width: 48%; padding: 5px;">
-    <a href="${pageContext.request.contextPath}/review/sightings/advancedReview.htm">
+    <a href="${portalContextPath}/review/sightings/advancedReview.htm">
         <h2>Advanced Review</h2>
     </a>
     <p>This form lets you filter your Sightings and other users' public Sightings across a wider range of parameters.
-    <a href="${pageContext.request.contextPath}/review/sightings/advancedReview.htm">Click here</a>
+    <a href="${portalContextPath}/review/sightings/advancedReview.htm">Click here</a>
     </p>
-    <a href="${pageContext.request.contextPath}/review/sightings/advancedReview.htm">
+    <a href="${portalContextPath}/review/sightings/advancedReview.htm">
         <img style="width: 100%;" src="${pageContext.request.contextPath}/images/bdrs/review/advanced_review.png">
     </a>
 </div>
@@ -43,7 +43,7 @@ At this time, you can Review your Sightings by:
 	    <ul>
 	        <c:forEach items="${maps}" var="map">
 	            <li>
-	                <a href="${pageContext.request.contextPath}/bdrs/map/view.htm?geoMapId=${map.id}">${ map.name }</a>
+	                <a href="${portalContextPath}/bdrs/map/view.htm?geoMapId=${map.id}">${ map.name }</a>
 	                <c:if test="${map.description != null}"> - ${map.description}</c:if>
 	            </li>
 	        </c:forEach>

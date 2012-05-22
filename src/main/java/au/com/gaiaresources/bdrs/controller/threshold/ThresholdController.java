@@ -1,16 +1,12 @@
 package au.com.gaiaresources.bdrs.controller.threshold;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.security.RolesAllowed;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import au.com.gaiaresources.bdrs.controller.AbstractController;
+import au.com.gaiaresources.bdrs.model.threshold.*;
+import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.property.PropertyService;
+import au.com.gaiaresources.bdrs.service.threshold.ComplexTypeOperator;
+import au.com.gaiaresources.bdrs.service.threshold.ThresholdService;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 import org.apache.log4j.Logger;
 import org.hibernate.FlushMode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,21 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
-import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.service.property.PropertyService;
-import au.com.gaiaresources.bdrs.service.threshold.ComplexTypeOperator;
-import au.com.gaiaresources.bdrs.service.threshold.ThresholdService;
-import au.com.gaiaresources.bdrs.controller.AbstractController;
-import au.com.gaiaresources.bdrs.model.threshold.Action;
-import au.com.gaiaresources.bdrs.model.threshold.ActionEvent;
-import au.com.gaiaresources.bdrs.model.threshold.ActionType;
-import au.com.gaiaresources.bdrs.model.threshold.Condition;
-import au.com.gaiaresources.bdrs.model.threshold.Operator;
-import au.com.gaiaresources.bdrs.model.threshold.PathDescriptor;
-import au.com.gaiaresources.bdrs.model.threshold.Threshold;
-import au.com.gaiaresources.bdrs.model.threshold.ThresholdDAO;
+import javax.annotation.security.RolesAllowed;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * The <code>ThresholdController</code> handles all request for system
@@ -285,7 +272,7 @@ public class ThresholdController extends AbstractController {
             thresholdDAO.delete(action);
         }
 
-        ModelAndView mv = new ModelAndView(new RedirectView(
+        ModelAndView mv = new ModelAndView(new PortalRedirectView(
                 "/bdrs/admin/threshold/listing.htm", true));
         return mv;
     }

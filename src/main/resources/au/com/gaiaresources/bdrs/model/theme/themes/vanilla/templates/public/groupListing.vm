@@ -1,7 +1,7 @@
 <h1>Select a Taxonomic Group</h1>
 
 <div class="buttonpanel textright searchButtonContainer">
-	<form action="${pageContext.request.contextPath}/fieldguide/taxa.htm" method="GET" onsubmit="return validateQuery();">
+	<form action="${portalContextPath}/fieldguide/taxa.htm" method="GET" onsubmit="return validateQuery();">
 		<label for="search_in_groups">Search within groups:</label>
 		<input id="search_in_groups" name="search_in_groups" type="text"/>
 	    <input id="search_criteria" class="form_action" type="submit" value="Search">
@@ -21,12 +21,12 @@ Click on the group name or thumbnail below to get a list of species for that gro
 #foreach ($taxonGroup in ${taxonGroups})
     <div class="left field_guide_group">
         #if(${taxonGroup.thumbNail})
-	        <a href="${pageContext.request.contextPath}/fieldguide/taxa.htm?groupId=${taxonGroup.id}">
-                <img class="max_size_img" src="${pageContext.request.contextPath}/files/download.htm?${taxonGroup.getThumbnailFileURL()}"/>
+	        <a href="${portalContextPath}/fieldguide/taxa.htm?groupId=${taxonGroup.id}">
+                <img class="max_size_img" src="${portalContextPath}/files/download.htm?${taxonGroup.getThumbnailFileURL()}"/>
 	        </a>
         #end
         <div class="textcenter" class="clear">
-	        <a href="${pageContext.request.contextPath}/fieldguide/taxa.htm?groupId=${taxonGroup.id}">
+	        <a href="${portalContextPath}/fieldguide/taxa.htm?groupId=${taxonGroup.id}">
 	            ${taxonGroup.name}
 	        </a>   
         </div>

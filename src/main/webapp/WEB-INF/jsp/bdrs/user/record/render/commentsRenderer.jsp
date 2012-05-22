@@ -19,7 +19,7 @@
             <c:otherwise>
             <c:if test="${recordWebFormContext.anonymous}">
 
-                <c:url var="loginUrl" value="/home.htm">
+                <c:url var="loginUrl" value="/home.htm" context="${portalContextPath}">
                     <c:param name="signin" value="true"/>
                     <c:param name="redirectUrl" value=""/>
                 </c:url>

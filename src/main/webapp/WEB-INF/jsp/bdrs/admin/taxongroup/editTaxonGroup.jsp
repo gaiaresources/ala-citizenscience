@@ -16,7 +16,7 @@
 
 <cw:getContent key="admin/taxonomy/editTaxonomicGroups" />
 
-<form method="POST" action="${pageContext.request.contextPath}/bdrs/admin/taxongroup/edit.htm" enctype="multipart/form-data">
+<form method="POST" action="${portalContextPath}/bdrs/admin/taxongroup/edit.htm" enctype="multipart/form-data">
     <div class="textright buttonpanel">
         <input type="submit" class="form_action" value="Save"/>
     </div>
@@ -36,9 +36,9 @@
 		                <td>
 		                    <c:if test="${ taxonGroup.image != null }">
 		                        <div id="img">
-		                            <a href="${pageContext.request.contextPath}/files/download.htm?<%= taxonGroup.getImageFileURL() %>">
+		                            <a href="${portalContextPath}/files/download.htm?<%= taxonGroup.getImageFileURL() %>">
 		                                <img width="250"
-		                                    src="${pageContext.request.contextPath}/files/download.htm?<%= taxonGroup.getImageFileURL() %>"
+		                                    src="${portalContextPath}/files/download.htm?<%= taxonGroup.getImageFileURL() %>"
 		                                    alt="Missing Image"/>
 		                            </a>
 		                        </div>
@@ -87,9 +87,9 @@
 		                <td>
 		                    <c:if test="${ taxonGroup.thumbNail != null }">
 		                        <div id="thumb">
-		                            <a href="${pageContext.request.contextPath}/files/download.htm?<%= taxonGroup.getThumbnailFileURL() %>">
+		                            <a href="${portalContextPath}/files/download.htm?<%= taxonGroup.getThumbnailFileURL() %>">
 		                                <img width="250"
-		                                    src="${pageContext.request.contextPath}/files/download.htm?<%= taxonGroup.getThumbnailFileURL() %>"
+		                                    src="${portalContextPath}/files/download.htm?<%= taxonGroup.getThumbnailFileURL() %>"
 		                                    alt="Missing Image"/>
 		                            </a>
 		                        </div>
@@ -352,7 +352,7 @@
         bdrs.fixJqDialog("#htmlEditorDialog");
         jQuery('#markItUp').markItUp(bdrs.admin.myHtmlSettings);
 
-        bdrs.taxonomy.initEditTaxonGroupMembers('${pageContext.request.contextPath}', '${taxonGroup.id}');
+        bdrs.taxonomy.initEditTaxonGroupMembers('${portalContextPath}', '${taxonGroup.id}');
 
     });
 

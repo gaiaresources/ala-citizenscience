@@ -27,7 +27,7 @@ bdrs.review.downloadSightingsWidget.init = function(searchCriteriaFormSelector, 
     // Click handler for the file download tab
     jQuery(bdrs.review.downloadSightingsWidget.FILE_DOWNLOAD_BUTTON_SELECTOR).click(function(event) {
         var url = [
-            bdrs.contextPath,
+            bdrs.portalContextPath,
             downloadUrl+'?',
             jQuery(searchCriteriaFormSelector).serialize()
         ].join('');
