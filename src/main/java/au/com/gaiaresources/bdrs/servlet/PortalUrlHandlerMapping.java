@@ -23,7 +23,7 @@ public class PortalUrlHandlerMapping extends AbstractHandlerMapping {
      * A simple HttpRequestHandler that strips the portal prefix from the URL then forwards it so it can
      * be handled by the correct controller.
      */
-    public class PortalPrefixUrlStripper implements HttpRequestHandler {
+    public static class PortalPrefixUrlStripper implements HttpRequestHandler {
 
         @Override
         public void handleRequest(HttpServletRequest request, HttpServletResponse response)
