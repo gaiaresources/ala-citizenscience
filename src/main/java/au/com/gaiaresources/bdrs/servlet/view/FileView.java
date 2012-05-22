@@ -20,6 +20,12 @@ import java.nio.charset.Charset;
 import java.util.Map;
 
 public class FileView extends AbstractView {
+
+    // HTTP Header fields used by this class.
+    private static final String IF_MODIFIED_SINCE_HEADER = "If-Modified-Since";
+    private static final String LAST_MODIFIED_HEADER = "Last-Modified";
+    private static final String EXPIRES_HEADER = "Expires";
+
     private File f;
     private boolean forceDownload = true;
     private boolean base64 = false;
@@ -38,10 +44,13 @@ public class FileView extends AbstractView {
     
     @Override
     protected void renderMergedOutputModel(@SuppressWarnings("unchecked") Map model, HttpServletRequest request, HttpServletResponse response) 
-                                           throws IOException 
-    {
-        logger.debug("Streaming file: " + f.getAbsolutePath() + ", Content type: " + getContentType());
-        
+                                           throws IOException {
+
+        // Check modification times and return response code 304 if possible.
+        if (canReturnNotModified(request, response)) {
+            return;
+        }
+
         response.setContentType(getContentType());
         
         if (forceDownload) {
@@ -90,7 +99,29 @@ public class FileView extends AbstractView {
             output.flush();
         }
     }
-    
+
+    /**
+     * Checks the If-Modified-Since HTTP request header against the file modification timestamp.
+     * Returns true if the file has not been modified since the client last retrieved it.
+     * Note that this method also adds the Expires and Last-Modified response headers if a response will be returned.
+     * @param request the HTTP request we are processing.
+     * @param response the HTTP response we are producing.
+     * @return true if the file has not been modified since the client last retrieved it.
+     */
+    private boolean canReturnNotModified(HttpServletRequest request, HttpServletResponse response) {
+        long date = request.getDateHeader(IF_MODIFIED_SINCE_HEADER);
+
+        if (date > 0) {
+            if (date >= f.lastModified()) {
+                response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+                return true;
+            }
+        }
+        response.addDateHeader(LAST_MODIFIED_HEADER, f.lastModified());
+        response.addDateHeader(EXPIRES_HEADER, System.currentTimeMillis());
+        return false;
+    }
+
     public String toString() {
         return "FileView [file: " + f.getAbsolutePath() + ", contentType: " + getContentType() + "]";
     }
