@@ -581,3 +581,12 @@ rollback;
 <code language="sql">
 CREATE INDEX indicator_species_source_index on indicator_species(source); 
 </code>
+
+= r316 =
+<code language="sql">
+begin;
+
+alter table portal add column url_prefix varchar(16) unique;
+
+rollback;
+</code>
