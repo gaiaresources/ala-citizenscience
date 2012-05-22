@@ -28,6 +28,8 @@ class Widget(dict):
     VALUE_REQUIRED_CLASS_NAME = 'required'
 
     WIDGET_HIDDEN_DEFAULT = False
+    WIDGET_READONLY_KEY = 'readonly'
+    WIDGET_READONLY_DEFAULT = False
 
     # The WIDGET_VALUE_KEY typically provides the value associated with the
     # underlying model.
@@ -45,7 +47,6 @@ class Widget(dict):
     def __init__(self, bdrs, **kwargs):
         super(Widget, self).__init__(kwargs)
         self._bdrs = bdrs
-
         self.setdefault('widget_id', None)
         self.setdefault('name', None)
         self.setdefault('style', None)
@@ -55,6 +56,7 @@ class Widget(dict):
         self.setdefault('required', Widget.VALUE_REQUIRED_DEFAULT)
         self.setdefault('hidden', Widget.WIDGET_HIDDEN_DEFAULT)
         self.setdefault('error_text', None)
+        self.setdefault(self.WIDGET_READONLY_KEY, Widget.WIDGET_READONLY_DEFAULT)
 
         self._form = self.pop('form', None)
         self._value_map = self.pop('value_map', {})
@@ -92,6 +94,10 @@ class Widget(dict):
     def widget_name(self):
         """Returns the name of this widget."""
         return self.get(Widget.WIDGET_NAME_KEY, None)
+
+    def is_readonly(self):
+        """Returns the readonly state of this widget."""
+        return self.get(Widget.WIDGET_READONLY_KEY, self.WIDGET_READONLY_DEFAULT)
 
     def widget_style(self):
         """Returns the style of this widget."""

@@ -8,4 +8,7 @@
         style="${ widget.widget_style }"
         value="${ widget.widget_value }"
         type="${ widget.widget_input_type }"
+        #if $widget.is_readonly:
+            readonly="readonly"
+        #end if
 />

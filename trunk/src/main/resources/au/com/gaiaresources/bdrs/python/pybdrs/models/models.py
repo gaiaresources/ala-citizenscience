@@ -326,7 +326,7 @@ class AttributeValue(PortalPersistent):
                         Attribute.ATTRIBUTE_TYPE_DECIMAL]:
             try:
                 return Decimal(self.stringValue())
-            except decimal.InvalidOperation:
+            except InvalidOperation:
                 # Thrown if the string is blank which may happen if the attribute is
                 # non mandatory
                 return None
