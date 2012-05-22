@@ -37,7 +37,7 @@
         <!-- Include the BDRS default layout styles -->
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css${version}/bdrs/bdrs.css" type="text/css"/>
 
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/css${version}/ketchup-0.3.2/jquery.ketchup.css" type="text/css"/>
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css${version}/ketchup/jquery.ketchup.css" type="text/css"/>
         
         <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/jquery-1.6.2.min.js"></script>
 
@@ -49,16 +49,9 @@
         <link rel="stylesheet" href="${pageContext.request.contextPath}/js${version}/colorpicker/css/colorpicker.css" type="text/css"/>
         <script src="${pageContext.request.contextPath}/js${version}/colorpicker/js/colorpicker.js" type="text/javascript"></script>
         
-        <%--<script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/ketchup/jquery.ketchup.js"></script>--%>
-        <%--<script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/ketchup/jquery.ketchup.messages.js"></script>--%>
-        <%--<script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/ketchup/jquery.ketchup.validations.basic.js"></script>--%>
-
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/ketchup-0.3.2/jquery.ketchup.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/ketchup/jquery.ketchup.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/ketchup/jquery.ketchup.messages.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/ketchup-0.3.2/jquery.ketchup.validations.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/ketchup-0.3.2/scaffold.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/ketchup-0.3.2/jquery.ketchup.helpers.js"></script>
-
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/ketchup/jquery.ketchup.validations.basic.js"></script>
 
         <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/jquery.cj-simple-slideshow.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/jquery.tablednd_0_5.js"></script>
