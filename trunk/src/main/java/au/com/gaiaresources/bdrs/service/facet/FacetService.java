@@ -140,7 +140,10 @@ public class FacetService {
                         for(int i=0; i<configArray.size(); i++) {
                             try {
                                 JSONObject configParams = configArray.getJSONObject(i);
-                                configParams.put(Facet.JSON_PREFIX_KEY, String.valueOf(i));
+                                if (configArray.size() > 1) {
+                                    // don't unnecessarily add a prefix to the options
+                                    configParams.put(Facet.JSON_PREFIX_KEY, String.valueOf(i)+"_");
+                                }
                                 
                                 Facet facet = builder.createFacet(dao, parameterMap, user, configParams, facetClass);
                                 facetList.add(facet);

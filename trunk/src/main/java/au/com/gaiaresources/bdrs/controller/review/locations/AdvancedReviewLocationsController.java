@@ -3,6 +3,7 @@ package au.com.gaiaresources.bdrs.controller.review.locations;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -24,8 +25,6 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.search.FullTextQuery;
 import org.hibernate.search.Search;
-import org.hibernate.type.CustomType;
-import org.hibernatespatial.GeometryUserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -47,7 +46,6 @@ import au.com.gaiaresources.bdrs.model.index.IndexUtil;
 import au.com.gaiaresources.bdrs.model.index.IndexingConstants;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.report.Report;
 import au.com.gaiaresources.bdrs.model.user.User;
@@ -59,9 +57,6 @@ import au.com.gaiaresources.bdrs.service.facet.option.FacetOption;
 import au.com.gaiaresources.bdrs.util.DateFormatter;
 import au.com.gaiaresources.bdrs.util.KMLUtils;
 import au.com.gaiaresources.bdrs.util.StringUtils;
-
-import com.vividsolutions.jts.geom.Geometry;
-
 import edu.emory.mathcs.backport.java.util.Arrays;
 import edu.emory.mathcs.backport.java.util.Collections;
 
@@ -73,9 +68,6 @@ import edu.emory.mathcs.backport.java.util.Collections;
 public class AdvancedReviewLocationsController extends AdvancedReviewController<Location> {
 
     private Logger log = Logger.getLogger(getClass());
-    
-    @Autowired
-    private LocationService locationService;
 
     @Autowired
     private LocationDAO locationDAO;
@@ -90,14 +82,8 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
     private static final String SHAPEFILE_ZIP_ENTRY_FORMAT = "shp/Locations.zip";
     private static final String XLS_ZIP_ENTRY_FORMAT = "xls/Locations.xls";
     
-    /**
-     * Constants for request parameters
-     */
-    public static final String PARAM_LOCATION_AREA = "locationArea";
-    public static final String PARAM_LOCATIONS = "locations";
-    
     public static final Set<String> VALID_SORT_PROPERTIES;
-    
+
     static {
         Set<String> temp = new HashSet<String>();
         temp.add("location.name");
@@ -115,25 +101,30 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
      * javascript requests. 
      */
     @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR, Role.USER})
-    @RequestMapping(value = "/review/sightings/advancedReviewLocations.htm", method = RequestMethod.GET)
+    @RequestMapping(value = "/review/sightings/advancedReviewLocations.htm", method = {RequestMethod.GET, RequestMethod.POST})
     public ModelAndView advancedReview(HttpServletRequest request, 
                                        HttpServletResponse response,
                                        @RequestParam(value=SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME, required=false) Integer surveyId,
                                        @RequestParam(value=RESULTS_PER_PAGE_QUERY_PARAM_NAME, required=false, defaultValue=DEFAULT_RESULTS_PER_PAGE) Integer resultsPerPage,
                                        @RequestParam(value=PAGE_NUMBER_QUERY_PARAM_NAME, required=false, defaultValue=DEFAULT_PAGE_NUMBER) Integer pageNumber) {
-        //configureHibernateSession();
-        String locations = request.getParameter(PARAM_LOCATIONS);
-        String locationArea = request.getParameter(PARAM_LOCATION_AREA);
+        configureHibernateSession();
+        HashMap<String, String[]> newParamMap = new HashMap<String, String[]>(request.getParameterMap());
+        
+        String locations = getParameter(newParamMap, PARAM_LOCATIONS);
+        if (!StringUtils.nullOrEmpty(locations)) {
+            newParamMap.put(PARAM_LOCATIONS, locations.split(","));
+        }
+        String locationArea = getParameter(newParamMap, PARAM_LOCATION_AREA);
         // map view doesn't filter based on locations parameter
         List<Location> locList = null;
-        List<Facet> facetList = facetService.getLocationFacetList(currentUser(), (Map<String, String[]>)request.getParameterMap());
+        List<Facet> facetList = facetService.getLocationFacetList(currentUser(), newParamMap);
         Long recordCount = countMatchingRecords(facetList,
                                                 surveyId,
-                                                request.getParameter(SEARCH_QUERY_PARAM_NAME),
+                                                getParameter(newParamMap, SEARCH_QUERY_PARAM_NAME),
                                                 locationArea, locList);
         
-        ModelAndView mv = getAdvancedReviewView(request, surveyId, resultsPerPage, pageNumber, facetList, recordCount, "advancedReviewLocations");
-        if (!StringUtils.nullOrEmpty(request.getParameter(SEARCH_QUERY_PARAM_NAME))) {
+        ModelAndView mv = getAdvancedReviewView(newParamMap, surveyId, resultsPerPage, pageNumber, facetList, recordCount, "advancedReviewLocations");
+        if (!StringUtils.nullOrEmpty(getParameter(newParamMap, SEARCH_QUERY_PARAM_NAME))) {
             if (recordCount == 0) {
                 Date indexDate = IndexUtil.getLastIndexBuildTime(indexDAO, Location.class);
                 if (indexDate == null) {
@@ -209,19 +200,21 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
      * @throws ParseException 
      */
     @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR, Role.USER})
-    @RequestMapping(value = "/review/sightings/advancedReviewKMLLocations.htm", method = RequestMethod.GET)
+    @RequestMapping(value = "/review/sightings/advancedReviewKMLLocations.htm", method = {RequestMethod.GET, RequestMethod.POST})
     public void advancedReviewKMLSightings(HttpServletRequest request, HttpServletResponse response) throws IOException, JAXBException, ParseException {
         configureHibernateSession();
         Integer surveyId = null;
-        if(request.getParameter(SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME) != null) {
-            surveyId = Integer.parseInt(request.getParameter(SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME));
+        Map<String, String[]> newParamMap = decodeParamMap(request.getParameterMap());
+        
+        if(getParameter(newParamMap, SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME) != null) {
+            surveyId = Integer.parseInt(getParameter(newParamMap, SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME));
         }
-        List<Facet> facetList = facetService.getLocationFacetList(currentUser(), (Map<String, String[]>)request.getParameterMap());
-        String locationArea = request.getParameter(PARAM_LOCATION_AREA);
+        List<Facet> facetList = facetService.getLocationFacetList(currentUser(), newParamMap);
+        String locationArea = getParameter(newParamMap, PARAM_LOCATION_AREA);
         ScrollableResults<Location> sr = getScrollableResults(facetList, surveyId, 
-                                                                     request.getParameter(SORT_BY_QUERY_PARAM_NAME), 
-                                                                     request.getParameter(SORT_ORDER_QUERY_PARAM_NAME),
-                                                                     request.getParameter(SEARCH_QUERY_PARAM_NAME),
+                                                                     getParameter(newParamMap, SORT_BY_QUERY_PARAM_NAME), 
+                                                                     getParameter(newParamMap, SORT_ORDER_QUERY_PARAM_NAME),
+                                                                     getParameter(newParamMap, SEARCH_QUERY_PARAM_NAME),
                                                                      locationArea, null);
         advancedReviewKMLSightings(request, response, facetList, sr);
     }
@@ -297,28 +290,30 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
      * Returns a JSON array of records matching the {@link Facet} criteria.
      */
     @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR, Role.USER})
-    @RequestMapping(value = "/review/sightings/advancedReviewJSONLocations.htm", method = RequestMethod.GET)
+    @RequestMapping(value = "/review/sightings/advancedReviewJSONLocations.htm", method = {RequestMethod.GET, RequestMethod.POST})
     public void advancedReviewJSONSightings(HttpServletRequest request, 
                                             HttpServletResponse response,
                                             @RequestParam(value=RESULTS_PER_PAGE_QUERY_PARAM_NAME, required=false, defaultValue=DEFAULT_RESULTS_PER_PAGE) Integer resultsPerPage,
                                             @RequestParam(value=PAGE_NUMBER_QUERY_PARAM_NAME, required=false, defaultValue=DEFAULT_PAGE_NUMBER) Integer pageNumber) throws IOException {
         configureHibernateSession();
+        HashMap<String, String[]> newParamMap = new HashMap<String, String[]>(request.getParameterMap());
         
         Integer surveyId = null;
-        if(request.getParameter(SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME) != null) {
-            surveyId = Integer.parseInt(request.getParameter(SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME));
+        if(getParameter(newParamMap, SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME) != null) {
+            surveyId = Integer.parseInt(getParameter(newParamMap, SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME));
         }
-        String locationArea = request.getParameter(PARAM_LOCATION_AREA);
-        List<Facet> facetList = facetService.getLocationFacetList(currentUser(), (Map<String, String[]>)request.getParameterMap());
+        
+        String locationArea = getParameter(newParamMap, PARAM_LOCATION_AREA);
+        List<Facet> facetList = facetService.getLocationFacetList(currentUser(), newParamMap);
         try {
             ScrollableResults<Location> sc = getScrollableResults(facetList,
                                                                          surveyId,
-                                                                         request.getParameter(SORT_BY_QUERY_PARAM_NAME), 
-                                                                         request.getParameter(SORT_ORDER_QUERY_PARAM_NAME),
-                                                                         request.getParameter(SEARCH_QUERY_PARAM_NAME),
+                                                                         getParameter(newParamMap, SORT_BY_QUERY_PARAM_NAME), 
+                                                                         getParameter(newParamMap, SORT_ORDER_QUERY_PARAM_NAME),
+                                                                         getParameter(newParamMap, SEARCH_QUERY_PARAM_NAME),
                                                                          pageNumber, resultsPerPage, 
                                                                          locationArea, null);
-            advancedReviewJSONSightings(request, response, facetList, sc);
+            advancedReviewJSONSightings(response, facetList, sc);
         } catch (ParseException e) {
             //TODO: return error
             log.error(e);
@@ -331,34 +326,39 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
      * @throws Exception 
      */
     @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR, Role.USER})
-    @RequestMapping(value = "/review/sightings/advancedReviewDownloadLocations.htm", method = RequestMethod.GET)
+    @RequestMapping(value = "/review/sightings/advancedReviewDownloadLocations.htm", method = {RequestMethod.GET, RequestMethod.POST})
     public void advancedReviewDownload(HttpServletRequest request, 
                                        HttpServletResponse response,
                                        @RequestParam(value=SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME, required=false) Integer surveyId,
                                        @RequestParam(value=QUERY_PARAM_DOWNLOAD_FORMAT, required=true) String[] downloadFormat) throws Exception {
         configureHibernateSession();
+        HashMap<String, String[]> newParamMap = new HashMap<String, String[]>(request.getParameterMap());
         
         User currentUser = currentUser();
         // some locations have been selected, add them to the parameters as facet selections
-        String locations = request.getParameter(PARAM_LOCATIONS);
-        String locationArea = request.getParameter(PARAM_LOCATION_AREA);
+        String locations = getParameter(newParamMap, PARAM_LOCATIONS);
+        String locationArea = getParameter(newParamMap, PARAM_LOCATION_AREA);
         List<Location> locList = getLocationsFromParameter(locations);
-        List<Facet> facetList = facetService.getLocationFacetList(currentUser, (Map<String, String[]>)request.getParameterMap());
+        List<Facet> facetList = facetService.getLocationFacetList(currentUser, newParamMap);
         
         ScrollableResults<Location> sc = getScrollableResults(facetList, surveyId, 
-                                                              request.getParameter(SORT_BY_QUERY_PARAM_NAME), 
-                                                              request.getParameter(SORT_ORDER_QUERY_PARAM_NAME),
-                                                              request.getParameter(SEARCH_QUERY_PARAM_NAME), 
+                                                              getParameter(newParamMap, SORT_BY_QUERY_PARAM_NAME), 
+                                                              getParameter(newParamMap, SORT_ORDER_QUERY_PARAM_NAME),
+                                                              getParameter(newParamMap, SEARCH_QUERY_PARAM_NAME), 
                                                               locationArea, locList);
         
         downloadLocations(request, response, downloadFormat, sc, locList);
     }
 
+    /**
+     * Returns a {@link List} of {@link Location}s matching the comma-separated
+     * list of {@link Location} ids or null if a null or empty id string is passed
+     * @param locations a comma-separated list of {@link Location} ids
+     * @return a list of {@link Location}s matching the {@link List} of ids
+     */
     private List<Location> getLocationsFromParameter(String locations) {
         List<Location> locList = null;
-        if (StringUtils.nullOrEmpty(locations)) {
-            locList = locationDAO.getLocations();
-        } else {
+        if (!StringUtils.nullOrEmpty(locations)) {
             String[] ids = locations.split(",");
             Integer[] intIds = new Integer[ids.length];
             for (int i = 0; i < ids.length; i++) {
@@ -401,7 +401,6 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
                 String contextPath = request.getContextPath();
                 LocationDownloadWriter downloadWriter = new LocationDownloadWriter();
                 for (String format : downloadFormat) {
-                    
                     RecordDownloadFormat rdf = RecordDownloadFormat.valueOf(format);
                     switch (rdf) {
                     case KML: {
@@ -448,34 +447,6 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
             zos.flush();
             zos.close();
         }
-    }
-
-
-    /**
-     * Converts the {@link HqlQuery} to a {@ Query} representation.
-     * @param locations 
-     */
-    protected Query toHibernateQuery(HqlQuery hqlQuery, String locationArea, List<Location> locations) {
-        Session sesh = getRequestContext().getHibernate();
-        Query query = sesh.createQuery(hqlQuery.getQueryString());
-        
-        // the geometry comes first
-        CustomType geometryType = new CustomType(GeometryUserType.class, null);
-        int index = 0;
-        if (!StringUtils.nullOrEmpty(locationArea)) {
-            Geometry geometry = locationService.createGeometryFromWKT(locationArea);
-            query.setParameter(index++, geometry, geometryType);
-        }
-        
-        Object[] parameterValues = hqlQuery.getParametersValue();
-        for(int i=0; i<parameterValues.length; i++) {
-            query.setParameter(index++, parameterValues[i]);
-        }
-        
-        if (locations != null && !locations.isEmpty()) {
-            query.setParameterList("locs", locations);
-        }
-        return query;
     }
     
     @Override
@@ -659,22 +630,23 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
      * Returns a count of locations matching the {@link Facet} criteria.
      */
     @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR, Role.USER})
-    @RequestMapping(value = "/review/sightings/advancedReviewCountLocations.htm", method = RequestMethod.GET)
+    @RequestMapping(value = "/review/sightings/advancedReviewCountLocations.htm", method = {RequestMethod.GET, RequestMethod.POST})
     public void advancedReviewCountSightings(HttpServletRequest request, 
                                             HttpServletResponse response) throws IOException {
         configureHibernateSession();
+        HashMap<String, String[]> newParamMap = new HashMap<String, String[]>(request.getParameterMap());
         
         Integer surveyId = null;
-        if(request.getParameter(SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME) != null) {
-            surveyId = Integer.parseInt(request.getParameter(SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME));
+        if(getParameter(newParamMap, SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME) != null) {
+            surveyId = Integer.parseInt(getParameter(newParamMap, SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME));
         }
-        String locations = request.getParameter(PARAM_LOCATIONS);
-        String locationArea = request.getParameter(PARAM_LOCATION_AREA);
+        String locations = getParameter(newParamMap, PARAM_LOCATIONS);
+        String locationArea = getParameter(newParamMap, PARAM_LOCATION_AREA);
         List<Location> locList = getLocationsFromParameter(locations);
-        List<Facet> facetList = facetService.getLocationFacetList(currentUser(), (Map<String, String[]>)request.getParameterMap());
+        List<Facet> facetList = facetService.getLocationFacetList(currentUser(), newParamMap);
         Long recordCount = countMatchingRecords(facetList,
                                                 surveyId,
-                                                request.getParameter(SEARCH_QUERY_PARAM_NAME),
+                                                getParameter(newParamMap, SEARCH_QUERY_PARAM_NAME),
                                                 locationArea, locList);
         response.setContentType("text/plain");
         response.getWriter().write(recordCount.toString());

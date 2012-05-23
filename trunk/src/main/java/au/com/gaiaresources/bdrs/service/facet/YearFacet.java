@@ -15,7 +15,7 @@ public class YearFacet extends AbstractFacet {
     /**
      * The base name of the query parameter.
      */
-    public static final String QUERY_PARAM_NAME = "year";
+    public static final String QUERY_PARAM_NAME = "y";
 
     /**
      * Creates a new instance.

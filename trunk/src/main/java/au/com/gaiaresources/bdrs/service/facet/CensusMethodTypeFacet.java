@@ -17,7 +17,7 @@ public class CensusMethodTypeFacet extends AbstractFacet {
     /**
      * The base name of the query parameter.
      */
-    public static final String QUERY_PARAM_NAME = "censusMethod";
+    public static final String QUERY_PARAM_NAME = "cm";
 
     /**
      * Creates a new instance.

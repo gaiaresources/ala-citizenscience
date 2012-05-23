@@ -169,39 +169,6 @@ bdrs.advancedReview.bulkModerate = function(hold) {
                  "/bdrs/user/moderateRecord.htm", { hold: hold });
 };
 
-
-/**
- * Initialises the map view by requesting a KML from the server and populating 
- * the record count.
- *
- * @param formSelector jQuery selector of the form containing the query parameters.
- * @param mapId the id of the element where the map will be inserted.
- * @param mapOptions options to be used for map initialisation.
- */
-bdrs.advancedReview.initMapView = function(formSelector, mapId, mapOptions, idSelector) {
-
-    bdrs.map.initBaseMap(mapId, mapOptions);
-    bdrs.map.centerMap(bdrs.map.baseMap);
-    bdrs.map.baseMap.events.register('addlayer', null, bdrs.map.addFeaturePopUpHandler);
-    bdrs.map.baseMap.events.register('removeLayer', null, bdrs.map.removeFeaturePoupUpHandler);
-    
-    var queryParams = jQuery(formSelector).serialize();
-    var kmlURL = bdrs.portalContextPath + "/review/sightings/advancedReviewKMLSightings.htm?" + queryParams;
-    var selectedId = jQuery(idSelector).val();
-    var style = bdrs.map.createOpenlayersStyleMap(selectedId.toString());
-    
-    var layerOptions = {
-        visible: true,
-        includeClusterStrategy: true,
-        styleMap: style
-    };
-
-    var layer = bdrs.map.addKmlLayer(bdrs.map.baseMap, "Sightings", kmlURL, layerOptions, selectedId);
-    layer.events.register('loadend', layer, function(event) {
-        bdrs.map.centerMapToLayerExtent(bdrs.map.baseMap, layer);
-    });
-};
-
 /**
  * Click handler for reporting links. This function will perform a GET request to the advanced review
  * report request handler method with all inputs in the specified form as well as the specified report id.
@@ -209,8 +176,8 @@ bdrs.advancedReview.initMapView = function(formSelector, mapId, mapOptions, idSe
  * @param {Object} reportId - the primary key of the report to run.
  */
 bdrs.advancedReview.renderReport = function(formSelector, reportId) {
-    var query_params = jQuery(formSelector).serialize();
-    query_params += "&reportId="+reportId;
-    var url = bdrs.portalContextPath + "/review/sightings/advancedReviewReport.htm?"+query_params;
-    document.location = url;
+    var query_params = bdrs.serializeObject(formSelector);
+	query_params["reportId"] = reportId;
+    var url = bdrs.portalContextPath + "/review/sightings/advancedReviewReport.htm";
+    bdrs.postWith(url, query_params);
 };

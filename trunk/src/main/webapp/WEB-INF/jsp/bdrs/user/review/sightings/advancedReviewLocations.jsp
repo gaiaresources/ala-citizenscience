@@ -36,14 +36,13 @@
                          'tooltip' : 'The user that owns the location.',
                          'title' : 'User'}];
 
-    // initialize the locations variable with the parameter value
-    var locations = new Array();
-    var locString = "[${locations}]";
-    locations = jQuery.parseJSON(locString);
-    
     jQuery(function() {
+        // initialize the locations variable with the parameter value
+        var locString = "[${locations}]";
+        bdrs.advancedReview.locations = jQuery.parseJSON(locString);
+        
       <c:if test="${ downloadViewSelected }">
-            bdrs.review.downloadSightingsWidget.init("#facetForm", "/review/sightings/advancedReviewDownloadLocations.htm");
+      bdrs.advancedReview.downloadSightingsWidgetInit("#facetForm");
        </c:if>
        
         // add a change listener for the checkboxes to keep track of selected locations
@@ -51,19 +50,19 @@
            var checkBox = jQuery(this);
            var checked = checkBox.prop("checked");
            // check for the int value (if it has been added on page load it will be an int)
-           var index = jQuery.inArray(parseInt(checkBox.val()), locations);
+           var index = jQuery.inArray(parseInt(checkBox.val()), bdrs.advancedReview.locations);
            if (checked) {
                // add to the locations array if it is not already in the array
                if (index === -1) {
-                   locations.push(parseInt(checkBox.val()));
+                   bdrs.advancedReview.locations.push(parseInt(checkBox.val()));
                }
            } else {
                // remove from locations array
                if (index !== -1) {
-                   locations.splice(index, 1);
+                   bdrs.advancedReview.locations.splice(index, 1);
                }
            }
-           jQuery("#locations").val(locations);
+           jQuery("#locations").val(bdrs.advancedReview.locations);
        });
        
        // add a change handler to manage locations with the select all checkbox
@@ -74,12 +73,12 @@
                // add all to the locations array
                var checkboxes = select_all_elem.parents("table").find('.recordIdCheckbox:not(:disabled)');
                checkboxes.each(function() {
-                   locations.push(jQuery(this).val());
+                   bdrs.advancedReview.locations.push(jQuery(this).val());
                });
            } else {
-               locations.length = 0;
+               bdrs.advancedReview.locations.length = 0;
            }
-           jQuery("#locations").val(locations);
+           jQuery("#locations").val(bdrs.advancedReview.locations);
        });
     });
     
@@ -182,8 +181,8 @@
             
             // add a load end listener for the sightings layer to highlight the selected locations
             layer.events.register('loadend', layer, function(event) {
-            	highlightFeatures(layer);
-    	    });
+                highlightFeatures(layer);
+            });
         }
         <c:if test="${ tableViewSelected }">
             <c:if test="${ locationArea != null and locationArea != '' }">
@@ -195,25 +194,29 @@
     });
     
     var highlightFeatures = function(layer) {
-    	var selectControl = new OpenLayers.Control.SelectFeature(layer);
-    	// highlight selected features
-        console.log("highlighting "+locations.length+" features");
-        for (var i = 0; i < locations.length; i++) {
-     	   var feature = layer.getFeatureByFid(locations[i]);
-        		console.log(feature);
-        		console.log("highlighting feature "+locations[i]);
-        		if (feature) {
-        			selectControl.select(feature);
-        		}
+        var selectControl = new OpenLayers.Control.SelectFeature(layer);
+        // highlight selected features
+        for (var i = 0; i < bdrs.advancedReview.locations.length; i++) {
+            var feature = layer.getFeatureByFid(bdrs.advancedReview.locations[i]);
+                if (feature) {
+                    selectControl.select(feature);
+                }
         }
     };
     
     // action to perform on the View Records button click
     var showRecordReviewWithFormOptions = function() {
-       var url = bdrs.portalContextPath + "/review/sightings/advancedReview.htm?locations="+locations;
-       window.location = url;
+       var url = bdrs.portalContextPath + "/review/sightings/advancedReview.htm";
+       var query_params;
+       if (bdrs.advancedReview.locations.length > 0) {
+           query_params = {locations: [jQuery("#locations").val()]};
+       } else {
+           // add the location area if there are no selected locations
+           query_params = {locationArea: jQuery("#locationArea").val()};
+       }
+       bdrs.postWith(url, query_params);
     };
-   
+    
     /**
      * Refreshes the location selection layer on the map.
      */
@@ -222,7 +225,7 @@
        // don't filter this by locations
        jQuery("#locations").val('');
        
-       jQuery.get(bdrs.portalContextPath+bdrs.advancedReview.JSON_URL+jQuery("form").serialize(), {}, function(data) {
+       bdrs.ajaxPostWith(bdrs.portalContextPath+bdrs.advancedReview.JSON_URL, bdrs.serializeObject("form"), function(data) {
            var featureArray = [];
            var selFeatureArr = [];
            // use the selection geometry to determine the map zoom
@@ -250,7 +253,7 @@
 
            refreshCount();
            // update the locations from input
-           jQuery("#locations").val(locations);
+           jQuery("#locations").val(bdrs.advancedReview.locations);
            highlightFeatures(layer);
        });
    };
@@ -269,16 +272,18 @@
            // clear the table, then reload the data
            jQuery("#alaSightingsTable").find('tbody').empty();
            bdrs.advancedReview.loadTableContent('#facetForm', '#alaSightingsTable', "${viewStyle != null ? viewStyle : 'null'}");
-           jQuery("#locations").val(locations);
            refreshCount();
+           jQuery("#locations").val(bdrs.advancedReview.locations);
        }
    };
    
    var refreshCount = function() {
-       var queryParams = jQuery('#facetForm').serialize();
-       jQuery.getJSON(bdrs.portalContextPath + bdrs.advancedReview.COUNT_URL + queryParams, {}, function(data) {
-           var count = parseInt(data);
-           jQuery("#count").html(count + " location" + (count == 1 ? "" : "s") + " returned");
-       });
+       var queryParams = bdrs.serializeObject('#facetForm');
+       bdrs.ajaxPostWith(bdrs.portalContextPath + bdrs.advancedReview.COUNT_URL, queryParams,
+           function(data) {
+               var count = parseInt(data);
+               jQuery("#count").html(count + " location" + (count == 1 ? "" : "s") + " returned");
+           }
+       );
    };
 </script>

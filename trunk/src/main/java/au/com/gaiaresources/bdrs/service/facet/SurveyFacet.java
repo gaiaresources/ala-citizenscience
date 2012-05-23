@@ -22,7 +22,7 @@ public abstract class SurveyFacet extends AbstractFacet {
     /**
      * The base name of the query parameter.
      */
-    public static final String QUERY_PARAM_NAME = "survey";
+    public static final String QUERY_PARAM_NAME = "s";
 
     /**
      * Creates a new instance.

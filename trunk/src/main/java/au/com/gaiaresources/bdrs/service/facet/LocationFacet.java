@@ -20,7 +20,7 @@ public class LocationFacet extends AbstractFacet {
     /**
      * The base name of the query parameter.
      */
-    public static final String QUERY_PARAM_NAME = "location";
+    public static final String QUERY_PARAM_NAME = "l";
 
     /**
      * Creates a Location Facet.

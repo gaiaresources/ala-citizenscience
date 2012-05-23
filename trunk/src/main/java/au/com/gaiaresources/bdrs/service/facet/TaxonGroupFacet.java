@@ -18,7 +18,7 @@ public class TaxonGroupFacet extends AbstractFacet {
     /**
      * The base name of the query parameter.
      */
-    public static final String QUERY_PARAM_NAME = "taxonGroup";
+    public static final String QUERY_PARAM_NAME = "g";
 
     /**
      * Creates a new instance.

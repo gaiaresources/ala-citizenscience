@@ -24,12 +24,14 @@ bdrs.advancedReview.KML_URL = "/review/sightings/advancedReviewKMLLocations.htm?
 bdrs.advancedReview.DOWNLOAD_URL = "/review/sightings/advancedReviewDownloadLocations.htm?";
 bdrs.advancedReview.COUNT_URL = "/review/sightings/advancedReviewCountLocations.htm?";
 
+bdrs.advancedReview.locations = new Array();
+
 /**
  * Gets the checked state of an item in the location list on page load.
  * This is true for any previously selected location, stored in the "locations" variable.
  */
 bdrs.advancedReview.getCheckedState = function(id) {
-	return locations.indexOf(id) != -1;
+	return bdrs.advancedReview.locations.indexOf(id) != -1;
 }
 
 /**
