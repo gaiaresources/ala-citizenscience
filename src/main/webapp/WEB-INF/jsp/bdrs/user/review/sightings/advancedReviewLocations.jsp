@@ -212,7 +212,7 @@
            query_params = {"locations": [jQuery("#locations").val()]};
        } else {
            // add the facet selections and location area if there are no selected locations
-           query_params = bdrs.serializeObject("#facetForm");
+           query_params = bdrs.serializeObject("#facetForm", false);
            query_params["locationArea"] = jQuery("#locationArea").val();
        }
 
@@ -228,7 +228,7 @@
        // don't filter this by locations
        jQuery("#locations").val('');
        
-       bdrs.ajaxPostWith(bdrs.portalContextPath+bdrs.advancedReview.JSON_URL, jQuery("form").serialize(), function(data) {
+       bdrs.ajaxPostWith(bdrs.portalContextPath+bdrs.advancedReview.JSON_URL, bdrs.serializeObject("form", false), function(data) {
            var featureArray = [];
            var selFeatureArr = [];
            // use the selection geometry to determine the map zoom
@@ -282,7 +282,7 @@
    };
    
    var refreshCount = function() {
-       var queryParams = jQuery('#facetForm').serialize();
+       var queryParams = bdrs.serializeObject("#facetForm", false);
        bdrs.ajaxPostWith(bdrs.portalContextPath + bdrs.advancedReview.COUNT_URL, queryParams,
            function(data) {
                var count = parseInt(data);

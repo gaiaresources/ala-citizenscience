@@ -115,7 +115,7 @@ bdrs.advancedReview.initTableView = function(formSelector,
 bdrs.advancedReview.loadTableContent = function(formSelector, tableSelector, viewStyle) {
     // AJAX load the content for the table
     var url = bdrs.portalContextPath + bdrs.advancedReview.JSON_URL;
-    var queryParams = jQuery(formSelector).serialize();
+    var queryParams = bdrs.serializeObject(formSelector, false);
     
     var getRecordsHandlerFcn;
     
@@ -228,7 +228,7 @@ bdrs.advancedReview.initMapView = function(formSelector, mapId, mapOptions, idSe
     bdrs.map.baseMap.events.register('addlayer', null, bdrs.map.addFeaturePopUpHandler);
     bdrs.map.baseMap.events.register('removeLayer', null, bdrs.map.removeFeaturePoupUpHandler);
 
-    var queryParams = bdrs.serializeObject(formSelector);
+    var queryParams = bdrs.serializeObject(formSelector, true);
     
     var kmlURL = bdrs.portalContextPath + bdrs.advancedReview.KML_URL;
     var selectedId = jQuery(idSelector).val();
@@ -290,7 +290,7 @@ bdrs.advancedReview.initFacets = function(formSelector, facetSelector) {
  * @param {Object} reportId - the primary key of the report to run.
  */
 bdrs.advancedReview.renderReport = function(formSelector, reportId) {
-    var queryParams = jQuery(formSelector).serialize();
+    var queryParams = bdrs.serializeObject(formSelector, false);
     queryParams["reportId"] = reportId;
     var url = bdrs.portalContextPath + "/review/sightings/advancedReviewReport.htm";
     bdrs.postWith(url, queryParams);
@@ -304,7 +304,7 @@ bdrs.advancedReview.renderReport = function(formSelector, reportId) {
  */
 bdrs.advancedReview.initRecordDownload = function(formSelector, downloadSelector) {
     jQuery(downloadSelector).click(function(event) {
-        var queryParams = jQuery(formSelector).serialize();
+        var queryParams = bdrs.serializeObject(formSelector, false);
         var downloadURL = portalContextPath + bdrs.advancedReview.DOWNLOAD_URL;
         bdrs.postWith(url, queryParams);
     }); 
@@ -345,7 +345,7 @@ bdrs.advancedReview.downloadSightingsWidgetInit = function(formSelector, fileFor
             bdrs.portalContextPath,
             bdrs.advancedReview.DOWNLOAD_URL
         ].join('');
-        var queryParams = jQuery(formSelector).serialize();
+        var queryParams = bdrs.serializeObject(formSelector, false);
         
         bdrs.postWith(url, queryParams);
     });

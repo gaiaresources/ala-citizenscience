@@ -672,7 +672,8 @@ public class ShapeFileWriter {
             Attribute a = entry.getKey();
             String name = entry.getValue();
             
-            switch (a.getType()) {
+            if (a != null && a.getType() != null) {
+                switch (a.getType()) {
             // integer
             case INTEGER:
             case INTEGER_WITH_RANGE:
@@ -719,6 +720,7 @@ public class ShapeFileWriter {
             default:
                 // intended to cause regression failure when a new attribute type is not handled
                 throw new IllegalStateException("An attribute type is not handled properly: " + a.getType());
+            }
             }
         }
     }
