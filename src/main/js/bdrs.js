@@ -173,6 +173,34 @@ bdrs.postWith = function(to, p){
     document.body.removeChild(myForm);
 };
 
+// ajax post helper
+bdrs.ajaxPostWith = function(to, p, callback) {
+    jQuery.ajax({
+        url: to,
+        type: "POST",
+        data: p,
+        success: callback,
+        traditional: true
+    });
+};
+
+// form post parameter builder
+bdrs.serializeObject = function(formSelector) {
+   var o = {};
+   var a = jQuery(formSelector).serializeArray();
+   jQuery.each(a, function() {
+       if (o[this.name]) {
+           if (!o[this.name].push) {
+               o[this.name] = [o[this.name]];
+           }
+           o[this.name].push(encodeURIComponent(this.value) || '');
+       } else {
+           o[this.name] = encodeURIComponent(this.value) || '';
+       }
+   });
+   return o;
+};
+
 // JQGrid helper
 bdrs.JqGrid = function(gridSelector, baseUrl, baseQueryString){
     this.baseUrl = baseUrl;
@@ -956,6 +984,52 @@ bdrs.map.createOpenlayersStyleMap = function(selectedId) {
  * Is called 'ignoreId' as the feature id is ignored during feature clustering.
  */
 bdrs.map.addKmlLayer = function(map, layerName, kmlURL, options, ignoreId){
+    return bdrs.map.addKmlLayerWithProtocol(map, layerName, options, ignoreId,
+            new OpenLayers.Protocol.HTTP({
+                url: kmlURL,
+                format: new OpenLayers.Format.KML({
+                    extractStyles: true,
+                    extractAttributes: true
+                })
+            })
+    );
+};
+
+/**
+ * Create a kml layer that reads from a POST request and add it to the map
+ * 
+ * @param {Object} map OpenLayers.Map object
+ * @param {Object} layerName name of the layer
+ * @param {Object} options layer options
+ * @param {Object} ignoreId - aka the feature id of the selected feature.
+ * Is called 'ignoreId' as the feature id is ignored during feature clustering.
+ * @param {Object} urlParams parameters to past to the post request
+ */
+bdrs.map.addKmlLayerWithPost = function(map, layerName, kmlURL, options, ignoreId, urlParams){
+    return bdrs.map.addKmlLayerWithProtocol(map, layerName, options, ignoreId, 
+            new OpenLayers.Protocol.HTTP({
+                url: kmlURL,
+                format: new OpenLayers.Format.KML({
+                    extractStyles: true,
+                    extractAttributes: true
+                }),
+                params: urlParams,
+                readWithPOST: true
+        })
+    );
+};
+
+/**
+ * Create a kml layer and add it to the map
+ * 
+ * @param {Object} map OpenLayers.Map object
+ * @param {Object} layerName name of the layer
+ * @param {Object} options layer options
+ * @param {Object} ignoreId - aka the feature id of the selected feature.
+ * Is called 'ignoreId' as the feature id is ignored during feature clustering.
+ * @param {Object} protocol the protocol with which to read the kml layer
+ */
+bdrs.map.addKmlLayerWithProtocol = function(map, layerName, options, ignoreId, protocol){
     if (options === undefined) {
         options = {};
     }
@@ -974,13 +1048,7 @@ bdrs.map.addKmlLayer = function(map, layerName, kmlURL, options, ignoreId){
     var layer = new OpenLayers.Layer.Vector(layerName, {
         projection: map.displayProjection,
         strategies: strategies,
-        protocol: new OpenLayers.Protocol.HTTP({
-            url: kmlURL,
-            format: new OpenLayers.Format.KML({
-                extractStyles: true,
-                extractAttributes: true
-            })
-        }),
+        protocol: protocol,
         visibility: options.visible,
         minZoomLevel: options.lowerZoomLimit,
         maxZoomLevel: options.upperZoomLimit,
@@ -1388,10 +1456,10 @@ bdrs.map.addLocationLayer = function(map, layerName){
 };
 
 bdrs.map.addVectorLayer = function(map, layerName, stylemap, options) {
-	var layerOptions = jQuery.extend({
+    var layerOptions = jQuery.extend({
         styleMap: new OpenLayers.StyleMap(stylemap)
     }, options);
-	var layer = new OpenLayers.Layer.Vector(layerName, layerOptions);
+    var layer = new OpenLayers.Layer.Vector(layerName, layerOptions);
     return layer;
 }
 

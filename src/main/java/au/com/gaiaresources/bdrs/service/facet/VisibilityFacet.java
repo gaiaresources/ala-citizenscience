@@ -19,7 +19,7 @@ public class VisibilityFacet extends AbstractFacet {
     /**
      * The base name of the query parameter.
      */
-    public static final String QUERY_PARAM_NAME = "visibility";
+    public static final String QUERY_PARAM_NAME = "v";
 
     /**
      * The configuration attribute (specified in the Preferences) that specifies the user roles that enable this facet.

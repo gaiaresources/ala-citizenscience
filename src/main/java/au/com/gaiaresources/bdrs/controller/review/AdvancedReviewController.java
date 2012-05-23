@@ -9,6 +9,8 @@ import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
 import au.com.gaiaresources.bdrs.db.impl.ScrollableResultsImpl;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.kml.KMLWriter;
+import au.com.gaiaresources.bdrs.model.location.Location;
+import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.preference.Preference;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceUtil;
@@ -25,19 +27,32 @@ import au.com.gaiaresources.bdrs.service.python.report.ReportService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.servlet.RequestContext;
 import au.com.gaiaresources.bdrs.util.KMLUtils;
+import au.com.gaiaresources.bdrs.util.StringUtils;
+
 import org.apache.log4j.Logger;
 import org.hibernate.FlushMode;
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.type.CustomType;
+import org.hibernatespatial.GeometryUserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.ModelAndView;
+
+import com.vividsolutions.jts.geom.Geometry;
+
+import edu.emory.mathcs.backport.java.util.Arrays;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * An advanced review view has a group of facets and 3 views: table, map, download.
@@ -67,6 +82,13 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
     public static final String MODEL_TABLE_VIEW_SELECTED = "tableViewSelected";
     public static final String MODEL_MAP_VIEW_SELECTED = "mapViewSelected";
     
+    /**
+     * Constants for request parameters
+     */
+    public static final String PARAM_LOCATION_AREA = "locationArea";
+    public static final String PARAM_LOCATIONS = "locations";
+
+    protected static final String ATTRIBUTE_KML_PARAMS = "KMLParameters";
     
     @Autowired
     protected FacetService facetService;
@@ -81,10 +103,12 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
     
     @Autowired
     protected ReportService reportService;
-
+    
+    @Autowired
+    protected LocationService locationService;
     /**
      * Returns the view for the request
-     * @param request the request for the view
+     * @param newParamMap the request for the view
      * @param surveyId the id of the survey to get results for
      * @param resultsPerPage the number of results to display per page
      * @param pageNumber the page number to start on
@@ -93,7 +117,7 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
      * @param viewName the name of the view to return
      * @return a ModelAndView
      */
-    protected ModelAndView getAdvancedReviewView(HttpServletRequest request, 
+    protected ModelAndView getAdvancedReviewView(Map<String, String[]> newParamMap, 
             Integer surveyId, Integer resultsPerPage, Integer pageNumber, List<Facet> facetList, Long recordCount, String viewName) {
         long pageCount = recordCount / resultsPerPage;
         if((recordCount % resultsPerPage) > 0) {
@@ -102,22 +126,22 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
         
         ModelAndView mv = new ModelAndView(viewName);
         
-        mv.addObject(getViewType(request.getParameter(PARAM_VIEW_TYPE)), true);
+        mv.addObject(getViewType(getParameter(newParamMap, PARAM_VIEW_TYPE)), true);
 
-        String sortBy = request.getParameter(SORT_BY_QUERY_PARAM_NAME);
-        String sortOrder = request.getParameter(SORT_ORDER_QUERY_PARAM_NAME);
+        String sortBy = getParameter(newParamMap, SORT_BY_QUERY_PARAM_NAME);
+        String sortOrder = getParameter(newParamMap, SORT_ORDER_QUERY_PARAM_NAME);
         
-        mv.addObject("locations", request.getParameter("locations"));
+        mv.addObject(PARAM_LOCATIONS, getParameter(newParamMap, PARAM_LOCATIONS));
         
         mv.addObject("facetList", facetList);
-        mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, request.getParameter(SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME));
+        mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, getParameter(newParamMap, SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME));
         
         // set sortBy or use default if none requested.
         mv.addObject("sortBy", sortBy != null ? sortBy : getDefaultSortString());
         // set sortOrder or use default if none requested.
         mv.addObject("sortOrder", sortOrder != null ? sortOrder : "DESC");
         
-        mv.addObject("searchText", request.getParameter(SEARCH_QUERY_PARAM_NAME));
+        mv.addObject("searchText", getParameter(newParamMap, SEARCH_QUERY_PARAM_NAME));
         mv.addObject("recordCount", recordCount);
         mv.addObject("resultsPerPage", resultsPerPage);
         mv.addObject("pageCount", pageCount);
@@ -190,8 +214,7 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
     /**
      * Returns a JSON array of results matching the {@link Facet} criteria.
      */
-    public void advancedReviewJSONSightings(HttpServletRequest request, 
-                                            HttpServletResponse response,
+    public void advancedReviewJSONSightings(HttpServletResponse response,
                                             List<Facet> facetList, ScrollableResults<? extends PortalPersistentImpl> sc) throws IOException {
         int recordCount = 0;
         JSONArray array = new JSONArray();
@@ -438,10 +461,94 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
         List<T> recordList = new ArrayList<T>(rowList.size());
         for(Object[] rowObj : rowList) {
             recordList.add((T)rowObj[0]);
-            log.debug("returned "+(T)rowObj[0]);
         }
         
         return recordList;
     }
+
+    /**
+     * Converts the {@link HqlQuery} to a {@ Query} representation.
+     * @param locations 
+     */
+    protected Query toHibernateQuery(HqlQuery hqlQuery, String locationArea, List<Location> locations) {
+        Session sesh = getRequestContext().getHibernate();
+        Query query = sesh.createQuery(hqlQuery.getQueryString());
+        
+        // the geometry comes first
+        CustomType geometryType = new CustomType(GeometryUserType.class, null);
+        int index = 0;
+        if (!StringUtils.nullOrEmpty(locationArea)) {
+            Geometry geometry = locationService.createGeometryFromWKT(locationArea);
+            query.setParameter(index++, geometry, geometryType);
+        }
+        
+        Object[] parameterValues = hqlQuery.getParametersValue();
+        for(int i=0; i<parameterValues.length; i++) {
+            query.setParameter(index++, parameterValues[i]);
+        }
+        
+        if (locations != null && !locations.isEmpty()) {
+            query.setParameterList("locs", locations);
+        }
+        return query;
+    }
     
+    /**
+     * Retrieves the parameter with the name paramKey from the request map.
+     * @param requestMap the map containing the request parameters
+     * @param paramKey the name of the parameter to retrieve
+     * @return the value of the parameter if it exists, null otherwise
+     *         if there are multiple parameter values, returns the first
+     */
+    protected String getParameter(Map<String, String[]> requestMap,
+            String paramKey) {
+        String[] values = requestMap.get(paramKey);
+        if (values != null && values.length > 0) {
+            return values[0];
+        }
+        return null;
+    }
+    
+    /**
+     * Retrieves multiple parameter values for the parameter with the given name from the request map
+     * @param requestMap the map to get the values from
+     * @param paramKey the key to get values for
+     * @return an array of values from the requestMap, null if no value for paramKey exists
+     */
+    protected String[] getParameterValues(HashMap<String, String[]> requestMap,
+            String paramKey) {
+        String[] values = requestMap.get(paramKey);
+        if (values != null && values.length > 0) {
+            return values;
+        }
+        return null;
+    }
+    
+    /**
+     * Decodes the parameters in the request mapping into the parameters expected by the controller.
+     * This splits each array of length one into an array of it's comma separated values and 
+     * URL decodes it.  The URL encoding/decoding is done to ensure that commas in the 
+     * parameter values remain intact.
+     * @param parameterMap the request parameter map
+     * @return a Map that is decoded as described
+     */
+    protected Map<String, String[]> decodeParamMap(Map<String,String[]> parameterMap) {
+        Map<String, String[]> newParamMap = new HashMap<String,String[]>(parameterMap.size());
+        for (Entry<String,String[]> entry : parameterMap.entrySet()) {
+            String[] value = entry.getValue();
+            if (value.length == 1) {
+                value = value[0].split(",");
+            }
+            int i = 0;
+            for (String s : value) {
+                try {
+                    value[i++] = URLDecoder.decode(s, "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    log.warn("unable to decode parameter "+entry.getKey()+" value "+Arrays.toString(value), e);
+                }
+            }
+            newParamMap.put(entry.getKey(), value);
+        }
+        return newParamMap;
+    }
 }

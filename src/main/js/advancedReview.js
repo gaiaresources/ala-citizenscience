@@ -8,7 +8,7 @@ if(window.bdrs === undefined) {
 }
 
 if(window.bdrs.advancedReview === undefined) {
-	bdrs.advancedReview = {};
+    bdrs.advancedReview = {};
 }
 
 // Some nice constants...
@@ -115,8 +115,8 @@ bdrs.advancedReview.initTableView = function(formSelector,
 bdrs.advancedReview.loadTableContent = function(formSelector, tableSelector, viewStyle) {
     // AJAX load the content for the table
     var url = bdrs.portalContextPath + bdrs.advancedReview.JSON_URL;
-    var queryParams = jQuery(formSelector).serialize();
-
+    var queryParams = bdrs.serializeObject(formSelector);
+    
     var getRecordsHandlerFcn;
     
     if (viewStyle === bdrs.advancedReview.VIEW_STYLE_DIV) {
@@ -125,8 +125,8 @@ bdrs.advancedReview.loadTableContent = function(formSelector, tableSelector, vie
         // default to table style
         getRecordsHandlerFcn = bdrs.advancedReview.getInitViewStyleTableFcn(tableSelector);
     }
-    
-    jQuery.getJSON(url + queryParams, {}, getRecordsHandlerFcn);
+
+    bdrs.ajaxPostWith(url, queryParams, getRecordsHandlerFcn);
 };
 
 /**
@@ -154,9 +154,9 @@ bdrs.advancedReview.getInitViewStyleTableFcn = function(tableSelector) {
                 record.authenticatedRole = bdrs.authenticatedRole;
             }
             if (record.when) {
-            	record._when = record._when_formatted;
+                record._when = record._when_formatted;
             } else {
-            	record.created_at = record._createdAt_formatted;
+                record.created_at = record._createdAt_formatted;
             }
             var row = jQuery.tmpl(compiled_row_tmpl, record);
             // style the odd rows
@@ -167,7 +167,7 @@ bdrs.advancedReview.getInitViewStyleTableFcn = function(tableSelector) {
             tbody.append(row);
             
             if (bdrs.advancedReview.getCheckedState(record.id)) {
-            	row.find(".recordIdCheckbox").prop("checked", true);
+                row.find(".recordIdCheckbox").prop("checked", true);
             }
         }
     };
@@ -227,9 +227,10 @@ bdrs.advancedReview.initMapView = function(formSelector, mapId, mapOptions, idSe
     bdrs.map.centerMap(bdrs.map.baseMap);
     bdrs.map.baseMap.events.register('addlayer', null, bdrs.map.addFeaturePopUpHandler);
     bdrs.map.baseMap.events.register('removeLayer', null, bdrs.map.removeFeaturePoupUpHandler);
+
+    var queryParams = bdrs.serializeObject(formSelector);
     
-    var queryParams = jQuery(formSelector).serialize();
-    var kmlURL = bdrs.portalContextPath + bdrs.advancedReview.KML_URL + queryParams;
+    var kmlURL = bdrs.portalContextPath + bdrs.advancedReview.KML_URL;
     var selectedId = jQuery(idSelector).val();
     var style = bdrs.map.createOpenlayersStyleMap(selectedId.toString());
     
@@ -238,8 +239,7 @@ bdrs.advancedReview.initMapView = function(formSelector, mapId, mapOptions, idSe
         includeClusterStrategy: true,
         styleMap: style
     };
-
-    var layer = bdrs.map.addKmlLayer(bdrs.map.baseMap, "Sightings", kmlURL, layerOptions, selectedId);
+    var layer = bdrs.map.addKmlLayerWithPost(bdrs.map.baseMap, "Sightings", kmlURL, layerOptions, selectedId, queryParams);
     layer.events.register('loadend', layer, function(event) {
         bdrs.map.centerMapToLayerExtent(bdrs.map.baseMap, layer);
     });
@@ -262,7 +262,7 @@ bdrs.advancedReview.initFacets = function(formSelector, facetSelector) {
         var select_all_elem = jQuery(evt.currentTarget);
         var select_all = select_all_elem.prop("checked");
         select_all_elem.parents(facetSelector).find('.facetOptions input[type="checkbox"]').prop("checked", select_all);
-        form.submit();        
+        form.submit();
     });
 
     jQuery('.showMore > a').click(function() {
@@ -290,10 +290,10 @@ bdrs.advancedReview.initFacets = function(formSelector, facetSelector) {
  * @param {Object} reportId - the primary key of the report to run.
  */
 bdrs.advancedReview.renderReport = function(formSelector, reportId) {
-    var query_params = jQuery(formSelector).serialize();
-    query_params += "&reportId="+reportId;
-    var url = bdrs.portalContextPath + "/review/sightings/advancedReviewReport.htm?"+query_params;
-    document.location = url;
+    var queryParams = bdrs.serializeObject(formSelector);
+    queryParams["reportId"] = reportId;
+    var url = bdrs.portalContextPath + "/review/sightings/advancedReviewReport.htm";
+    bdrs.postWith(url, queryParams);
 };
 
 /**
@@ -304,9 +304,9 @@ bdrs.advancedReview.renderReport = function(formSelector, reportId) {
  */
 bdrs.advancedReview.initRecordDownload = function(formSelector, downloadSelector) {
     jQuery(downloadSelector).click(function(event) {
-        var queryParams = jQuery(formSelector).serialize();
-        var downloadURL = bdrs.portalContextPath + bdrs.advancedReview.DOWNLOAD_URL + queryParams;
-        window.document.location = downloadURL; 
+        var queryParams = bdrs.serializeObject(formSelector);
+        var downloadURL = portalContextPath + bdrs.advancedReview.DOWNLOAD_URL;
+        bdrs.postWith(url, queryParams);
     }); 
 };
 
@@ -322,4 +322,31 @@ bdrs.advancedReview.getSortArrowClickedHandlerFcn = function(sortBy, sortOrder) 
         jQuery(bdrs.advancedReview.SORT_BY_INPUT_SELECTOR).val(sortBy);
         jQuery(bdrs.advancedReview.FACET_FORM_SELECTOR).submit();
     };
+};
+
+/**
+ * Copy of bdrs.mySightings.downloadSightingsWidgetInit
+ * Necessary because this form must do a POST request for the download
+ * because data can be too large for GET.
+ */
+bdrs.advancedReview.downloadSightingsWidgetInit = function(formSelector, fileFormatSelectionChangeCallback) {
+    // Disable file downloading if no format is selected, and update the permalink
+    jQuery(bdrs.review.downloadSightingsWidget.DOWNLOAD_FILE_FORMAT_SELECTOR).change(function(event) {
+        if (fileFormatSelectionChangeCallback) {
+            fileFormatSelectionChangeCallback();
+        }
+        var checked = jQuery(bdrs.review.downloadSightingsWidget.DOWNLOAD_FILE_FORMAT_SELECTOR).filter(":checked");
+        jQuery(bdrs.review.downloadSightingsWidget.FILE_DOWNLOAD_BUTTON_SELECTOR).prop("disabled", checked.length === 0); 
+    }).trigger("change");
+        
+    // Click handler for the file download tab
+    jQuery(bdrs.review.downloadSightingsWidget.FILE_DOWNLOAD_BUTTON_SELECTOR).click(function(event) {
+        var url = [
+            bdrs.portalContextPath,
+            bdrs.advancedReview.DOWNLOAD_URL
+        ].join('');
+        var queryParams = bdrs.serializeObject(formSelector);
+        
+        bdrs.postWith(url, queryParams);
+    });
 };

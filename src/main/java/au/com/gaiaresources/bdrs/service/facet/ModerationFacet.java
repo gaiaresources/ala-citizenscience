@@ -17,7 +17,7 @@ public class ModerationFacet extends AbstractFacet {
     /**
      * The base name of the query parameter.
      */
-    public static final String QUERY_PARAM_NAME = "held";
+    public static final String QUERY_PARAM_NAME = "h";
 
     /**
      * Creates a new instance.

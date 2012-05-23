@@ -19,7 +19,7 @@ public class LocationAttributeFacet extends AbstractFacet {
     /**
      * The base name of the query parameter.
      */
-    public static final String QUERY_PARAM_NAME = "loc_attribute_%s";
+    public static final String QUERY_PARAM_NAME = "la_%s";
     
     /**
      * The expected JSON key from user preferences indicating the 

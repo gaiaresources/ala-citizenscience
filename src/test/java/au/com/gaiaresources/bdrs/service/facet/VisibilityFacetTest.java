@@ -136,7 +136,7 @@ public class VisibilityFacetTest {
         configureRecordDAO();
 
         Map<String, String[]> params = new HashMap<String, String[]>();
-        params.put("_"+VisibilityFacet.QUERY_PARAM_NAME+"_option", new String[]{Integer.toString(RecordVisibility.PUBLIC.ordinal())});
+        params.put(VisibilityFacet.QUERY_PARAM_NAME+VisibilityFacet.OPTION_SUFFIX, new String[]{Integer.toString(RecordVisibility.PUBLIC.ordinal())});
 
         User admin = new User();
         admin.setRoles(new String[]{Role.ADMIN});

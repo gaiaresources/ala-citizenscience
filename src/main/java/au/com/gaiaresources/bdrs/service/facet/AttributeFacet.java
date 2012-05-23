@@ -20,7 +20,7 @@ public class AttributeFacet extends AbstractFacet {
     /**
      * The base name of the query parameter.
      */
-    public static final String QUERY_PARAM_NAME = "attribute_%s";
+    public static final String QUERY_PARAM_NAME = "a_%s";
     
     /**
      * The expected JSON key from user preferences indicating the 

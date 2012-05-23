@@ -18,7 +18,7 @@ public class MultimediaFacet extends AbstractFacet {
     /**
      * The base name of the query parameter.
      */
-    public static final String QUERY_PARAM_NAME = "multimedia";
+    public static final String QUERY_PARAM_NAME = "ma";
 
     /**
      * Creates a new instance.

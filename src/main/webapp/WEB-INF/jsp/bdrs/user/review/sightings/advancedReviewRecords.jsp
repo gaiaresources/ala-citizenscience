@@ -54,7 +54,7 @@
       
       
       <c:if test="${ downloadViewSelected }">
-            bdrs.review.downloadSightingsWidget.init("#facetForm", "/review/sightings/advancedReviewDownload.htm");
+      bdrs.advancedReview.downloadSightingsWidgetInit("#facetForm");
        </c:if>
    });
 </script>

@@ -16,7 +16,7 @@ public class MonthFacet extends AbstractFacet {
     /**
      * The base name of the query parameter.
      */
-    public static final String QUERY_PARAM_NAME = "month";
+    public static final String QUERY_PARAM_NAME = "m";
 
     /**
      * Creates a new instance.

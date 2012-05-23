@@ -15,12 +15,7 @@ public abstract class UserFacet extends AbstractFacet {
     /**
      * The base name of the query parameter.
      */
-    public static final String QUERY_PARAM_NAME = "user";
-    
-    /**
-     * A limit for the number of options to show in the facet.
-     */
-    private static final Integer OPTIONS_LIMIT = 8;
+    public static final String QUERY_PARAM_NAME = "u";
     
     /**
      * Creates a new instance.

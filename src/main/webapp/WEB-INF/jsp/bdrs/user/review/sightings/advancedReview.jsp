@@ -11,9 +11,11 @@
     ${pageDescription}
 </c:if>
 
-<form id="facetForm" method="GET" action="">
-    <input type="hidden" name="locations" id="locations" value = "${ locations }"/>
-    <input type="hidden" name="locationArea" id="locationArea" value = "${ locationArea }"/>
+<form id="facetForm" method="POST" action="">
+    <c:if test="${resultsType == 'location' }">
+    	<input type="hidden" name="locations" id="locations" value = "${ locations }"/>
+    	<input type="hidden" name="locationArea" id="locationArea" value = "${ locationArea }"/>
+    </c:if>
     <input type="hidden" name="recordId" value = "${ recordId }"/>
 	<div class="alaSightingsContent">
 	    <div class="facetCol left">
