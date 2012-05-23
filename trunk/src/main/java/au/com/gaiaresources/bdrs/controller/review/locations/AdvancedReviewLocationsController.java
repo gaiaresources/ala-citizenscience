@@ -73,9 +73,6 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
     private LocationDAO locationDAO;
     
     @Autowired
-    private SearchService searchService;
-    
-    @Autowired
     private IndexScheduleDAO indexDAO;
     
     private static final String KML_FILENAME = "Locations.kml";
@@ -137,6 +134,7 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
                 }
             }
         }
+        
         if (!StringUtils.nullOrEmpty(locationArea)) {
             mv.addObject(PARAM_LOCATION_AREA, locationArea);
         }
@@ -283,7 +281,7 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
                                             String searchText,
                                             String locationArea,
                                             List<Location> locations) throws ParseException {
-        return createFacetQuery(facetList, surveyId, sortProperty, sortOrder, searchText, locationArea, locations);
+        return createLocationFacetQuery(facetList, surveyId, sortProperty, sortOrder, searchText, locationArea, locations);
     }
     
     /**
@@ -452,104 +450,7 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
     @Override
     protected Query createFacetQuery(List<Facet> facetList, Integer surveyId,
             String sortProperty, String sortOrder, String searchText) {
-        return createFacetQuery(facetList, surveyId, sortProperty, sortOrder, searchText, null, null);
-    }
-    
-    protected Query createFacetQuery(List<Facet> facetList, Integer surveyId,
-            String sortProperty, String sortOrder, String searchText, String locationArea, List<Location> locList) {
-        List<Location> locations = null;
-        if (!StringUtils.nullOrEmpty(searchText)) {
-            // use an indexed query for searchText
-            try {
-                Query indexedQuery = getIndexedQuery(facetList, surveyId, sortProperty, sortOrder, searchText, locationArea);
-                locations = indexedQuery.list();
-            } catch (Exception e) {
-                log.error("Exception occurred creating query for search text '"+searchText+"'. Ignoring search criteria.", e);
-            }
-            
-            //if it matched nothing when a search term was specified, return nothing
-            if (locations == null || locations.isEmpty()) {
-                return null;
-            }
-        }
-        // add the location list parameter as query criteria
-        if (locations == null) {
-            locations = locList;
-        } else if (locList != null) {
-            locations.addAll(locList);
-        }
-        
-        // extra columns in select are used for ordering
-        HqlQuery hqlQuery = new HqlQuery("select distinct location, " +
-        		"location.name, location.description, location.weight, location.createdBy, " +
-        		"location.createdAt, location.user from Location location");
-        
-        if (!StringUtils.nullOrEmpty(locationArea)) {
-            hqlQuery.and(new Predicate("within(location.location, ?) = True"));
-        }
-        applyFacetsToQuery(hqlQuery, facetList, surveyId, searchText);
-
-        if (locations != null && !locations.isEmpty()) {
-            hqlQuery.and(new Predicate("location in (:locs)"));
-        }
-        // NO SQL injection for you
-        if(sortProperty != null && sortOrder != null && VALID_SORT_PROPERTIES.contains(sortProperty)) {
-            hqlQuery.order(sortProperty, 
-                           SortOrder.valueOf(sortOrder).name(),
-                           null);
-        }
-        Query query = toHibernateQuery(hqlQuery, locationArea, locations);
-        return query;
-    }
-    
-    private Query getIndexedQuery(List<Facet> facetList, Integer surveyId,
-            String sortProperty, String sortOrder, String searchText,
-            String locationArea) throws ParseException {
-        // the fields to search on
-        String[] fields = new String[]{};
-        Session sesh = getRequestContext().getHibernate();
-        
-        Analyzer customAnalyzer = Search.getFullTextSession(sesh).getSearchFactory().getAnalyzer(IndexingConstants.FULL_TEXT_ANALYZER);
-        PerFieldAnalyzerWrapper analyzer = new PerFieldAnalyzerWrapper(customAnalyzer);
-        
-        String searchTerm = buildSearchTerm(facetList, surveyId, searchText, locationArea);
-        
-        Query query = searchService.getQuery(sesh, fields, analyzer, searchTerm, Location.class);
-        if (sortProperty != null && query instanceof FullTextQuery) {
-            // add the sorting
-            Sort sort = new Sort(sortProperty.substring(sortProperty.indexOf(".")+1)+"_sort", sortOrder == null ? false : SortOrder.valueOf(sortOrder) == SortOrder.DESC);
-            
-            ((FullTextQuery)query).setSort(sort);
-        }
-        log.debug("query is: "+query.getQueryString());
-        return query;
-    }
-
-    private String buildSearchTerm(List<Facet> facetList, Integer surveyId, String searchText,
-            String locationArea) {
-        StringBuilder sb = new StringBuilder();
-        
-        // add the faceting
-        for(Facet f : facetList) {
-            if(f.isActive()) {
-                String s = f.getIndexedQueryString();
-                if (!StringUtils.nullOrEmpty(s)) {
-                    sb.append(" +" + s);
-                }
-            }
-        }
-        
-        if (surveyId != null) {
-            // add the survey
-            sb.append(" +surveys.id:"+surveyId);
-        }
-        
-        // add the search text to the location name, description, and attribute value text
-        sb.append(" +(name:"+searchText+" description:"+searchText+" attributes.stringValue:"+searchText+" user.name:"+searchText+")");
-        
-        // add the spatial query
-        
-        return sb.toString();
+        return createLocationFacetQuery(facetList, surveyId, sortProperty, sortOrder, searchText, null, null);
     }
 
     @Override
@@ -560,27 +461,7 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
     @Override
     protected void applyFacetsToQuery(HqlQuery hqlQuery, List<Facet> facetList,
             Integer surveyId, String searchText) {
-        hqlQuery.leftJoin("location.attributes", "locAttributeVal");
-        hqlQuery.leftJoin("location.user", "user");
-        
-        hqlQuery.leftJoin("location.regions", "regions");
-        hqlQuery.leftJoin("location.metadata", "metadata");
-        
-        hqlQuery.leftJoin("locAttributeVal.attribute", "locAttribute");
-        hqlQuery.leftJoin("location.surveys", "survey");
-        for(Facet f : facetList) {
-            if(f.isActive()) {
-                Predicate p = f.getPredicate();
-                if (p != null) {
-                    f.applyCustomJoins(hqlQuery);
-                    hqlQuery.and(p);
-                }
-            }
-        }
-        
-        if(surveyId != null) {
-            hqlQuery.and(Predicate.eq("survey.id", surveyId));
-        }
+        applyLocationFacetsToQuery(hqlQuery, facetList, surveyId, searchText);
     }
 
     @Override

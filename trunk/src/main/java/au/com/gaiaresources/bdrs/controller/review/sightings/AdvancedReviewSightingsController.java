@@ -1,6 +1,7 @@
 package au.com.gaiaresources.bdrs.controller.review.sightings;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -25,6 +26,7 @@ import au.com.gaiaresources.bdrs.db.impl.HqlQuery;
 import au.com.gaiaresources.bdrs.db.impl.HqlQuery.SortOrder;
 import au.com.gaiaresources.bdrs.db.impl.Predicate;
 import au.com.gaiaresources.bdrs.kml.KMLWriter;
+import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.report.Report;
 import au.com.gaiaresources.bdrs.model.report.ReportCapability;
@@ -97,27 +99,8 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
      
         Map<String, String[]> newParamMap = new HashMap<String, String[]>(request.getParameterMap());
         
-        // some locations have been selected, add them to the parameters as facet selections
-        String locations = getParameter(newParamMap, PARAM_LOCATIONS);
-        if (StringUtils.nullOrEmpty(locations)) {
-            // only use the location wkt if no locations have been selected
-            // a location area has been selected, add contained locations to the parameters as facet selections
-            String locationArea = getParameter(newParamMap, PARAM_LOCATION_AREA);
-            if (!StringUtils.nullOrEmpty(locationArea)) {
-                // get a comma separated list of location ids to use as the locations
-                locations = getLocationListInWkt(locationArea);
-                newParamMap.remove(PARAM_LOCATION_AREA);
-            }
-        }
-        // this code translates the locations parameter into facet selections
-        // there is currently not a good way to get the input name (parameter 
-        // selection name) from a facet before it's creation or to build a mock
-        // facet for retrieving this parameter so the input name is hard-coded 
-        // here
-        String inputName = LocationFacet.QUERY_PARAM_NAME+LocationFacet.OPTION_SUFFIX;
-        if (!StringUtils.nullOrEmpty(locations) && !newParamMap.containsKey(inputName)) {
-            newParamMap.put(inputName, locations.split(","));
-            newParamMap.remove(PARAM_LOCATIONS);
+        if (newParamMap.containsKey("sourcePage")) {
+            fixLocationParams(newParamMap, surveyId);
         }
         List<Facet> facetList = facetService.getFacetList(currentUser(), newParamMap);
         Long recordCount = countMatchingRecords(facetList,
@@ -133,20 +116,65 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
     }
 
     /**
+     * Adds the locations to the parameter map as facet selections and removes them from the parameter list.
+     * If there are no locations, passed, uses the locationArea parameter and facet selections
+     * to create the facet selection parameters and removes the parameters after translating them.
+     * @param newParamMap the request parameter map
+     * @param surveyId the survey id
+     */
+    private void fixLocationParams(Map<String, String[]> newParamMap,
+            Integer surveyId) {
+        // some locations have been selected, add them to the parameters as facet selections
+        String locations = getParameter(newParamMap, PARAM_LOCATIONS);
+        if (StringUtils.nullOrEmpty(locations)) {
+            // only use the location wkt if no locations have been selected
+            // a location area has been selected, add contained locations to the parameters as facet selections
+            String locationArea = getParameter(newParamMap, PARAM_LOCATION_AREA);
+            locations = getLocationListInWkt(locationArea, newParamMap, surveyId);
+            newParamMap.remove(PARAM_LOCATION_AREA);
+        }
+        // this code translates the locations parameter into facet selections
+        // there is currently not a good way to get the input name (parameter 
+        // selection name) from a facet before it's creation or to build a mock
+        // facet for retrieving this parameter so the input name is hard-coded 
+        // here
+        String inputName = LocationFacet.QUERY_PARAM_NAME+LocationFacet.OPTION_SUFFIX;
+        if (!StringUtils.nullOrEmpty(locations) && !newParamMap.containsKey(inputName)) {
+            newParamMap.put(inputName, locations.split(","));
+            newParamMap.remove(PARAM_LOCATIONS);
+        }
+    }
+
+    /**
      * Gets a comma-separated list of location ids contained within the area 
      * described by the wkt string
      * @param locationArea the wkt string describing the selection area
+     * @param newParamMap 
      * @return a String that is a comma-separated list of location ids contained within the wkt area
      */
-    private String getLocationListInWkt(String locationArea) {
-        HqlQuery hqlQuery = new HqlQuery("select distinct location.id " +
-                " from Location location");
+    private String getLocationListInWkt(String locationArea, Map<String, String[]> newParamMap, Integer surveyId) {
+        List<Facet> facetList = facetService.getLocationFacetList(currentUser(), newParamMap);
+        Query q = createLocationFacetQuery(facetList, surveyId, null, null, 
+                                           getParameter(newParamMap, SEARCH_QUERY_PARAM_NAME), 
+                                           locationArea, null);
         
-        hqlQuery.and(new Predicate("within(location.location, ?) = True"));
+        // remove any facet parameters from the map
+        for (Facet facet : facetList) {
+            if (newParamMap.containsKey(facet.getInputName())) {
+                newParamMap.remove(facet.getInputName());
+            }
+        }
         
-        Query q = toHibernateQuery(hqlQuery, locationArea, null);
-        List<Integer> list = q.list();
-        return StringUtils.joinList(list, ",");
+        List<Object[]> list = q.list();
+        List<Integer> idsList = new ArrayList<Integer>(list.size());
+        for (Object[] objects : list) {
+            for (Object object : objects) {
+                if (object instanceof Location) {
+                    idsList.add(((Location)object).getId());
+                }
+            }
+        }
+        return StringUtils.joinList(idsList, ",");
     }
 
     /**
