@@ -185,17 +185,22 @@ bdrs.ajaxPostWith = function(to, p, callback) {
 };
 
 // form post parameter builder
-bdrs.serializeObject = function(formSelector) {
+bdrs.serializeObject = function(formSelector, encodeParameters) {
    var o = {};
    var a = jQuery(formSelector).serializeArray();
    jQuery.each(a, function() {
-       if (o[this.name]) {
+       var value = this.value;
+       if (encodeParameters) {
+    	   value = encodeURIComponent(value);
+       }
+	   if (o[this.name]) {
            if (!o[this.name].push) {
                o[this.name] = [o[this.name]];
            }
-           o[this.name].push(encodeURIComponent(this.value) || '');
+           
+           o[this.name].push(value || '');
        } else {
-           o[this.name] = encodeURIComponent(this.value) || '';
+           o[this.name] = value || '';
        }
    });
    return o;

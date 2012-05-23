@@ -176,7 +176,7 @@ bdrs.advancedReview.bulkModerate = function(hold) {
  * @param {Object} reportId - the primary key of the report to run.
  */
 bdrs.advancedReview.renderReport = function(formSelector, reportId) {
-    var query_params = jQuery(formSelector).serialize();
+    var query_params = bdrs.serializeObject(formSelector, false);
 	query_params["reportId"] = reportId;
     var url = bdrs.portalContextPath + "/review/sightings/advancedReviewReport.htm";
     bdrs.postWith(url, query_params);
