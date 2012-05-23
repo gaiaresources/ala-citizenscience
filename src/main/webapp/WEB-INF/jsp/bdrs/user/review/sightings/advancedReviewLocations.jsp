@@ -209,11 +209,14 @@
        var url = bdrs.portalContextPath + "/review/sightings/advancedReview.htm";
        var query_params;
        if (bdrs.advancedReview.locations.length > 0) {
-           query_params = {locations: [jQuery("#locations").val()]};
+           query_params = {"locations": [jQuery("#locations").val()]};
        } else {
-           // add the location area if there are no selected locations
-           query_params = {locationArea: jQuery("#locationArea").val()};
+           // add the facet selections and location area if there are no selected locations
+           query_params = bdrs.serializeObject("#facetForm");
+           query_params["locationArea"] = jQuery("#locationArea").val();
        }
+
+       query_params["sourcePage"] = "locations";
        bdrs.postWith(url, query_params);
     };
     
@@ -225,7 +228,7 @@
        // don't filter this by locations
        jQuery("#locations").val('');
        
-       bdrs.ajaxPostWith(bdrs.portalContextPath+bdrs.advancedReview.JSON_URL, bdrs.serializeObject("form"), function(data) {
+       bdrs.ajaxPostWith(bdrs.portalContextPath+bdrs.advancedReview.JSON_URL, jQuery("form").serialize(), function(data) {
            var featureArray = [];
            var selFeatureArr = [];
            // use the selection geometry to determine the map zoom
@@ -251,7 +254,8 @@
            var selectLayer = bdrs.map.baseMap.getLayersByName("Location Selector")[0];
            bdrs.map.centerMapToLayerExtent(bdrs.map.baseMap, selectLayer);
 
-           refreshCount();
+           var count = data.length;
+           jQuery("#count").html(count + " location" + (count == 1 ? "" : "s") + " returned");
            // update the locations from input
            jQuery("#locations").val(bdrs.advancedReview.locations);
            highlightFeatures(layer);
@@ -278,7 +282,7 @@
    };
    
    var refreshCount = function() {
-       var queryParams = bdrs.serializeObject('#facetForm');
+       var queryParams = jQuery('#facetForm').serialize();
        bdrs.ajaxPostWith(bdrs.portalContextPath + bdrs.advancedReview.COUNT_URL, queryParams,
            function(data) {
                var count = parseInt(data);

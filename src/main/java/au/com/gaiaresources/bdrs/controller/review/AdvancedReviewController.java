@@ -1,14 +1,17 @@
 package au.com.gaiaresources.bdrs.controller.review;
 
+import au.com.gaiaresources.bdrs.controller.review.locations.AdvancedReviewLocationsController;
 import au.com.gaiaresources.bdrs.controller.review.sightings.SightingsController;
 import au.com.gaiaresources.bdrs.db.FilterManager;
 import au.com.gaiaresources.bdrs.db.ScrollableResults;
 import au.com.gaiaresources.bdrs.db.impl.HqlQuery;
 import au.com.gaiaresources.bdrs.db.impl.HqlQuery.SortOrder;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
+import au.com.gaiaresources.bdrs.db.impl.Predicate;
 import au.com.gaiaresources.bdrs.db.impl.ScrollableResultsImpl;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.kml.KMLWriter;
+import au.com.gaiaresources.bdrs.model.index.IndexingConstants;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.preference.Preference;
@@ -19,6 +22,7 @@ import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
 import au.com.gaiaresources.bdrs.model.report.Report;
 import au.com.gaiaresources.bdrs.model.report.ReportDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.search.SearchService;
 import au.com.gaiaresources.bdrs.service.facet.Facet;
 import au.com.gaiaresources.bdrs.service.facet.FacetService;
 import au.com.gaiaresources.bdrs.service.facet.SurveyFacet;
@@ -30,9 +34,15 @@ import au.com.gaiaresources.bdrs.util.KMLUtils;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 
 import org.apache.log4j.Logger;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.PerFieldAnalyzerWrapper;
+import org.apache.lucene.queryParser.ParseException;
+import org.apache.lucene.search.Sort;
 import org.hibernate.FlushMode;
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.search.FullTextQuery;
+import org.hibernate.search.Search;
 import org.hibernate.type.CustomType;
 import org.hibernatespatial.GeometryUserType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -106,6 +116,9 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
     
     @Autowired
     protected LocationService locationService;
+    
+    @Autowired
+    private SearchService searchService;
     /**
      * Returns the view for the request
      * @param newParamMap the request for the view
@@ -551,4 +564,126 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
         }
         return newParamMap;
     }
+    
+    protected Query createLocationFacetQuery(List<Facet> facetList, Integer surveyId,
+            String sortProperty, String sortOrder, String searchText, String locationArea, List<Location> locList) {
+        List<Location> locations = null;
+        if (!StringUtils.nullOrEmpty(searchText)) {
+            // use an indexed query for searchText
+            try {
+                Query indexedQuery = getIndexedQuery(facetList, surveyId, sortProperty, sortOrder, searchText, locationArea);
+                locations = indexedQuery.list();
+            } catch (Exception e) {
+                log.error("Exception occurred creating query for search text '"+searchText+"'. Ignoring search criteria.", e);
+            }
+            
+            //if it matched nothing when a search term was specified, return nothing
+            if (locations == null || locations.isEmpty()) {
+                return null;
+            }
+        }
+        // add the location list parameter as query criteria
+        if (locations == null) {
+            locations = locList;
+        } else if (locList != null) {
+            locations.addAll(locList);
+        }
+        
+        // extra columns in select are used for ordering
+        HqlQuery hqlQuery = new HqlQuery("select distinct location, " +
+                        "location.name, location.description, location.weight, location.createdBy, " +
+                        "location.createdAt, location.user from Location location");
+        
+        if (!StringUtils.nullOrEmpty(locationArea)) {
+            hqlQuery.and(new Predicate("within(location.location, ?) = True"));
+        }
+        applyLocationFacetsToQuery(hqlQuery, facetList, surveyId, searchText);
+
+        if (locations != null && !locations.isEmpty()) {
+            hqlQuery.and(new Predicate("location in (:locs)"));
+        }
+        // NO SQL injection for you
+        if(sortProperty != null && sortOrder != null && AdvancedReviewLocationsController.VALID_SORT_PROPERTIES.contains(sortProperty)) {
+            hqlQuery.order(sortProperty, 
+                           SortOrder.valueOf(sortOrder).name(),
+                           null);
+        }
+        Query query = toHibernateQuery(hqlQuery, locationArea, locations);
+        return query;
+    }
+    
+    protected Query getIndexedQuery(List<Facet> facetList, Integer surveyId,
+            String sortProperty, String sortOrder, String searchText,
+            String locationArea) throws ParseException {
+        // the fields to search on
+        String[] fields = new String[]{};
+        Session sesh = getRequestContext().getHibernate();
+        
+        Analyzer customAnalyzer = Search.getFullTextSession(sesh).getSearchFactory().getAnalyzer(IndexingConstants.FULL_TEXT_ANALYZER);
+        PerFieldAnalyzerWrapper analyzer = new PerFieldAnalyzerWrapper(customAnalyzer);
+        
+        String searchTerm = buildSearchTerm(facetList, surveyId, searchText, locationArea);
+        
+        Query query = searchService.getQuery(sesh, fields, analyzer, searchTerm, Location.class);
+        if (sortProperty != null && query instanceof FullTextQuery) {
+            // add the sorting
+            Sort sort = new Sort(sortProperty.substring(sortProperty.indexOf(".")+1)+"_sort", sortOrder == null ? false : SortOrder.valueOf(sortOrder) == SortOrder.DESC);
+            
+            ((FullTextQuery)query).setSort(sort);
+        }
+        return query;
+    }
+
+    private String buildSearchTerm(List<Facet> facetList, Integer surveyId, String searchText,
+            String locationArea) {
+        StringBuilder sb = new StringBuilder();
+        
+        // add the faceting
+        for(Facet f : facetList) {
+            if(f.isActive()) {
+                String s = f.getIndexedQueryString();
+                if (!StringUtils.nullOrEmpty(s)) {
+                    sb.append(" +" + s);
+                }
+            }
+        }
+        
+        if (surveyId != null) {
+            // add the survey
+            sb.append(" +surveys.id:"+surveyId);
+        }
+        
+        // add the search text to the location name, description, and attribute value text
+        sb.append(" +(name:"+searchText+" description:"+searchText+" attributes.stringValue:"+searchText+" user.name:"+searchText+")");
+        
+        // add the spatial query
+        
+        return sb.toString();
+    }
+
+    protected void applyLocationFacetsToQuery(HqlQuery hqlQuery,
+            List<Facet> facetList, Integer surveyId, String searchText) {
+        hqlQuery.leftJoin("location.attributes", "locAttributeVal");
+        hqlQuery.leftJoin("location.user", "user");
+        
+        hqlQuery.leftJoin("location.regions", "regions");
+        hqlQuery.leftJoin("location.metadata", "metadata");
+        
+        hqlQuery.leftJoin("locAttributeVal.attribute", "locAttribute");
+        hqlQuery.leftJoin("location.surveys", "survey");
+        for(Facet f : facetList) {
+            if(f.isActive()) {
+                Predicate p = f.getPredicate();
+                if (p != null) {
+                    f.applyCustomJoins(hqlQuery);
+                    hqlQuery.and(p);
+                }
+            }
+        }
+        
+        if(surveyId != null) {
+            hqlQuery.and(Predicate.eq("survey.id", surveyId));
+        }
+    }
+
 }

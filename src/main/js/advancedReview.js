@@ -115,7 +115,7 @@ bdrs.advancedReview.initTableView = function(formSelector,
 bdrs.advancedReview.loadTableContent = function(formSelector, tableSelector, viewStyle) {
     // AJAX load the content for the table
     var url = bdrs.portalContextPath + bdrs.advancedReview.JSON_URL;
-    var queryParams = bdrs.serializeObject(formSelector);
+    var queryParams = jQuery(formSelector).serialize();
     
     var getRecordsHandlerFcn;
     
@@ -290,7 +290,7 @@ bdrs.advancedReview.initFacets = function(formSelector, facetSelector) {
  * @param {Object} reportId - the primary key of the report to run.
  */
 bdrs.advancedReview.renderReport = function(formSelector, reportId) {
-    var queryParams = bdrs.serializeObject(formSelector);
+    var queryParams = jQuery(formSelector).serialize();
     queryParams["reportId"] = reportId;
     var url = bdrs.portalContextPath + "/review/sightings/advancedReviewReport.htm";
     bdrs.postWith(url, queryParams);
@@ -304,7 +304,7 @@ bdrs.advancedReview.renderReport = function(formSelector, reportId) {
  */
 bdrs.advancedReview.initRecordDownload = function(formSelector, downloadSelector) {
     jQuery(downloadSelector).click(function(event) {
-        var queryParams = bdrs.serializeObject(formSelector);
+        var queryParams = jQuery(formSelector).serialize();
         var downloadURL = portalContextPath + bdrs.advancedReview.DOWNLOAD_URL;
         bdrs.postWith(url, queryParams);
     }); 
@@ -345,7 +345,7 @@ bdrs.advancedReview.downloadSightingsWidgetInit = function(formSelector, fileFor
             bdrs.portalContextPath,
             bdrs.advancedReview.DOWNLOAD_URL
         ].join('');
-        var queryParams = bdrs.serializeObject(formSelector);
+        var queryParams = jQuery(formSelector).serialize();
         
         bdrs.postWith(url, queryParams);
     });
