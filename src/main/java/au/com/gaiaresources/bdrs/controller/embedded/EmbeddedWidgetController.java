@@ -75,7 +75,7 @@ public class EmbeddedWidgetController extends AbstractController {
         return mv;
     }
 
-    @RequestMapping(value = "/bdrs/public/embedded/bdrs-embed.js", method = RequestMethod.GET)
+    @RequestMapping(value = "/bdrs/public/embedded/bdrs-embed.js.htm", method = RequestMethod.GET)
     public ModelAndView generateEmbeddedJS(
             HttpServletRequest request,
             HttpServletResponse response,
@@ -124,7 +124,7 @@ public class EmbeddedWidgetController extends AbstractController {
         return mv;
     }
 
-    @RequestMapping(value = "/bdrs/public/embedded/bdrs-embed.css", method = RequestMethod.GET)
+    @RequestMapping(value = "/bdrs/public/embedded/bdrs-embed.css.htm", method = RequestMethod.GET)
     public void generateEmbeddedJS(HttpServletRequest request,
             HttpServletResponse response) {
         response.setContentType("text/css");
