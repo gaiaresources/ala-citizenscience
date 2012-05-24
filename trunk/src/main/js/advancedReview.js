@@ -270,7 +270,7 @@ bdrs.advancedReview.initFacets = function(formSelector, facetSelector) {
         parent.children('div').show();
         jQuery(this).parent().hide();
         parent.find('.showLess').show();
-        parent.find('input[name$=_expanded]').removeAttr('disabled');
+        parent.find('input[name$=_e]').removeAttr('disabled');
 
     });
     jQuery('.showLess > a').click(function() {
@@ -278,9 +278,9 @@ bdrs.advancedReview.initFacets = function(formSelector, facetSelector) {
         parent.children('div:.overflow').hide();
         jQuery(this).parent().hide();
         parent.find('.showMore').show();
-        parent.find('input[name$=_expanded]').attr('disabled', 'disabled');
+        parent.find('input[name$=_e]').attr('disabled', 'disabled');
     });
-    jQuery('input[name$=_expanded]:not([disabled])').parent().find('.showMore > a').click();
+    jQuery('input[name$=_e]:not([disabled])').parent().find('.showMore > a').click();
 };
 
 /**

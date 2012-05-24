@@ -11,6 +11,7 @@ import au.com.gaiaresources.bdrs.model.map.*;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
+import au.com.gaiaresources.bdrs.util.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.util.HtmlUtils;
 
 import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
@@ -212,15 +214,17 @@ public class GeoMapController extends AbstractController {
             }
         }
         // support for JSONP
-        if (request.getParameter("callback") != null) {
-                response.setContentType("application/javascript");
-                response.getWriter().write(request.getParameter("callback") + "(");
+        String callback = request.getParameter("callback");
+        if (StringUtils.notEmpty(callback)) {
+            callback = HtmlUtils.htmlEscape(callback);
+            response.setContentType("application/javascript");
+            response.getWriter().write(callback + "(");
         } else {
-                response.setContentType("application/json");
+            response.setContentType("application/json");
         }
         response.getWriter().write(array.toString());
-        if (request.getParameter("callback") != null) {
-                response.getWriter().write(");");
+        if (StringUtils.notEmpty(callback)) {
+            response.getWriter().write(");");
         }
     }
     
@@ -239,15 +243,17 @@ public class GeoMapController extends AbstractController {
             }
         }
         // support for JSONP
-        if (request.getParameter("callback") != null) {
-                response.setContentType("application/javascript");              
-                response.getWriter().write(request.getParameter("callback") + "(");
+        String callback = request.getParameter("callback");
+        if (StringUtils.notEmpty(callback)) {
+            callback = HtmlUtils.htmlEscape(callback);
+            response.setContentType("application/javascript");
+            response.getWriter().write(callback + "(");
         } else {
-                response.setContentType("application/json");
+            response.setContentType("application/json");
         }
         response.getWriter().write(array.toString());
-        if (request.getParameter("callback") != null) {
-                response.getWriter().write(");");
+        if (StringUtils.notEmpty(callback)) {
+            response.getWriter().write(");");
         }
     }
     
