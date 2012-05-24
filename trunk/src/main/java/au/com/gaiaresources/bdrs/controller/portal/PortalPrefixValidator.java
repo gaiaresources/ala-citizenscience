@@ -4,7 +4,6 @@ import au.com.gaiaresources.bdrs.config.AppContext;
 import au.com.gaiaresources.bdrs.model.portal.Portal;
 import au.com.gaiaresources.bdrs.model.portal.PortalDAO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.handler.AbstractUrlHandlerMapping;
 
 import javax.annotation.PostConstruct;
@@ -16,15 +15,22 @@ import java.util.Set;
 
 /**
  * Validates portal prefixes.
+ * Not annotated as a @Component because the bean is declared using xml to inject the current application version
+ * via maven substitution.
  */
-@Component
 public class PortalPrefixValidator {
 
     /**
      * These paths are used for static resources and the mobile application so won't be forwarded to the
      * DispatcherServlet so are unsuitable as a portal prefix.
      */
-    private static final String[] WEB_APPLICATION_PATHS = {"images", "js", "css", "mobile", "data"};
+    private static final String[] STATIC_WEB_APPLICATION_PATHS = {"images", "mobile", "data", "js", "css"};
+
+    /**
+     * These paths are used in conjunction with the current application version to enable browser caching
+     * of static resources which can be updated each release without requiring the user to invalidate the cache.
+     */
+    private static final String[] VERSIONED_WEB_APPLICATION_PATHS = {"js", "css"};
 
     /**
      * Stores the set of reserved prefixes, which includes the WEB_APPLICATION_PATHS above, plus the first path
@@ -35,6 +41,9 @@ public class PortalPrefixValidator {
     @Autowired
     private PortalDAO portalDAO;
 
+    /** The current application version - used to construct versioned paths */
+    private String version;
+
     /**
      * Retrieves and stores the URLs known to the DispatcherServlet in an unmodifiable Set.
      */
@@ -42,7 +51,11 @@ public class PortalPrefixValidator {
     public void init() {
 
         Set<String> paths = new HashSet<String>();
-        paths.addAll(Arrays.asList(WEB_APPLICATION_PATHS));
+        paths.addAll(Arrays.asList(STATIC_WEB_APPLICATION_PATHS));
+        for (String path : VERSIONED_WEB_APPLICATION_PATHS) {
+            paths.add(path+version);
+        }
+
 
         Map<String, AbstractUrlHandlerMapping> mappings = AppContext.getApplicationContext().getBeansOfType(AbstractUrlHandlerMapping.class);
 
@@ -60,6 +73,7 @@ public class PortalPrefixValidator {
                 }
             }
         }
+
         reservedPrefixes = Collections.unmodifiableSet(paths);
     }
 
@@ -86,5 +100,13 @@ public class PortalPrefixValidator {
      */
     public boolean isReservedURLPrefix(String prefix) {
         return reservedPrefixes.contains(prefix);
+    }
+
+    /**
+     * Sets the application version used to determine paths to validate.
+     * @param version the current application version.
+     */
+    public void setVersion(String version) {
+        this.version = version;
     }
 }

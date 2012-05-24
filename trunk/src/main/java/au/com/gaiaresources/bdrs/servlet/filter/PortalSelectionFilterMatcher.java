@@ -1,18 +1,17 @@
 package au.com.gaiaresources.bdrs.servlet.filter;
 
+import au.com.gaiaresources.bdrs.controller.portal.PortalPrefixValidator;
+import au.com.gaiaresources.bdrs.model.portal.Portal;
+import au.com.gaiaresources.bdrs.model.portal.PortalDAO;
+import au.com.gaiaresources.bdrs.model.portal.PortalEntryPoint;
+import org.apache.log4j.Logger;
+import org.hibernate.Session;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-
-import au.com.gaiaresources.bdrs.controller.portal.PortalPrefixValidator;
-import org.apache.log4j.Logger;
-import org.hibernate.Session;
-
-import au.com.gaiaresources.bdrs.model.portal.Portal;
-import au.com.gaiaresources.bdrs.model.portal.PortalDAO;
-import au.com.gaiaresources.bdrs.model.portal.PortalEntryPoint;
 
 public class PortalSelectionFilterMatcher {
 
@@ -23,7 +22,14 @@ public class PortalSelectionFilterMatcher {
 
     public static final String BASE_RESTFUL_PORTAL_PATTERN = "(/portal/){1}(\\d+)";
     public static final String RESTFUL_PORTAL_PATTERN_STR = "^" + BASE_RESTFUL_PORTAL_PATTERN +"(/{1}|$)";
-    
+
+    public static final String PORTAL_PREFIX_PATTERN_STR = "^/{1}([\\w|-]+)(/{1}|$)";
+
+    /** Matches URLs of the form /portal/{id}/... */
+    private static final Pattern RESTFUL_PORTAL_PATTERN = Pattern.compile(RESTFUL_PORTAL_PATTERN_STR);
+    /** Matches URLs of the form /{prefix}/... */
+    private static final Pattern PORTAL_PREFIX_PATTERN = Pattern.compile(PORTAL_PREFIX_PATTERN_STR);
+
     public PortalSelectionFilterMatcher(PortalDAO portalDAO, PortalPrefixValidator validator) {
         super();
         this.portalDAO = portalDAO;
@@ -46,8 +52,7 @@ public class PortalSelectionFilterMatcher {
 
         Portal matchedPortal = null;
         // Test if the servlet path has the form "/portal/<portal_pk>/.../..."
-        Pattern restfulPortalPattern = Pattern.compile(RESTFUL_PORTAL_PATTERN_STR);
-        Matcher servletPathMatcher = restfulPortalPattern.matcher(url);
+        Matcher servletPathMatcher = RESTFUL_PORTAL_PATTERN.matcher(url);
 
         if(servletPathMatcher.find()) {
             // Attempt to get the portal from the database.
@@ -57,12 +62,16 @@ public class PortalSelectionFilterMatcher {
         }
         else {
             // Attempt to match via Alias.
-            String pattern = "^/{1}([\\w|-]+)(/{1}|$)";
-            Matcher matcher = Pattern.compile(pattern).matcher(url);
+            Matcher matcher = PORTAL_PREFIX_PATTERN.matcher(url);
             if (matcher.find()) {
                 String alias = matcher.group(1);
                 if (!validator.isReservedURLPrefix(alias)) {
                     matchedPortal = portalDAO.getPortalByUrlPrefix(session, alias);
+                }
+                else {
+                    // This is an optimisation to prevent requests for js/css from querying and attempting
+                    // to match portal entry points.
+                    return currentPortal;
                 }
             }
         }

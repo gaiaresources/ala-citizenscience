@@ -37,6 +37,13 @@
     <context:annotation-config />
     <context:component-scan
         base-package="au.com.gaiaresources.bdrs.mobile.controller.test" />
+
+    <bean id="portalPrefixValidator" class="au.com.gaiaresources.bdrs.controller.portal.PortalPrefixValidator">
+        <property name="version">
+            <value>${version}</value>
+        </property>
+    </bean>
+
     
     <!-- KML View Resolver -->
     <bean id="kmlViewResolver"
