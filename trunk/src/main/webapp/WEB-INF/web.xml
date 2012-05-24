@@ -78,9 +78,6 @@
     </filter>
     <filter-mapping>
         <filter-name>hibernateFilter</filter-name>
-		<url-pattern>/bdrs/public/map/icon/record_placemark.png</url-pattern>
-		<url-pattern>/bdrs/public/embedded/bdrs-embed.js</url-pattern>
-		<url-pattern>/bdrs/public/embedded/bdrs-embed.css</url-pattern>
 		<url-pattern>/js/mobile/bdrs-mobile-database-content.js</url-pattern>
 		<url-pattern>/js/mobile/bdrs-mobile.js</url-pattern>
 		<url-pattern>/js/mobile/bdrs-mobile-micro-templates.js</url-pattern>
@@ -129,21 +126,7 @@
         <servlet-name>climatewatch</servlet-name>
         <url-pattern>/index.html</url-pattern>
     </servlet-mapping>
-    
-    <servlet-mapping>
-        <servlet-name>climatewatch</servlet-name>
-        <url-pattern>/bdrs/public/map/icon/record_placemark.png</url-pattern>
-    </servlet-mapping>
-    
-    <servlet-mapping>
-        <servlet-name>climatewatch</servlet-name>
-        <url-pattern>/bdrs/public/embedded/bdrs-embed.js</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>climatewatch</servlet-name>
-        <url-pattern>/bdrs/public/embedded/bdrs-embed.css</url-pattern>
-    </servlet-mapping>
-    
+
     <servlet-mapping>
         <servlet-name>climatewatch</servlet-name>
         <url-pattern>/js/mobile/bdrs-mobile-database-content.js</url-pattern>
@@ -153,12 +136,12 @@
         <servlet-name>climatewatch</servlet-name>
         <url-pattern>/js/mobile/bdrs-mobile.js</url-pattern>
     </servlet-mapping>
-    
+
      <servlet-mapping>
         <servlet-name>climatewatch</servlet-name>
         <url-pattern>/js/mobile/bdrs-mobile-micro-templates.js</url-pattern>
     </servlet-mapping>
-    
+
    <servlet-mapping>
         <servlet-name>climatewatch</servlet-name>
         <url-pattern>/mobile/application.htm</url-pattern>

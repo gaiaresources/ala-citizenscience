@@ -23,7 +23,7 @@ import com.vividsolutions.jts.geom.Point;
 public class KMLUtils {
     private static Logger log = Logger.getLogger(KMLUtils.class);
     
-    public static final String GET_RECORD_PLACEMARK_PNG_URL = "/bdrs/public/map/icon/record_placemark.png";
+    public static final String GET_RECORD_PLACEMARK_PNG_URL = "/bdrs/public/map/icon/record_placemark.png.htm";
     public static final String KML_RECORD_FOLDER = "Record";
     public static final String KML_LOCATION_FOLDER = "Location";
     public static final String KML_POINT_ICON_ID = "pointIcon";

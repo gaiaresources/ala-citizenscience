@@ -5,15 +5,18 @@
 <html class="embed">
     <head>
         <%@page import="au.com.gaiaresources.bdrs.model.theme.Theme"%>
+
+        <c:set var="portalContextPath" scope="request" value="${pageContext.request.contextPath}${currentPortal.portalContextPath}"/>
+
         <script src="${pageContext.request.contextPath}/js${version}/jquery-1.6.2.min.js" type="text/javascript"></script>
         
         <c:choose>
             <c:when test="${ theme != null }">
                 <c:forEach items="${ theme.cssFiles }" var="cssFile">
-                    <link rel="stylesheet" href="${pageContext.request.contextPath}/files/download.htm?className=au.com.gaiaresources.bdrs.model.theme.Theme&id=${ theme.id }&fileName=<%= Theme.THEME_DIR_PROCESSED %>/${ cssFile }" type="text/css">
+                    <link rel="stylesheet" href="${portalContextPath}/files/download.htm?className=au.com.gaiaresources.bdrs.model.theme.Theme&id=${ theme.id }&fileName=<%= Theme.THEME_DIR_PROCESSED %>/${ cssFile }" type="text/css">
                 </c:forEach>
                 <c:forEach items="${ theme.jsFiles }" var="jsFile">
-                    <script type="text/javascript" src="${pageContext.request.contextPath}/files/download.htm?className=au.com.gaiaresources.bdrs.model.theme.Theme&id=${ theme.id }&fileName=<%= Theme.THEME_DIR_PROCESSED %>/${ jsFile }"></script>
+                    <script type="text/javascript" src="${portalContextPath}/files/download.htm?className=au.com.gaiaresources.bdrs.model.theme.Theme&id=${ theme.id }&fileName=<%= Theme.THEME_DIR_PROCESSED %>/${ jsFile }"></script>
                 </c:forEach>
             </c:when>
             <c:otherwise>
@@ -67,7 +70,7 @@
 		     I assume the query parameter names were being padded with spaces so when it came time
 			 for JSP to do its replace work nothing happened and we had no styling in the embedded widgets
 		 --%>
-		<link rel="stylesheet" href="${pageContext.request.contextPath}/bdrs/public/embedded/bdrs-embed.css?a=b<c:forEach var="entry" items="${ paramMap }"><jsp:useBean id="entry" type="java.util.Map.Entry"/>&<c:out value="${ entry.key }"/>=<%= URLEncoder.encode(entry.getValue().toString()) %></c:forEach>" type="text/css"/>
+		<link rel="stylesheet" href="${portalContextPath}/bdrs/public/embedded/bdrs-embed.css.htm?a=b<c:forEach var="entry" items="${ paramMap }"><jsp:useBean id="entry" type="java.util.Map.Entry"/>&<c:out value="${ entry.key }"/>=<%= URLEncoder.encode(entry.getValue().toString()) %></c:forEach>" type="text/css"/>
     </head>
     <body>
         <tiles:insertAttribute name="content"/>
