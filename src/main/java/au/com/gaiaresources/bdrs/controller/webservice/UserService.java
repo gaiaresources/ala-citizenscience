@@ -20,6 +20,7 @@ import au.com.gaiaresources.bdrs.json.JSONException;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.json.JSONSerializer;
 
+import au.com.gaiaresources.bdrs.util.StringUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.Filter;
 import org.hibernate.Session;
@@ -47,6 +48,7 @@ import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.bulkdata.AbstractBulkDataService;
 import au.com.gaiaresources.bdrs.servlet.RequestContext;
 import au.com.gaiaresources.bdrs.servlet.filter.PortalSelectionFilter;
+import org.springframework.web.util.HtmlUtils;
 
 
 /**
@@ -151,9 +153,13 @@ public class UserService extends AbstractController {
     public void ping(HttpServletRequest request, HttpServletResponse response)
         throws IOException {
     	log.debug("ping received");
-    	String output = request.getParameter("callback") + "({0:1});";
+        String callback = request.getParameter("callback");
+        StringBuilder output = new StringBuilder();
+        callback = HtmlUtils.htmlEscape(callback);
+        output.append(callback).append("({0:1});");
+
     	response.setContentType("text/javascript");
-        response.getWriter().write(output);
+        response.getWriter().write(output.toString());
     }
 
     
@@ -363,17 +369,19 @@ public class UserService extends AbstractController {
     	    response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
     	    return;
     	}
-    	
-    	// support for JSONP
-    	if (request.getParameter("callback") != null) {
+
+        // support for JSONP
+        String callback = request.getParameter("callback");
+        if (StringUtils.notEmpty(callback)) {
+    	    callback = HtmlUtils.htmlEscape(callback);
     		response.setContentType("application/javascript");        	
-    		response.getWriter().write(request.getParameter("callback") + "(");
+    		response.getWriter().write(callback + "(");
     	} else {
     		response.setContentType("application/json");
     	}
 
         response.getWriter().write(validationResponse.toString());
-    	if (request.getParameter("callback") != null) {
+    	if (StringUtils.notEmpty(callback)) {
     		response.getWriter().write(");");
     	}
     }
@@ -393,18 +401,19 @@ public class UserService extends AbstractController {
             User user = userDAO.getUserByRegistrationKey(ident);
             if(user != null) {
             	log.debug(user.getName() + " : " + message);
-            	
-                // support for JSONP
-                if (request.getParameter("callback") != null) {
-                        response.setContentType("application/javascript");              
-                        response.getWriter().write(request.getParameter("callback") + "(");
+
+                String callback = request.getParameter("callback");
+                if (StringUtils.notEmpty(callback)) {
+                    callback = HtmlUtils.htmlEscape(callback);
+                    response.setContentType("application/javascript");
+                    response.getWriter().write(callback + "(");
                 } else {
-                        response.setContentType("application/json");
+                    response.setContentType("application/json");
                 }
 
                 response.getWriter().write("{}");
-                if (request.getParameter("callback") != null) {
-                        response.getWriter().write(");");
+                if (StringUtils.notEmpty(callback)) {
+                    response.getWriter().write(");");
                 }
             }
             else {
