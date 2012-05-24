@@ -271,7 +271,7 @@ public class AtlasService {
         // Scientific Name
         String scientificName = taxonObj.getString("nameString");
         // Author and Year
-        String authorYear = taxonObj.getString("author");
+        String authorYear = taxonObj.optString("author");
         String author = "", year = "";
         if (authorYear != null) {
             String[] split = authorYear.split(",");
@@ -282,7 +282,7 @@ public class AtlasService {
         taxon = setScientificName(taxon, guid, scientificName, author, year);
 
         // Rank
-        taxon = setRank(taxon, taxonObj.getString("rankString"));
+        taxon = setRank(taxon, taxonObj.optString("rankString"));
         
         // Common Name
         String commonName = scientificName;
