@@ -1,13 +1,11 @@
 package au.com.gaiaresources.bdrs.controller.attribute.formfield;
 
 import au.com.gaiaresources.bdrs.controller.attribute.DisplayContext;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeVisibility;
-import org.apache.commons.lang.NotImplementedException;
-
 import au.com.gaiaresources.bdrs.model.method.Taxonomic;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
+import org.apache.commons.lang.NotImplementedException;
 
 /**
  * The <code>RecordPropertyFormField</code> is a representation of a
@@ -132,7 +130,7 @@ public class RecordPropertyFormField extends AbstractRecordFormField {
      */
     @Override
     public boolean isModerationFormField() {
-        return AttributeScope.isModerationScope(recordProperty.getScope());
+        return AttributeScope.isModerationScope(recordProperty.getScope()) || recordProperty.getRecordPropertyType().equals(RecordPropertyType.SPECIES);
     }
 
     /**

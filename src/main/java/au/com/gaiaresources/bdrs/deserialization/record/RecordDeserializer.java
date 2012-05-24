@@ -204,7 +204,7 @@ public class RecordDeserializer {
             }
         
             // if we are doing moderation only, it is not necessary to validate all of the fields, only the moderation ones
-            boolean moderationOnly = !currentUser.equals(record.getUser()) && 
+            boolean moderationOnly = record.getId() != null && !currentUser.equals(record.getUser()) &&
                                      !currentUser.isAdmin() && currentUser.isModerator() && 
                                      record.isAtLeastOneModerationAttribute();
 
@@ -289,75 +289,19 @@ public class RecordDeserializer {
                     }
                     isValid = isValid && geomValid;
                 }
-                
-                recordProperty = new RecordProperty(survey, RecordPropertyType.NUMBER, metadataDAO);
-                RecordProperty speciesRecordProperty = new RecordProperty(survey, RecordPropertyType.SPECIES, metadataDAO);
-                
-                if(isTaxonomicRecord) {
-                        ValidationType numberValidationType;
-                        ValidationType speciesValidationType;
-                    if(Taxonomic.TAXONOMIC.equals(taxonomic)) {
-                        if (speciesRecordProperty.isRequired())  {
-                            speciesValidationType = ValidationType.REQUIRED_TAXON;
-                        } else {
-                            speciesValidationType = ValidationType.TAXON;
-                        }
-                        if (recordProperty.isRequired()) {
-                            numberValidationType = ValidationType.REQUIRED_POSITIVE_LESSTHAN;
-                        } else {
-                            numberValidationType = ValidationType.POSITIVE_LESSTHAN;
-                        }
-                    } else {
-                            numberValidationType = ValidationType.POSITIVE_LESSTHAN;
-                            speciesValidationType = ValidationType.TAXON;
-                    }
-                    
-                    validator.validate(params, numberValidationType, klu.getIndividualCountKey(), null, recordProperty);
-                    
-                    // No need to check if the species primary key has already resolved a species
-                    IndicatorSpecies speciesForSurveyCheck = species;
-                    
-                    if(species == null) {
-                        boolean speciesValid = validator.validate(params, speciesValidationType, klu.getSpeciesNameKey(), null, speciesRecordProperty); 
-                        if (speciesValid) {
-                            speciesForSurveyCheck = getSpeciesFromName(speciesSearch);
-                        }
-                        isValid = isValid & speciesValid;
-                    }
-                    if(!(speciesRecordProperty.isHidden() && recordProperty.isHidden())){
-                        // If the record is optionally taxonomic and there is a species with
-                        // no number or a number with no species, then there is an error
-                        if(Taxonomic.OPTIONALLYTAXONOMIC.equals(taxonomic)) {
-                            // What's with this logic? surely it can be done cleaner!
-                            if(             (species == null) && speciesRecordProperty.isRequired() && recordProperty.isRequired() && 
-                                            (!((StringUtils.nullOrEmpty(speciesSearch) && StringUtils.nullOrEmpty(numberString)) ||
-                                            (!StringUtils.nullOrEmpty(speciesSearch) && !StringUtils.nullOrEmpty(numberString))))) {
-                                    isValid = false;
-                                    Map<String, String> errorMap = validator.getErrorMap();
-                                    String errMsg = propertyService.getMessage(
-                                                    TAXON_AND_NUMBER_REQUIRED_TOGETHER_MESSAGE_KEY, 
-                                                    TAXON_AND_NUMBER_REQUIRED_TOGETHER_MESSAGE);
-                                    errorMap.put(klu.getIndividualCountKey(), errMsg);
-                                    errorMap.put(klu.getSpeciesNameKey(), errMsg);
-                            }
-                        }
-                    }
-                    if (speciesForSurveyCheck != null && survey.getSpecies() != null && survey.getSpecies().size() > 0) {
-    
-                        // a species set size > 0 indicates the survey has a limited number of species
-                        // to accept...
-                        if (!survey.getSpecies().contains(speciesForSurveyCheck)) {
-    
-                            Map<String, String> errorMap = validator.getErrorMap();
-                            String errMsg = propertyService.getMessage(
-                                            TAXON_NOT_IN_SURVEY_KEY, 
-                                            TAXON_NOT_IN_SURVEY_KEY_DEFAULT_MESSAGE);
-                            errorMap.put(klu.getSpeciesNameKey(), errMsg);
-                        }
-                    }
-                }
+
             }
-            
+            else {
+                // Because the occurences/number field is not editable in moderation mode (if the moderator is
+                // not an admin), the number property won't be submitted with the form.  Hence we are faking it
+                // as species and occurances are validated as a block).
+                numberString = Integer.toString(record.getNumber());
+                params.put(klu.getIndividualCountKey(), new String[] {numberString});
+
+            }
+            isValid = validateSpeciesInformation(survey, taxonomic, species, isTaxonomicRecord, speciesSearch, numberString, validator, isValid, params);
+
+
             // Here is the point we require our name dictionary as we are about to start validating attributes...
             TaxonGroup taxonGroup = species != null ? species.getTaxonGroup() : null;
             Map<Attribute, String> attrNameMap = attrDictFact.createNameKeyDictionary(survey, taxonGroup, censusMethod);
@@ -417,16 +361,14 @@ public class RecordDeserializer {
             }
             
             User user = currentUser;
-            
-            
+
             // if we are just moderating the record, only want to set the moderation attributes
+            record.setSpecies(species);
             if (!moderationOnly) {
                 // Preserve the original owner of the record if this is a record edit.
                 if (record.getUser() == null) {
                     record.setUser(user);
                 }
-                // Check if taxonomic record!
-                record.setSpecies(species);
                 record.setNumber(number);
                 recordProperty = new RecordProperty(survey, RecordPropertyType.NOTES, metadataDAO);
                 if (!recordProperty.isHidden()) {
@@ -624,7 +566,91 @@ public class RecordDeserializer {
         }
         return results;
     }
-    
+
+    /**
+     * Validates species and number seen as a group.
+     * @param survey the survey the record being validated belongs to.
+     * @param taxonomic whether the survey is taxonomic or not.
+     * @param species the species to validate.
+     * @param taxonomicRecord true if the record is taxonomic
+     * @param speciesSearch string for searching for the species if the id wasn't supplied.
+     * @param numberString string containing the number seen
+     * @param validator the validator to use.
+     * @param valid whether validations have passed up to this point.
+     * @param params the HTTP params being processed.
+     * @return true if the species information is valid.
+     */
+    private boolean validateSpeciesInformation(Survey survey, Taxonomic taxonomic, IndicatorSpecies species, boolean taxonomicRecord, String speciesSearch, String numberString, RecordFormValidator validator, boolean valid, Map<String, String[]> params) {
+        RecordProperty recordProperty;
+        recordProperty = new RecordProperty(survey, RecordPropertyType.NUMBER, metadataDAO);
+        RecordProperty speciesRecordProperty = new RecordProperty(survey, RecordPropertyType.SPECIES, metadataDAO);
+
+        if(taxonomicRecord) {
+                ValidationType numberValidationType;
+                ValidationType speciesValidationType;
+            if(Taxonomic.TAXONOMIC.equals(taxonomic)) {
+                if (speciesRecordProperty.isRequired())  {
+                    speciesValidationType = ValidationType.REQUIRED_TAXON;
+                } else {
+                    speciesValidationType = ValidationType.TAXON;
+                }
+                if (recordProperty.isRequired()) {
+                    numberValidationType = ValidationType.REQUIRED_POSITIVE_LESSTHAN;
+                } else {
+                    numberValidationType = ValidationType.POSITIVE_LESSTHAN;
+                }
+            } else {
+                    numberValidationType = ValidationType.POSITIVE_LESSTHAN;
+                    speciesValidationType = ValidationType.TAXON;
+            }
+
+            validator.validate(params, numberValidationType, klu.getIndividualCountKey(), null, recordProperty);
+
+            // No need to check if the species primary key has already resolved a species
+            IndicatorSpecies speciesForSurveyCheck = species;
+
+            if(species == null) {
+                boolean speciesValid = validator.validate(params, speciesValidationType, klu.getSpeciesNameKey(), null, speciesRecordProperty);
+                if (speciesValid) {
+                    speciesForSurveyCheck = getSpeciesFromName(speciesSearch);
+                }
+                valid = valid & speciesValid;
+            }
+            if(!(speciesRecordProperty.isHidden() && recordProperty.isHidden())){
+                // If the record is optionally taxonomic and there is a species with
+                // no number or a number with no species, then there is an error
+                if(Taxonomic.OPTIONALLYTAXONOMIC.equals(taxonomic)) {
+                    // What's with this logic? surely it can be done cleaner!
+                    if(             (species == null) && speciesRecordProperty.isRequired() && recordProperty.isRequired() &&
+                                    (!((StringUtils.nullOrEmpty(speciesSearch) && StringUtils.nullOrEmpty(numberString)) ||
+                                    (!StringUtils.nullOrEmpty(speciesSearch) && !StringUtils.nullOrEmpty(numberString))))) {
+                            valid = false;
+                            Map<String, String> errorMap = validator.getErrorMap();
+                            String errMsg = propertyService.getMessage(
+                                            TAXON_AND_NUMBER_REQUIRED_TOGETHER_MESSAGE_KEY,
+                                            TAXON_AND_NUMBER_REQUIRED_TOGETHER_MESSAGE);
+                            errorMap.put(klu.getIndividualCountKey(), errMsg);
+                            errorMap.put(klu.getSpeciesNameKey(), errMsg);
+                    }
+                }
+            }
+            if (speciesForSurveyCheck != null && survey.getSpecies() != null && survey.getSpecies().size() > 0) {
+
+                // a species set size > 0 indicates the survey has a limited number of species
+                // to accept...
+                if (!survey.getSpecies().contains(speciesForSurveyCheck)) {
+
+                    Map<String, String> errorMap = validator.getErrorMap();
+                    String errMsg = propertyService.getMessage(
+                                    TAXON_NOT_IN_SURVEY_KEY,
+                                    TAXON_NOT_IN_SURVEY_KEY_DEFAULT_MESSAGE);
+                    errorMap.put(klu.getSpeciesNameKey(), errMsg);
+                }
+            }
+        }
+        return valid;
+    }
+
     /**
      * Just avoids some repetition...
      * @param name

@@ -13,7 +13,7 @@
      <c:choose>
          <c:when test="<%= formField.isModerationFormField() %>">
              <c:if test="${editEnabled}">
-                 <c:set var="editEnabled" value="<%= RequestContextHolder.getContext().getUser().isModerator() %>"></c:set>
+                 <c:set var="editEnabled" value="<%= RequestContextHolder.getContext().getUser().isModerator() || formField.isPropertyFormField() %>"></c:set>
              </c:if>
          </c:when>
          <c:otherwise>
