@@ -224,7 +224,7 @@ public abstract class PersistentImpl implements Persistent,
             PersistentImpl persistImpl;
             
             PropertyDescriptor[] descriptors = BeanUtils.getPropertyDescriptors(getClass());
-            Set<String> properties = propertiesMap.get(getClass());
+            Set<String> properties = propertiesMap != null ? propertiesMap.get(getClass()) : null;
             
             for (PropertyDescriptor pd : descriptors) {
                 // Skip the attributes marked as sensitive unless they have been requested
