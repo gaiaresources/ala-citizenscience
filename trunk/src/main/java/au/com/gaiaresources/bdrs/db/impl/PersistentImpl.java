@@ -1,5 +1,21 @@
 package au.com.gaiaresources.bdrs.db.impl;
 
+import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
+import au.com.gaiaresources.bdrs.annotation.MobileField;
+import au.com.gaiaresources.bdrs.annotation.NoThreshold;
+import au.com.gaiaresources.bdrs.annotation.Sensitive;
+import au.com.gaiaresources.bdrs.db.Persistent;
+import au.com.gaiaresources.bdrs.serialization.DataInterchangeSerializable;
+import org.apache.log4j.Logger;
+import org.hibernate.search.annotations.Field;
+import org.springframework.beans.BeanUtils;
+
+import javax.persistence.Column;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.MappedSuperclass;
+import javax.persistence.Transient;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
@@ -8,27 +24,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Iterator;
 import java.util.List;
-
-import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.Transient;
-
-import org.apache.log4j.Logger;
-import org.hibernate.search.annotations.Field;
-import org.springframework.beans.BeanUtils;
-
-import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
-import au.com.gaiaresources.bdrs.annotation.MobileField;
-import au.com.gaiaresources.bdrs.annotation.NoThreshold;
-import au.com.gaiaresources.bdrs.db.Persistent;
-import au.com.gaiaresources.bdrs.serialization.DataInterchangeSerializable;
-import au.com.gaiaresources.bdrs.annotation.Sensitive;
+import java.util.Map;
+import java.util.Set;
 
 @MappedSuperclass
 public abstract class PersistentImpl implements Persistent,
@@ -202,10 +201,20 @@ public abstract class PersistentImpl implements Persistent,
     public Map<String, Object> flatten(int depth, boolean compact, boolean mobileFields) {
         return this.flatten(depth, compact, mobileFields, false);
     }
-    
+
     @Override
     @Transient
     public Map<String, Object> flatten(int depth, boolean compact, boolean mobileFields, boolean sensitiveFields) {
+        return flatten(depth, compact, mobileFields, sensitiveFields, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transient
+    public Map<String, Object> flatten(int depth, boolean compact, boolean mobileFields, boolean sensitiveFields,
+                                       Map<Class<?>, Set<String>> propertiesMap) {
         SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_PATTERN);
     	Map<String, Object> map = new HashMap<String, Object>();
         try {
@@ -215,6 +224,7 @@ public abstract class PersistentImpl implements Persistent,
             PersistentImpl persistImpl;
             
             PropertyDescriptor[] descriptors = BeanUtils.getPropertyDescriptors(getClass());
+            Set<String> properties = propertiesMap.get(getClass());
             
             for (PropertyDescriptor pd : descriptors) {
                 // Skip the attributes marked as sensitive unless they have been requested
@@ -227,6 +237,7 @@ public abstract class PersistentImpl implements Persistent,
                 	name = pd.getName();
                 }
                 if (readMethod != null
+                        && (properties == null || properties.contains(name))
                         && (sensitiveFields || readMethod.getAnnotation(Sensitive.class) == null)
                         && (!compact || readMethod.getAnnotation(CompactAttribute.class) != null)) {
 
@@ -245,7 +256,7 @@ public abstract class PersistentImpl implements Persistent,
                                     Object val;
                                     persistImpl = (PersistentImpl)raw;
                                     if(depth > 0) {
-                                        val = persistImpl.flatten(depth-1, compact, mobileFields);
+                                        val = persistImpl.flatten(depth-1, compact, mobileFields, sensitiveFields, propertiesMap);
                                     } else {
                                         val = persistImpl.getId();
                                     }
@@ -270,7 +281,7 @@ public abstract class PersistentImpl implements Persistent,
                                     Object val;
                                     persistImpl = (PersistentImpl)raw;
                                     if(depth > 0) {
-                                        val = persistImpl.flatten(depth-1, compact, mobileFields);
+                                        val = persistImpl.flatten(depth-1, compact, sensitiveFields, mobileFields, propertiesMap);
                                     } else {
                                         val = persistImpl.getId();
                                     }
@@ -288,7 +299,7 @@ public abstract class PersistentImpl implements Persistent,
                         } else {
                             persistImpl = (PersistentImpl)value; 
                             if(depth > 0) {
-                                val = persistImpl.flatten(depth - 1, compact, mobileFields );
+                                val = persistImpl.flatten(depth - 1, compact, sensitiveFields, mobileFields, propertiesMap);
                             } else {
                                 val = persistImpl.getId();
                             }

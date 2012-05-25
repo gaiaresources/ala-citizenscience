@@ -32,7 +32,7 @@ import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.servlet.RequestContext;
 import au.com.gaiaresources.bdrs.util.KMLUtils;
 import au.com.gaiaresources.bdrs.util.StringUtils;
-
+import com.vividsolutions.jts.geom.Geometry;
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.PerFieldAnalyzerWrapper;
@@ -48,10 +48,6 @@ import org.hibernatespatial.GeometryUserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.vividsolutions.jts.geom.Geometry;
-
-import edu.emory.mathcs.backport.java.util.Arrays;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBException;
@@ -59,10 +55,10 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  * An advanced review view has a group of facets and 3 views: table, map, download.
@@ -234,7 +230,7 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
         PortalPersistentImpl r;
         while(sc.hasMoreElements()) {
             r = sc.nextElement();
-            array.add(r.flatten(2));
+            array.add(flatten(r));
             if (++recordCount % ScrollableRecords.RESULTS_BATCH_SIZE == 0) {
                 getRequestContext().getHibernate().clear();
             }
@@ -244,8 +240,16 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
         response.getWriter().write(array.toString());
         response.getWriter().flush();
     }
-    
 
+
+    /**
+     * Turns the supplied PortalPersistentImpl into an Map containing it's properties.
+     * @param persistent the object to flatten.
+     * @return a Map containing the PortalPersistentImpl property names as keys and property values as the values.
+     */
+    protected Map<String, Object> flatten(PortalPersistentImpl persistent) {
+       return persistent.flatten(2);
+    }
     
     /**
      * Configures the flush mode and installs an appropriate Record filter on the current hibernate session.
@@ -547,7 +551,7 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
      */
     protected Map<String, String[]> decodeParamMap(Map<String,String[]> parameterMap) {
         Map<String, String[]> newParamMap = new HashMap<String,String[]>(parameterMap.size());
-        for (Entry<String,String[]> entry : parameterMap.entrySet()) {
+        for (Map.Entry<String,String[]> entry : parameterMap.entrySet()) {
             String[] value = entry.getValue();
             if (value.length == 1) {
                 value = value[0].split(",");
@@ -557,7 +561,7 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
                 try {
                     value[i++] = URLDecoder.decode(s, "UTF-8");
                 } catch (UnsupportedEncodingException e) {
-                    log.warn("unable to decode parameter "+entry.getKey()+" value "+Arrays.toString(value), e);
+                    log.warn("unable to decode parameter "+entry.getKey()+" value "+ Arrays.toString(value), e);
                 }
             }
             newParamMap.put(entry.getKey(), value);
