@@ -1,37 +1,20 @@
 package au.com.gaiaresources.bdrs.controller.review.sightings;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.JAXBException;
-
-import org.apache.log4j.Logger;
-import org.hibernate.Query;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.ModelAndView;
-
 import au.com.gaiaresources.bdrs.controller.review.AdvancedReviewController;
 import au.com.gaiaresources.bdrs.db.ScrollableResults;
 import au.com.gaiaresources.bdrs.db.impl.HqlQuery;
 import au.com.gaiaresources.bdrs.db.impl.HqlQuery.SortOrder;
+import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
 import au.com.gaiaresources.bdrs.db.impl.Predicate;
 import au.com.gaiaresources.bdrs.kml.KMLWriter;
 import au.com.gaiaresources.bdrs.model.location.Location;
+import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.report.Report;
 import au.com.gaiaresources.bdrs.model.report.ReportCapability;
 import au.com.gaiaresources.bdrs.model.report.impl.ReportView;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
+import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.facet.Facet;
 import au.com.gaiaresources.bdrs.service.facet.LocationFacet;
@@ -41,6 +24,25 @@ import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.util.KMLUtils;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 import edu.emory.mathcs.backport.java.util.Collections;
+import org.apache.log4j.Logger;
+import org.hibernate.Query;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.JAXBException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Provides view controllers for the Facet, Map and List view of the ALA
@@ -49,7 +51,9 @@ import edu.emory.mathcs.backport.java.util.Collections;
 @SuppressWarnings("unchecked")
 @Controller
 public class AdvancedReviewSightingsController extends AdvancedReviewController<Record> {
-    
+
+
+
     /**
      * Report URL.
      */
@@ -64,6 +68,9 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
      * Set of Strings that are valid sorting parameters for the database query.
      */
     public static final Set<String> VALID_SORT_PROPERTIES;
+
+    /** The names of the Record properties to be included in the JSON returned by a search */
+    private static final Map<Class<?>, Set<String>> JSON_PROPERTIES;
     
     static {
         Set<String> temp = new HashSet<String>();
@@ -74,6 +81,21 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
         temp.add("censusMethod.type");
         temp.add("record.user");
         VALID_SORT_PROPERTIES = Collections.unmodifiableSet(temp);
+
+        String[] recordProperties = {"when", "createdAt", "id", "user", "geometry", "latitude", "longitude", "species", "censusMethod", "survey"};
+        String[] speciesProperties = {"scientificName", "commonName"};
+        String[] userProperties = {"name"};
+        String[] censusMethodProperties = {"type"};
+        String[] surveyProperties = {"id"};
+
+        Map<Class<?>, Set<String>> jsonProps = new HashMap<Class<?>, Set<String>>();
+        jsonProps.put(Record.class, Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(recordProperties))));
+        jsonProps.put(IndicatorSpecies.class, Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(speciesProperties))));
+        jsonProps.put(User.class, Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(userProperties))));
+        jsonProps.put(CensusMethod.class, Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(censusMethodProperties))));
+        jsonProps.put(Survey.class, Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(surveyProperties))));
+
+        JSON_PROPERTIES = Collections.unmodifiableMap(jsonProps);
     }
     
     /**
@@ -358,6 +380,17 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
         if(surveyId != null) {
             hqlQuery.and(Predicate.eq("record.survey.id", surveyId));
         }
+    }
+
+    /**
+     * Turns the supplied PortalPersistentImpl into an Map containing only the properties required by the
+     * advanced review sightings page.
+     * @param persistent the object to flatten.
+     * @return a Map containing the PortalPersistentImpl property names as keys and property values as the values.
+     */
+    @Override
+    protected Map<String, Object> flatten(PortalPersistentImpl persistent) {
+        return persistent.flatten(2, false, false, false, JSON_PROPERTIES);
     }
 
     /*
