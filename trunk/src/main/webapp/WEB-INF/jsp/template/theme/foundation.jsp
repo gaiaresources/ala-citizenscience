@@ -82,6 +82,7 @@
         </c:if>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/bdrs.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/jquery.jcollapsible.min.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/jquery-ui-1.8.20.custom.min.js"></script>
 
 
         <!-- Theme css and js file includes -->
