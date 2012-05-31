@@ -20,6 +20,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import au.com.gaiaresources.bdrs.util.StringUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.log4j.Logger;
 import org.apache.xml.serialize.OutputFormat;
@@ -58,6 +59,9 @@ public class RecordDwcaWriter {
     private static final String LINES_TERMINATED_BY = "\\n";
     
     public static final String ISO_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
+
+    /** Used to separate field values that consist of multiple values */
+    public static final String INTERNAL_FIELD_SEPARATOR = ";";
     
     private final DateFormat ISO8601Local = new SimpleDateFormat(ISO_DATE_FORMAT);
     
@@ -92,6 +96,7 @@ public class RecordDwcaWriter {
         coreMapBuilder.put(new CorePathGetter("when"), DwcTerm.eventDate);
         coreMapBuilder.put(new CoreTaxonLsidGetter(lsidService), DwcTerm.taxonID);
         coreMapBuilder.put(new CoreTaxonLsidGetter(lsidService), DwcTerm.scientificNameID);
+        coreMapBuilder.put(new AssociatedMediaGetter(redirService), DwcTerm.associatedMedia);
         
         DWC_TERMS = Collections.unmodifiableMap(coreMapBuilder);
         
@@ -551,6 +556,37 @@ public class RecordDwcaWriter {
                 log.error("Error while retrieving property", nsme);
                 return "";
             }
+        }
+    }
+
+    /**
+     * Returns a separated list of URLs containing links to all of the IMAGE or AUDIO attributes recorded
+     * for a supplied Record.
+     */
+    private static class AssociatedMediaGetter extends MeasurementOrFactValueGetter implements CorePropertyGetter {
+
+        private static final String MEDIA_SEPARATOR = INTERNAL_FIELD_SEPARATOR;
+        public AssociatedMediaGetter(RedirectionService redirectionService) {
+            super(redirectionService);
+        }
+        @Override
+        public String getValue(Record r) {
+
+            StringBuilder media = new StringBuilder();
+            for (AttributeValue av : r.getAttributes()) {
+                if (StringUtils.notEmpty(av.getStringValue())) {
+                    AttributeType type = av.getAttribute().getType();
+                    if (type == AttributeType.IMAGE || type == AttributeType.AUDIO) {
+                        if (media.length() > 0) {
+                            media.append(MEDIA_SEPARATOR);
+                        }
+                        media.append(getValue(r, av));
+                    }
+                }
+
+            }
+
+            return media.toString();
         }
     }
     
