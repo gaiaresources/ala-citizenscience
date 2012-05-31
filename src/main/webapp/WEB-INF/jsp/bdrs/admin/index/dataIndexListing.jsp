@@ -67,7 +67,7 @@
                             <a href="${portalContextPath}/admin/index/dataIndexSchedule.htm?indexId=${ indexSchedule.id }">Edit</a>
                         </td>
                         <td class="textcenter">
-                            <a id="delete_${indexSchedule.id}" href="javascript: void(0);" onclick="jQuery(this).parents('tr').hide().find('select, input, textarea').attr('disabled', 'disabled'); return false;"><img src="${portalContextPath}/images/icons/delete.png" alt="Delete" class="vertmiddle"/></a>
+                            <a id="delete_${indexSchedule.id}" href="javascript: void(0);" onclick="jQuery(this).parents('tr').hide().find('select, input, textarea').attr('disabled', 'disabled'); return false;"><img src="${pageContext.request.contextPath}/images/icons/delete.png" alt="Delete" class="vertmiddle"/></a>
                         </td>
                     </tr>
                 </c:forEach>
