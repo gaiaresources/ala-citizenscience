@@ -351,13 +351,8 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
             Integer surveyId, String searchText) {
 
         hqlQuery.leftJoin("record.location", "location");
-        hqlQuery.leftJoin("location.attributes", "locAttribute");
-        
         hqlQuery.leftJoin("record.species", "species");
         hqlQuery.leftJoin("record.censusMethod", "censusMethod");
-        
-        hqlQuery.leftJoin("record.attributes", "recordAttributeVal");
-        hqlQuery.leftJoin("recordAttributeVal.attribute", "recordAttribute");
         
         for(Facet f : facetList) {
             if(f.isActive()) {
@@ -373,6 +368,7 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
             Predicate searchPredicate = Predicate.ilike("record.notes", String.format("%%%s%%", searchText));
             searchPredicate.or(Predicate.ilike("species.scientificName", String.format("%%%s%%", searchText)));
             searchPredicate.or(Predicate.ilike("species.commonName", String.format("%%%s%%", searchText)));
+            searchPredicate.or(Predicate.ilike("record.user.name", String.format("%%%s%%", searchText)));
             
             hqlQuery.and(searchPredicate);
         }
