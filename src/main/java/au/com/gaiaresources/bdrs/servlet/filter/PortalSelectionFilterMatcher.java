@@ -91,7 +91,7 @@ public class PortalSelectionFilterMatcher {
         if (currentPortal == null) {
             return false;
         }
-        return url.startsWith(currentPortal.getPortalContextPath());
+        return url.startsWith(currentPortal.getPortalContextPath()+'/');
     }
     
     public PortalMatches matchEntryPoints(Session sesh, String url) {
