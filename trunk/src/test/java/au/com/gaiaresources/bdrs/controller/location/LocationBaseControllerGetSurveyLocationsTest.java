@@ -11,7 +11,7 @@ import au.com.gaiaresources.bdrs.controller.AbstractGridControllerTest;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.security.Role;
 
-public class LocationBaseControllerTest_GetSurveyLocations extends
+public class LocationBaseControllerGetSurveyLocationsTest extends
         AbstractGridControllerTest {
 
     @Test

@@ -3,6 +3,22 @@
 //--------------------------------------
 bdrs.contribute = {};
 
+// ---------
+// Constants
+// ---------
+/**
+ * CSS class for species attribute inputs
+ */
+bdrs.contribute.SPECIES_ATTRIBUTE_SELECTOR = 'input.species_attribute';
+/**
+ * CSS class for species attribute id inputs
+ */
+bdrs.contribute.SPECIES_ATTRIBUTE_ID_CLASS_SELECTOR = ".species_attribute_id";
+/**
+ * Key used in order to jquery.data the species to the species attribute input.
+ */
+bdrs.contribute.SPECIES_VALUE_DATA_KEY = "speciesValue";
+
 //--------------------------------------
 // Yearly Sightings
 //--------------------------------------
@@ -73,7 +89,9 @@ bdrs.contribute.yearlysightings.insertRecordAttribute = function(recAttr) {
 	var attrType = bdrs.model.taxa.attributeType.code[recAttr.attribute.typeCode];
     var inp = jQuery("[name=attribute_"+attrId+"]");
 	
-	if (bdrs.model.taxa.attributeType.SINGLE_CHECKBOX === attrType) {
+	if (bdrs.model.taxa.attributeType.SPECIES === attrType) {
+		// do nothing.
+	} else if (bdrs.model.taxa.attributeType.SINGLE_CHECKBOX === attrType) {
         if (recAttr.booleanValue === true) {
             inp.prop("checked", true);
         }
@@ -189,7 +207,15 @@ bdrs.contribute.yearlysightings.loadCellData = function(locationId, surveyId, id
     
     // Clear the survey scope attributes - reset state of form!
 	// don't remove the value of checkbox types!
-    jQuery("[name^=attribute_]").not('input[type=checkbox]').val('');
+	// Leave species attribute values. The current implementation means they are automatically
+	// populated with the species for the current yearly sightings survey. 
+	// This makes the species attribute useless for the yearly sightings but we would need
+	// to implement a way to indicate what species to allow for species attribute types.
+    jQuery("[name^=attribute_]")
+		.not(bdrs.contribute.SPECIES_ATTRIBUTE_SELECTOR)
+		.not(bdrs.contribute.SPECIES_ATTRIBUTE_ID_CLASS_SELECTOR)
+		.not('input[type=checkbox]').val('');
+	
 	// remove the checked attribute of checkbox types
 	jQuery("[name^=attribute_]").filter('input[type=checkbox]').prop('checked', false);
 	// remove the selected attribute of selection types
@@ -240,27 +266,6 @@ bdrs.contribute.yearlysightings.loadCellData = function(locationId, surveyId, id
 bdrs.contribute.singleSiteMultiTaxa = {};
 
 /**
- * 
- * @param {Object} sightingIndexSelector - on the form page there is a hidden input, aka the sighting index, that shows
- * how many rows need to be saved. This is the jquery selector for the sighting index element.
- * @param {Object} surveyIdSelector - on the form there is a hidden input for the survey id, this is the selector for
- * the survey id element.
- * @param {Object} speciesRequired - a boolean, sets validation on the species field.
- * @param {Object} numberRequired - a boolean, sets validation on the number field.
- */
-bdrs.contribute.singleSiteMultiTaxa.init = function(sightingIndexSelector, surveyIdSelector, speciesRequired, numberRequired) {
-	var sightingIndexElem = jQuery(sightingIndexSelector);
-    var sightingIndex = parseInt(sightingIndexElem.val(), 10);
-    // note we don't increment the sighting index during init
-    var surveyId = jQuery(surveyIdSelector).val();
-	
-	for (var i=0; i< sightingIndex; ++i) {
-		bdrs.contribute.singleSiteMultiTaxa.attachRowControls(i, surveyId, speciesRequired, numberRequired);
-	}
-};
-
-
-/**
  * @param {Object} sightingIndexSelector - on the form page there is a hidden input, aka the sighting index, that shows
  * how many rows need to be saved. This is the jquery selector for the sighting index element.
  * @param {Object} surveyIdSelector - on the form there is a hidden input for the survey id, this is the selector for
@@ -282,7 +287,8 @@ bdrs.contribute.singleSiteMultiTaxa.addSighting = function(sightingIndexSelector
         surveyId: surveyId
     };
     jQuery.get(url, param, function(data) {
-        jQuery(sightingTableBody).append(data);
+		var newRow = jQuery(data);
+        jQuery(sightingTableBody).append(newRow);
         
 		bdrs.contribute.singleSiteMultiTaxa.attachRowControls(sightingIndex, surveyId, speciesRequired, numberRequired, showScientificName);
     });
@@ -291,6 +297,7 @@ bdrs.contribute.singleSiteMultiTaxa.addSighting = function(sightingIndexSelector
 /**
  * Helper function for attaching row controls
  * 
+ * @param {Object} node - the dom node to search for inputs to attach row controls.
  * @param {Object} sightingIndex - the sighting index of the row to attach the controls on
  * @param {Object} surveyId - the survey id
  * @param {Object} speciesRequired - is the species field mandatory ?
@@ -327,6 +334,8 @@ bdrs.contribute.singleSiteMultiTaxa.attachRowControls = function(sightingIndex, 
     } else {
         count_elem.addClass("validate(positiveIntegerLessThanOneMillionOrBlank)");
     }
+	
+	var row = jQuery("#"+sightingIndex+"_sightingIndexRow");
     
     search_elem.parents("tr").ketchup();
 }
@@ -376,9 +385,14 @@ bdrs.contribute.singleSiteAllTaxa.addSighting = function(sightingIndexSelector, 
   sightingIndexElem.val(jQuery(sightingTableBody).find('tr').length);
 };
 
+// ---------------------------
+// Autocomplete initialisation
+// ---------------------------
 
 /**
  * Will initialise the auto complete events, see parameters below
+ *
+ * Initialises auto complete for the PRIMARY species
  *
  * required parameters:
  * surveySpeciesSearchSelector - selector for the text input used to search for the species, autocomplete will be applied to this input
@@ -405,19 +419,21 @@ bdrs.contribute.initSpeciesAutocomplete = function(args) {
 	var attributeTbodySelector = args.attributeTbodySelector;
 	var showScientificName = args.showScientificName;
 	
-    jQuery(surveySpeciesSearchSelector).keydown(function(event, ui) {
+	var search_elem = jQuery(surveySpeciesSearchSelector);
+	
+    search_elem.keydown(function(event, ui) {
 		var speciesElem = jQuery(surveySpeciesSearchSelector);
 		speciesElem.data('speciesValue', speciesElem.val());
     });
-    jQuery(surveySpeciesSearchSelector).keyup(function(event,ui){
+    search_elem.keyup(function(event,ui){
     	var speciesElem = jQuery(surveySpeciesSearchSelector);
 		if (speciesElem.data('speciesValue') !== speciesElem.val()) {
         	jQuery(speciesIdSelector).val("");
         }
     });
+	search_elem.data("surveyId", surveyId);
     
-	jQuery(surveySpeciesSearchSelector).autocomplete({
-		
+	search_elem.autocomplete({
 		source: bdrs.contribute.getAutocompleteSourceFcn(showScientificName),
         select: function(event, ui) {
             var taxon = ui.item.data;
@@ -439,8 +455,10 @@ bdrs.contribute.initSpeciesAutocomplete = function(args) {
             // Issue Request
             if(attributeTbodySelector !== null && attributeTbodySelector !== undefined) {
                 jQuery.get(bdrs.portalContextPath+"/bdrs/user/ajaxTrackerTaxonAttributeTable.htm", params, function(data) {
-                    jQuery(attributeTbodySelector).append(data);
-                });
+					var node = jQuery(attributeTbodySelector);
+                    node.append(data);
+					bdrs.contribute.initSpeciesAttributeAutocomplete(node, surveyId, showScientificName);
+				});
             }
         },
         change: function(event, ui) {
@@ -457,7 +475,60 @@ bdrs.contribute.initSpeciesAutocomplete = function(args) {
         delay: 300,
         html: true
     });
-}
+};
+
+/**
+ * Initialise the auto complete for species attribute fields.
+ * @param {Object} dom node to search under to find inputs needing auto complete
+ * @param {int} surveyId The survey id.
+ * @param {String} showScientificName Shows scientific name if true, otherwise common name.
+ */
+bdrs.contribute.initSpeciesAttributeAutocomplete = function(node, surveyId, showScientificName) {
+	// Attach the autocomplete
+	
+    var search_elem;
+	if (node) {
+		search_elem = node.find(bdrs.contribute.SPECIES_ATTRIBUTE_SELECTOR);
+	} else {
+		search_elem = jQuery(bdrs.contribute.SPECIES_ATTRIBUTE_SELECTOR);	
+	}
+	if (surveyId === null || surveyId === undefined) {
+		surveyId = 0;
+	}
+	
+    search_elem.data("surveyId", surveyId);
+	
+	search_elem.keydown(function(event, ui) {
+		var elem = jQuery(this);
+		var name = elem.attr('name');
+		var speciesNameElem = jQuery("#" + name + "_0");
+		speciesNameElem.data(bdrs.contribute.SPECIES_VALUE_DATA_KEY, speciesNameElem.val());
+    });
+    search_elem.keyup(function(event,ui){
+    	var elem = jQuery(this);
+		var name = elem.attr('name');
+		var speciesNameElem = jQuery("#" + name + "_0");
+		var speciesIdElem = jQuery("#" + name + "_1");
+		if (speciesNameElem.data(bdrs.contribute.SPECIES_VALUE_DATA_KEY) !== speciesNameElem.val()) {
+        	speciesIdElem.val("");
+        }
+    });
+    search_elem.autocomplete({
+        source: bdrs.contribute.getAutocompleteSourceFcn(showScientificName),
+		select: function(event, ui) {
+			var elem = jQuery(this);
+			var name = elem.attr('name');
+			var speciesNameElem = jQuery("#" + name + "_0");
+			var speciesIdElem = jQuery("#" + name + "_1");
+			var taxon = ui.item.data;
+            speciesIdElem.val(taxon.id).trigger("blur");
+		},
+        html: true,
+        minLength: 2,
+        delay: 300
+    });
+};
+
 
 /**
  * Get the function to use as the parameter for the jQuery autocomplete 'source'

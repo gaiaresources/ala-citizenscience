@@ -47,7 +47,7 @@ import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.web.JsonService;
 
-public class GeoMapLayerController_GetLayer_Test extends AbstractControllerTest {
+public class GeoMapLayerControllerGetLayerTest extends AbstractControllerTest {
     
     GeometryBuilder geomBuilder = new GeometryBuilder();
     
@@ -219,9 +219,9 @@ public class GeoMapLayerController_GetLayer_Test extends AbstractControllerTest 
             Assert.assertNotNull(obj);
             JSONArray attributes = obj.getJSONArray(JsonService.JSON_KEY_ATTRIBUTES); 
             
-            Assert.assertEquals(1, getAttribute(attributes, recAttr1.getDescription()).getLong(recAttr1.getDescription()));
-            Assert.assertEquals("two", getAttribute(attributes, recAttr2.getDescription()).getString(recAttr2.getDescription()));
-            Assert.assertEquals("three", getAttribute(attributes, recAttr3.getDescription()).getString(recAttr3.getDescription()));
+            Assert.assertEquals(1, getAttribute(attributes, recAttr1.getDescription()).getLong(JsonService.JSON_KEY_ATTR_VALUE));
+            Assert.assertEquals("two", getAttribute(attributes, recAttr2.getDescription()).getString(JsonService.JSON_KEY_ATTR_VALUE));
+            Assert.assertEquals("three", getAttribute(attributes, recAttr3.getDescription()).getString(JsonService.JSON_KEY_ATTR_VALUE));
             
             Assert.assertEquals("Standard Taxonomic", obj.getString(JsonService.RECORD_KEY_CENSUS_METHOD));
         }
@@ -230,9 +230,9 @@ public class GeoMapLayerController_GetLayer_Test extends AbstractControllerTest 
             Assert.assertNotNull(obj);
             JSONArray attributes = obj.getJSONArray(JsonService.JSON_KEY_ATTRIBUTES); 
             
-            Assert.assertEquals(7, getAttribute(attributes, recAttr1.getDescription()).getLong(recAttr1.getDescription()));
-            Assert.assertEquals("eight", getAttribute(attributes, recAttr2.getDescription()).getString(recAttr2.getDescription()));
-            Assert.assertEquals("nine", getAttribute(attributes, recAttr3.getDescription()).getString(recAttr3.getDescription()));
+            Assert.assertEquals(7, getAttribute(attributes, recAttr1.getDescription()).getLong(JsonService.JSON_KEY_ATTR_VALUE));
+            Assert.assertEquals("eight", getAttribute(attributes, recAttr2.getDescription()).getString(JsonService.JSON_KEY_ATTR_VALUE));
+            Assert.assertEquals("nine", getAttribute(attributes, recAttr3.getDescription()).getString(JsonService.JSON_KEY_ATTR_VALUE));
             
             Assert.assertEquals("Standard Taxonomic", obj.getString(JsonService.RECORD_KEY_CENSUS_METHOD));
         }
@@ -266,9 +266,9 @@ public class GeoMapLayerController_GetLayer_Test extends AbstractControllerTest 
             
             Assert.assertEquals("expect all attributes to be present", 3, attributes.size());
             
-            Assert.assertEquals(7, getAttribute(attributes, recAttr1.getDescription()).getLong(recAttr1.getDescription()));
-            Assert.assertEquals("eight", getAttribute(attributes, recAttr2.getDescription()).getString(recAttr2.getDescription()));
-            Assert.assertEquals("nine", getAttribute(attributes, recAttr3.getDescription()).getString(recAttr3.getDescription()));
+            Assert.assertEquals(7, getAttribute(attributes, recAttr1.getDescription()).getLong(JsonService.JSON_KEY_ATTR_VALUE));
+            Assert.assertEquals("eight", getAttribute(attributes, recAttr2.getDescription()).getString(JsonService.JSON_KEY_ATTR_VALUE));
+            Assert.assertEquals("nine", getAttribute(attributes, recAttr3.getDescription()).getString(JsonService.JSON_KEY_ATTR_VALUE));
             
             Assert.assertEquals("Standard Taxonomic", obj.getString(JsonService.RECORD_KEY_CENSUS_METHOD));
         }
@@ -306,9 +306,9 @@ public class GeoMapLayerController_GetLayer_Test extends AbstractControllerTest 
             
             Assert.assertEquals("expect all attributes to be present", 3, attributes.size());
             
-            Assert.assertEquals(7, getAttribute(attributes, recAttr1.getDescription()).getLong(recAttr1.getDescription()));
-            Assert.assertEquals("eight", getAttribute(attributes, recAttr2.getDescription()).getString(recAttr2.getDescription()));
-            Assert.assertEquals("nine", getAttribute(attributes, recAttr3.getDescription()).getString(recAttr3.getDescription()));
+            Assert.assertEquals(7, getAttribute(attributes, recAttr1.getDescription()).getLong(JsonService.JSON_KEY_ATTR_VALUE));
+            Assert.assertEquals("eight", getAttribute(attributes, recAttr2.getDescription()).getString(JsonService.JSON_KEY_ATTR_VALUE));
+            Assert.assertEquals("nine", getAttribute(attributes, recAttr3.getDescription()).getString(JsonService.JSON_KEY_ATTR_VALUE));
             
             Assert.assertEquals("Standard Taxonomic", obj.getString(JsonService.RECORD_KEY_CENSUS_METHOD));
         }
@@ -321,10 +321,10 @@ public class GeoMapLayerController_GetLayer_Test extends AbstractControllerTest 
         }
     }
     
-    private JSONObject getAttribute(JSONArray featureArray, String description) {
-        for (int i=0; i<featureArray.size(); ++i) {
-            JSONObject obj = featureArray.getJSONObject(i);
-            if (obj.containsKey(description)) {
+    private JSONObject getAttribute(JSONArray array, String name) {
+        for (int i=0; i<array.size(); ++i) {
+            JSONObject obj = array.getJSONObject(i);
+            if (obj.getString(JsonService.JSON_KEY_ATTR_NAME).equals(name)) {
                 return obj;
             }
         }

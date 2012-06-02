@@ -454,6 +454,10 @@ public class LocationAttributeSurveyCreator {
                         attrVal.setStringValue("testImgFile.png");
                         fileData = createImage(-1, -1, attrVal.getStringValue());
                         break;
+                    case SPECIES:
+                    	attrVal.setSpecies(speciesA);
+                    	attrVal.setStringValue(speciesA.getScientificName());
+                    	break;
                     default:
                         Assert.assertTrue("Unknown Attribute Type: "
                                 + attr.getType().toString(), false);
@@ -602,6 +606,12 @@ public class LocationAttributeSurveyCreator {
                         recAttr.setStringValue("testImgFile.png");
                         fileData = createImage(-1, -1, recAttr.getStringValue());
                         break;
+                    case SPECIES:
+                    	if (cm == null || !Taxonomic.NONTAXONOMIC.equals(cm.getTaxonomic())) {
+                    		recAttr.setStringValue(species != null ? species.getScientificName() : "");
+                        	recAttr.setSpecies(species);	
+                    	}
+                    	break;
                     default:
                         Assert.assertTrue("Unknown Attribute Type: "
                                 + attr.getType().toString(), false);
@@ -692,6 +702,12 @@ public class LocationAttributeSurveyCreator {
                             recAttr.setStringValue("testGroupImgFile.png");
                             fileData = createImage(-1, -1, recAttr.getStringValue());
                             break;
+                        case SPECIES:
+                        	if (cm == null || !Taxonomic.NONTAXONOMIC.equals(cm.getTaxonomic())) {
+                        		recAttr.setStringValue(species != null ? species.getScientificName() : "");
+                            	recAttr.setSpecies(species);	
+                        	}
+                        	break;
                         default:
                             Assert.assertTrue("Unknown Attribute Type: "
                                     + attr.getType().toString(), false);

@@ -32,100 +32,13 @@
 
 <c:choose>
     <c:when test="<%= RecordPropertyType.SPECIES.getName().equals(formField.getPropertyName()) %>">
-
-        <%-- Access the facade to retrieve the preference information --%>
-        <jsp:useBean id="bdrsPluginFacade" scope="request" type="au.com.gaiaresources.bdrs.servlet.BdrsPluginFacade"></jsp:useBean>
-        <c:set var="showScientificName" value="<%= bdrsPluginFacade.getPreferenceBooleanValue(\"taxon.showScientificName\") %>" />
-        
-        <c:choose>
-            <c:when test="${fieldEditable}">
-                
-                <c:choose>
-                    <%-- This is a temporary workaround to make species editable on a tracker survey without
-                         breaking the single site all taxa survey.  The side effect is that the species
-                         will not be editable on a single site multi taxa survey, which it should be. --%>
-                    <c:when test="${ formField.species != null && (not empty formPrefix || not empty pageContext.request.parameterMap['speciesId'])}">
-                        <input type="hidden" name="${ formPrefix }species" value="${ formField.species.id }"/>
-                        <c:choose>
-                            <c:when test="${showScientificName}">
-                                <span class="scientificName"><c:out value="${ formField.species.scientificName }"/></span>
-                            </c:when>
-                            <c:otherwise>
-                                <span class="commonName"><c:out value="${ formField.species.commonName }"/></span>
-                            </c:otherwise>
-                        </c:choose>
-                    </c:when>
-                    <c:when test="<%= (formField.getSurvey().getSpecies().size() > 1) || (formField.getSurvey().getSpecies().size() == 0) %>">
-                        <c:if test="<%= errorMap != null && errorMap.containsKey(formField.getPrefix()+\"survey_species_search\") %>">
-                            <p class="error">
-                                <c:out value="<%= errorMap.get(formField.getPrefix()+\"survey_species_search\") %>"/>
-                            </p>
-                        </c:if>
-                        <input id="survey_species_search" type="text" name="${ formPrefix }survey_species_search"
-                            <c:choose>
-                                <c:when test="<%= valueMap != null && valueMap.containsKey(formField.getPrefix()+\"survey_species_search\") %>">
-                                    value="<c:out value="<%= valueMap.get(formField.getPrefix()+\"survey_species_search\") %>"/>" 
-                                </c:when>
-                                <c:when test="${ formField.record != null && showScientificName }">
-                                    value="<c:out value="${ formField.record.species.scientificName }"/>" 
-                                </c:when>
-                                <c:when test="${ formField.record != null && not showScientificName }">
-                                    value="<c:out value="${ formField.record.species.commonName }"/>"
-                                </c:when>
-                            </c:choose>
-                        />
-                        <!-- The styling below is to ensure the ketchup validation box popups up aligned to the input above -->
-                        <input type="text" class="speciesIdInput
-                            <c:choose>
-                                <c:when test="${ formField.required }"> 
-                                    validate(required)
-                                </c:when>
-                            </c:choose>"
-                            name="${ formPrefix }species" value="${ formField.record.species.id }"/>
-                    </c:when>
-                    <c:when test="<%= formField.getSurvey().getSpecies().size() == 1 %>">
-                        <input type="hidden" name="${ formPrefix }species" value="<%= formField.getSurvey().getSpecies().iterator().next().getId() %>"/>
-                        <c:choose>
-                            <c:when test="${showScientificName}">
-                                <span class="scientificName"><c:out value="<%= formField.getSurvey().getSpecies().iterator().next().getScientificName() %>"/></span>
-                            </c:when>
-                            <c:otherwise>
-                                <span class="commonName"><c:out value="<%= formField.getSurvey().getSpecies().iterator().next().getCommonName() %>"/></span>
-                            </c:otherwise>  
-                        </c:choose>
-                    </c:when>
-                    <c:otherwise>
-                        Misconfigured Project. No species available.</br>
-                        <sec:authorize ifAnyGranted="ROLE_ADMIN">
-                            <a href="${portalContextPath}/bdrs/admin/survey/editTaxonomy.htm?surveyId=${ formField.survey.id }">
-                                Assign a species now.
-                            </a>
-                        </sec:authorize>
-                        <sec:authorize ifNotGranted="ROLE_ADMIN">
-                            Please contact the project administrator.
-                        </sec:authorize>
-                    </c:otherwise>
-                </c:choose>
-            </c:when>
-            <c:otherwise>
-                <%-- not editable... --%>
-                <c:choose>
-                    <c:when test="${ formField.species != null }">
-                        <c:choose>
-                            <c:when test="${showScientificName}">
-                                <span class="scientificName"><c:out value="${ formField.species.scientificName }"/></span>
-                            </c:when>
-                            <c:otherwise>
-                                <span class="commonName"><c:out value="${ formField.species.commonName }"/></span>
-                            </c:otherwise>  
-                        </c:choose>
-                    </c:when>
-                    <c:otherwise>
-                        <span class="scientificName">No species recorded</span>
-                    </c:otherwise>
-                </c:choose>
-             </c:otherwise>       
-        </c:choose>
+		<tiles:insertDefinition name="speciesFormField">
+        	<tiles:putAttribute name="formField" value="${formField}"/>
+            <tiles:putAttribute name="editEnabled" value="${ editEnabled }"/>
+			<tiles:putAttribute name="errorMap" value="${ errorMap }"/>
+			<tiles:putAttribute name="valueMap" value="${ valueMap }"/>
+			<tiles:putAttribute name="isProperty" value="true" />
+        </tiles:insertDefinition>
     </c:when>
     <c:when test="<%= RecordPropertyType.LOCATION.getName().equals(formField.getPropertyName()) %>">
         <c:choose>

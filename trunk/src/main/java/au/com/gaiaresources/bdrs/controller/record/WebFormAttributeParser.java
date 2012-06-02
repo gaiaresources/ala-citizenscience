@@ -12,6 +12,7 @@ import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpeciesAttribute;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 
 import org.springframework.util.StringUtils;
@@ -19,7 +20,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 public class WebFormAttributeParser extends AttributeParser {
     
-    public boolean validate(RecordFormValidator validator,
+    public WebFormAttributeParser(TaxaDAO taxaDAO) {
+		super(taxaDAO);
+	}
+
+	public boolean validate(RecordFormValidator validator,
             Attribute attribute, Map<String, String[]> parameterMap,
             Map<String, MultipartFile> fileMap) {
         return this.validate(validator, DEFAULT_PREFIX, attribute, parameterMap, fileMap);

@@ -92,6 +92,9 @@ public class RecordAttributeHandler implements OperatorHandler {
                         // HTML attributes will never have an attribute value because they are display only
                         match = false;
                         break;
+                    case SPECIES:
+                    	match = conditionOperatorHandler.match(condition.getValueOperator(), recAttr.getStringValue(), condition.stringValue());
+                    	break;
                     default:
                         log.warn(String.format("Unknown attribute type found %s Match is false.", recAttr.getAttribute().getType().toString()));
                         match = false;

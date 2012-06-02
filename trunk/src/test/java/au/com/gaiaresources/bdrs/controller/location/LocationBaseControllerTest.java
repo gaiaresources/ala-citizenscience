@@ -11,7 +11,16 @@ import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
-import au.com.gaiaresources.bdrs.model.taxa.*;
+import au.com.gaiaresources.bdrs.model.taxa.Attribute;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
+import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
+import au.com.gaiaresources.bdrs.model.taxa.TaxonRank;
+import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import org.apache.log4j.Logger;
@@ -40,6 +49,8 @@ public class LocationBaseControllerTest extends AbstractControllerTest {
     private AttributeDAO attributeDAO;
     @Autowired
     private MetadataDAO metadataDAO;
+    @Autowired
+    private TaxaDAO taxaDAO;
 
     private Survey simpleSurvey;
     private Survey locAttSurvey;
@@ -47,8 +58,22 @@ public class LocationBaseControllerTest extends AbstractControllerTest {
     
     private Logger log = Logger.getLogger(getClass());
     
+    private IndicatorSpecies species1;
+    
     @Before
     public void setUp() throws Exception {
+    	
+    	TaxonGroup taxonGroup = new TaxonGroup();
+    	taxonGroup.setName("test taxon group");
+    	taxaDAO.save(taxonGroup);
+    	
+    	species1 = new IndicatorSpecies();
+    	species1.setTaxonGroup(taxonGroup);
+    	species1.setScientificName("species one");
+    	species1.setCommonName("common one");
+    	species1.setTaxonRank(TaxonRank.SPECIALFORM);
+    	taxaDAO.save(species1);
+    	
         simpleSurvey = new Survey();
         simpleSurvey.setName("Simple Survey");
         simpleSurvey.setActive(true);
@@ -273,6 +298,10 @@ public class LocationBaseControllerTest extends AbstractControllerTest {
             case IMAGE:
                 Assert.assertEquals(params.get(key), recAttr.getStringValue());
                 break;
+            case SPECIES:
+            	Assert.assertNotNull("species should not be null", recAttr.getSpecies());
+            	Assert.assertEquals("wrong species id", species1.getId(), recAttr.getSpecies().getId());
+            	break;
             default:
                 Assert.assertTrue("Unknown Attribute Type: "
                         + recAttr.getAttribute().getType().toString(), false);
@@ -389,6 +418,9 @@ public class LocationBaseControllerTest extends AbstractControllerTest {
                 case HTML_HORIZONTAL_RULE:
                     value = "<hr/>";
                     break;
+                case SPECIES:
+                	value = species1.getScientificName();
+                	break;
                 default:
                     Assert.assertTrue("Unknown Attribute Type: "
                             + attr.getType().toString(), false);

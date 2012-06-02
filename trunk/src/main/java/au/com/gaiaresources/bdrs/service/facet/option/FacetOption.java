@@ -1,5 +1,7 @@
 package au.com.gaiaresources.bdrs.service.facet.option;
 
+import org.apache.log4j.Logger;
+
 import au.com.gaiaresources.bdrs.db.impl.Predicate;
 
 /**
@@ -12,6 +14,8 @@ public abstract class FacetOption {
     private String value;
     private Long count;
     private boolean selected;
+    
+    private Logger log = Logger.getLogger(getClass());
 
     /**
      * Creates a new <code>FacetOption</code>

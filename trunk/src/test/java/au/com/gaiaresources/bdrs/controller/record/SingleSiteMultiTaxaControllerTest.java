@@ -409,6 +409,9 @@ public class SingleSiteMultiTaxaControllerTest extends RecordFormTest {
                         valueMap.put(attr, mockImageFile);
                         value = image_filename;
                         break;
+                    case SPECIES:
+                    	value = speciesA.getScientificName();
+                    	break;
                     default:
                         Assert.assertTrue("Unknown Attribute Type: "
                                 + attr.getType().toString(), false);
@@ -416,8 +419,6 @@ public class SingleSiteMultiTaxaControllerTest extends RecordFormTest {
                     }
                     if(value != null) {
                         params.put(key, value);
-                        logger.debug("***SingleSiteMultiTaxaControllerTest:423: adding parameter "+key+"="+value);
-                        logger.debug("***SingleSiteMultiTaxaControllerTest:424: for attribute "+attr.getName()+" of type "+attr.getType().getName()+" with scope: "+attr.getScope());
                     }
                 }
             }
@@ -516,6 +517,10 @@ public class SingleSiteMultiTaxaControllerTest extends RecordFormTest {
                     String filename = ((MockMultipartFile) expected).getOriginalFilename();
                     Assert.assertEquals(filename, recAttr.getStringValue());
                     break;
+                case SPECIES:
+                	Assert.assertNotNull("species should not be null", recAttr.getSpecies());
+                	Assert.assertEquals("wrong species id", speciesA.getId(), recAttr.getSpecies().getId());
+                	break;
                 default:
                     Assert.assertTrue("Unknown Attribute Type: "
                             + recAttr.getAttribute().getType().toString(), false);

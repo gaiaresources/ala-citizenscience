@@ -5,9 +5,9 @@ import au.com.gaiaresources.bdrs.model.method.Taxonomic;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpeciesAttribute;
+import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 
 /**
  * The <code>RecordFormFieldFactory</code> is the one-stop-shop for the creation
@@ -142,18 +142,20 @@ public class FormFieldFactory {
      * Creates a new form field for the location.
      * @param attribute the attribute (tag) from the survey attribute.
      * @param value the current value for this attribute
+     * @param survey the survey that is being rendered.
      * @return a <code>LocationAttributeFormField</code>
      */
-    public FormField createLocationFormField(Attribute attribute, TypedAttributeValue value) {
-        return new LocationAttributeFormField(attribute, value, LocationAttributeFormField.LOCATION_PREFIX);
+    public FormField createLocationFormField(Attribute attribute, TypedAttributeValue value, Survey survey) {
+        return new LocationAttributeFormField(attribute, value, LocationAttributeFormField.LOCATION_PREFIX, survey);
     }
     
     /**
      * Create a new form field for the location.
      * @param attribute the attribute (tag) from the survey attribute.
+     * @param survey the survey that is being rendered.
      * @return the <code>LocationAttributeFormField</code>
      */
-    public FormField createLocationFormField(Attribute attribute) {
-        return new LocationAttributeFormField(attribute, null, LocationAttributeFormField.LOCATION_PREFIX);
+    public FormField createLocationFormField(Attribute attribute, Survey survey) {
+    	return createLocationFormField(attribute, null, survey);
     }
 }

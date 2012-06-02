@@ -32,7 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
 import java.util.Calendar;
 
-public class TrackerController_Access_Test extends AbstractControllerTest {
+public class TrackerControllerAccessTest extends AbstractControllerTest {
     GeometryBuilder geomBuilder = new GeometryBuilder();
     
     @Autowired

@@ -71,6 +71,7 @@ public class BulkDataReadWriteServiceImpl implements BulkDataReadWriteService {
             case HTML_NO_VALIDATION:
             case HTML_COMMENT:
             case HTML_HORIZONTAL_RULE:
+            case SPECIES:
             default:
                 if (attr.getStringValue() != null) {
                     cell.setCellValue(attr.getStringValue());

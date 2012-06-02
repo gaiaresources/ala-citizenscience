@@ -482,6 +482,9 @@ public class TaxonomyManagementControllerTest extends AbstractControllerTest {
                     ((MockMultipartHttpServletRequest)request).addFile(mockImageFile);
                     value = image_filename;
                     break;
+                case SPECIES:
+                	value = speciesA.getScientificName();
+                	break;
                 default:
                     Assert.assertTrue("Unknown Attribute Type: "+attr.getType().toString(), false);
                     break;
@@ -600,6 +603,9 @@ public class TaxonomyManagementControllerTest extends AbstractControllerTest {
                 case IMAGE:
                     Assert.assertEquals(request.getParameter(key), taxonAttr.getStringValue());
                     break;
+                case SPECIES:
+                	Assert.assertEquals(request.getParameter(key), taxonAttr.getStringValue());
+                	break;
                 default:
                     Assert.assertTrue("Unknown Attribute Type: "+taxonAttr.getAttribute().getType().toString(), false);
                     break;
@@ -712,6 +718,9 @@ public class TaxonomyManagementControllerTest extends AbstractControllerTest {
                 case HTML_HORIZONTAL_RULE:
                     value = "<hr/>";
                     break;
+                case SPECIES:
+                	value = speciesA.getScientificName();
+                	break;
                 default:
                     Assert.assertTrue("Unknown Attribute Type: "+attr.getType().toString(), false);
                     break;
@@ -812,6 +821,9 @@ public class TaxonomyManagementControllerTest extends AbstractControllerTest {
                 case IMAGE:
                     Assert.assertEquals(request.getParameter(key), taxonAttr.getStringValue());
                     break;
+                case SPECIES:
+                	Assert.assertEquals(request.getParameter(key), taxonAttr.getStringValue());
+                	break;
                 default:
                     Assert.assertTrue("Unknown Attribute Type: "+taxonAttr.getAttribute().getType().toString(), false);
                     break;

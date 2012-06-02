@@ -36,6 +36,7 @@ import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.bulkdata.BulkDataService;
@@ -81,6 +82,9 @@ public class BulkDataController extends AbstractController {
 
     @Autowired
     private BulkDataService bulkDataService;
+    
+    @Autowired
+    private TaxaDAO taxaDAO;
 
     @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR, Role.USER})
     @RequestMapping(value = BULK_DATA_URL, method = RequestMethod.GET)
@@ -345,7 +349,7 @@ public class BulkDataController extends AbstractController {
         List<RecordEntry> entries = transformer.shapefileFeatureToRecordEntries(reader.getFeatureIterator(), reader.getSurveyIdList(), reader.getCensusMethodIdList());
                 
         AttributeDictionaryFactory adf = new ShapefileAttributeDictionaryFactory();
-        AttributeParser parser = new ShapefileAttributeParser();
+        AttributeParser parser = new ShapefileAttributeParser(taxaDAO);
         RecordDeserializer rds = new RecordDeserializer(klu, adf, parser);
         List<RecordDeserializerResult> dsResult = rds.deserialize(currentUser, entries);
         

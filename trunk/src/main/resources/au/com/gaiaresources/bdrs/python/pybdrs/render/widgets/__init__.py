@@ -13,6 +13,7 @@ WIDGET_TYPE_MAP = {
     'time': Time,
 
     'taxon': Taxon,
+    'taxon_attribute': TaxonAttribute,
 
     'lat_lon_map': LatLonMap,
 

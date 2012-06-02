@@ -17,6 +17,7 @@ import javax.persistence.Transient;
 import org.apache.log4j.Logger;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.ParamDef;
 import org.hibernate.search.annotations.Analyzer;
@@ -46,6 +47,8 @@ public class AttributeValue extends AbstractTypedAttributeValue implements Typed
     private Logger log = Logger.getLogger(getClass());
     
     public static final String NOT_RECORDED = "Not recorded";
+    
+    private IndicatorSpecies species = null;
 
     /**
      * Populates the <code>numericValue</code> or <code>dateValue</code> from
@@ -151,6 +154,18 @@ public class AttributeValue extends AbstractTypedAttributeValue implements Typed
         } else {
             this.dateValue = null;
         }
+    }
+    
+    @CompactAttribute
+    @ManyToOne
+    @JoinColumn(name = "indicator_species_id")
+    @ForeignKey(name = "attribute_value_indicator_species_fk")
+    public IndicatorSpecies getSpecies() {
+    	return this.species;
+    }
+    
+    public void setSpecies(IndicatorSpecies species) {
+    	this.species = species;
     }
     
     /**

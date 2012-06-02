@@ -69,7 +69,8 @@ public abstract class AbstractTypedAttributeValue extends PortalPersistentImpl i
         case AUDIO:
         case FILE:
             return this.getStringValue();
-
+        case SPECIES:
+        	return this.getSpecies() != null ? this.getSpecies().getScientificName() : "";
             default:
                 throw new IllegalStateException("attribute type not handled : " + a.getTypeCode());
         }
@@ -178,6 +179,9 @@ public abstract class AbstractTypedAttributeValue extends PortalPersistentImpl i
         case FILE:
             // don't want to return an empty file name or a 'not recorded' file name
             return StringUtils.hasLength(stringValue) && !NOT_RECORDED.equals(stringValue);
+        
+        case SPECIES:
+        	return this.getSpecies() != null;
             
             default:
                 throw new IllegalStateException("Unhandled type : " + type);

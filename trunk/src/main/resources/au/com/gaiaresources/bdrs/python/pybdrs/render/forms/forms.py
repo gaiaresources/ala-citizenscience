@@ -134,21 +134,25 @@ class AttributeForm(Form):
         
         Attribute.ATTRIBUTE_TYPE_MULTI_CHECKBOX : 'multi_checkbox',
         Attribute.ATTRIBUTE_TYPE_MULTI_SELECT : 'multi_select',
+
+        Attribute.ATTRIBUTE_TYPE_SPECIES : 'taxon_attribute',
     }
 
-    def __init__(self, bdrs, render_factory, value_map, error_map, attribute, record_form, *args, **kwargs):
+    def __init__(self, bdrs, render_factory, value_map, error_map, attribute, record_form, survey, *args, **kwargs):
         """Creates a new instance."""
         super(AttributeForm, self).__init__(bdrs, render_factory, *args, **kwargs)
         self._value_map = value_map
         self._error_map = error_map
         self._attribute = attribute
         self._record_form = record_form
+        self._survey = survey
         self._widget_arg_handler_map = {
             IntegerRange : self.insert_integer_range_args,
             Select: self.insert_multi_options_args,
             MultiSelect: self.insert_multi_options_args,
             Checkbox: self.insert_checkbox_args,
             MultiCheckbox: self.insert_multi_options_args,
+            TaxonAttribute: self.insert_taxon_attribute_args,
         }
 
     def widget(self, *args, **kwargs):
@@ -185,15 +189,16 @@ class AttributeForm(Form):
         widget_kwargs['required'] = attr.required()
         widget_kwargs['initial'] = self._value_map.get(name, None)
         widget_kwargs['error_text'] = self._error_map.get(name, None)
+        # add the actual attribute value object
 
         # Populate with additional widget args as appropriate
         handler = self._widget_arg_handler_map.get(widget, None)
         if callable(handler):
-            handler(widget_kwargs)
+            handler(attr_val, widget_kwargs)
 
         return widget(self._bdrs, **widget_kwargs)
 
-    def insert_integer_range_args(self, widget_kwargs):
+    def insert_integer_range_args(self, attr_val, widget_kwargs):
         """Inserts the min and max value argument for the integer range widget."""
         vals = []
         for opt in self._attribute.options():
@@ -202,14 +207,20 @@ class AttributeForm(Form):
         widget_kwargs[IntegerRange.MAX_INT_KEY] = max(vals)
         widget_kwargs[IntegerRange.MIN_INT_KEY] = min(vals)
 
-    def insert_multi_options_args(self, widget_kwargs):
+    def insert_multi_options_args(self, attr_val, widget_kwargs):
         """Inserts the options argument for the widget."""
         options = []
         for opt in self._attribute.options():
             options.append(opt.value())
         widget_kwargs[MultiOptions.OPTIONS_KEY] = options
 
-    def insert_checkbox_args(self, widget_kwargs):
+    def insert_checkbox_args(self, attr_val, widget_kwargs):
         val = widget_kwargs['value']
         widget_kwargs[Checkbox.CHECKED_KEY] = val == True
         widget_kwargs['value'] = 'true'
+
+    def insert_taxon_attribute_args(self, attr_val, widget_kwargs):
+        if attr_val is not None:
+            widget_kwargs[TaxonAttribute.SPECIES_KEY] = attr_val.species()
+        widget_kwargs[TaxonAttribute.SURVEY_KEY] = self._survey
+

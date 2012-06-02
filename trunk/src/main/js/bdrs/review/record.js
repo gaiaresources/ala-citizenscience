@@ -96,7 +96,7 @@ bdrs.review.record.displayRecordInfo = function(record) {
             'header': attr_val.attribute.description
         };
         // Not displaying empty attribute values. Is that desired?
-        if(attr_val.stringValue.trim().length > 0) {
+        if(attr_val.stringValue && attr_val.stringValue.trim().length > 0) {
             attr = attr_val.attribute;
             attr_type = bdrs.model.taxa.attributeType.code[attr.typeCode];
             

@@ -183,6 +183,8 @@ class Attribute(PortalPersistent):
     ATTRIBUTE_TYPE_MULTI_CHECKBOX = 'MC'
     ATTRIBUTE_TYPE_MULTI_SELECT = 'MS'
 
+    ATTRIBUTE_TYPE_SPECIES = 'SP'
+
     def __init__(self, factory, data={}):
         super(Attribute, self).__init__(factory, data)
         
@@ -321,8 +323,8 @@ class AttributeValue(PortalPersistent):
 
         typeCode = self.attribute().typeCode()
 
-        if typeCode in [Attribute.ATTRIBUTE_TYPE_INTEGER, 
-                        Attribute.ATTRIBUTE_TYPE_INTEGER_RANGE, 
+        if typeCode in [Attribute.ATTRIBUTE_TYPE_INTEGER,
+                        Attribute.ATTRIBUTE_TYPE_INTEGER_RANGE,
                         Attribute.ATTRIBUTE_TYPE_DECIMAL]:
             try:
                 return Decimal(self.stringValue())
@@ -361,6 +363,7 @@ insert_accessors(AttributeValue, {
     'numericValue' : Decimal,
     'stringValue' : str,
     'dateValue' : datetime,
+    'species' : Taxon,
 })
 
 class Record(PortalPersistent):

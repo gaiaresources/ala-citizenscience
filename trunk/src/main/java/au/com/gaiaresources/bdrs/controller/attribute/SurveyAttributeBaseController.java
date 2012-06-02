@@ -336,8 +336,8 @@ public class SurveyAttributeBaseController extends AbstractController {
         // All attributes have a hidden input called 'attribute'
         Attribute attr;
         boolean isValid = true;
-        AttributeParser parser = new WebFormAttributeParser();
-        RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO);
+        AttributeParser parser = new WebFormAttributeParser(taxaDAO);
+        RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO, null);
         if(request.getParameterValues("attribute") != null) {
             for(String rawAttrPk : request.getParameterValues("attribute")) {
 

@@ -8,6 +8,10 @@
 <%@page import="au.com.gaiaresources.bdrs.model.location.Location" %>
 <jsp:useBean id="location" type="au.com.gaiaresources.bdrs.model.location.Location" scope="request"/><jsp:useBean id="survey" type="au.com.gaiaresources.bdrs.model.survey.Survey" scope="request"/>
 
+<%-- Access the facade to retrieve the preference information --%>
+<jsp:useBean id="bdrsPluginFacade" scope="request" type="au.com.gaiaresources.bdrs.servlet.BdrsPluginFacade"></jsp:useBean>
+<c:set var="showScientificName" value="<%= bdrsPluginFacade.getPreferenceBooleanValue(\"taxon.showScientificName\") %>" />
+
 <c:choose>
 	<c:when test="${location.id != null}">
 		<h1>Edit Location</h1>

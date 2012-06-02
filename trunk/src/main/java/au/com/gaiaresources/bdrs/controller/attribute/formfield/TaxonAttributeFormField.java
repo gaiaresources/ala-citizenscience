@@ -1,10 +1,15 @@
 package au.com.gaiaresources.bdrs.controller.attribute.formfield;
 
+import java.util.Collection;
+import java.util.Collections;
+
 import au.com.gaiaresources.bdrs.controller.attribute.DisplayContext;
 import org.apache.log4j.Logger;
 
+import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
+import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpeciesAttribute;
 
@@ -60,29 +65,13 @@ public class TaxonAttributeFormField extends AbstractFormField implements TypedA
         return taxonAttribute;
     }
 
-    public void setTaxonAttribute(IndicatorSpeciesAttribute taxonAttribute) {
-        this.taxonAttribute = taxonAttribute;
-    }
-
     public Attribute getAttribute() {
         return attribute;
-    }
-
-    public void setAttribute(Attribute attribute) {
-        this.attribute = attribute;
     }
 
     @Override
     public TypedAttributeValue getAttributeValue() {
         return this.taxonAttribute;
-    }
-
-    @Override
-    public void setAttributeValue(TypedAttributeValue attributeValue) {
-        if(!(attributeValue instanceof IndicatorSpeciesAttribute)) {
-            throw new IllegalArgumentException(String.format("Attribute Value %s is not an instance of IndicatorSpeciesAttribute", attributeValue));
-        } 
-        this.taxonAttribute = (IndicatorSpeciesAttribute) attributeValue;
     }
 
     /**
@@ -130,4 +119,26 @@ public class TaxonAttributeFormField extends AbstractFormField implements TypedA
     public boolean isVisible(DisplayContext context) {
         return attribute.isVisible(context);
     }
+
+	@Override
+	public Collection<IndicatorSpecies> getAllowableSpecies() {
+		// all species are allowed for this form field type.
+		return Collections.EMPTY_LIST;
+	}
+
+	@Override
+	public IndicatorSpecies getSpecies() {
+		return taxonAttribute != null ? taxonAttribute.getSpecies() : null;
+	}
+
+	@Override
+	public boolean isRequired() {
+		return this.attribute.isRequired();
+	}
+
+	@Override
+	public Survey getSurvey() {
+		// taxon attributes will never have a survey.
+		return null;
+	}
 }

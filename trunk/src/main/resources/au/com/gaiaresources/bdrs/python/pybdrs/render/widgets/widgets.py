@@ -1,6 +1,7 @@
 import os.path
 from datetime import datetime
 from urllib import urlencode
+from pprint import pprint
 
 from Cheetah.Template import Template
 from Cheetah.Filters import WebSafe
@@ -438,7 +439,80 @@ class Taxon(Widget):
                 return taxon.commonName()
         except AttributeError:
             return str(taxon)
+    
+    def taxon_name_input_id(self):
+        """Returns the id of the input field where the user types in the search text."""
+        return '%ssurvey_species_search' % self._form._record_prefix()
 
+    def taxon_name_input_name(self):
+        """Returns the name of the input field where the user types in the search text."""
+        return '%ssurvey_species_search' % self._form._record_prefix()
+
+    def taxon_id_input_id(self):
+        """Returns the id of the hidden input field that is populated via javascript."""
+        return '%sspecies_id' % self._form._record_prefix()
+
+    def taxon_id_input_name(self):
+        """Returns the name of the hidden input field that is populated via javascript."""
+        return '%sspecies' % self._form._record_prefix()
+
+
+class TaxonAttribute(Taxon):
+    """Represents an autocomplete field for taxonomic selection."""
+    SHOW_SCIENTIFIC_NAME_KEY = 'show_scientific_name'
+    SHOW_SCIENTIFIC_NAME_DEFAULT = True
+    SPECIES_KEY = 'species'
+    SURVEY_KEY = 'survey'
+
+    def __init__(self, bdrs, **kwargs):
+        kwargs.setdefault(TaxonAttribute.SHOW_SCIENTIFIC_NAME_KEY, TaxonAttribute.SHOW_SCIENTIFIC_NAME_DEFAULT)
+        super(TaxonAttribute, self).__init__(bdrs, **kwargs)
+
+    def widget_value(self):
+        """Returns the primary key of the taxon if there is one"""
+        # val is either a Taxon or a String if there was a server side validation error
+        val = self.get('species', None)
+        if val is None:
+            return ""
+        try:
+            return val.id()
+        except AttributeError:
+            return ""
+
+    def survey(self):
+        return self.get(TaxonAttribute.SURVEY_KEY, None)
+
+    def survey_species_search_name(self):
+        """Returns the name of the widget where the user types in the search text."""
+        return self.taxon_name_input_name()
+
+    def survey_species_search_value(self):
+        """Returns the value that goes in the search widget."""
+        if self._value_map.has_key(self.widget_name()):
+            return self._value_map[self.widget_name()][0]
+        else:
+            return self.taxon_name(self.species())
+
+    def species(self):
+        return self.get(TaxonAttribute.SPECIES_KEY, None)
+    
+    def taxon_name_input_id(self):
+        #"""Returns the id of the input field where the user types in the search text."""
+        return '%s_0' % self.get(Widget.WIDGET_NAME_KEY, None)
+
+    def taxon_name_input_name(self):
+        #"""Returns the name of the input field where the user types in the search text."""
+        return self.get(Widget.WIDGET_NAME_KEY, None)
+
+    def taxon_id_input_id(self):
+        #"""Returns the id of the hidden input field that is populated via javascript."""
+        return '%s_1' % self.get(Widget.WIDGET_NAME_KEY, None)
+
+    def taxon_id_input_name(self):
+        #"""Returns the name of the hidden input field that is populated via javascript."""
+        return self.get(Widget.WIDGET_NAME_KEY, None)
+
+    
 class LatLonMap(Widget):
     """Represents a latitude input, longitude input and a map for the geometry."""
 

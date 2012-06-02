@@ -733,6 +733,7 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
                     case FILE:
                         throw new UnsupportedOperationException(
                                 "Spreadsheet upload of file data is not supported.");
+                    case SPECIES:
                     case TEXT:
                     case STRING_WITH_VALID_VALUES:
                     case STRING:

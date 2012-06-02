@@ -414,6 +414,10 @@ public class RecordDeletionControllerTest extends AbstractControllerTest {
                 case IMAGE:
                     recAttr.setStringValue("testImgFile.png");
                     break;
+                case SPECIES:
+                	recAttr.setStringValue(speciesA.getScientificName());
+                	recAttr.setSpecies(speciesA);
+                	break;
                 default:
                     Assert.assertTrue("Unknown Attribute Type: "
                             + attr.getType().toString(), false);
@@ -507,6 +511,10 @@ public class RecordDeletionControllerTest extends AbstractControllerTest {
                     case IMAGE:
                         recAttr.setStringValue("testGroupImgFile.png");
                         break;
+                    case SPECIES:
+                    	recAttr.setStringValue(speciesA.getScientificName());
+                    	recAttr.setSpecies(speciesA);
+                    	break;
                     default:
                         Assert.assertTrue("Unknown Attribute Type: "
                                 + attr.getType().toString(), false);

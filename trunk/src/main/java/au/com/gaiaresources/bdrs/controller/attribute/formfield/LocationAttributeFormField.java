@@ -1,10 +1,15 @@
 package au.com.gaiaresources.bdrs.controller.attribute.formfield;
 
+import java.util.Collection;
+import java.util.Collections;
+
 import au.com.gaiaresources.bdrs.controller.attribute.DisplayContext;
+import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import org.apache.log4j.Logger;
 
@@ -20,6 +25,7 @@ public class LocationAttributeFormField extends AbstractFormField implements Typ
 
     private TypedAttributeValue locationAttribute;
     private Attribute attribute;
+    private Survey survey;
 
     public static final String LOCATION_PREFIX = "";
     
@@ -33,12 +39,15 @@ public class LocationAttributeFormField extends AbstractFormField implements Typ
      *            the current value of this field or null
      * @param prefix
      *            the prefix to be prepended to input names.
+     * @param species
+     *            collection of allowable species for species attribute autocomplete.
      */
     LocationAttributeFormField(Attribute attribute, 
-            TypedAttributeValue locationAttribute, String prefix) {
+            TypedAttributeValue locationAttribute, String prefix, Survey survey) {
 
         super(prefix);
 
+        this.survey = survey;
         this.attribute = attribute;
         this.locationAttribute = locationAttribute;
     }
@@ -63,18 +72,9 @@ public class LocationAttributeFormField extends AbstractFormField implements Typ
         return attribute;
     }
 
-    public void setAttribute(Attribute attribute) {
-        this.attribute = attribute;
-    }
-
     @Override
     public TypedAttributeValue getAttributeValue() {
         return this.locationAttribute;
-    }
-
-    @Override
-    public void setAttributeValue(TypedAttributeValue attributeValue) {
-        this.locationAttribute = attributeValue;
     }
 
     /**
@@ -120,4 +120,24 @@ public class LocationAttributeFormField extends AbstractFormField implements Typ
     public boolean isVisible(DisplayContext context) {
         return attribute.isVisible(context);
     }
+
+	@Override
+	public Collection<IndicatorSpecies> getAllowableSpecies() {
+		return survey != null ? survey.getSpecies() : Collections.EMPTY_LIST;
+	}
+
+	@Override
+	public IndicatorSpecies getSpecies() {
+		return this.locationAttribute != null ? locationAttribute.getSpecies() : null;
+	}
+
+	@Override
+	public boolean isRequired() {
+		return attribute.isRequired();
+	}
+
+	@Override
+	public Survey getSurvey() {
+		return this.survey;
+	}
 }

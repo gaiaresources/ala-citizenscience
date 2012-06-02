@@ -163,10 +163,14 @@
         /**
          * Prepopulate fields
          */
+		var surveyIdSelector =  '[name=surveyId]';
+		var surveyId = jQuery(surveyIdSelector).val();
+		 
         bdrs.form.prepopulate();
-        bdrs.contribute.singleSiteMultiTaxa.init('#sighting_index', '[name=surveyId]', false, false);
+		
+		// initialise the autocompletes for the rows.
         <c:if test="${fn:length(recordWebFormContext.namedCollections['recordFieldCollectionList']) < 1 && hasRequiredTableCell}">
-        	bdrs.contribute.singleSiteMultiTaxa.addSighting('#sighting_index', '[name=surveyId]', '#sightingTable tbody', false, false, ${showScientificName});
+        	bdrs.contribute.singleSiteMultiTaxa.addSighting('#sighting_index', surveyIdSelector, '#sightingTable tbody', false, false, ${showScientificName});
         </c:if>
         
         jQuery("form").submit(function() {

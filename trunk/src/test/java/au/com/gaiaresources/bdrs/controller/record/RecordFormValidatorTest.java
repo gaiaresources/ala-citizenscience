@@ -6,8 +6,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import junit.framework.Assert;
 
@@ -24,6 +26,8 @@ import au.com.gaiaresources.bdrs.controller.record.validator.TaxonValidator;
 import au.com.gaiaresources.bdrs.controller.record.validator.Validator;
 import au.com.gaiaresources.bdrs.service.property.PropertyService;
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
+import au.com.gaiaresources.bdrs.model.survey.Survey;
+import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
@@ -37,6 +41,9 @@ public class RecordFormValidatorTest extends AbstractControllerTest {
 
     @Autowired
     private TaxaDAO taxaDAO;
+    
+    @Autowired
+    private SurveyDAO surveyDAO;
 
     private Map<String, String[]> paramMap;
     private Map<String, String> errorMap;
@@ -281,10 +288,24 @@ public class RecordFormValidatorTest extends AbstractControllerTest {
         species.setScientificName("Indicator Species A");
         species.setTaxonGroup(taxonGroup);
         species = taxaDAO.save(species);
-
+        
+        IndicatorSpecies species2 = new IndicatorSpecies();
+        species2.setCommonName("Indicator Species B");
+        species2.setScientificName("Indicator Species B");
+        species2.setTaxonGroup(taxonGroup);
+        species2 = taxaDAO.save(species2);
+        
+        Survey survey = new Survey();
+        survey.setName("survey");
+        survey.setDescription("survey desc");
+        Set<IndicatorSpecies> speciesSet = new HashSet<IndicatorSpecies>();
+        speciesSet.add(species);
+        survey.setSpecies(speciesSet);
+        survey = surveyDAO.save(survey);
+        
         String key = "test";
         Validator validator = new TaxonValidator(propertyService, true, false,
-                taxaDAO);
+                taxaDAO, survey);
 
         String valid = species.getScientificName();
         String allLower = valid.toLowerCase();
@@ -302,8 +323,51 @@ public class RecordFormValidatorTest extends AbstractControllerTest {
         Assert.assertTrue(validator.validate(paramMap, key, null,  errorMap));
         errorMap.clear();
 
+        // shortened names now fail.
         paramMap.put(key, new String[] { shortenedName });
+        Assert.assertFalse(validator.validate(paramMap, key, null,  errorMap));
+        Assert.assertEquals("wrong message", propertyService.getMessage(TaxonValidator.TAXON_MESSAGE_KEY), errorMap.get(key));
+        errorMap.clear();
+        
+        // id should override search string.
+        paramMap.put(key, new String[] { "random text string", species.getId().toString() });
         Assert.assertTrue(validator.validate(paramMap, key, null,  errorMap));
+        errorMap.clear();
+        
+        paramMap.put(key, new String[] { allUpper, Integer.toString(0) });
+        Assert.assertFalse(validator.validate(paramMap, key, null,  errorMap));
+        errorMap.clear();
+        
+        // space padded string for id
+        paramMap.put(key, new String[] { "random text string", "     " });
+        Assert.assertFalse(validator.validate(paramMap, key, null,  errorMap));
+        Assert.assertEquals("wrong message", propertyService.getMessage(TaxonValidator.TAXON_MESSAGE_KEY), errorMap.get(key));
+        errorMap.clear();
+        
+        // empty string for id
+        paramMap.put(key, new String[] { "random text string", "" });
+        Assert.assertFalse(validator.validate(paramMap, key, null,  errorMap));
+        Assert.assertEquals("wrong message", propertyService.getMessage(TaxonValidator.TAXON_MESSAGE_KEY), errorMap.get(key));
+        errorMap.clear();
+        
+        paramMap.put(key, new String[] { "random text string" });
+        Assert.assertFalse(validator.validate(paramMap, key, null,  errorMap));
+        Assert.assertEquals("wrong message", propertyService.getMessage(TaxonValidator.TAXON_MESSAGE_KEY), errorMap.get(key));
+        errorMap.clear();
+        
+        paramMap.put(key, new String[] { "random text string" });
+        Assert.assertFalse(validator.validate(paramMap, key, null,  errorMap));
+        Assert.assertEquals("wrong message", propertyService.getMessage(TaxonValidator.TAXON_MESSAGE_KEY), errorMap.get(key));
+        errorMap.clear();
+        
+        paramMap.put(key,  new String[] { species2.getScientificName() });
+        Assert.assertFalse("expected failure", validator.validate(paramMap, key, null,  errorMap));
+        Assert.assertEquals("wrong message", propertyService.getMessage(TaxonValidator.TAXON_INVALID_FOR_SURVEY_MESSAGE_KEY), errorMap.get(key));
+        errorMap.clear();
+        
+        paramMap.put(key,  new String[] { "blah blah blah", species2.getId().toString() });
+        Assert.assertFalse("expected failure", validator.validate(paramMap, key, null,  errorMap));
+        Assert.assertEquals("wrong message", propertyService.getMessage(TaxonValidator.TAXON_INVALID_FOR_SURVEY_MESSAGE_KEY), errorMap.get(key));
         errorMap.clear();
     }
     
@@ -330,7 +394,7 @@ public class RecordFormValidatorTest extends AbstractControllerTest {
         Date invalidLate = cal.getTime();
 
         String key = "date";
-        RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO);
+        RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO, null);
 
         // Boundary Test
         paramMap.put(key, new String[] { dateFormat.format(valid) });
@@ -383,7 +447,7 @@ public class RecordFormValidatorTest extends AbstractControllerTest {
     public void testValidateRequiredTime() throws Exception {
         String key = "time";
         String value = "";
-        RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO);
+        RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO, null);
 
         // Boundary Test
         paramMap.put(key, new String[] { value });
@@ -406,7 +470,7 @@ public class RecordFormValidatorTest extends AbstractControllerTest {
     public void testValidateTime() throws Exception {
         String key = "time";
         String value = "";
-        RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO);
+        RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO, null);
 
         // Boundary Test
         paramMap.put(key, new String[] { value });
@@ -431,7 +495,7 @@ public class RecordFormValidatorTest extends AbstractControllerTest {
     public void testValidateHtml() throws Exception {
         String key = "test";
         String value = "";
-        RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO);
+        RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO, null);
 
         // Boundary Test
         paramMap.put(key, new String[] { value });
@@ -459,7 +523,7 @@ public class RecordFormValidatorTest extends AbstractControllerTest {
         String key = "test";
         String value = "";
         String regex = "\\d+(\\.?\\d+)?"; // regex for numbers
-        RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO);
+        RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO, null);
 
         Attribute att = new Attribute();
         att.setName(key+"_attribute");

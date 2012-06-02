@@ -144,7 +144,35 @@ public interface TaxaDAO extends TransactionDAO {
 
     List<IndicatorSpecies> getIndicatorSpecies(TaxonGroup group);
 
+    /**
+     * Search for the indicator species by scientific name or common name. 
+     * 
+     * Search is case insensitive.
+     * 
+     * The name is split by spaces and has
+     * wild cards added. e.g. 'tib crac' will resolve to 'tibius cracticus'.
+     * 
+     * Multiple entries may be returned.
+     * 
+     * @param name Name to search for.
+     * @return List of indicator species that match the search string.
+     */
     List<IndicatorSpecies> getIndicatorSpeciesByNameSearch(String name);
+    
+    /**
+	 * Search for the indicator species by scientific name or common name. 
+     * 
+     * Search is case insensitive.
+     * 
+     * The name is split by spaces and has
+     * wild cards added. e.g. 'tib crac' will resolve to 'tibius cracticus'.
+     * 
+     * Multiple entries may be returned.
+     * 
+     * @param name Name to search for.
+     * @return List of indicator species that match the search string.
+     */
+    List<IndicatorSpecies> getIndicatorSpeciesByNameSearchExact(String name);
     
     /**
      * Queries taxa with a query build up using a taxongroup id or query parameter 'AND' a sub-query parameter if available.
@@ -521,4 +549,14 @@ public interface TaxaDAO extends TransactionDAO {
      * @param group The TaxonGroup that will be added as a secondary group to all of the IndicatorSpecies.
      */
     void bulkAssignSecondaryGroup(List<Integer> taxonIds, TaxonGroup group);
+    
+    /**
+     * Get all of the species contained in a record. This includes the species record property
+     * and any populated attribute values containing species. 
+     * 
+     * @param sesh session to execute query in. can be null.
+     * @param recId id of the record to search inside.
+     * @return distinct list of indicator species contained in the record.
+     */
+    List<IndicatorSpecies> getSpeciesForRecord(Session sesh, Integer recId);
 }

@@ -5,6 +5,7 @@
 	<tbody>
 		<c:forEach items="${formFieldList}" var="formField">
 			<tiles:insertDefinition name="formFieldRenderer">
+				<tiles:putAttribute name="editEnabled" value="true"/>
 				<tiles:putAttribute name="formField" value="${ formField }"/>
 			</tiles:insertDefinition>
 		</c:forEach>

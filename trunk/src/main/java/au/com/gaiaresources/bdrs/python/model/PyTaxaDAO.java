@@ -105,4 +105,15 @@ public class PyTaxaDAO extends AbstractPyDAO {
         IndicatorSpecies result = taxaDAO.getIndicatorSpeciesBySourceDataID(null,  source, sourceId);
         return PyDAOUtil.toJSON(result).toString();
     }
+    
+    /**
+     * Returns the taxon contained in a record. This the species contained
+     * in species attributes.
+     * @param recId record id that contains the desired taxa.
+     * @return taxon that matches search parameters.
+     */
+    public String getTaxaForRecord(int recId) {
+    	List<IndicatorSpecies> taxaList = taxaDAO.getSpeciesForRecord(null, recId);
+    	return PyDAOUtil.toJSON(taxaList).toString();
+    }
 }

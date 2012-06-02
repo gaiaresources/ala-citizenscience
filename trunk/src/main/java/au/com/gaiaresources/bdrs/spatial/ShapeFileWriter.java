@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
+import org.codehaus.plexus.util.StringUtils;
 import org.geotools.data.DefaultTransaction;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
@@ -554,7 +555,7 @@ public class ShapeFileWriter {
             featureStore.addFeatures(collection);
             shapefileTransaction.commit();
         } catch (Exception ex) {
-            log.debug("error while writing shapefile:", ex);
+            log.error("error while writing shapefile:", ex);
             shapefileTransaction.rollback();
         } finally {
             shapefileTransaction.close();
@@ -604,8 +605,14 @@ public class ShapeFileWriter {
                 continue;
             }
             if (targetMap.containsKey(name)) {
-                log.error("key already exists in target map, we should have no collisions : " + name);
-                throw new IllegalStateException("Could not write attribute values, key for value already in target map");
+            	// This can happen if the database contains more than one attribute value for an attribute
+            	// within a single record. Previously we threw an exception but instead we will write out
+            	// the first value and ignore the rest. Print a lo
+                log.error("key already exists in target map, we should have no collisions : " 
+                		+ name + " for attribute name = " + a.getName() + ", attribute id = " + a.getId() + "\n"
+                		+ "Database should only have one attribute value per each attribute per record");
+                // Skip to next attribute value.
+                continue;
             }
             
             switch (a.getType()) {
@@ -645,6 +652,11 @@ public class ShapeFileWriter {
                     targetMap.put(name, av.getStringValue());
                 }
                 break;
+            case SPECIES:
+            	if (av.getSpecies() != null && StringUtils.isNotEmpty(av.getSpecies().getScientificName())) {
+            		targetMap.put(name, av.getSpecies().getScientificName());
+            	}
+            	break;
             
             // not supported
             case IMAGE:
@@ -701,6 +713,7 @@ public class ShapeFileWriter {
             case MULTI_CHECKBOX:
             case SINGLE_CHECKBOX:
             case MULTI_SELECT:
+            case SPECIES:
                 context.addString(name, a, a.getDescription());
                 break;
             

@@ -11,6 +11,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
 /**
  *  Provides basic accessor and mutator functions for {@link Facet} implementations.
  */
@@ -31,7 +33,8 @@ public abstract class AbstractFacet implements Facet {
     private int defaultVisibleOptionCount = DEFAULT_VISIBLE_OPTION_COUNT;
     private List<FacetOption> facetOptions = new ArrayList<FacetOption>();
 
-
+    private Logger log = Logger.getLogger(getClass());
+    
     /**
      * Creates a new instance of this class.
      * 

@@ -161,6 +161,11 @@
     <definition name="attributeRenderer" template="/WEB-INF/jsp/bdrs/user/record/render/attributeRenderer.jsp">
         <put-attribute name="formField" type="object"/>
     </definition>
+	
+	<!-- species form field -->
+	<definition name="speciesFormField" template="/WEB-INF/jsp/bdrs/user/record/render/speciesFormField.jsp">
+		<put-attribute name="formField" type="object"/>
+	</definition>
 
     <!-- Tracker -->
     <definition name="tracker" extends="user-template">

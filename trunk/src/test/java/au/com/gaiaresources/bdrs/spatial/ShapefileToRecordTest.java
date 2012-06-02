@@ -82,6 +82,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
     User currentUser;
     Survey survey;
     IndicatorSpecies species;
+    IndicatorSpecies species2;
     IndicatorSpecies speciesNotInSurvey;
     TaxonGroup taxonGroup;
     CensusMethod cm;
@@ -109,6 +110,13 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         species.setCommonName("red cup");
         species.setTaxonGroup(taxonGroup);
         
+        // species2 has a super string of species as the scientific name.
+        species2 = new IndicatorSpecies();
+        species2.setRunThreshold(false);
+        species2.setScientificName(species.getScientificName() + "suffix");
+        species2.setCommonName("species two common name");
+        species2.setTaxonGroup(taxonGroup);
+        
         speciesNotInSurvey = new IndicatorSpecies();
         speciesNotInSurvey.setRunThreshold(false);
         speciesNotInSurvey.setScientificName("notus surveyus");
@@ -117,6 +125,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         
         taxaDAO.save(taxonGroup);
         taxaDAO.save(species);
+        taxaDAO.save(species2);
         taxaDAO.save(speciesNotInSurvey);
         
         Calendar cal = Calendar.getInstance();
@@ -146,6 +155,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         taxaCmList.add(createAttribute("cattr_7", AttributeType.STRING_AUTOCOMPLETE, true));
         taxaCmList.add(createAttribute("cattr_8", AttributeType.TEXT, true));
         taxaCmList.add(createAttribute("cattr_9", AttributeType.STRING_WITH_VALID_VALUES, true, new String[] { "hello", "world", "goodbye"} ));
+        taxaCmList.add(createAttribute("cattr_10", AttributeType.SPECIES, true));
         taxaCm.setAttributes(taxaCmList);
         cmDAO.save(taxaCm);
         
@@ -165,6 +175,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         cmAttrList.add(createAttribute("cattr_7", AttributeType.STRING_AUTOCOMPLETE, true));
         cmAttrList.add(createAttribute("cattr_8", AttributeType.TEXT, true));
         cmAttrList.add(createAttribute("cattr_9", AttributeType.STRING_WITH_VALID_VALUES, true, new String[] { "hello", "world", "goodbye"} ));
+        cmAttrList.add(createAttribute("cattr_10", AttributeType.SPECIES, true));
         cm.setAttributes(cmAttrList);
         cmDAO.save(cm);
         
@@ -183,6 +194,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         surveyAttrList.add(createAttribute("sattr_7", AttributeType.STRING_AUTOCOMPLETE, true));
         surveyAttrList.add(createAttribute("sattr_8", AttributeType.TEXT, true));
         surveyAttrList.add(createAttribute("sattr_9", AttributeType.STRING_WITH_VALID_VALUES, true, new String[] { "hello", "world", "goodbye"} ));
+        surveyAttrList.add(createAttribute("sattr_10", AttributeType.SPECIES, true));
         survey.setAttributes(surveyAttrList);
         
         surveyStartDate = cal.getTime();
@@ -248,7 +260,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
             Map<String, Object> featureAttr = new HashMap<String, Object>();
             featureAttr.put(klu.getNotesKey(), "comments");
             featureAttr.put(klu.getDateKey(), shpDateFormat.format(dateOnly));
-            featureAttr.put(klu.getSpeciesNameKey(), "wootus maxus");
+            featureAttr.put(klu.getSpeciesNameKey(), species.getScientificName().toLowerCase());
             featureAttr.put(klu.getTimeKey(), "14:30");
             featureAttr.put("sattr_0", 100);
             featureAttr.put("sattr_1", 6);
@@ -260,6 +272,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
             featureAttr.put("sattr_9", "9");
             featureAttr.put("sattr_7", "7");
             featureAttr.put("sattr_8", "8");
+            featureAttr.put("sattr_10", species.getScientificName().toLowerCase());
             
             Geometry geomToWrite = gb.createPoint(10, 5);
             
@@ -286,7 +299,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         Assert.assertEquals(1, entries.size());
         
         AttributeDictionaryFactory adf = new ShapefileAttributeDictionaryFactory();
-        AttributeParser parser = new ShapefileAttributeParser();
+        AttributeParser parser = new ShapefileAttributeParser(taxaDAO);
         RecordDeserializer rds = new RecordDeserializer(klu, adf, parser);
         List<RecordDeserializerResult> dsResult = rds.deserialize(currentUser, entries);
         
@@ -337,6 +350,10 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         assertAttributeValue(avList, "sattr_7", "7");
         assertAttributeValue(avList, "sattr_8", "8");
         assertAttributeValue(avList, "sattr_9", "9");
+        
+        AttributeValue speciesAv = this.getByAttributeName(avList, "sattr_10");
+        Assert.assertNotNull("species cannot be null", speciesAv.getSpecies());
+        Assert.assertEquals("Wrong species id", species.getId(), speciesAv.getSpecies().getId());
     }
     
     @Test
@@ -391,6 +408,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
             featureAttr.put("sattr_9", "9");
             featureAttr.put("sattr_7", "7");
             featureAttr.put("sattr_8", "8");
+            featureAttr.put("sattr_10", species.getScientificName().toLowerCase());
             
             featureAttr.put("cattr_0", 100);
             featureAttr.put("cattr_1", 6);
@@ -402,6 +420,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
             featureAttr.put("cattr_9", "9");
             featureAttr.put("cattr_7", "7");
             featureAttr.put("cattr_8", "8");
+            featureAttr.put("cattr_10", species.getScientificName().toLowerCase());
             
             Point point = gb.createPoint(10, 5);
             featureList.add(new ShapefileFeature(point, featureAttr));
@@ -415,7 +434,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         Assert.assertEquals(1, entries.size());
         
         AttributeDictionaryFactory adf = new ShapefileAttributeDictionaryFactory();
-        AttributeParser parser = new ShapefileAttributeParser();
+        AttributeParser parser = new ShapefileAttributeParser(taxaDAO);
         RecordDeserializer rds = new RecordDeserializer(klu, adf, parser);
         List<RecordDeserializerResult> dsResult = rds.deserialize(currentUser, entries);
         
@@ -459,6 +478,11 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         assertAttributeValue(avList, "sattr_7", "7");
         assertAttributeValue(avList, "sattr_8", "8");
         assertAttributeValue(avList, "sattr_9", "9");
+        {
+        	AttributeValue speciesAv = this.getByAttributeName(avList, "sattr_10");
+            Assert.assertNotNull("species cannot be null", speciesAv.getSpecies());
+            Assert.assertEquals("Wrong species id", species.getId(), speciesAv.getSpecies().getId());
+        }
         
         assertAttributeValue(avList, "cattr_0", 100);
         assertAttributeValue(avList, "cattr_1", 6);
@@ -470,6 +494,11 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         assertAttributeValue(avList, "cattr_7", "7");
         assertAttributeValue(avList, "cattr_8", "8");
         assertAttributeValue(avList, "cattr_9", "9");
+        {
+        	AttributeValue speciesAv = this.getByAttributeName(avList, "cattr_10");
+            Assert.assertNotNull("species cannot be null", speciesAv.getSpecies());
+            Assert.assertEquals("Wrong species id", species.getId(), speciesAv.getSpecies().getId());
+        }
     }
     
     @Test
@@ -524,6 +553,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
             featureAttr.put("sattr_9", "9");
             featureAttr.put("sattr_7", "7");
             featureAttr.put("sattr_8", "8");
+            featureAttr.put("sattr_10", species.getScientificName().toLowerCase());
             
             featureAttr.put("cattr_0", 100);
             featureAttr.put("cattr_1", 6);
@@ -535,6 +565,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
             featureAttr.put("cattr_9", "9");
             featureAttr.put("cattr_7", "7");
             featureAttr.put("cattr_8", "8");
+            featureAttr.put("cattr_10", species.getScientificName().toLowerCase());
             
             Point point = gb.createPoint(10, 5);
             featureList.add(new ShapefileFeature(point, featureAttr));
@@ -548,7 +579,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         Assert.assertEquals(1, entries.size());
         
         AttributeDictionaryFactory adf = new ShapefileAttributeDictionaryFactory();
-        AttributeParser parser = new ShapefileAttributeParser();
+        AttributeParser parser = new ShapefileAttributeParser(taxaDAO);
         RecordDeserializer rds = new RecordDeserializer(klu, adf, parser);
         List<RecordDeserializerResult> dsResult = rds.deserialize(currentUser, entries);
         
@@ -589,6 +620,11 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         assertAttributeValue(avList, "sattr_7", "7");
         assertAttributeValue(avList, "sattr_8", "8");
         assertAttributeValue(avList, "sattr_9", "9");
+        {
+        	AttributeValue speciesAv = this.getByAttributeName(avList, "sattr_10");
+            Assert.assertNotNull("species cannot be null", speciesAv.getSpecies());
+            Assert.assertEquals("Wrong species id", species.getId(), speciesAv.getSpecies().getId());
+        }
         
         assertAttributeValue(avList, "cattr_0", 100);
         assertAttributeValue(avList, "cattr_1", 6);
@@ -600,6 +636,11 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         assertAttributeValue(avList, "cattr_7", "7");
         assertAttributeValue(avList, "cattr_8", "8");
         assertAttributeValue(avList, "cattr_9", "9");
+        {
+        	AttributeValue speciesAv = this.getByAttributeName(avList, "cattr_10");
+            Assert.assertNotNull("species cannot be null", speciesAv.getSpecies());
+            Assert.assertEquals("Wrong species id", species.getId(), speciesAv.getSpecies().getId());
+        }
     }
     
     @Rule
@@ -667,7 +708,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         Assert.assertEquals(1, entries.size());
         
         AttributeDictionaryFactory adf = new ShapefileAttributeDictionaryFactory();
-        AttributeParser parser = new ShapefileAttributeParser();
+        AttributeParser parser = new ShapefileAttributeParser(taxaDAO);
         RecordDeserializer rds = new RecordDeserializer(klu, adf, parser);
         List<RecordDeserializerResult> dsResult = rds.deserialize(currentUser, entries);
         
@@ -683,6 +724,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         Assert.assertTrue(result.getErrorMap().containsKey("sattr_7"));
         Assert.assertTrue(result.getErrorMap().containsKey("sattr_8"));
         Assert.assertTrue(result.getErrorMap().containsKey("sattr_9"));
+        Assert.assertTrue(result.getErrorMap().containsKey("sattr_10"));
         Assert.assertTrue(result.getErrorMap().containsKey(klu.getDateKey()));
     }
     
@@ -725,7 +767,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
             Map<String, Object> featureAttr = new HashMap<String, Object>();
             featureAttr.put(klu.getNotesKey(), "comments");
             featureAttr.put(klu.getDateKey(), shpDateFormat.format(beforeSurveyStartDate)); // error, record date is before the survey start date
-            featureAttr.put(klu.getSpeciesNameKey(), "notus");
+            featureAttr.put(klu.getSpeciesNameKey(), speciesNotInSurvey.getScientificName().toUpperCase());
             featureAttr.put(klu.getTimeKey(), "14:30");
             featureAttr.put("sattr_0", 0);
             featureAttr.put("sattr_1", 3); // error, out of range
@@ -749,7 +791,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         Assert.assertEquals(1, entries.size());
         
         AttributeDictionaryFactory adf = new ShapefileAttributeDictionaryFactory();
-        AttributeParser parser = new ShapefileAttributeParser();
+        AttributeParser parser = new ShapefileAttributeParser(taxaDAO);
         RecordDeserializer rds = new RecordDeserializer(klu, adf, parser);
         List<RecordDeserializerResult> dsResult = rds.deserialize(currentUser, entries);
         
@@ -765,6 +807,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         Assert.assertTrue(result.getErrorMap().containsKey("sattr_6"));
         Assert.assertTrue(result.getErrorMap().containsKey("sattr_7"));
         Assert.assertTrue(result.getErrorMap().containsKey("sattr_8"));
+        Assert.assertTrue(result.getErrorMap().containsKey("sattr_9"));
         Assert.assertTrue(result.getErrorMap().containsKey("sattr_9"));
         Assert.assertTrue(result.getErrorMap().containsKey(klu.getDateKey()));
     }
@@ -849,7 +892,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         Assert.assertEquals(1, entries.size());
         
         AttributeDictionaryFactory adf = new ShapefileAttributeDictionaryFactory();
-        AttributeParser parser = new ShapefileAttributeParser();
+        AttributeParser parser = new ShapefileAttributeParser(taxaDAO);
         RecordDeserializer rds = new RecordDeserializer(klu, adf, parser);
         List<RecordDeserializerResult> dsResult = rds.deserialize(currentUser, entries);
         

@@ -214,7 +214,7 @@ public class RecordDeserializer {
             String numberString = entry.getValue(entry.prefix+klu.getIndividualCountKey());
             
             RecordProperty recordProperty;
-            RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO);
+            RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO, survey);
             boolean isValid = false;
             Map<String, String[]> params = dataMap;
             Map<String, String[]> dateRangeParams = new HashMap<String, String[]>(params);
@@ -660,7 +660,7 @@ public class RecordDeserializer {
         if (StringUtils.nullOrEmpty(name)) {
             return null;
         }
-        List<IndicatorSpecies> taxaList = taxaDAO.getIndicatorSpeciesByNameSearch(name);
+        List<IndicatorSpecies> taxaList = taxaDAO.getIndicatorSpeciesByNameSearchExact(name);
         if (taxaList.size() == 0) {
             return null;
         }

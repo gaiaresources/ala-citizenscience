@@ -185,7 +185,7 @@ public abstract class SingleSiteController extends RecordController {
         RecordKeyLookup lookup = new TrackerFormRecordKeyLookup();
         SingleSiteFormToRecordEntryTransformer transformer = new SingleSiteFormToRecordEntryTransformer(locationService);
         SingleSiteFormAttributeDictionaryFactory adf = new SingleSiteFormAttributeDictionaryFactory();
-        AttributeParser parser = new WebFormAttributeParser();
+        AttributeParser parser = new WebFormAttributeParser(taxaDAO);
 
         RecordDeserializer rds = new RecordDeserializer(lookup, adf, parser);
         List<RecordEntry> entries = transformer.httpRequestParamToRecordMap(paramMap, request.getFileMap(), rowIds);

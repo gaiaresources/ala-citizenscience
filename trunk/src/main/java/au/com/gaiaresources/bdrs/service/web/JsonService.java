@@ -11,14 +11,18 @@ import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.map.GeoMapFeature;
+import au.com.gaiaresources.bdrs.model.preference.Preference;
+import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
 import au.com.gaiaresources.bdrs.model.record.AccessControlledRecordAdapter;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
@@ -29,6 +33,10 @@ public class JsonService {
     public static final String JSON_KEY_TYPE = "type";
     public static final String JSON_KEY_ATTRIBUTES = "attributes";
     public static final String JSON_KEY_ID = "id";
+    public static final String JSON_KEY_ATTR_TYPE = "type";
+    public static final String JSON_KEY_ATTR_NAME = "name";
+    public static final String JSON_KEY_ATTR_VALUE = "value";
+    public static final String JSON_KEY_IS_SCINAME = "sciName";
     
     public static final String JSON_ITEM_TYPE_RECORD = "record";
     public static final String JSON_ITEM_TYPE_MAP_FEATURE = "geoMapFeature";
@@ -53,6 +61,9 @@ public class JsonService {
     private SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
     
     private Logger log = Logger.getLogger(getClass());
+    
+    @Autowired
+    private PreferenceDAO prefDAO;
     
     /**
      * 
@@ -143,19 +154,25 @@ public class JsonService {
     }
     
     private JSONObject toJson(AttributeValue av, String contextPath) {
+    	Preference sciNamePref = prefDAO.getPreferenceByKey(Preference.SHOW_SCIENTIFIC_NAME_KEY);
+    	// default to true.
+    	Boolean showSciName = sciNamePref != null ? Boolean.valueOf(sciNamePref.getValue()) : true;
+    	
         Attribute attr = av.getAttribute();
         JSONObject obj = new JSONObject();
         String key = StringUtils.hasLength(attr.getDescription()) ? attr.getDescription() : attr.getName();
+        obj.accumulate(JSON_KEY_ATTR_TYPE, attr.getTypeCode());
+        obj.accumulate(JSON_KEY_ATTR_NAME, key);
         switch (attr.getType()) {
 		    case INTEGER:
 		    case INTEGER_WITH_RANGE:
 		    case DECIMAL:
-		        obj.accumulate(key, av.getNumericValue());
+		        obj.accumulate(JSON_KEY_ATTR_VALUE, av.getNumericValue());
 		        break;
 		    case DATE:
 		    	Date d = av.getDateValue();
 		    	String format = d == null ? null : dateFormat.format(av.getDateValue()); 
-		        obj.accumulate(key, format);
+		        obj.accumulate(JSON_KEY_ATTR_VALUE, format);
 		        break;
                     case HTML:
                     case HTML_NO_VALIDATION:
@@ -167,14 +184,24 @@ public class JsonService {
 		    case STRING_AUTOCOMPLETE:
 		    case TEXT:
 		    case STRING_WITH_VALID_VALUES:
-		        obj.accumulate(key, av.getStringValue());
+		        obj.accumulate(JSON_KEY_ATTR_VALUE, av.getStringValue());
 		        break;
 		    // allow download of files and image attribute types
 		    case IMAGE:
 		    case AUDIO:
 		    case FILE:
-		        obj.accumulate(key, getAttributeValueFileDownloadLink(av, contextPath));
+		        obj.accumulate(JSON_KEY_ATTR_VALUE, getAttributeValueFileDownloadLink(av, contextPath));
 		        break;
+		    case SPECIES:
+		    {
+		    	IndicatorSpecies species = av.getSpecies();
+		    	obj.accumulate(JSON_KEY_IS_SCINAME, showSciName);
+		    	if (species != null) {
+		    		obj.accumulate(JSON_KEY_ATTR_VALUE, showSciName.equals(Boolean.TRUE) ? 
+		    				species.getScientificName() : species.getCommonName());	
+		    	}
+		    }
+		    	break;
 		    default:
 		        // ignore
         }

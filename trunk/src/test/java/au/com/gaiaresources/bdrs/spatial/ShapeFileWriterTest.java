@@ -94,6 +94,7 @@ public class ShapeFileWriterTest extends AbstractSpringContextTest {
         assertAttributesExist(readList, attrNameTypeMap, AttributeType.MULTI_CHECKBOX, AttributeType.STRING);
         assertAttributesExist(readList, attrNameTypeMap, AttributeType.MULTI_SELECT, AttributeType.STRING);
         assertAttributesExist(readList, attrNameTypeMap, AttributeType.SINGLE_CHECKBOX, AttributeType.STRING);
+        assertAttributesExist(readList, attrNameTypeMap, AttributeType.SPECIES, AttributeType.STRING);
     }
     
     // unfortunately we can't tell certain validation types on upload at the moment so compare the read attribute types

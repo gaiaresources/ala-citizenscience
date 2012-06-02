@@ -16,6 +16,7 @@ import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
 import au.com.gaiaresources.bdrs.model.method.Taxonomic;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
 
@@ -28,6 +29,8 @@ public class RecordDAOImplTest extends AbstractControllerTest {
     private SurveyDAO surveyDAO;
     @Autowired
     private CensusMethodDAO cmDAO;
+    @Autowired
+    private TaxaDAO taxaDAO;
     
     User u;
     

@@ -20,7 +20,12 @@ import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
-import au.com.gaiaresources.bdrs.model.taxa.*;
+import au.com.gaiaresources.bdrs.model.taxa.Attribute;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.security.Role;
@@ -69,12 +74,12 @@ public class LocationBaseController extends AbstractController {
     private LocationDAO locationDAO;
     @Autowired
     private MetadataDAO metadataDAO;
-    
     @Autowired
     private UserDAO userDAO;
     @Autowired
+    private TaxaDAO taxaDAO;
+    @Autowired
     private FileService fileService;
-
     @Autowired
     private LocationService locationService;
 
@@ -327,7 +332,7 @@ public class LocationBaseController extends AbstractController {
             // add the location attribute form fields
             for (AttributeValue attr : locationAttributes) {
                 if (surveyAttributeList.remove(attr.getAttribute())) {
-                    surveyFormFieldList.add(formFieldFactory.createLocationFormField(attr.getAttribute(), attr));
+                    surveyFormFieldList.add(formFieldFactory.createLocationFormField(attr.getAttribute(), attr, survey));
                 }
             }
         } else {
@@ -336,7 +341,7 @@ public class LocationBaseController extends AbstractController {
         
         for (Attribute surveyAttr : surveyAttributeList) {
             if(AttributeScope.LOCATION.equals(surveyAttr.getScope())) {
-                surveyFormFieldList.add(formFieldFactory.createLocationFormField(surveyAttr));
+                surveyFormFieldList.add(formFieldFactory.createLocationFormField(surveyAttr, survey));
             }
         }
         
@@ -433,7 +438,7 @@ public class LocationBaseController extends AbstractController {
     private Set<TypedAttributeValue> saveAttributes(
             MultipartHttpServletRequest request, Survey survey, Location location) throws ParseException, IOException {
         TypedAttributeValue recAttr;
-        WebFormAttributeParser attributeParser = new WebFormAttributeParser();
+        WebFormAttributeParser attributeParser = new WebFormAttributeParser(taxaDAO);
         Set recAtts = location.getAttributes();
         for(Attribute attribute : survey.getAttributes()) {
             if(AttributeScope.LOCATION.equals(attribute.getScope())) {

@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -16,6 +17,8 @@ import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 
 /**
@@ -38,8 +41,14 @@ public abstract class AttributeParser {
 
     protected boolean addOrUpdateAttribute;
     protected MultipartFile attrFile;
+    
+    private TaxaDAO taxaDAO;
 
-    public AttributeParser() {
+    public AttributeParser(TaxaDAO taxaDAO) {
+    	if (taxaDAO == null) {
+    		throw new IllegalArgumentException("TaxaDAO cannot be null");
+    	}
+    	this.taxaDAO = taxaDAO;
     }
     
     /**
@@ -127,6 +136,10 @@ public abstract class AttributeParser {
         case HTML_NO_VALIDATION:
             // there is no validation, so it always returns true
             return true;
+        case SPECIES:
+        	validationType = attribute.isRequired() ? ValidationType.REQUIRED_TAXON : ValidationType.TAXON;
+        	return validator.validate(parameterMap, validationType, paramKey, attribute);
+        	
         default:
             log.warn("Unknown Attribute Type: " + attribute.getType());
             throw new IllegalArgumentException("Unknown Attribute Type: " + attribute.getType());
@@ -256,6 +269,35 @@ public abstract class AttributeParser {
                         attrFile = null;
                     }
                     break;
+                case SPECIES:
+                	addOrUpdateAttribute = !attrValue.isEmpty();
+                	if (addOrUpdateAttribute) {
+                		// Regardless, attrValue should contain the verbatim name.
+                		String[] values = parameterMap.get(paramKey);
+                		if (values.length > 1) {
+                			// use the id to retrieve a species.
+                			attributeValue.setStringValue(attrValue);
+                			IndicatorSpecies species = null;
+                			try {
+                				Integer speciesId = Integer.valueOf(values[1]);
+                    			species = taxaDAO.getIndicatorSpecies(speciesId);	
+                			} catch (NumberFormatException e) {
+                				log.warn("Could not parse string to int for species id", e);
+                			}
+                			attributeValue.setSpecies(species);	
+                		} else {
+                			// use the name string to search.
+                			List<IndicatorSpecies> taxaList = taxaDAO.getIndicatorSpeciesByNameSearchExact(attrValue);
+                        	// validation has already been done by now so we can just grab the 0th index if it exists.
+                        	IndicatorSpecies species = null;
+            	            if (!taxaList.isEmpty()) {
+            	            	species = taxaList.get(0);
+            	            }
+            	            attributeValue.setStringValue(attrValue);
+            	            attributeValue.setSpecies(species);	
+                		}
+                	}
+                	break;
                 default:
                     log.warn("Unknown Attribute Type: " + attribute.getType());
                     break;
