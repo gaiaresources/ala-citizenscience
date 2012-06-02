@@ -67,7 +67,7 @@ public class RecordDAOImplGetDistinctTaxonGroupsTest extends
 	@Before
 	public void setup() {
 		
-		normalUser = userDAO.createUser("pleb", "pleb", "pleb", "pleb@pleb.com", "password", "regkey", new String[] { Role.USER });
+		normalUser = userDAO.createUser("normalUser", "normalUser", "normalUser", "normalUser@normalUser.com", "password", "regkey", new String[] { Role.USER });
 		
 		survey1 = new Survey();
 		survey1.setName("survey one");
@@ -234,7 +234,7 @@ public class RecordDAOImplGetDistinctTaxonGroupsTest extends
 	}
 	
 	@Test
-	public void testQueryPleb() {
+	public void testQueryNormalUser() {
 		FilterManager.enableRecordFilter(sesh, normalUser);
 		List<Pair<TaxonGroup, Long>> pairList = recordDAO.getDistinctTaxonGroups(this.sesh);
 		
