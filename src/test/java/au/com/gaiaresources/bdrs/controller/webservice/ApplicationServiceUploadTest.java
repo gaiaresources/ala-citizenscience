@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,6 +29,7 @@ import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.junit.Before;
 import org.junit.Test;
 import org.postgresql.util.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,6 +73,23 @@ public class ApplicationServiceUploadTest extends AbstractControllerTest {
     
     private SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy");
     private Random rand = new Random(123456789);
+    
+    private IndicatorSpecies species1;
+    
+    @Before
+    public void setup() {
+    	
+    	TaxonGroup taxonGroup = new TaxonGroup();
+    	taxonGroup.setName("test taxon group");
+    	taxaDAO.save(taxonGroup);
+    	
+    	species1 = new IndicatorSpecies();
+    	species1.setTaxonGroup(taxonGroup);
+    	species1.setScientificName("species one");
+    	species1.setCommonName("common one");
+    	species1.setTaxonRank(TaxonRank.SPECIALFORM);
+    	taxaDAO.save(species1);
+    }
     
     @Test
     public void testMissingIdent() throws Exception {
@@ -284,6 +303,105 @@ public class ApplicationServiceUploadTest extends AbstractControllerTest {
         }
     }
     
+    // attempting to reproduce the test case... we have been seeing duplicates of the
+    // attribute value appearing in the database. The upload string used below is the
+    // same as one that has caused a 4x repeat of the attribute values...
+    @Test
+    public void multiAvSyncTest() throws Exception {
+    	
+    	Date startDate = getDate(2000, 1, 1);
+    	
+    	Survey survey = new Survey();
+    	survey.setName("my survey");
+    	survey.setDescription("my survey description");
+    	survey.setStartDate(startDate);
+    	
+    	List<Attribute> attrList = new ArrayList<Attribute>();
+    	
+    	Attribute a1 = new Attribute();
+    	a1.setName("my int");
+    	a1.setDescription("my int");
+    	a1.setTypeCode("IN");
+    	
+    	Attribute a2 = new Attribute();
+    	a2.setName("my select");
+    	a2.setDescription("my select");
+    	a2.setTypeCode("SV");
+    	
+    	List<AttributeOption> optionsList = new ArrayList<AttributeOption>();
+    	AttributeOption opt1 = new AttributeOption();
+    	opt1.setValue("apple");
+    	AttributeOption opt2 = new AttributeOption();
+    	opt2.setValue("banana");
+    	AttributeOption opt3 = new AttributeOption();
+    	opt3.setValue("carrot");
+    	
+    	taxaDAO.save(opt1);
+    	taxaDAO.save(opt2);
+    	taxaDAO.save(opt3);
+    	optionsList.add(opt1);
+    	optionsList.add(opt2);
+    	optionsList.add(opt3);
+    	
+    	a2.setOptions(optionsList);
+    	
+    	taxaDAO.save(a1);
+    	taxaDAO.save(a2);
+    	
+    	attrList.add(a1);
+    	attrList.add(a2);
+    	
+    	survey.setAttributes(attrList);
+    	surveyDAO.save(survey);
+    	
+    	TaxonGroup group = new TaxonGroup();
+    	group.setName("test group");
+    	taxaDAO.save(group);
+    	
+    	IndicatorSpecies species = new IndicatorSpecies();
+    	species.setTaxonGroup(group);
+    	species.setScientificName("Eucalyptus ovata");
+    	species.setCommonName("");
+    	taxaDAO.save(species);
+    	
+    	login("admin", "password", new String[] { Role.ADMIN });
+    	
+    	String jsonUpload = "[{\"taxon_id\":"+species.getId()+",\"id\":\"1\",\"server_id\":0,"
+    			+"\"attributeValues\":[{\"value\":\"10\",\"id\":1,\"server_id\":0,\"attribute_id\":"+a1.getId()+"},"
+    			+"{\"value\":\"banana\",\"id\":2,\"server_id\":0,\"attribute_id\":"+a2.getId()+"}]"
+    			+",\"scientificName\":\"Eucalyptus ovata\",\"when\":1336437300000,"
+    			+"\"number\":10,\"longitude\":\"115.842424\",\"latitude\":\"-31.938391\","
+    			+"\"notes\":\"qqqqq\",\"survey_id\":"+survey.getId()+",\"accuracy\":\"25.0\"}]";
+    	
+    	request.setMethod("POST");
+        request.setRequestURI("/webservice/application/clientSync.htm");
+        request.setParameter("ident", getRequestContext().getUser().getRegistrationKey());
+        request.setParameter("syncData", jsonUpload.toString());
+        request.setParameter("inFrame", "false");
+        
+        ModelAndView mv = this.handle(request, response);
+        Assert.assertNull("model and view should be null", mv);
+        
+        String syncResponseJson = response.getContentAsString();
+        logger.debug("sync response : " + syncResponseJson);
+        JSONObject syncResponse = JSONObject.fromStringToJSONObject(syncResponseJson);
+        
+        Assert.assertEquals("wrong status code", 200, syncResponse.getInt("status"));
+        JSONObject recJson = (JSONObject)syncResponse.getJSONObject("200").getJSONArray("sync_result").get(0);
+        
+        Record rec = recordDAO.getRecord(recJson.getInt("server_id"));
+        
+        Assert.assertNotNull("record cant be null", rec);
+        Assert.assertEquals("wrong num of attr values", 2, rec.getAttributes().size());
+    }
+    
+    private Date getDate(int year, int month, int day) {
+    	Calendar cal = Calendar.getInstance();
+		cal.clear();
+		cal.set(year, month, day);
+		return cal.getTime();
+    }
+    
     private void validate(JSONArray syncData, JSONArray syncResult) throws IOException {
         // Preprocess the syncData to map records against their client id
         Map<String, JSONObject> syncDataMap = new HashMap<String, JSONObject>(syncData.size());
@@ -448,7 +566,13 @@ public class ApplicationServiceUploadTest extends AbstractControllerTest {
                             Assert.assertEquals(expectedEncodedBase64, targetEncodedBase64);
                         }
                         break;
-                        
+                    case SPECIES:
+                    	if (!jsonRecAttr.get("value").toString().isEmpty()) {
+                    		Assert.assertNotNull("species should not be null", recAttr.getSpecies());
+                        	Assert.assertEquals("wrong species id", species1.getId(), recAttr.getSpecies().getId());
+                        	Assert.assertEquals("wrong attr string value", species1.getScientificName(), recAttr.getStringValue());	
+                    	}
+                    	break;
                     default:
                         throw new IllegalArgumentException();
                 }
@@ -622,6 +746,10 @@ public class ApplicationServiceUploadTest extends AbstractControllerTest {
                     String encodedBase64 = Base64.encodeBytes(createImage(72,72,imgText));
                     recAttr.put("value", encodedBase64);
                     break;
+                case SPECIES:
+                	recAttr.put("value", species1.getScientificName());
+                	recAttr.put(ApplicationService.JSON_KEY_TAXON_ID, species1.getId());
+                	break;
                 default:
                     throw new IllegalArgumentException("Cannot handle attribute with type: "+attr.getType());
             }

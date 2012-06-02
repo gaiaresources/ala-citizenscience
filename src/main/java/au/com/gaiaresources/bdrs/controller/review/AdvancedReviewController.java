@@ -89,6 +89,10 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
     public static final String MODEL_MAP_VIEW_SELECTED = "mapViewSelected";
     
     /**
+     * ModelAndView model key.
+     */
+    public static final String MV_KEY_RECORD_COUNT = "recordCount";
+    /**
      * Constants for request parameters
      */
     public static final String PARAM_LOCATION_AREA = "locationArea";
@@ -151,7 +155,7 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
         mv.addObject("sortOrder", sortOrder != null ? sortOrder : "DESC");
         
         mv.addObject("searchText", getParameter(newParamMap, SEARCH_QUERY_PARAM_NAME));
-        mv.addObject("recordCount", recordCount);
+        mv.addObject(MV_KEY_RECORD_COUNT, recordCount);
         mv.addObject("resultsPerPage", resultsPerPage);
         mv.addObject("pageCount", pageCount);
         mv.addObject("reportList", getReportList());

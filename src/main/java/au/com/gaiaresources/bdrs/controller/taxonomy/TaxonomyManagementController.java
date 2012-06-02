@@ -101,7 +101,7 @@ public class TaxonomyManagementController extends AbstractController {
     @Autowired
     private ManagedFileDAO managedFileDAO;
     @Autowired
-    MetadataDAO metadataDAO;
+    private MetadataDAO metadataDAO;
     @Autowired
     private FileService fileService;
 
@@ -389,7 +389,7 @@ public class TaxonomyManagementController extends AbstractController {
         
         // Taxon Attributes
         List<TypedAttributeValue> taxonAttrsToDelete = new ArrayList<TypedAttributeValue>();
-        WebFormAttributeParser attributeParser = new WebFormAttributeParser();
+        WebFormAttributeParser attributeParser = new WebFormAttributeParser(taxaDAO);
         TypedAttributeValue taxonAttribute;
         Set taxonAttrs = taxon.getAttributes();
         for (Attribute attribute : taxon.getTaxonGroup().getAttributes()) {

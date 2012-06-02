@@ -285,6 +285,10 @@ public class YearlySightingsControllerTest extends RecordFormTest {
                     case IMAGE:
                         recAttr.setStringValue("testImgFile.png");
                         break;
+                    case SPECIES:
+                    	recAttr.setSpecies(speciesA);
+                    	recAttr.setStringValue(speciesA.getScientificName());
+                    	break;
                     default:
                         Assert.assertTrue("Unknown Attribute Type: "+attr.getType().toString(), false);
                         break;
@@ -464,6 +468,9 @@ public class YearlySightingsControllerTest extends RecordFormTest {
                         ((MockMultipartHttpServletRequest)request).addFile(mockImageFile);
                         value = image_filename;
                         break;
+                    case SPECIES:
+                    	value = speciesA.getScientificName();
+                    	break;
                     default:
                         Assert.assertTrue("Unknown Attribute Type: "+attr.getType().toString(), false);
                         break;
@@ -570,6 +577,10 @@ public class YearlySightingsControllerTest extends RecordFormTest {
                     case IMAGE:
                         Assert.assertEquals(params.get(key), recAttr.getStringValue());
                         break;
+                    case SPECIES:
+                    	Assert.assertNotNull("species should not be null", recAttr.getSpecies());
+                    	Assert.assertEquals("wrong species id", speciesA.getId(), recAttr.getSpecies().getId());
+                    	break;
                     default:
                         Assert.assertTrue("Unknown Attribute Type: "+recAttr.getAttribute().getType().toString(), false);
                         break;

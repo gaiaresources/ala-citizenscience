@@ -370,6 +370,4 @@ public interface RecordDAO extends FacetDAO {
      */
     List<Record> getRecordIntersect(Geometry intersectGeom,
             RecordVisibility visibility, boolean held);
-
-
 }

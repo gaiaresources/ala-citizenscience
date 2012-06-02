@@ -21,7 +21,7 @@ import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 
 // You may note we do not test the 'shape file is too big' case here, I didn't want to commit
 // a large binary file to the database.
-public class GeoMapController_ShpCheckService_Test extends
+public class GeoMapControllerShpCheckServiceTest extends
         AbstractControllerTest {
 
     @Autowired

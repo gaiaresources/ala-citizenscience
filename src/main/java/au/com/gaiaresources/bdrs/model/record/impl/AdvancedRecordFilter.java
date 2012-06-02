@@ -61,15 +61,16 @@ public class AdvancedRecordFilter extends AbstractRecordFilter {
             paramMap.put("taxonGroupId", getTaxonGroupPk());
         }
         
+        String searchStr = " UPPER('%" + StringEscapeUtils.escapeSql(getSpeciesSearch()) + "%') ";
         if (getSpeciesSearch() != null
                 && !getSpeciesSearch().isEmpty()) {
-            builder.append(" and (UPPER(record.species.commonName) like UPPER('%"
-                    + StringEscapeUtils.escapeSql(getSpeciesSearch())
-                    + "%') or UPPER(record.species.scientificName) like UPPER ('%"
-                    + StringEscapeUtils.escapeSql(getSpeciesSearch())
-                    + "%'))");
+            builder.append(" and (");
+            builder.append(" UPPER(record.species.commonName) like " + searchStr);
+            builder.append(" or UPPER(record.species.scientificName) like " + searchStr);
+            builder.append(" or UPPER(attr_species.commonName) like " + searchStr);
+            builder.append(" or UPPER(attr_species.scientificName) like " + searchStr);
+            builder.append(")");
         }
-        
         return builder.toString();
     }
 
@@ -85,7 +86,8 @@ public class AdvancedRecordFilter extends AbstractRecordFilter {
         join.append(" left join record.user");
         join.append(" left join record.survey");
         join.append(" left join record.species as species");
-        join.append(" left join record.censusMethod as censusMethod ");
+        join.append(" left join record.censusMethod as censusMethod");
+        join.append(" left join at.species attr_species");
         
         return join.toString();
     }

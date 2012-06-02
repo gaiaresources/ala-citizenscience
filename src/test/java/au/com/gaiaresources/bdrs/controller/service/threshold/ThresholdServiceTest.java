@@ -253,6 +253,9 @@ public class ThresholdServiceTest extends AbstractGridControllerTest {
             case DATE:
                 attributeTypeValueLookup.put(at, dateFormat.parse("08 Dec 2010"));
                 break;
+            case SPECIES:
+            	attributeTypeValueLookup.put(at, dropBear.getScientificName());
+            	break;
             default:
                 break;
             }
@@ -364,8 +367,13 @@ public class ThresholdServiceTest extends AbstractGridControllerTest {
                 case DATE:
                     recAttr.setDateValue((Date) attributeTypeValueLookup.get(attrType));
                     break;
+                case SPECIES:
+                {
+                	recAttr.setStringValue((String)attributeTypeValueLookup.get(attrType));
+                }
+                	break;
                 default:
-                    Assert.assertTrue(false);
+                    Assert.assertTrue("Attribute type is not handled, " + attrType.getCode(), false);
                     break;
                 }
                 recAttrList.add(recAttr);
@@ -477,8 +485,13 @@ public class ThresholdServiceTest extends AbstractGridControllerTest {
                             // html attributes have no attribute value, therefore the conditions can never match
                             // ignore this case
                             continue;
+                        case SPECIES:
+                        	// use the verbatim name for the species condition...
+                        	condition.setValue((String)attributeTypeValueLookup.get(attrType));
+                            falseValue = "012t6589#";
+                        	break;
                         default:
-                            Assert.assertTrue(false);
+                            Assert.assertTrue("Attribute type is not handled, " + attrType.getCode(), false);
                             break;
                         }
 

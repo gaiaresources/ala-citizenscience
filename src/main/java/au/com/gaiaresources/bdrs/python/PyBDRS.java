@@ -71,6 +71,8 @@ public class PyBDRS {
 
     private TaxonLibSessionFactory taxonLibSessionFactory;
     private ITaxonLibSession taxonLibSession;
+    
+    private TaxaDAO taxaDAO;
 
     /**
      * Creates a new instance.
@@ -105,6 +107,8 @@ public class PyBDRS {
 
         this.user = user;
         this.recordDAO = recordDAO;
+        
+        this.taxaDAO = taxaDAO;
 
         this.response = new PyResponse();
 
@@ -360,7 +364,7 @@ public class PyBDRS {
         RecordKeyLookup lookup = new TrackerFormRecordKeyLookup();
         SingleSiteFormToRecordEntryTransformer transformer = new SingleSiteFormToRecordEntryTransformer(locationService);
         SingleSiteFormAttributeDictionaryFactory adf = new SingleSiteFormAttributeDictionaryFactory();
-        AttributeParser parser = new WebFormAttributeParser();
+        AttributeParser parser = new WebFormAttributeParser(taxaDAO);
 
         RecordDeserializer rds = new RecordDeserializer(lookup, adf, parser);
 

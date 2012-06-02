@@ -50,6 +50,7 @@ import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyService;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
@@ -800,13 +801,14 @@ public abstract class AbstractBulkDataService {
                     species = bulkUpload.getIndicatorSpeciesByCommonName(recordUpload.getCommonName());
                 }
 
-                // an survey with no species actually includes everything
-                if (survey.getSpecies().isEmpty()
-                        || survey.getSpecies().contains(species)) {
-                    rec.setSpecies(species);
-                } else {
+                // it's possible to have an empty species.
+                // a survey with no species actually includes everything
+            	if (isInvalidSurveySpecies(survey, species)) {
                     bulkUpload.getInvalidSurveySpecies().put(species, survey);
                 }
+                
+                // always set the record species even if it's null.
+                rec.setSpecies(species);
 
                 rec.setUser(recordedBy);
 
@@ -865,7 +867,7 @@ public abstract class AbstractBulkDataService {
                         String recAttrValue = recordUpload.getNamedAttribute(XlsRecordRow.SURVEY_ATTR_NAMESPACE, taxonAttr.getName());
                         if (!taxonAttr.isTag()
                                 && org.springframework.util.StringUtils.hasLength(recAttrValue)) {
-                            AttributeValue recAttr = createAttributeValue(sesh, recordAttributeMap, taxonAttr, recAttrValue);
+                            AttributeValue recAttr = createAttributeValue(sesh, recordAttributeMap, taxonAttr, recAttrValue, survey, bulkUpload);
                             recAttrSet.add(recAttr);
                         }
                     }
@@ -875,7 +877,7 @@ public abstract class AbstractBulkDataService {
                     if (!AttributeScope.LOCATION.equals(surveyAttr.getScope())) {
                         String recAttrValue = recordUpload.getNamedAttribute(XlsRecordRow.SURVEY_ATTR_NAMESPACE, surveyAttr.getDescription());
                         if (org.springframework.util.StringUtils.hasLength(recAttrValue)) {
-                            AttributeValue recAttr = createAttributeValue(sesh, recordAttributeMap, surveyAttr, recAttrValue);
+                            AttributeValue recAttr = createAttributeValue(sesh, recordAttributeMap, surveyAttr, recAttrValue, survey, bulkUpload);
                             recAttrSet.add(recAttr);
                         }
                     }
@@ -886,7 +888,7 @@ public abstract class AbstractBulkDataService {
                         String cmNamespace = bulkDataReadWriteService.formatCensusMethodNameId(cm);
                         String cmAttrValue = recordUpload.getNamedAttribute(cmNamespace, censusMethodAttr.getDescription());
                         if (org.springframework.util.StringUtils.hasLength(cmAttrValue)) {
-                            AttributeValue recAttr = createAttributeValue(sesh, recordAttributeMap, censusMethodAttr, cmAttrValue);
+                            AttributeValue recAttr = createAttributeValue(sesh, recordAttributeMap, censusMethodAttr, cmAttrValue, survey, bulkUpload);
                             recAttrSet.add(recAttr);
                         }
                     }
@@ -928,7 +930,8 @@ public abstract class AbstractBulkDataService {
 
     private AttributeValue createAttributeValue(Session sesh,
             Map<Attribute, AttributeValue> existingAttributeMap,
-            Attribute attrToAdd, String attributeValueStr) {
+            Attribute attrToAdd, String attributeValueStr, 
+            Survey survey, BulkUpload bulkUpload) {
         AttributeValue attrVal;
         if (existingAttributeMap.containsKey(attrToAdd)) {
             attrVal = existingAttributeMap.remove(attrToAdd);
@@ -955,6 +958,28 @@ public abstract class AbstractBulkDataService {
             case FILE:
                 throw new UnsupportedOperationException(
                         "Spreadsheet upload of file data is not supported.");
+            case SPECIES:
+            {
+            	IndicatorSpecies species = taxaDAO.getIndicatorSpeciesByScientificName(sesh, attributeValueStr);
+            	if (species == null) {
+            		species = taxaDAO.getIndicatorSpeciesByCommonName(sesh, attributeValueStr);
+            	}
+            	if (species == null) {
+            		 // clear the attribute value of species
+            		 attrVal.setSpecies(null);
+            		 attrVal.setStringValue("");
+            	} else {
+                    // it's possible to have an empty species.
+                    // a survey with no species actually includes everything
+                	if (isInvalidSurveySpecies(survey, species)) {
+                        bulkUpload.getInvalidSurveySpecies().put(species, survey);
+                    } else {
+                		attrVal.setSpecies(species);
+                		attrVal.setStringValue(attributeValueStr);		
+                    }
+            	}
+            }
+            	break;
             case TIME:
             case TEXT:
             case STRING_WITH_VALID_VALUES:
@@ -1033,7 +1058,7 @@ public abstract class AbstractBulkDataService {
                         if (AttributeScope.LOCATION.equals(attr.getScope())) {
                             String attrValStr = locUpload.getAttributeValue(attr);
                             if (attrValStr != null) {
-                                AttributeValue attrVal = createAttributeValue(sesh, attrMap, attr, attrValStr);
+                                AttributeValue attrVal = createAttributeValue(sesh, attrMap, attr, attrValStr, null, bulkUpload);
                                 location.getAttributes().add(attrVal);
                             }
                         }
@@ -1044,6 +1069,11 @@ public abstract class AbstractBulkDataService {
                 log.debug("Ignoring GPS Location");
             }
         }
+    }
+    
+    private boolean isInvalidSurveySpecies(Survey survey, IndicatorSpecies species) {
+    	return survey == null || 
+    			(species != null && !survey.getSpecies().isEmpty() && !survey.getSpecies().contains(species));
     }
 
     private List<String> populateSurveys(Session sesh, User owner,
@@ -1136,7 +1166,6 @@ public abstract class AbstractBulkDataService {
                                 + " (createMissingData = false)");
                         missingItems.add(groupName);
                     }
-
                 } else {
                     log.debug("Retrieved Group: " + groupName);
                     bulkUpload.addGroup(group);
@@ -1147,36 +1176,86 @@ public abstract class AbstractBulkDataService {
         }
         return missingItems;
     }
+    
+    private IndicatorSpecies searchForSpeciesName(Session sesh, String speciesName) {
+    	IndicatorSpecies species = taxaDAO.getIndicatorSpeciesByScientificName(sesh, speciesName);
+    	if (species == null) {
+    		species = taxaDAO.getIndicatorSpeciesByCommonName(sesh, speciesName);
+    	}
+    	return species;
+    }
 
     private List<String> populateIndicatorSpecies(Session sesh,
             BulkUpload bulkUpload) {
         IndicatorSpecies species;
         List<String> missingItems = new ArrayList<String>();
         for (String scientificName : bulkUpload.getIndicatorSpeciesScientificName()) {
-            species = taxaDAO.getIndicatorSpeciesByScientificName(sesh, scientificName);
-            if (species == null) {
-                log.debug("Cannot find Indicator Species with scientific name: "
-                        + scientificName);
-                missingItems.add(scientificName);
-            } else {
-                log.debug("x Retrieved Indicator Species: " + scientificName);
-                bulkUpload.addIndicatorSpecies(species);
-            }
+        	scientificName = scientificName != null ? scientificName.trim() : "";
+        	if (!scientificName.isEmpty()) {
+        		species = taxaDAO.getIndicatorSpeciesByScientificName(sesh, scientificName);
+                if (species == null) {
+                    log.debug("Cannot find Indicator Species with scientific name: "
+                            + scientificName);
+                    missingItems.add(scientificName);
+                } else {
+                    log.debug("x Retrieved Indicator Species: " + scientificName);
+                    bulkUpload.addIndicatorSpecies(species);
+                }	
+        	}
         }
 
         for (String commonName : bulkUpload.getIndicatorSpeciesCommonName()) {
-            species = taxaDAO.getIndicatorSpeciesByCommonName(sesh, commonName);
-            if (species == null) {
-                log.debug("Cannot find Indicator Species with common name: "
-                        + commonName);
-                missingItems.add(commonName);
-            } else {
-                log.debug("y Retrieved Indicator Species: " + commonName);
-                bulkUpload.addIndicatorSpecies(species);
+        	commonName = commonName != null ? commonName.trim() : "";
+        	if (!commonName.isEmpty()) {
+        		species = taxaDAO.getIndicatorSpeciesByCommonName(sesh, commonName);
+                if (species == null) {
+                    log.debug("Cannot find Indicator Species with common name: "
+                            + commonName);
+                    missingItems.add(commonName);
+                } else {
+                    log.debug("y Retrieved Indicator Species: " + commonName);
+                    bulkUpload.addIndicatorSpecies(species);
+                }	
+        	}
+        }
+        
+        // for taxon type attributes we first search by sci name then common name.
+        // if we still can't find a matching indicator species we mark it as missing.
+        for (RecordUpload recordUpload : bulkUpload.getRecordUploadList()) {
+        	Survey survey = bulkUpload.getSurveyByName(recordUpload.getSurveyName());
+        	Integer censusMethodId = recordUpload.getCensusMethodId();
+        	CensusMethod cm = null;
+            if (censusMethodId != null) {
+                cm = censusMethodDAO.get(sesh, censusMethodId);
+            }
+            for (Attribute surveyAttr : survey.getAttributes()) {
+            	populateSpeciesAttribute(sesh, surveyAttr, XlsRecordRow.SURVEY_ATTR_NAMESPACE, recordUpload, bulkUpload, missingItems);
+            }
+
+            if (cm != null) {
+                for (Attribute censusMethodAttr : cm.getAttributes()) {
+                	String cmNamespace = bulkDataReadWriteService.formatCensusMethodNameId(cm);
+                	populateSpeciesAttribute(sesh, censusMethodAttr, cmNamespace, recordUpload, bulkUpload, missingItems);
+                }
             }
         }
-
         return missingItems;
+    }
+    
+    private void populateSpeciesAttribute(Session sesh, Attribute attr, String namespace, 
+    		RecordUpload recordUpload, BulkUpload bulkUpload, List<String> missingItems) {
+    	if (AttributeType.SPECIES.equals(attr.getType()) && !AttributeScope.LOCATION.equals(attr.getScope())) {
+            String speciesName = recordUpload.getNamedAttribute(namespace, attr.getDescription());
+            speciesName = speciesName != null ? speciesName.trim() : "";
+            if (!speciesName.isEmpty()) {
+            	IndicatorSpecies species = searchForSpeciesName(sesh, speciesName);
+            	if (species == null) {
+                    missingItems.add(speciesName);
+                } else {
+                    bulkUpload.addIndicatorSpecies(species);
+                }
+            }	
+    	}
     }
 
     protected abstract RecordRow getRecordRow(Survey survey);

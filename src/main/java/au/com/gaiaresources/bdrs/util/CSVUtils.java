@@ -12,11 +12,28 @@ import edu.emory.mathcs.backport.java.util.Arrays;
 
 public class CSVUtils {
     
+	/**
+	 * Splits a csv string.
+	 * @param csvStr string to split.
+	 * @return String array. If null is passed in will return empty array.
+	 */
     public static String[] fromCSVString(String csvStr) {
         return CSVUtils.fromCSVString(csvStr, CSVParser.DEFAULT_SEPARATOR, CSVParser.DEFAULT_QUOTE_CHARACTER);
     }
     
+	/**
+	 * Splits a csv string.
+	 * @param csvStr string to split.
+	 * @param separator separator character for csv
+	 * @param quotechar quote character for csv
+	 * @return String array. If null is passed in will return empty array.
+	 */
     public static String[] fromCSVString(String csvStr, char separator, char quotechar) {
+    	
+    	if (csvStr == null) {
+    		return new String[]{};
+    	}
+    	
         String[] split = null;
         try {
             CSVReader csvReader = new CSVReader(new StringReader(csvStr), separator, quotechar);

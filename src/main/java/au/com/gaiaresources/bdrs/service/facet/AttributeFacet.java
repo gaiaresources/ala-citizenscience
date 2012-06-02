@@ -86,7 +86,7 @@ public class AttributeFacet extends AbstractFacet {
         
         if(facetPredicate != null) {
             return Predicate.enclose(facetPredicate.and(
-                                     Predicate.eq("attribute"+facetIndex+".description", this.attributeName)));
+                 Predicate.eq("attribute"+facetIndex+".description", this.attributeName)));
         } else {
             return null;
         }

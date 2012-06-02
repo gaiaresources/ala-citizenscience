@@ -397,7 +397,6 @@ bdrs.map.createDefaultMap = function(mapId, mapOptions){
                 interval: 100
             }
         }), new OpenLayers.Control.PanZoom(), new OpenLayers.Control.ArgParser(), new OpenLayers.Control.Attribution()]
-    
     };
     var map = new OpenLayers.Map(mapId, options);
     
@@ -2005,22 +2004,30 @@ bdrs.map.createContentState = function(itemArray, popup, mapServerQueryManager){
 
         if (item.attributes && jQuery.isArray(item.attributes)) {
             var attrArray = item.attributes;
+			
+			var k, v, type, attrType;
             for (var j = 0; j < attrArray.length; j++) {
                 var tuple = attrArray[j];
-                for (var k in tuple) {
-                    if (tuple.hasOwnProperty(k)) {
-                        var v = tuple[k];
-                        // if v is a number, change it to a string..
-                        if (v !== null && v.toString) {
-                            v = v.toString();
-                        }
-                        if (v !== null && v.length > 0 && v !== '-1') {
-                            var r = jQuery("<tr></tr>");
-                            r.append(jQuery("<th></th>").css('whiteSpace', 'nowrap').append(k + ":"));
-                            r.append(jQuery("<td></td>").css('whiteSpace', 'nowrap').append(v));
-                            tbody.append(r);
-                        }
-                    }
+				
+				k = tuple["name"];
+				v = tuple["value"];
+				type = tuple["type"];
+				attrType = bdrs.model.taxa.attributeType.code[type];
+				
+				// if v is a number, change it to a string..
+                if (v && v.toString) {
+                    v = v.toString();
+                }
+                if (v && v.length > 0 && v !== '-1') {
+                    var r = jQuery("<tr></tr>");
+                    r.append(jQuery("<th></th>").css('whiteSpace', 'nowrap').append(k + ":"));
+					var dataCell = jQuery("<td></td>");
+					dataCell.css('whiteSpace', 'nowrap').append(v);
+					if (bdrs.model.taxa.attributeType.SPECIES === attrType) {
+						dataCell.addClass("scientificName");
+					}
+					r.append(dataCell);
+                    tbody.append(r);
                 }
             }    
         }

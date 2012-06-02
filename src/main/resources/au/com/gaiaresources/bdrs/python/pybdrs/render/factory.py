@@ -35,7 +35,7 @@ class RenderFactory:
         return RecordForm(self._bdrs, self, value_map, error_map,
                             instance, row_index, *args, **kwargs)
 
-    def create_attribute_form(self, attribute_instance, record_form, *args, **kwargs):
+    def create_attribute_form(self, attribute_instance, record_form, survey, *args, **kwargs):
         row_index = record_form._record_index
         deserialized_result = {}
         if len(self._deserialized_result_list) > row_index:
@@ -45,4 +45,4 @@ class RenderFactory:
         value_map = self._query_params
 
         return AttributeForm(self._bdrs, self, value_map, error_map, 
-                                attribute_instance, record_form, *args, **kwargs)
+                                attribute_instance, record_form, survey, *args, **kwargs)

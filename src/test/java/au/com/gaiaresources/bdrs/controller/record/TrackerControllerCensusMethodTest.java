@@ -430,6 +430,9 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
                     ((MockMultipartHttpServletRequest)request).addFile(mockImageFile);
                     value = image_filename;
                     break;
+                case SPECIES:
+                	value = speciesA.getScientificName();
+                	break;
                 default:
                     Assert.assertTrue("Unknown Attribute Type: "+attr.getType().toString(), false);
                     break;

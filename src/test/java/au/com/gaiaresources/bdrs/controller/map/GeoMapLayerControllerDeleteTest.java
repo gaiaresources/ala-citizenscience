@@ -18,7 +18,7 @@ import org.springframework.web.servlet.view.RedirectView;
 import java.util.LinkedList;
 import java.util.List;
 
-public class GeoMapLayerController_Delete_Test extends AbstractControllerTest {
+public class GeoMapLayerControllerDeleteTest extends AbstractControllerTest {
 
     @Autowired
     GeoMapLayerDAO layerDAO;

@@ -478,6 +478,10 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
         case FILE:
             // ignored
             break;
+        case SPECIES:
+        	av.setSpecies(species);
+        	av.setStringValue(species.getScientificName());
+        	break;
         }
         
         recordDAO.saveAttributeValue(av);
@@ -557,6 +561,10 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
             Assert.fail("Cannot properly assert this attribute type : " + a.getTypeCode());
             // ignored
             break;
+        case SPECIES:
+        	Assert.assertNotNull("species should not be null", av.getSpecies());
+        	Assert.assertEquals("wrong species id", species.getId(), av.getSpecies().getId());
+        	break;
         }
     }
     

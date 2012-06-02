@@ -30,10 +30,21 @@
     <c:set var="formPrefix" value="${ formField.prefix }"></c:set>
 </c:if>
 
-<c:if test="<%= errorMap != null && errorMap.containsKey(inputName) %>">
-    <p class="error">
-        <c:out value="<%= errorMap.get(inputName) %>"/>
-    </p>
+<!-- the taxon attribute type handles adding the error element in speciesFormField.jsp -->
+<c:if test="${not (formField.attribute.type == 'SPECIES')}">
+	<c:if test="<%= errorMap != null && errorMap.containsKey(inputName) %>">
+    	<p class="error">
+        	<c:out value="<%= errorMap.get(inputName) %>"/>
+    	</p>
+	</c:if>
+	<c:choose>
+	    <c:when test="<%= valueMap != null && valueMap.containsKey(inputName) %>">
+	        <c:set var="fieldValue" value="<%= valueMap.get(inputName) %>"></c:set>
+	    </c:when>
+	    <c:when test="${ formField.attributeValue != null}">
+	        <c:set var="fieldValue" value="<%= formField.getAttributeValue().toString() %>"></c:set>
+	    </c:when>
+	</c:choose>
 </c:if>
 
 <%-- put the global 'edit form' bool into a local variable... --%>
@@ -599,4 +610,13 @@
             </c:otherwise>
         </c:choose>
     </c:when>
+	<c:when test="${ formField.attribute.type == 'SPECIES' }">
+		<tiles:insertDefinition name="speciesFormField">
+        	<tiles:putAttribute name="formField" value="${formField}"/>
+            <tiles:putAttribute name="editEnabled" value="${ editEnabled }"/>
+			<tiles:putAttribute name="errorMap" value="${ errorMap }"/>
+			<tiles:putAttribute name="valueMap" value="${ valueMap }"/>
+			<tiles:putAttribute name="isProperty" value="false" />
+        </tiles:insertDefinition>
+	</c:when>
 </c:choose>

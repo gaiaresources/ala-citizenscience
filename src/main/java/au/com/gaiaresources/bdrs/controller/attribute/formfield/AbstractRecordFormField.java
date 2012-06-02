@@ -2,6 +2,8 @@ package au.com.gaiaresources.bdrs.controller.attribute.formfield;
 
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
+import au.com.gaiaresources.bdrs.model.taxa.Attribute;
+import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 
 /**
  * Basic implementation of the {@link FormField} providing accessors and
@@ -61,4 +63,28 @@ public abstract class AbstractRecordFormField extends AbstractFormField {
      * @return
      */
     public abstract boolean isRequired();
+    
+    /**
+     * Get the name for this record field.
+     * @return the name.
+     */
+    public abstract String getName();
+    
+    /**
+     * Get the description for this record field.
+     * @return the description.
+     */
+    public abstract String getDescription();
+    
+    /**
+     * Get the attribute associated with this form field.
+     * @return the attribute if one exists. null otherwise.
+     */
+    public abstract Attribute getAttribute();
+    
+    /**
+     * Gets the indicator species.
+     * @return the indicator species.
+     */
+    public abstract IndicatorSpecies getSpecies();
 }

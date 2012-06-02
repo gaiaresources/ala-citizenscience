@@ -133,6 +133,8 @@ public class SingleSiteAllTaxaController extends SingleSiteController {
         // for any left over species, create records and append to list ...
         for (IndicatorSpecies leftOverSpecies: speciesList) {
             Record newRec = new Record();
+            // make the survey available to help render form fields.
+            newRec.setSurvey(survey);
             newRec.setSpecies(leftOverSpecies);
             result.add(newRec);
         }

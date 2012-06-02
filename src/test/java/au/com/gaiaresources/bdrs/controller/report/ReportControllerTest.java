@@ -360,7 +360,8 @@ public class ReportControllerTest extends AbstractGridControllerTest {
             request.setRequestURI(renderURL);
             request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, String.valueOf(s.getId()));
             handle(request, response);
-            Assert.assertTrue(getRequestContext().getMessageContents().isEmpty());
+            List<String> messageContents = getRequestContext().getMessageContents();
+            Assert.assertTrue(messageContents.isEmpty());
         }
         
         // Test all reports

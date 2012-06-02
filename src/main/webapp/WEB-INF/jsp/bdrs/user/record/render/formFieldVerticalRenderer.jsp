@@ -47,7 +47,6 @@
               </c:if>
           </c:when>
           <c:otherwise>
-              ${ formField.description }
              <tiles:insertDefinition name="propertyRenderer">
                  <tiles:putAttribute name="formField" value="${formField}"/>
              </tiles:insertDefinition>

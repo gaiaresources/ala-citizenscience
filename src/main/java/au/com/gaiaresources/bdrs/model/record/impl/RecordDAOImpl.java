@@ -17,7 +17,6 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.persistence.Transient;
 
-import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.Query;
@@ -39,7 +38,6 @@ import au.com.gaiaresources.bdrs.db.impl.Predicate;
 import au.com.gaiaresources.bdrs.db.impl.QueryPaginator;
 import au.com.gaiaresources.bdrs.db.impl.SortingCriteria;
 import au.com.gaiaresources.bdrs.geometry.GeometryBuilder;
-import au.com.gaiaresources.bdrs.model.facet.FacetDAO;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.record.Record;
@@ -51,11 +49,13 @@ import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.db.DeleteCascadeHandler;
 import au.com.gaiaresources.bdrs.service.db.DeletionService;
+import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 import au.com.gaiaresources.bdrs.util.Pair;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 
@@ -407,6 +407,13 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
                     attribute.setNumericValue(new BigDecimal((Integer) attValue
                             .getValue()));
                     break;
+                case SPECIES:
+                {
+                	IndicatorSpecies species = (IndicatorSpecies)attValue.getValue();
+                	attribute.setSpecies(species);
+                	attribute.setStringValue(species != null ? species.getScientificName() : "");
+                }
+                	break;
                 default:
                     throw new IllegalArgumentException(
                             "Invalid data type for attribute "
@@ -775,35 +782,54 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
     
     @Override
     public List<Pair<TaxonGroup, Long>> getDistinctTaxonGroups(Session sesh) {
-        StringBuilder b = new StringBuilder();
-        b.append(" select g, count(r)");
-        b.append(" from Record as r join r.species as s join s.taxonGroup as g");
-
-        b.append(" group by g.id");
+    	List<Pair<TaxonGroup, Long>> results = 
+                new ArrayList<Pair<TaxonGroup, Long>>();
+    	if(sesh == null) {
+            sesh = super.getSessionFactory().getCurrentSession();
+        }
+		StringBuilder b = new StringBuilder();
+		
+		// This query uses a cross join. it may be able to be optimised ?
+		b.append(" select g, count(distinct r.id) from TaxonGroup g, ");
+		b.append(" Record r left outer join r.species recSpecies left outer join recSpecies.taxonGroup recGroup ");
+		b.append(" left outer join r.attributes av left outer join av.species avSpecies ");
+		b.append(" left outer join avSpecies.taxonGroup avGroup ");
+		b.append(" where ");
+		b.append( "(recGroup is not null or avGroup is not null)");
+		b.append(" and ( ");
+		b.append(" (recGroup = g and avGroup != g) ");
+		b.append(" or ");
+		b.append(" (recGroup = g and avGroup is null) ");
+		b.append(" or " );
+		b.append(" (recGroup != g and avGroup = g) ");
+		b.append(" or " );
+		b.append(" (recGroup is null and avGroup = g) ");
+		b.append(" or " );
+		b.append(" (recGroup = g and avGroup = g) ");
+		b.append(" ) ");
+		b.append(" group by g order by g.weight asc, g.name asc");
+		
+		Query q = sesh.createQuery(b.toString());
+		
+		List<Object[]> queryResult = q.list();
+		for (Object[] row : queryResult) {
+			TaxonGroup tg = (TaxonGroup)row[0];
+			Long count = (Long)row[1];
+			results.add(new Pair<TaxonGroup, Long>(tg, count));	
+		}
+        return results;
+    }
+    
+    private void appendTaxonGroupGroupingClause(StringBuilder b, String taxonGroupAlias) {
+    	b.append(" group by " + taxonGroupAlias + ".id");
         for(PropertyDescriptor pd : BeanUtils.getPropertyDescriptors(TaxonGroup.class)) {
             if(!"class".equals(pd.getName()) && 
                 !"id".equals(pd.getName()) && 
                 (pd.getReadMethod().getAnnotation(Transient.class) == null) &&
                 !(Iterable.class.isAssignableFrom((pd.getReadMethod().getReturnType())))) {
-                b.append(", g."+pd.getName());
+                b.append(", " + taxonGroupAlias + "." + pd.getName());
             }
         }
-        b.append(" order by g.weight asc, g.name asc");
-        
-        if(sesh == null) {
-            sesh = super.getSessionFactory().getCurrentSession();
-        }
-        Query q = sesh.createQuery(b.toString());
-
-        // Should get back a list of Object[]
-        // Each Object[] has 2 items. Object[0] == taxon group, Object[1] == record count
-        List<Pair<TaxonGroup, Long>> results = 
-            new ArrayList<Pair<TaxonGroup, Long>>();
-        for(Object rowObj : q.list()) {
-            Object[] row = (Object[])rowObj;
-            results.add(new Pair<TaxonGroup, Long>((TaxonGroup)row[0], (Long)row[1]));
-        }
-        return results;
     }
 
     /*

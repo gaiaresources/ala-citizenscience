@@ -34,7 +34,7 @@ import com.vividsolutions.jts.geom.MultiLineString;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 
-public class TrackerController_Wkt_Test extends AbstractControllerTest {
+public class TrackerControllerWktTest extends AbstractControllerTest {
 
     @Autowired
     SurveyDAO surveyDAO;

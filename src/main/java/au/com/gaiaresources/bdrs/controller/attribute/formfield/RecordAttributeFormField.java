@@ -1,5 +1,11 @@
 package au.com.gaiaresources.bdrs.controller.attribute.formfield;
 
+import java.util.Collection;
+import java.util.Collections;
+
+import org.apache.log4j.Logger;
+
+
 import au.com.gaiaresources.bdrs.controller.attribute.DisplayContext;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
@@ -7,6 +13,7 @@ import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 
 /**
@@ -15,8 +22,10 @@ import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
  * {@link AttributeValue}.
  */
 public class RecordAttributeFormField extends AbstractRecordFormField implements TypedAttributeValueFormField {
-    private TypedAttributeValue recordAttribute;
+    private TypedAttributeValue attributeValue;
     private Attribute attribute;
+    
+    private Logger log = Logger.getLogger(getClass());
 
     /**
      * Creates a new <code>RecordAttributeFormField</code> for the specified
@@ -28,18 +37,18 @@ public class RecordAttributeFormField extends AbstractRecordFormField implements
      *            the record to be updated
      * @param attribute
      *            the attribute represented by this field.
-     * @param recordAttribute
+     * @param attributeValue
      *            the current value of this field or null
      * @param prefix
      *            the prefix to be prepended to input names.
      */
     RecordAttributeFormField(Survey survey, Record record, Attribute attribute,
-            TypedAttributeValue recordAttribute, String prefix) {
+            TypedAttributeValue attributeValue, String prefix) {
 
         super(survey, record, prefix);
-
+        
         this.attribute = attribute;
-        this.recordAttribute = recordAttribute;
+        this.attributeValue = attributeValue;
     }
 
     /**
@@ -58,33 +67,14 @@ public class RecordAttributeFormField extends AbstractRecordFormField implements
         return true;
     }
 
-    public TypedAttributeValue getRecordAttribute() {
-        return recordAttribute;
-    }
-
-    public void setRecordAttribute(TypedAttributeValue recordAttribute) {
-        this.recordAttribute = recordAttribute;
-    }
-
+    @Override
     public Attribute getAttribute() {
         return attribute;
     }
 
-    public void setAttribute(Attribute attribute) {
-        this.attribute = attribute;
-    }
-
 	@Override
 	public TypedAttributeValue getAttributeValue() {
-		return this.recordAttribute;
-	}
-
-	@Override
-	public void setAttributeValue(TypedAttributeValue attributeValue) {
-		if(!(attributeValue instanceof AttributeValue)) {
-			throw new IllegalArgumentException(String.format("Attribute Value %s is not an instance of RecordAttribute", attributeValue));
-		} 
-		this.recordAttribute = (TypedAttributeValue) attributeValue;
+		return this.attributeValue;
 	}
 	
     @Override
@@ -115,4 +105,24 @@ public class RecordAttributeFormField extends AbstractRecordFormField implements
     public boolean isRequired() {
         return attribute.isRequired();
     }
+
+	@Override
+	public String getName() {
+		return attribute.getName();
+	}
+
+	@Override
+	public String getDescription() {
+		return attribute.getDescription();
+	}
+
+	@Override
+	public IndicatorSpecies getSpecies() {
+		return attributeValue != null ? attributeValue.getSpecies() : null;
+	}
+
+	@Override
+	public Collection<IndicatorSpecies> getAllowableSpecies() {
+		return survey != null ? survey.getSpecies() : Collections.EMPTY_LIST;
+	}
 }

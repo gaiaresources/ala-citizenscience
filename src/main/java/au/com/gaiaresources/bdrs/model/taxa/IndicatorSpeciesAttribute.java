@@ -1,8 +1,5 @@
 package au.com.gaiaresources.bdrs.model.taxa;
 
-import java.io.IOError;
-import java.io.IOException;
-import java.io.StringReader;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -12,14 +9,13 @@ import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 
 import org.apache.log4j.Logger;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.ParamDef;
 
-import au.com.bytecode.opencsv.CSVReader;
 import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
 
@@ -37,6 +33,8 @@ public class IndicatorSpeciesAttribute extends AbstractTypedAttributeValue imple
     private Logger log = Logger.getLogger(getClass());
 
     private String description = "";
+    
+    private IndicatorSpecies species = null;
 
     /* (non-Javadoc)
 	 * @see au.com.gaiaresources.bdrs.model.taxa.AttributeValue#getAttribute()
@@ -134,5 +132,17 @@ public class IndicatorSpeciesAttribute extends AbstractTypedAttributeValue imple
         } else {
             this.dateValue = null;
         }
+    }
+    
+    @CompactAttribute
+    @ManyToOne
+    @JoinColumn(name = "indicator_species_id")
+    @ForeignKey(name = "indicator_species_attribute_indicator_species_fk")
+    public IndicatorSpecies getSpecies() {
+    	return this.species;
+    }
+    
+    public void setSpecies(IndicatorSpecies species) {
+    	this.species = species;
     }
 }

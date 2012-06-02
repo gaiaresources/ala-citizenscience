@@ -48,6 +48,7 @@ import au.com.gaiaresources.bdrs.model.taxa.AttributeUtil;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValueUtil;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
@@ -117,6 +118,8 @@ public class YearlySightingsController extends RecordController {
     private FileService fileService;
     @Autowired
     private LocationService locationService;
+    @Autowired
+    private TaxaDAO taxaDAO;
     
     private FormFieldFactory formFieldFactory = new FormFieldFactory();
 
@@ -302,7 +305,7 @@ public class YearlySightingsController extends RecordController {
                     
                     // Record Attributes
                     TypedAttributeValue recAttr;
-                    WebFormAttributeParser attributeParser = new WebFormAttributeParser();
+                    WebFormAttributeParser attributeParser = new WebFormAttributeParser(taxaDAO);
                     Set recAtts = rec.getAttributes();
                     for(Attribute attribute : survey.getAttributes()) {
                         if(AttributeScope.SURVEY.equals(attribute.getScope()) || 

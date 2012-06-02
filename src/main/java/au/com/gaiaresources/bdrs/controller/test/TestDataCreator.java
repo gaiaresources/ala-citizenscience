@@ -534,6 +534,9 @@ public class TestDataCreator implements TestDataConstants {
             case SINGLE_CHECKBOX:
             	taxonAttr.setBooleanValue(Boolean.TRUE.toString());
             	break;
+            case SPECIES:
+            	// Leave blank.
+            	break;
             default:
                 throw new RuntimeException();
         }

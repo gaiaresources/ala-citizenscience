@@ -1,17 +1,21 @@
 package au.com.gaiaresources.bdrs.controller.attribute.formfield;
 
+import java.util.Collection;
+import java.util.Collections;
+
 import au.com.gaiaresources.bdrs.controller.attribute.DisplayContext;
 import au.com.gaiaresources.bdrs.model.method.Taxonomic;
 import au.com.gaiaresources.bdrs.model.record.Record;
+import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import org.apache.commons.lang.NotImplementedException;
+import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 
 /**
  * The <code>RecordPropertyFormField</code> is a representation of a
  * record property on the record form.
  */
-public class RecordPropertyFormField extends AbstractRecordFormField {
+public class RecordPropertyFormField extends AbstractRecordFormField implements TypedAttributeValueFormField {
 
     private IndicatorSpecies species;
     private Taxonomic taxonomic;
@@ -54,20 +58,13 @@ public class RecordPropertyFormField extends AbstractRecordFormField {
         return true;
     }
 
+    @Override
     public IndicatorSpecies getSpecies() {
         return species;
-    }
-
-    public void setSpecies(IndicatorSpecies species) {
-        this.species = species;
     }
     
     public Taxonomic getTaxonomic() {
 		return taxonomic;
-	}
-
-	public void setTaxonomic(Taxonomic taxonomic) {
-		this.taxonomic = taxonomic;
 	}
 
 	/**
@@ -78,12 +75,6 @@ public class RecordPropertyFormField extends AbstractRecordFormField {
         return this.recordProperty.getRecordPropertyType().getName();
     }
 
-	/**
-	 * Not implemented
-	 */
-    public void setPropertyName(String propertyName) {
-        throw new NotImplementedException();
-    }
     /**
      * Returns the fields description on the form or null when no description is available.
      * @return String description of the field on the form.
@@ -151,4 +142,26 @@ public class RecordPropertyFormField extends AbstractRecordFormField {
     public boolean isVisible(DisplayContext context) {
         return !isHidden() && this.recordProperty.getVisibility().isVisible(context);
     }
+
+	@Override
+	public String getName() {
+		return this.recordProperty.getRecordPropertyType().getName();
+	}
+
+	@Override
+	public Attribute getAttribute() {
+		// record properties never have an attribute.
+		return null;
+	}
+
+	@Override
+	public TypedAttributeValue getAttributeValue() {
+		// record properties never have an attribute value.
+		return null;
+	}
+
+	@Override
+	public Collection<IndicatorSpecies> getAllowableSpecies() {
+		return survey != null ? survey.getSpecies() : Collections.EMPTY_LIST;
+	}
 }

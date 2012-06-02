@@ -125,6 +125,18 @@ public interface TypedAttributeValue extends Persistent {
 	public void setBooleanValue(String value);
 	
 	/**
+	 * Returns the indicator species associated with this attribute value. May return null.
+	 * @return The associated species.
+	 */
+	public IndicatorSpecies getSpecies();
+	
+	/**
+	 * Sets the indicator species associated with this attribute value. May be null.
+	 * @param species The associated species.
+	 */
+	public void setSpecies(IndicatorSpecies species);
+	
+	/**
 	 * Returns true if the attribute value has a valid value to return to the user
 	 * @return
 	 */

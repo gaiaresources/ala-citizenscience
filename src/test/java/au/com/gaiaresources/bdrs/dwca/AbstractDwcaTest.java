@@ -138,6 +138,7 @@ public abstract class AbstractDwcaTest extends AbstractGridControllerTest {
         case MULTI_CHECKBOX:
         case MULTI_SELECT:
         case SINGLE_CHECKBOX:
+        case SPECIES:
             return av.getStringValue() != null ? av.getStringValue() : "";
             
         case HTML:

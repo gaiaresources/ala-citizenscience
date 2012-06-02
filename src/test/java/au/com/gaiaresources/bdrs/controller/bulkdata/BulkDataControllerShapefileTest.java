@@ -69,7 +69,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
 
 
-public class BulkDataController_Shapefile_Test extends AbstractControllerTest {
+public class BulkDataControllerShapefileTest extends AbstractControllerTest {
     
     @Autowired
     SurveyDAO surveyDAO;

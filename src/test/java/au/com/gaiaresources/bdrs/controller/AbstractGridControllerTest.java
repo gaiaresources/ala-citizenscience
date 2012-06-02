@@ -604,6 +604,7 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
         attrList.add(createAttribute(namePrefix + "_15", AttributeType.REGEX, attrRequired, scope));
         attrList.add(createAttribute(namePrefix + "_16", AttributeType.HTML_NO_VALIDATION, attrRequired, scope));
         attrList.add(createAttribute(namePrefix + "_17", AttributeType.AUDIO, attrRequired, scope));
+        attrList.add(createAttribute(namePrefix + "_18", AttributeType.SPECIES, attrRequired, scope));
         return attrList;
     }
     
@@ -702,6 +703,12 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
             av.setStringValue(value);
             break;
             
+        case SPECIES:
+        	// we're going to have alot of hoop snakes...
+        	av.setStringValue(hoopSnake.getScientificName());
+        	av.setSpecies(hoopSnake);
+            break;
+        	
         default:
             // not handled. fail the test to notify the test writer
             Assert.fail("Attribute type : " + a.getTypeCode() + " is not handled. Fix it!");
@@ -780,6 +787,14 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
                 // putting a space in here deliberately
                 av.setStringValue("filename " + Integer.toString(seed) + ".bleh");
                 break;
+                
+            case SPECIES:
+            {
+            	IndicatorSpecies s = speciesList.get(seed % speciesList.size());
+            	av.setSpecies(s);
+            	av.setStringValue(s.getScientificName());
+            }
+            	break;
                 
             default:
                 // not handled. fail the test to notify the test writer
@@ -886,7 +901,12 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
             String filenameText = "filename " + Integer.toString(seed) + ".bleh"; 
             av.setStringValue(filenameText);
             return filenameText;
-        }   
+        }
+        
+        case SPECIES:
+        {
+        	return this.speciesList.get(seed % speciesList.size()).getScientificName();
+        }
             
         default:
             // not handled. fail the test to notify the test writer
@@ -953,6 +973,11 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
         case SINGLE_CHECKBOX:
             Assert.assertEquals("bool av should be equal = " + a.getTypeCode(), Boolean.valueOf(expectedValue), av.getBooleanValue());
             break;
+            
+        case SPECIES:
+        	// taxon type but the string value should be equal to the verbatim name.
+        	Assert.assertEquals("string av should be equal = " + a.getTypeCode(), expectedValue, av.getStringValue());
+        	break;
 
         default:
             // not handled. fail the test to notify the test writer

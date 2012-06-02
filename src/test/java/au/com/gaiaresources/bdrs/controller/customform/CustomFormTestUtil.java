@@ -277,6 +277,11 @@ public class CustomFormTestUtil {
                         valueMap.put(attr, mockImageFile);
                         value = image_filename;
                         break;
+                    case SPECIES:
+                    	if (taxon != null) {
+                    		value = taxon.getScientificName();
+                    	}
+                    	break;
                     default:
                         Assert.assertTrue("Unknown Attribute Type: "
                                 + attr.getType().toString(), false);

@@ -14,7 +14,11 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import javax.security.sasl.AuthenticationException;
 
 import junit.framework.Assert;
 
@@ -24,7 +28,9 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
 import org.springframework.security.authentication.encoding.PasswordEncoder;
@@ -106,9 +112,17 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 
 	TaxonGroup taxongroup;
 	IndicatorSpecies species;
+	IndicatorSpecies species2;
 	private Location loc, uploadLoc;
 	private AttributeValue locAttrVal;
 	public static final String CUSTOM_PREFIX = "custom_";
+	
+	
+	/**
+	 * Used for asserting exceptions
+	 */
+	@Rule
+	public ExpectedException thrown = ExpectedException.none();
 
 	@Before
 	public void setup() {
@@ -179,6 +193,16 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 		species = taxaDAO.createIndicatorSpecies("hectus workus",
 				"argh pirate", taxongroup, new ArrayList<Region>(),
 				new ArrayList<SpeciesProfile>());
+		
+		species2 = taxaDAO.createIndicatorSpecies("species two", 
+				"common two", 
+				taxongroup, new ArrayList<Region>(),
+				new ArrayList<SpeciesProfile>());
+		
+		Set<IndicatorSpecies> speciesSet = new HashSet<IndicatorSpecies>();
+		speciesSet.add(species);
+		speciesSet.add(species2);
+		survey.setSpecies(speciesSet);
 
 		surveyDAO.updateSurvey(survey);
 
@@ -1028,6 +1052,12 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 		{
 			Row childXlsRow = obSheet.getRow(4);
 			childXlsRow.getCell(1).setCellValue("");
+			
+            // clearing species...
+			// scientific name
+			childXlsRow.getCell(4).setCellValue("");
+			// common name
+			childXlsRow.getCell(5).setCellValue("");
 
 			childXlsRow.getCell(16).setCellValue(10);
 			childXlsRow.getCell(17).setCellValue("new string");
@@ -1073,6 +1103,9 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 
 		rec = recDAO.getRecord(rec.getId());
 		recChild = recDAO.getRecord(recChild.getId());
+		
+		// child's species field should be cleared.
+		Assert.assertNull("child's species field should be null", recChild.getSpecies());
 
 		Assert.assertNull(recChild.getParentRecord());
 		Assert.assertEquals(1, rec.getChildRecords().size());
@@ -1408,7 +1441,147 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 					.getTime(), r.getWhen().getTime());
 		}
 	}
+	
+	@Test
+	public void testSpeciesAttributeImport_ok() throws IOException, ParseException,
+			MissingDataException, InvalidSurveySpeciesException,
+			DataReferenceException {
+		testSpeciesAttribteImport(species2.getScientificName(), species2.getCommonName(), species2);
+	}
+	
+	@Test
+	public void testSpeciesAttributeImport_badName()  throws IOException, ParseException,
+		MissingDataException, InvalidSurveySpeciesException,
+		DataReferenceException {
+		thrown.expect(AuthenticationException.class);
+		testSpeciesAttribteImport("blahblahblahrandomtext", "asdfjke89sduh", species2);
+	}
+	
+	@Test
+	public void testSpeciesAttributeImport_nothing() throws IOException, ParseException,
+	MissingDataException, InvalidSurveySpeciesException,
+	DataReferenceException {
+		// use empty white space
+		testSpeciesAttribteImport("   ", "   ", null);
+	}
+	
+	private void testSpeciesAttribteImport(String scientificName, String commonName, IndicatorSpecies expectedSpecies) 
+			throws IOException, ParseException, MissingDataException, InvalidSurveySpeciesException,
+	DataReferenceException {
+		setRequired(survey, false);
+		
+		// add a species attribute.
+		Attribute speciesAttr = new Attribute();
+		speciesAttr.setName("species_attr");
+		speciesAttr.setDescription("species attr");
+		speciesAttr.setTypeCode(AttributeType.SPECIES.getCode());
+		taxaDAO.save(speciesAttr);
+		
+		// we are going to replace the 'string' survey scoped attribute with
+		// our new species attribute.
+		List<Attribute> attrList = new ArrayList<Attribute>(2);
+		attrList.add(surveyAttr1);
+		// **********************
+		// replacing the string type attribute!
+		attrList.add(speciesAttr);
+		// **********************
+		survey.setAttributes(attrList);
+		
+		surveyDAO.save(survey);
+		
+		// edit the second attribute of the the first test cm.
+		testAttr2.setTypeCode(AttributeType.SPECIES.getCode());
+		taxaDAO.save(testAttr2);
+		
+		File spreadSheetTmp = File.createTempFile(
+				"BulkDataServiceTest.testImportSpeciesAttribute", ".xls");
+		FileOutputStream outStream = new FileOutputStream(spreadSheetTmp);
+		bulkDataService.exportSurveyTemplate(sesh, survey, outStream);
+		registerStream(outStream);
 
+		InputStream inStream = new FileInputStream(spreadSheetTmp);
+		Workbook wb = new HSSFWorkbook(inStream);
+		registerStream(inStream);
+
+		Sheet obSheet = wb.getSheet(AbstractBulkDataService.RECORD_SHEET_NAME);
+		// enter records starting at row 3
+
+		Calendar cal = Calendar.getInstance();
+		cal.clear();
+		cal.set(2011, 2, 27, 14, 42, 0);
+
+		MyTestRow row = new MyTestRow();
+		// test with leading / trailing white space
+		row.setSurveyAttr1(1);
+		// ****************************************************
+		// set the string type attribute to the sci name of our 
+		// desired species.
+		row.setSurveyAttr2(scientificName);
+		// ****************************************************
+		row.setDate(getDate(2011, 2, 27, 0, 0));
+		row.setTime(getDate(0, 0, 0, 14, 42));
+		
+		row.setCmId(cm.getId().toString());
+		row.setCm1Attr2(commonName);
+		
+		row.createRow(obSheet, 3);
+
+		FileOutputStream outStream2 = new FileOutputStream(spreadSheetTmp);
+		wb.write(outStream2);
+		registerStream(outStream2);
+
+		FileInputStream inStream2 = new FileInputStream(spreadSheetTmp);
+		registerStream(inStream2);
+
+		BulkUpload bulkUpload = bulkDataService.importBulkData(survey,
+				inStream2);
+
+		Assert.assertEquals(1, bulkUpload.getRecordUploadList().size());
+
+		sessionFactory.getCurrentSession().getTransaction().commit();
+		// we need a new one to use our DAOs.
+		sessionFactory.getCurrentSession().beginTransaction();
+
+		bulkDataService.saveRecords(user, bulkUpload, true);
+
+		Assert.assertEquals(1, recDAO.countAllRecords().intValue());
+
+		List<Record> recList = recDAO.getRecords(user);
+
+		{
+			Record r = recList.get(0);
+
+			Assert.assertNotNull(r);
+
+			// Assert the parent is correct
+			Assert.assertNotNull(getRecAttr(r, survey, "sdesc1"));
+			Assert.assertEquals(1, getRecAttr(r, survey, "sdesc1")
+					.getNumericValue().intValue());
+			
+			// 'sdesc2' has been replaced by the species attribute...
+			AttributeValue speciesAttrVal = getRecAttr(r, survey, speciesAttr.getDescription());
+			Assert.assertNotNull("attr value should not be null", speciesAttrVal);
+			if (expectedSpecies == null) {
+				Assert.assertNull("species should be null", speciesAttrVal.getSpecies());
+			} else {
+				Assert.assertNotNull("species should not be null", speciesAttrVal.getSpecies());
+				Assert.assertEquals("wrong species", expectedSpecies.getId(), speciesAttrVal.getSpecies().getId());	
+			}
+			
+			// check the census method species attr type...
+			AttributeValue cmSpeciesAttrVal = getRecAttr(r, cm, testAttr2.getDescription());
+			Assert.assertNotNull("attr value should not be null", cmSpeciesAttrVal);
+			if (expectedSpecies == null) {
+				Assert.assertNull("species should be null", cmSpeciesAttrVal.getSpecies());
+			} else {
+				Assert.assertNotNull("species should not be null", cmSpeciesAttrVal.getSpecies());
+				Assert.assertEquals("wrong species", expectedSpecies.getId(), cmSpeciesAttrVal.getSpecies().getId());	
+			}
+			Assert.assertEquals("dates should be equal", cal.getTime()
+					.getTime(), r.getWhen().getTime());
+		}
+	}
+	
 	private Date getDate(int year, int month, int day, int hour, int min) {
 		Calendar cal = Calendar.getInstance();
 		cal.clear();

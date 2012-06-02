@@ -2,7 +2,6 @@ package au.com.gaiaresources.bdrs.model.taxa.impl;
 
 import au.com.gaiaresources.bdrs.db.QueryOperation;
 import au.com.gaiaresources.bdrs.db.impl.*;
-import au.com.gaiaresources.bdrs.db.impl.SortOrder;
 import au.com.gaiaresources.bdrs.model.index.IndexingConstants;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.region.Region;
@@ -606,9 +605,14 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
     @Override
     public List<IndicatorSpecies> getIndicatorSpeciesByNameSearch(String name) {
         String searchString = toSQLSearchString(name);
-        
         return find("from IndicatorSpecies i where UPPER(commonName) like UPPER(?) or UPPER(scientificName) like UPPER (?)", 
                     new Object[] {searchString, searchString}, 30);
+    }
+    
+    @Override
+    public List<IndicatorSpecies> getIndicatorSpeciesByNameSearchExact(String name) {
+    	return find("from IndicatorSpecies i where UPPER(commonName) like UPPER(?) or UPPER(scientificName) like UPPER (?)", 
+                new Object[] {name, name}, 30);
     }
     
     @Override
@@ -922,10 +926,22 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
      */
     @Override
     public List<IndicatorSpecies> getDistinctRecordedTaxaForSurvey(int surveyId) {
-        Query q = getSession().createQuery(
-        "select distinct taxon from Record rec left join rec.species taxon left join rec.survey survey where survey.id = :surveyId");
-        q.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, surveyId);
-        return q.list();
+    	Session sesh = this.getSession();
+    	// 2 queries, no outer joins required.
+    	List<IndicatorSpecies> result1 = sesh.createQuery("select r.species from Record r join r.survey s where s.id = ?")
+    			.setParameter(0, surveyId).list();
+    	List<IndicatorSpecies> result2 = sesh.createQuery("select distinct av.species from Record r join r.attributes av join r.survey s where s.id = ?")
+    			.setParameter(0,  surveyId).list();
+    	Set<IndicatorSpecies> speciesSet = new HashSet<IndicatorSpecies>();
+    	for (IndicatorSpecies s : result1) {
+    		speciesSet.add(s);
+    	}
+    	for (IndicatorSpecies s : result2) {
+    		speciesSet.add(s);
+    	}
+    	List<IndicatorSpecies> finalResult = new ArrayList<IndicatorSpecies>(speciesSet.size());
+    	finalResult.addAll(speciesSet);
+    	return finalResult;
     }
     
     /**
@@ -1112,5 +1128,28 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
         for (IndicatorSpecies taxon : taxa) {
             taxon.addSecondaryGroup(group);
         }
+    }
+    
+    @Override
+    public List<IndicatorSpecies> getSpeciesForRecord(Session sesh, Integer recId) {
+    	
+    	if (sesh == null) {
+    		sesh = this.getSession();
+    	}
+    	// 2 queries, no outer joins required.
+    	List<IndicatorSpecies> result1 = sesh.createQuery("select r.species from Record r where r.id = ?")
+    			.setParameter(0, recId).list();
+    	List<IndicatorSpecies> result2 = sesh.createQuery("select distinct av.species from Record r join r.attributes av where r.id = ?")
+    			.setParameter(0,  recId).list();
+    	Set<IndicatorSpecies> speciesSet = new HashSet<IndicatorSpecies>();
+    	for (IndicatorSpecies s : result1) {
+    		speciesSet.add(s);
+    	}
+    	for (IndicatorSpecies s : result2) {
+    		speciesSet.add(s);
+    	}
+    	List<IndicatorSpecies> finalResult = new ArrayList<IndicatorSpecies>(speciesSet.size());
+    	finalResult.addAll(speciesSet);
+    	return finalResult;
     }
 }

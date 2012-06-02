@@ -11,15 +11,17 @@ bdrs.form.prepopulate = function(){
 	var fields = jQuery("form").serializeArray();
 	for ( var i = 0; i < fields.length; i++) {
 		var field = fields[i];
-		if(field.value == ""){
-		var value = bdrs.getParameterByName(field.name);
-		var selector = '[name="' + field.name +'"]';
-		jQuery(selector).filter(function(){
-			/**
-			 * Exclude any fields we don't want to using css
-			 */
-			return !$(this).hasClass("skipPrepopulate", "bdrsPrepopulated");
-		}).val(value).addClass("bdrsPrepopulated");
+		if(field.value == "") {
+			if (value) {
+				var value = bdrs.getParameterByName(field.name);
+				var selector = '[name="' + field.name +'"]';
+				jQuery(selector).filter(function(){
+					/**
+					 * Exclude any fields we don't want to using css
+					 */
+					return !$(this).hasClass("skipPrepopulate", "bdrsPrepopulated");
+				}).val(value).addClass("bdrsPrepopulated");
+			}	
 		}
 	}
 	

@@ -33,6 +33,9 @@ class Report:
             survey_ids = map(int,survey_ids)
             tmpl_params['survey_ids'] = survey_ids
 
+            # get taxa dao
+            taxa_dao = bdrs.getTaxaDAO()
+
             # Compile all the reports.
             record_dao = bdrs.getRecordDAO()
             record_array = []
@@ -69,17 +72,20 @@ class Report:
 
             matrix = {}
             for rec in record_array:
-                taxon = rec['species']
                 loc = rec['location']
                 loc = loc if loc is not None else other_loc
                 loc_map[loc['id']] = loc
-                if taxon is not None:
-                    taxon_map = matrix.setdefault(taxon['id'], {})
-                    taxon_map['taxon'] = taxon
 
-                    taxon_loc_map = taxon_map.setdefault('locations', {})
-                    loc_count_map = taxon_loc_map.setdefault(loc['id'], {'count': 0, 'location': loc})
-                    loc_count_map['count'] += 1
+                json_taxa_list = taxa_dao.getTaxaForRecord(rec['id'])
+                taxa_list = json.loads(json_taxa_list)  
+                for taxon in taxa_list:
+                    if taxon is not None:
+                        taxon_map = matrix.setdefault(taxon['id'], {})
+                        taxon_map['taxon'] = taxon
+
+                        taxon_loc_map = taxon_map.setdefault('locations', {})
+                        loc_count_map = taxon_loc_map.setdefault(loc['id'], {'count': 0, 'location': loc})
+                        loc_count_map['count'] += 1
 
             # Generate a sorted list of unique locations.
             loc_registry = loc_map.values()

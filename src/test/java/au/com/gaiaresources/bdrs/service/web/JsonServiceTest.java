@@ -15,6 +15,7 @@ import au.com.gaiaresources.bdrs.json.JSONObject;
 import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import au.com.gaiaresources.bdrs.model.record.AccessControlledRecordAdapter;
 import au.com.gaiaresources.bdrs.model.record.Record;
@@ -26,9 +27,11 @@ import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.test.AbstractSpringContextTest;
 
-public class JsonServiceTest {
+public class JsonServiceTest extends AbstractSpringContextTest {
 
+	@Autowired
     private JsonService jsonService;
     private Record record;
     private User owner;
@@ -49,7 +52,6 @@ public class JsonServiceTest {
 
     @Before
     public void setup() {
-        jsonService = new JsonService();
         
         Survey survey = new Survey();
         survey.setName("survey name");
@@ -150,14 +152,13 @@ public class JsonServiceTest {
 
         JSONArray attributes = obj.getJSONArray(JsonService.JSON_KEY_ATTRIBUTES);
         Assert.assertNotNull(attributes);
-        
-        JSONObject fileItem = getItemByKey(attributes, fileAttr.getDescription());
+        JSONObject fileItem = getItemByName(attributes, fileAttr.getDescription());
         Assert.assertNotNull(fileItem);
         
         Assert.assertEquals("<a href=\"" + CONTEXT_PATH + "/files/download.htm?className=au.com.gaiaresources.bdrs.model.taxa.AttributeValue" 
                             + "&id=" + av3.getId().toString()
                             + "&fileName=" + av3.getStringValue() + "\">Download file</a>", 
-                            fileItem.getString(fileAttr.getDescription()));
+                            fileItem.getString(JsonService.JSON_KEY_ATTR_VALUE));
     }
     
     @Test
@@ -191,10 +192,10 @@ public class JsonServiceTest {
         Assert.assertEquals("expect empty array", 0, attributes.size());
     }
     
-    private JSONObject getItemByKey(JSONArray array, String key) {
+    private JSONObject getItemByName(JSONArray array, String name) {
         for (int i=0; i<array.size(); ++i) {
             JSONObject obj = array.getJSONObject(i);
-            if (obj.containsKey(key)) {
+            if (obj.getString(JsonService.JSON_KEY_ATTR_NAME).equals(name)) {
                 return obj;
             }
         }

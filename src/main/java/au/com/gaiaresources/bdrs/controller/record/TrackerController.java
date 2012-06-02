@@ -518,7 +518,7 @@ public class TrackerController extends RecordController {
         RecordKeyLookup lookup = new TrackerFormRecordKeyLookup();
         TrackerFormToRecordEntryTransformer transformer = new TrackerFormToRecordEntryTransformer(locationService);
         TrackerFormAttributeDictionaryFactory adf = new TrackerFormAttributeDictionaryFactory();
-        AttributeParser parser = new WebFormAttributeParser();
+        AttributeParser parser = new WebFormAttributeParser(taxaDAO);
         
         RecordDeserializer rds = new RecordDeserializer(lookup, adf, parser);
         List<RecordEntry> entries = transformer.httpRequestParamToRecordMap(parameterMap, request.getFileMap());

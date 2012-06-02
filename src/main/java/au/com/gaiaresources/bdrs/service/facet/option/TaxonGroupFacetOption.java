@@ -10,6 +10,7 @@ import edu.emory.mathcs.backport.java.util.Arrays;
 public class TaxonGroupFacetOption extends FacetOption {
     
     private TaxonGroup taxonGroup;
+    private String speciesAttributeGroupAlias;
 
     /**
      * Creates a new instance of this class.
@@ -18,11 +19,12 @@ public class TaxonGroupFacetOption extends FacetOption {
      * @param count the number of records that match this option.
      * @param selectedOpts true if this option is applied, false otherwise.
      */
-    public TaxonGroupFacetOption(TaxonGroup taxonGroup, Long count, String[] selectedOpts) {
+    public TaxonGroupFacetOption(TaxonGroup taxonGroup, Long count, String[] selectedOpts, String speciesAttributeGroupAlias) {
         super(taxonGroup.getName(), String.valueOf(taxonGroup.getId()), count, 
               Arrays.binarySearch(selectedOpts, String.valueOf(taxonGroup.getId())) > -1);
         
-        this.taxonGroup = taxonGroup;           
+        this.speciesAttributeGroupAlias = speciesAttributeGroupAlias;
+        this.taxonGroup = taxonGroup;
     }
 
     /**
@@ -30,6 +32,8 @@ public class TaxonGroupFacetOption extends FacetOption {
      * query.
      */
     public Predicate getPredicate() {
-        return Predicate.eq("species.taxonGroup.id", taxonGroup.getId());
+        return Predicate.enclose(
+        		Predicate.eq("species.taxonGroup.id", taxonGroup.getId()).or(
+        				Predicate.eq(speciesAttributeGroupAlias+".id", taxonGroup.getId())));
     }
 }
