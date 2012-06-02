@@ -193,6 +193,10 @@ public class GridServiceImpl implements GridService, ApplicationListener {
     public void setMaxX(Integer maxX) {
         this.maxX = maxX;
     }
+    
+    public Integer getMaxX() {
+    	return this.maxX;
+    }
 
     public void setMinY(Integer minY) {
         this.minY = minY;
@@ -200,6 +204,10 @@ public class GridServiceImpl implements GridService, ApplicationListener {
 
     public void setMaxY(Integer maxY) {
         this.maxY = maxY;
+    }
+    
+    public Integer getMaxY() {
+    	return this.maxY;
     }
     
     protected synchronized TransactionTemplate getTransactionTemplate() {

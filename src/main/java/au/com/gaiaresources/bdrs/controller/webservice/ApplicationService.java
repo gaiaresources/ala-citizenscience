@@ -58,6 +58,11 @@ public class ApplicationService extends AbstractController {
     
     public static final String CLIENT_SYNC_STATUS_KEY = "status";
     
+    /**
+     * JSON key for defining an IndicatorSpecies id.
+     */
+    public static final String JSON_KEY_TAXON_ID = "taxon_id";
+    
     private Logger log = Logger.getLogger(getClass());
 
     @Autowired
@@ -558,7 +563,7 @@ public class ApplicationService extends AbstractController {
         Integer surveyPk = getJSONInteger(jsonRecordBean, "survey_id", null);
         
         String scientificName = getJSONString(jsonRecordBean, "scientificName", null);
-        Integer taxonPk = getJSONInteger(jsonRecordBean, "taxon_id", null);
+        Integer taxonPk = getJSONInteger(jsonRecordBean, JSON_KEY_TAXON_ID, null);
         if(taxonPk != null) {
             IndicatorSpecies taxon = taxaDAO.getIndicatorSpecies(taxonPk);
             if(taxon == null) {
@@ -692,6 +697,23 @@ public class ApplicationService extends AbstractController {
                     base64 = null;
                     attrVal.setStringValue("");
                 }
+            	break;
+            case SPECIES:
+            {
+            	Integer taxonId = getJSONInteger(jsonRecAttrBean, JSON_KEY_TAXON_ID, null);
+            	if (taxonId != null) {
+            		IndicatorSpecies species = taxaDAO.getIndicatorSpecies(taxonId);
+            		attrVal.setSpecies(species);
+            		if (species != null) {
+            			attrVal.setStringValue(value);
+            		} else {
+            			log.error("could not find species with id : " + taxonId);
+            		}
+            	} else {
+            		attrVal.setSpecies(null);
+            		attrVal.setStringValue("");
+            	}
+            }
             	break;
             default:
                 throw new UnsupportedOperationException("Unsupported Attribute Type: "+attr.getType().toString());

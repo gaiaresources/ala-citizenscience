@@ -25,7 +25,7 @@ import au.com.gaiaresources.bdrs.db.TransactionCallback;
 import au.com.gaiaresources.bdrs.model.region.Region;
 import au.com.gaiaresources.bdrs.model.region.RegionService;
 import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.kml.servlet.KMLWriter;
+import au.com.gaiaresources.bdrs.kml.servlet.ServletKMLWriter;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Polygon;
@@ -132,7 +132,7 @@ public class RegionController extends AbstractController {
     //@RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR, Role.USER})
     @RequestMapping(value = "/authenticated/getRegion.htm", method = RequestMethod.GET)
     public ModelAndView getRegion(HttpServletRequest request, @RequestParam("regionID") Integer regionId) throws JAXBException {
-        KMLWriter writer = new KMLWriter(request);
+        ServletKMLWriter writer = new ServletKMLWriter(request);
         Region r = regionService.getRegion(regionId);
         writer.createFolder("Region");
         writer.createPlacemark("Region", r.getRegionName(), r.getBoundary(), "regionpoly");
