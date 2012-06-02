@@ -807,7 +807,8 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
 		b.append(" or " );
 		b.append(" (recGroup = g and avGroup = g) ");
 		b.append(" ) ");
-		b.append(" group by g order by g.weight asc, g.name asc");
+		appendTaxonGroupGroupingClause(b, "g");
+		b.append(" order by g.weight asc, g.name asc");
 		
 		Query q = sesh.createQuery(b.toString());
 		
