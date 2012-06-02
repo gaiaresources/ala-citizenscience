@@ -72,11 +72,36 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
     /** The names of the Record properties to be included in the JSON returned by a search */
     private static final Map<Class<?>, Set<String>> JSON_PROPERTIES;
     
+    /**
+     * Parameter for report id in query.
+     */
+    public static final String QUERY_PARAM_REPORT_ID = "reportId";
+    
+    /**
+     * Alias used in the facet indepedent joins for the facet query.
+     */
+    private static final String SPECIES_ALIAS = "species";
+    /**
+     * Alias used in the facet independent joins for the facet query.
+     */
+    private static final String ATTRIBUTE_VALUE_ALIAS = "recordAttributeVal";
+    /**
+     * Alias used in the facet independent joins for the facet query.
+     */
+    private static final String ATTRIBUTE_VALUE_SPECIES_ALIAS = "attributeValueSpecies";
+    
+    /**
+     * The base hql query used for a facet query.
+     */
+    public static final String BASE_FACET_QUERY = "select distinct record, "
+        + SPECIES_ALIAS + ".scientificName, " + SPECIES_ALIAS 
+        + ".commonName, location.name, censusMethod.type from Record record";
+    
     static {
         Set<String> temp = new HashSet<String>();
         temp.add("record.when");
-        temp.add("species.scientificName");
-        temp.add("species.commonName"); 
+        temp.add(SPECIES_ALIAS + ".scientificName");
+        temp.add(SPECIES_ALIAS + ".commonName"); 
         temp.add("location.name");
         temp.add("censusMethod.type");
         temp.add("record.user");
@@ -98,11 +123,6 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
         JSON_PROPERTIES = Collections.unmodifiableMap(jsonProps);
     }
     
-    /**
-     * Parameter for report id in query.
-     */
-    public static final String QUERY_PARAM_REPORT_ID = "reportId";
-
     private Logger log = Logger.getLogger(getClass());
 
     /**
@@ -212,6 +232,7 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
         if(getParameter(newParamMap, SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME) != null) {
             surveyId = Integer.parseInt(getParameter(newParamMap, SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME));
         }
+
         List<Facet> facetList = facetService.getFacetList(currentUser(), newParamMap);
         
         ScrollableResults<Record> sr = getScrollableResults(facetList, surveyId, 
@@ -350,9 +371,18 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
     protected void applyFacetsToQuery(HqlQuery hqlQuery, List<Facet> facetList,
             Integer surveyId, String searchText) {
 
-        hqlQuery.leftJoin("record.location", "location");
-        hqlQuery.leftJoin("record.species", "species");
-        hqlQuery.leftJoin("record.censusMethod", "censusMethod");
+    	applyJoinsForBaseQuery(hqlQuery);
+    	
+    	// If we are doing a text search, add a few extra joins.
+    	if(searchText != null && !searchText.isEmpty()) {
+            hqlQuery.leftJoin("record.attributes", ATTRIBUTE_VALUE_ALIAS);
+            hqlQuery.leftJoin("recordAttributeVal.attribute", "recordAttribute");
+            hqlQuery.leftJoin(ATTRIBUTE_VALUE_ALIAS+".species", ATTRIBUTE_VALUE_SPECIES_ALIAS);
+    	}
+        
+    	//hqlQuery.leftJoin("record.location", "location");
+        //hqlQuery.leftJoin("record.species", "species");
+        //hqlQuery.leftJoin("record.censusMethod", "censusMethod");
         
         for(Facet f : facetList) {
             if(f.isActive()) {
@@ -365,17 +395,35 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
         }
         
         if(searchText != null && !searchText.isEmpty()) {
-            Predicate searchPredicate = Predicate.ilike("record.notes", String.format("%%%s%%", searchText));
-            searchPredicate.or(Predicate.ilike("species.scientificName", String.format("%%%s%%", searchText)));
-            searchPredicate.or(Predicate.ilike("species.commonName", String.format("%%%s%%", searchText)));
-            searchPredicate.or(Predicate.ilike("record.user.name", String.format("%%%s%%", searchText)));
-            
+        	String formattedSearchText = String.format("%%%s%%", searchText);
+            Predicate searchPredicate = Predicate.ilike("record.notes", formattedSearchText);
+            searchPredicate.or(Predicate.ilike(SPECIES_ALIAS + ".scientificName", formattedSearchText));
+            searchPredicate.or(Predicate.ilike(SPECIES_ALIAS + ".commonName", formattedSearchText));
+            searchPredicate.or(Predicate.ilike(ATTRIBUTE_VALUE_SPECIES_ALIAS+".scientificName", formattedSearchText));
+            searchPredicate.or(Predicate.ilike(ATTRIBUTE_VALUE_SPECIES_ALIAS+".commonName", formattedSearchText));
+            //Predicate searchPredicate = Predicate.ilike("record.notes", String.format("%%%s%%", searchText));
+            //searchPredicate.or(Predicate.ilike("species.scientificName", String.format("%%%s%%", searchText)));
+            //searchPredicate.or(Predicate.ilike("species.commonName", String.format("%%%s%%", searchText)));
+            //searchPredicate.or(Predicate.ilike("record.user.name", String.format("%%%s%%", searchText)));
             hqlQuery.and(searchPredicate);
         }
         
         if(surveyId != null) {
             hqlQuery.and(Predicate.eq("record.survey.id", surveyId));
         }
+    }
+    
+    /**
+     * Applies the minimum of left joins required to do a facet query.
+     * 
+     * Exposing for testing. Does not effect state of object.
+     * @param hqlQuery
+     */
+    public static void applyJoinsForBaseQuery(HqlQuery hqlQuery) {
+    	hqlQuery.leftJoin("record.location", "location");
+        // hqlQuery.leftJoin("location.attributes", "locAttribute");
+        hqlQuery.leftJoin("record.species", SPECIES_ALIAS);
+        hqlQuery.leftJoin("record.censusMethod", "censusMethod");
     }
 
     /**
@@ -395,7 +443,7 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
      */
     protected Query createFacetQuery(List<Facet> facetList, Integer surveyId, String sortProperty, String sortOrder, String searchText) {
         // extra columns in select are used for ordering
-        HqlQuery hqlQuery = new HqlQuery("select distinct record, species.scientificName, species.commonName, location.name, censusMethod.type from Record record");
+        HqlQuery hqlQuery = new HqlQuery(BASE_FACET_QUERY);
         
         applyFacetsToQuery(hqlQuery, facetList, surveyId, searchText);
 
