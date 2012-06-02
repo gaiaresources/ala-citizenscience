@@ -49,7 +49,7 @@ class Form:
             'element_tmpl_path' : bdrs.toAbsolutePath('template/element.tmpl'),
             'survey' : survey,
             'rec' : record,
-            'rf' : RenderFactory(bdrs, query_params, deserialize_result_list),
+            'rf' : RenderFactory(bdrs, survey, query_params, deserialize_result_list),
         }
 
         tmpl = Template(file=bdrs.toAbsolutePath('template/simple.tmpl'), searchList=tmpl_params)
