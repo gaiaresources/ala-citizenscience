@@ -590,3 +590,16 @@ alter table portal add column url_prefix varchar(16) unique;
 
 rollback;
 </code>
+
+= r338 =
+<code language="sql">
+begin;
+
+alter table attribute_value add column indicator_species_id int;
+alter table attribute_value add constraint attribute_value_indicator_species_fk foreign key (indicator_species_id) references indicator_species;
+
+alter table indicator_species_attribute add column indicator_species_id int;
+alter table indicator_species_attribute add constraint indicator_species_attribute_indicator_species_fk foreign key (indicator_species_id) references indicator_species;
+
+rollback;
+</code>
