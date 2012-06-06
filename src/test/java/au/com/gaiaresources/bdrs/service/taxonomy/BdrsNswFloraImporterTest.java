@@ -8,19 +8,19 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import au.com.gaiaresources.bdrs.service.taxonomy.nsw.SpeciesProfileNaturalisedStatusBuilder;
+import au.com.gaiaresources.taxonlib.importer.nswflora.NswFloraRow;
 import junit.framework.Assert;
 
 import org.apache.log4j.Logger;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile;
 import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfileDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
-import au.com.gaiaresources.taxonlib.ITaxonLibSession;
 import au.com.gaiaresources.taxonlib.ITemporalContext;
-import au.com.gaiaresources.taxonlib.TaxonLibException;
 import au.com.gaiaresources.taxonlib.importer.nswflora.NswFloraImporter;
 import au.com.gaiaresources.taxonlib.model.ITaxonConcept;
 import au.com.gaiaresources.taxonlib.model.ITaxonName;
@@ -37,6 +37,11 @@ public class BdrsNswFloraImporterTest extends TaxonomyImportTest {
 
     private Logger log = Logger.getLogger(getClass());
 
+    @Before
+    public void setup() {
+        requestTaxonomyImportTestDropDatabase();
+    }
+
     private void doImport(String file) throws Exception {
         InputStream csvStream = null;
         try {
@@ -44,7 +49,7 @@ public class BdrsNswFloraImporterTest extends TaxonomyImportTest {
             now = getDate(2000, 12, 12);
 
             BdrsNswFloraImporter importer = new BdrsNswFloraImporter(
-                    this.taxonLibSession, now, taxaDAO, spDAO);
+                    this.taxonLibSession, now, sessionFactory, taxaDAO, spDAO);
             importer.runImport(csvStream);
         } finally {
             if (csvStream != null) {
@@ -235,11 +240,14 @@ public class BdrsNswFloraImporterTest extends TaxonomyImportTest {
             IndicatorSpecies sp101 = taxaDAO.getIndicatorSpeciesByScientificName("Rhodanthe microglossa forma. Awesome");
             Assert.assertNotNull("expect indicator species", sp101);
             Assert.assertEquals("wrong common name", "common name two", sp101.getCommonName());
-            assertSpeciesProfileValue(sp101.getInfoItems(), BdrsNswFloraImporterRowHandler.SPECIES_PROFILE_DIST_OTHER, "WA");
-            assertSpeciesProfileValue(sp101.getInfoItems(), BdrsNswFloraImporterRowHandler.SPECIES_PROFILE_NSW_TSC, "hello");
-            assertSpeciesProfileValue(sp101.getInfoItems(), BdrsNswFloraImporterRowHandler.SPECIES_PROFILE_EPBC_STATUS, "world");
-            assertSpeciesProfileValue(sp101.getInfoItems(), BdrsNswFloraImporterRowHandler.SPECIES_PROFILE_NSW_DISTRO, "NC CC SC NT CT ST NWS CWS SWS NWP SWP");
-            assertSpeciesProfileValue(sp101.getInfoItems(), BdrsNswFloraImporterRowHandler.SPECIES_PROFILE_NATIVE_INTRODUCED, "I");
+
+            TaxonTestUtils.assertSpeciesProfileValue(sp101.getInfoItems(), NswFloraRow.ColumnName.AUTHOR.toString(), "Recard.j.");
+            TaxonTestUtils.assertSpeciesProfileValue(sp101.getInfoItems(), NswFloraRow.ColumnName.NATIVE_INTRODUCED.toString(), SpeciesProfileNaturalisedStatusBuilder.CODE_LOOKUP.get("I"));
+            TaxonTestUtils.assertSpeciesProfileValue(sp101.getInfoItems(), NswFloraRow.ColumnName.NSW_TSC.toString(), "hello");
+            TaxonTestUtils.assertSpeciesProfileValue(sp101.getInfoItems(), NswFloraRow.ColumnName.EPBC_STATUS.toString(), "world");
+            TaxonTestUtils.assertSpeciesProfileValue(sp101.getInfoItems(), NswFloraRow.ColumnName.NSW_DISTRO.toString(), "NC CC SC NT CT ST NWS CWS SWS NWP SWP");
+            TaxonTestUtils.assertSpeciesProfileValue(sp101.getInfoItems(), NswFloraRow.ColumnName.DIST_OTHER.toString(), "WA");
+
             Assert.assertEquals("wrong rank", au.com.gaiaresources.bdrs.model.taxa.TaxonRank.INFRASPECIES, sp101.getTaxonRank());
 
             IndicatorSpecies sp101_species = sp101.getParent();
@@ -272,22 +280,5 @@ public class BdrsNswFloraImporterTest extends TaxonomyImportTest {
             Assert.assertNotNull("sp102 species cant be null");
             Assert.assertEquals("wrong ids", sp102_species.getId(), sp101_species.getId());
         }
-    }
-
-    private SpeciesProfile getProfileItemByType(List<SpeciesProfile> spList,
-            String type) {
-        for (SpeciesProfile sp : spList) {
-            if (sp.getType().equals(type)) {
-                return sp;
-            }
-        }
-        return null;
-    }
-
-    private void assertSpeciesProfileValue(List<SpeciesProfile> spList,
-            String type, String expectedValue) {
-        SpeciesProfile sp = getProfileItemByType(spList, type);
-        Assert.assertNotNull("SpeciesProfile cannot be null", sp);
-        Assert.assertEquals("wrong value", expectedValue, sp.getContent());
     }
 }

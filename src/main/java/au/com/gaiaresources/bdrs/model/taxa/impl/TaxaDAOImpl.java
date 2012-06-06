@@ -541,7 +541,7 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
             } else {
                 q = sesh.createQuery(query);
             }
-            
+
             q.setParameter("sourceId", sourceDataId);
             q.setParameter("source", source);
             return (IndicatorSpecies)q.uniqueResult();

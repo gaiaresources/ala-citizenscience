@@ -1,18 +1,16 @@
 package au.com.gaiaresources.bdrs.service.taxonomy;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import au.com.gaiaresources.bdrs.model.taxa.*;
+import au.com.gaiaresources.bdrs.service.taxonomy.afd.SpeciesProfileBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfileDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
-import au.com.gaiaresources.bdrs.model.taxa.TaxonRank;
 import au.com.gaiaresources.taxonlib.ITemporalContext;
 import au.com.gaiaresources.taxonlib.ITaxonLibSession;
 import au.com.gaiaresources.taxonlib.importer.afd.AfdImporter;
@@ -22,22 +20,40 @@ import au.com.gaiaresources.taxonlib.model.ITaxonConcept;
 import au.com.gaiaresources.taxonlib.model.ITaxonName;
 
 public class BdrsAfdImporterRowHandler implements AfdImporterRowHandler {
+    /**
+     * Taxon group name
+     */
+    public static final String AFD_GROUP_NAME = "AFD";
+    static final SpeciesProfileBuilder[] PROFILE_BUILDER = new SpeciesProfileBuilder[] {
 
+        new SpeciesProfileBuilder(AfdRow.ColumnName.AUTHOR, "Author"),
+        new SpeciesProfileBuilder(AfdRow.ColumnName.YEAR, "Year"),
+        new SpeciesProfileBuilder(AfdRow.ColumnName.QUALIFICATION, "Qualification or Comments"),
+        new SpeciesProfileBuilder(AfdRow.ColumnName.PUB_PUB_FORMATTED, "Publication"),
+
+//        new SpeciesProfileBuilder(AfdRow.ColumnName.ORIG_COMBINATION, "Whether this is an original combination, either 'Y', 'N' or empty when not applicable."),
+//        new SpeciesProfileBuilder(AfdRow.ColumnName.PUB_PUB_AUTHOR, "Publication Author"),
+//        new SpeciesProfileBuilder(AfdRow.ColumnName.PUB_PUB_YEAR, "Publication Year"),
+//        new SpeciesProfileBuilder(AfdRow.ColumnName.PUB_PUB_TITLE, "Publication Title"),
+//        new SpeciesProfileBuilder(AfdRow.ColumnName.PUB_PUB_PAGES, "Publication Page Reference"),
+//        new SpeciesProfileBuilder(AfdRow.ColumnName.PUB_PUB_PARENT_BOOK_TITLE, "Publication Book Title"),
+//        new SpeciesProfileBuilder(AfdRow.ColumnName.PUB_PUB_PARENT_JOURNAL_TITLE, "Publication Journal Title"),
+//        new SpeciesProfileBuilder(AfdRow.ColumnName.PUB_PUB_PARENT_ARTICLE_TITLE, "Publication Article Title"),
+//        new SpeciesProfileBuilder(AfdRow.ColumnName.PUB_PUB_PUBLICATION_DATE, "Publication Date"),
+//        new SpeciesProfileBuilder(AfdRow.ColumnName.PUB_PUB_PUBLISHER, "Publication Publisher"),
+//        new SpeciesProfileBuilder(AfdRow.ColumnName.PUB_PUB_QUALIFICATION, "Publication Qualification and Comments"),
+//        new SpeciesProfileBuilder(AfdRow.ColumnName.PUB_PUB_TYPE, "Publication Type"),
+    };
+
+    private Logger log = Logger.getLogger(getClass());
 	private ITemporalContext temporalContext;
 	private Session sesh;
 	private TaxaDAO taxaDAO;
+    private SpeciesProfileDAO spDAO;
 	
 	private Transaction tx;
-	
 	private TaxonGroup group;
-	
-	private Logger log = Logger.getLogger(getClass());
-	
-	/**
-	 * Taxon group name
-	 */
-	public static final String AFD_GROUP_NAME = "AFD";
-	
+
 	/**
 	 * Create a new row handler
 	 * 
@@ -67,6 +83,7 @@ public class BdrsAfdImporterRowHandler implements AfdImporterRowHandler {
 		temporalContext = taxonLibSession.getTemporalContext(now);
 		this.sesh = sesh;
 		this.taxaDAO = taxaDAO;
+        this.spDAO = spDAO;
 		
 		tx = sesh.beginTransaction();
 		
@@ -97,13 +114,20 @@ public class BdrsAfdImporterRowHandler implements AfdImporterRowHandler {
             iSpecies.setSourceId(tn.getId().toString());
             iSpecies.setCommonName("");
             
-            // do teh funky cast....
             // There are 2 duplicate TaxonRank enums. One in the BDRS namespace and one in the TaxonLib namespace...
             TaxonRank rank = TaxonRank.valueOf(tn.getRank().toString());
-            if (rank == null) {
-            	throw new IllegalStateException("Something has gone wrong with our funky casting");
-            }
             iSpecies.setTaxonRank(rank);
+
+            List<SpeciesProfile> infoItems = new ArrayList<SpeciesProfile>();
+
+            for(SpeciesProfileBuilder builder : PROFILE_BUILDER) {
+                SpeciesProfile sp = builder.createProfile(row);
+                if(sp != null) {
+                    sp = spDAO.save(sesh, sp);
+                    infoItems.add(sp);
+                }
+            }
+            iSpecies.setInfoItems(infoItems);
             
             taxaDAO.save(sesh, iSpecies);
 		}
@@ -117,11 +141,9 @@ public class BdrsAfdImporterRowHandler implements AfdImporterRowHandler {
 		if (iSpecies != null) {
 			if (AfdImporter.COMMON.equals(nameType)) {
 				if (StringUtils.isEmpty(iSpecies.getCommonName())) {
-					List<ITaxonName> commonNames = temporalContext.getCommonNames(concept);
-			    	if (commonNames != null && !commonNames.isEmpty()) {
-			    		// grabs the first common name....
-			    		String cn = commonNames.get(0).getName();
-			    		iSpecies.setCommonName(cn);
+					ITaxonName commonName = temporalContext.getFirstCommonName(concept);
+			    	if (commonName != null) {
+			    		iSpecies.setCommonName(commonName.getName());
 			    	} else {
 			    		iSpecies.setCommonName("");
 			    	}
@@ -138,7 +160,7 @@ public class BdrsAfdImporterRowHandler implements AfdImporterRowHandler {
 				if (species != null) {
 					species.setCurrent(false);
 				}
-			}	
+			}
 		} else {
 			throw new IllegalStateException("Can't find Indicator species with source id : " + getSourceId(concept.getName()));
 		}

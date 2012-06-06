@@ -10,6 +10,7 @@ import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.mode.ApplicationModeService;
 import au.com.gaiaresources.bdrs.service.mode.TaxonomyImportMode;
 import au.com.gaiaresources.bdrs.service.taxonomy.*;
+import au.com.gaiaresources.bdrs.util.ZipUtils;
 import au.com.gaiaresources.taxonlib.ITaxonLibSession;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
@@ -24,11 +25,12 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import java.io.*;
+import java.net.URL;
+import java.net.URLConnection;
 import java.sql.SQLException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.zip.ZipInputStream;
 
 /**
  * Controller for handling TaxonLib importing.
@@ -48,6 +50,22 @@ public class TaxonLibImportController extends AbstractController {
 	public static final String NSW_IMPORT_VIEW = "taxonLibNswFloraImport";
 	public static final String MAX_IMPORT_VIEW = "taxonLibMaxImport";
 	public static final String AFD_IMPORT_VIEW = "taxonLibAfdImport";
+
+    public static final int AFD_DOWNLOAD_CONNECTION_TIMOUT = 5000;
+    public static final int AFD_DOWNLOAD_READ_TIMEOUT = 30000;
+    public static final int AFD_DOWNLOAD_RETRY_TIMEOUT = 30000;
+    public static final int AFD_DOWNLOAD_RETRY_ATTEMPT = 10;
+
+    static final String[] AFD_TAXONOMY_URLS = new String[] {
+        "http://www.environment.gov.au/biodiversity/abrs/online-resources/fauna/afd-data/lowertaxa.zip",
+        "http://www.environment.gov.au/biodiversity/abrs/online-resources/fauna/afd-data/highertaxa.zip",
+        "http://www.environment.gov.au/biodiversity/abrs/online-resources/fauna/afd-data/chordata.zip",
+        "http://www.environment.gov.au/biodiversity/abrs/online-resources/fauna/afd-data/mollusca.zip",
+        "http://www.environment.gov.au/biodiversity/abrs/online-resources/fauna/afd-data/insecta.zip",
+    };
+    static final String[] AFD_FILE_INPUT_NAMES =
+            new String[] { "lowerTaxa", "higherTaxa", "chordata", "insecta", "mollusca" };
+    public static final String AFD_DOWNLOAD_FLAG_NAME = "download";
 
 	@Autowired
 	private TaxaDAO taxaDAO;
@@ -161,8 +179,8 @@ public class TaxonLibImportController extends AbstractController {
                 case AFD:
                     runAfdImport(request, taxonLibSession);
                     break;
-                    default:
-                        throw new IllegalStateException("case not handled : " + importSource);
+                default:
+                    throw new IllegalStateException("case not handled : " + importSource);
                 }
                 // commit!
                 taxonLibSession.commit();
@@ -204,16 +222,15 @@ public class TaxonLibImportController extends AbstractController {
 	 * 
 	 * @param request The request object that contains the uploaded files
 	 * @param tls The TaxonLibSession.
-	 * @throws IOException 
 	 * @throws Exception
 	 */
-	private void runNswFloraImport(MultipartHttpServletRequest request, ITaxonLibSession tls) throws IOException, Exception {
+	private void runNswFloraImport(MultipartHttpServletRequest request, ITaxonLibSession tls) throws Exception {
 		// Should run in a single transaction
 		MultipartFile file = request.getFile("taxonomyFile");
 		if (file == null) {
 			throw new MissingFileException("NSW Flora");
 		}
-		BdrsNswFloraImporter importer = new BdrsNswFloraImporter(tls, new Date(), taxaDAO, spDAO);
+		BdrsNswFloraImporter importer = new BdrsNswFloraImporter(tls, new Date(), sessionFactory, taxaDAO, spDAO);
 		importer.runImport(file.getInputStream());
 	}
 	
@@ -253,30 +270,135 @@ public class TaxonLibImportController extends AbstractController {
 	 * 
 	 * @param request The request object that contains the uploaded files
 	 * @param tls The TaxonLibSession.
-	 * @throws IOException 
 	 * @throws Exception
 	 */
-	private void runAfdImport(MultipartHttpServletRequest request, ITaxonLibSession tls) throws IOException, Exception {
-		MultipartFile file = request.getFile("taxonomyFile");
-		
-		if (file == null) {
-			throw new MissingFileException("AFD file");
-		}
-		
-		Session sesh = null;
-		// The AFD dataset is too large to run the insert queries in a single transaction.
-		// Because of this, we do manual hibernate session management.
-		try {
-			sesh = sessionFactory.openSession();
-			BdrsAfdImporter importer = new BdrsAfdImporter(tls, new Date(), sesh, taxaDAO, spDAO);
-			importer.runImport(file.getInputStream());
-		} finally {
-			if (sesh != null) {
-				sesh.getTransaction().commit();
-				sesh.close();
-			}
-		}
+	private void runAfdImport(MultipartHttpServletRequest request, ITaxonLibSession tls) throws Exception {
+        boolean download_afd_data = request.getParameter(AFD_DOWNLOAD_FLAG_NAME) != null;
+        if(download_afd_data) {
+            downloadFromAFD(tls);
+        } else {
+            importFromZipFiles(request, tls);
+        }
 	}
+
+    /**
+     * Import AFD data based on the files uploaded in the request.
+     * @param request the browser request
+     * @param tls The TaxonLibSession.
+     * @throws Exception
+     */
+    private void importFromZipFiles(MultipartHttpServletRequest request, ITaxonLibSession tls) throws Exception {
+        for(String fileInputName : AFD_FILE_INPUT_NAMES) {
+            MultipartFile file = request.getFile(fileInputName);
+            if(file != null) {
+                if(ZipUtils.ZIP_CONTENT_TYPE.equals(file.getContentType())) {
+                    importAfd(new ZipInputStream(file.getInputStream()), tls);
+                }
+            } else  {
+                // no file
+                log.info("No file to load for " + fileInputName);
+            }
+        }
+    }
+
+    /**
+     * Import AFD data by downloading data from the AFD website.
+     * @param tls The TaxonLibSession.
+     * @throws Exception
+     */
+    private void downloadFromAFD(ITaxonLibSession tls) throws Exception {
+        log.info("Downloading AFD taxonomy");
+
+        List<File> localAFDTaxaDownload = new ArrayList<File>(AFD_TAXONOMY_URLS.length);
+        for(String urlStr : AFD_TAXONOMY_URLS) {
+            localAFDTaxaDownload.add(downloadTaxonomyFile(new URL(urlStr)));
+        }
+        log.info("AFD Download completed. Starting import.");
+
+        for(File f : localAFDTaxaDownload) {
+            importAfd(new ZipInputStream(new FileInputStream(f)), tls);
+        }
+    }
+
+    /**
+     * Downloads the file specified by the URL accounting for retry attempts,
+     * connection timeouts and read timeouts.
+     *
+     * @param url the location of the file to be downloaded.
+     * @return a temporary file containing the data specified by the URL.
+     * @throws IOException thrown if the attempt to retrieve data has failed.
+     */
+    private File downloadTaxonomyFile(URL url) throws IOException {
+        log.info("Downloading from: " + url.toString());
+        BufferedInputStream is = null;
+        BufferedOutputStream os = null;
+        byte[] buffer = new byte[4096];
+        for(int retry=0; retry<AFD_DOWNLOAD_RETRY_ATTEMPT; retry++) {
+            log.info(String.format("Attempt %d of %d", retry, AFD_DOWNLOAD_RETRY_ATTEMPT));
+            try {
+                URLConnection conn = url.openConnection();
+                conn.setConnectTimeout(AFD_DOWNLOAD_CONNECTION_TIMOUT);
+                conn.setReadTimeout(AFD_DOWNLOAD_READ_TIMEOUT);
+
+                File target = File.createTempFile("afd", "zip");
+                target.deleteOnExit();
+
+                os = new BufferedOutputStream(new FileOutputStream(target));
+
+                is = new BufferedInputStream(conn.getInputStream());
+                for(int read = is.read(buffer, 0, buffer.length); read > -1; read = is.read(buffer, 0, buffer.length)) {
+                    os.write(buffer, 0, read);
+                }
+                // flushing and closing happens in the finally block
+
+                return target;
+
+            } catch(IOException ioe) {
+                // do nothing
+                try {
+                    Thread.sleep(AFD_DOWNLOAD_RETRY_TIMEOUT);
+                } catch (InterruptedException e) {
+                    // do nothing
+                }
+            } finally {
+                try {
+                    if(is != null) {
+                        is.close();
+                        is = null;
+                    }
+
+                    if(os != null) {
+                        os.flush();
+                        os.close();
+                    }
+                } catch(IOException ioex) {
+                    log.error("Failed clean up io streams in finally block while downloading AFD data from: " + url.toString());
+                }
+            }
+        }
+
+        throw new IOException("Failed to download AFD data from: " + url.toString());
+    }
+
+    /**
+     * Import AFD data from the specified zipped input stream.
+     * @param inputStream the input stream containing the csv file with the data to be loaded.
+     * @param tls The TaxonLibSession.
+     * @throws Exception
+     */
+    private void importAfd(ZipInputStream inputStream, ITaxonLibSession tls) throws Exception {
+        Session sesh = null;
+        try {
+            sesh = sessionFactory.openSession();
+            BdrsAfdImporter importer = new BdrsAfdImporter(tls, new Date(), sesh, taxaDAO, spDAO);
+            importer.runImport(inputStream);
+        } finally {
+            if (sesh != null) {
+                sesh.getTransaction().commit();
+                sesh.close();
+            }
+        }
+    }
 	
 	/**
 	 * Send a start notification email
@@ -284,8 +406,10 @@ public class TaxonLibImportController extends AbstractController {
 	 */
 	private void sendStartEmail(User user) {
 		if (user != null) {
-			emailService.sendTemplateMessage(user.getEmailAddress(), 
-					"hello@bdrs", "Taxonomy Import Started", "TaxonLibImportStart.vm", new HashMap<String, Object>());
+            String subject = "Taxonomy Import Started";
+            String templateName = "TaxonLibImportStart.vm";
+            Map<String, Object> substitutionParams = new HashMap<String, Object>();
+            emailService.sendMessage(user.getEmailAddress(), subject, templateName, substitutionParams);
 		}
 	}
 	
@@ -295,8 +419,10 @@ public class TaxonLibImportController extends AbstractController {
 	 */
 	private void sendSuccessEmail(User user) {
 		if (user != null) {
-			emailService.sendTemplateMessage(user.getEmailAddress(), 
-					"hello@bdrs", "Taxonomy Import Successful", "TaxonLibImportSuccess.vm", new HashMap<String, Object>());
+            String subject = "Taxonomy Import Successful";
+            String templateName = "TaxonLibImportSuccess.vm";
+            Map<String, Object> substitutionParams = new HashMap<String, Object>();
+            emailService.sendMessage(user.getEmailAddress(), subject, templateName, substitutionParams);
 		}
 	}
 	
@@ -306,10 +432,11 @@ public class TaxonLibImportController extends AbstractController {
 	 */
 	private void sendFailureEmail(User user, String errorMsg) {
 		if (user != null) {
-			Map<String, Object> argMap = new HashMap<String, Object>();
-			argMap.put("errorMsg", errorMsg);
-			emailService.sendTemplateMessage(user.getEmailAddress(), 
-					"hello@bdrs", "Taxonomy Import Failure", "TaxonLibImportFailure.vm", argMap);	
+            String subject = "Taxonomy Import Failure";
+            String templateName = "TaxonLibImportFailure.vm";
+			Map<String, Object> substitutionParams = new HashMap<String, Object>();
+            substitutionParams.put("errorMsg", errorMsg);
+            emailService.sendMessage(user.getEmailAddress(), subject, templateName, substitutionParams);
 		}
 	}
 }
