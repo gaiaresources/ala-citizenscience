@@ -2,14 +2,12 @@ from widgets import *
 from forms import *
 
 class RenderFactory:
-    def __init__(self, bdrs, survey, query_params, deserialized_result_list = [], record_row_index = 0):
+    def __init__(self, bdrs, query_params, deserialized_result_list = [], record_row_index = 0):
         self._bdrs = bdrs
         self._query_params = query_params
         self._deserialized_result_list = deserialized_result_list
 
         self._record_row_index = record_row_index
-
-        self._survey = survey
 
         self._form_creation_handler_map = {
             Record : self.create_record_form,
@@ -47,4 +45,4 @@ class RenderFactory:
         value_map = self._query_params
 
         return AttributeForm(self._bdrs, self, value_map, error_map, 
-                                attribute_instance, record_form, self._survey, *args, **kwargs)
+                                attribute_instance, record_form, *args, **kwargs)

@@ -138,14 +138,13 @@ class AttributeForm(Form):
         Attribute.ATTRIBUTE_TYPE_SPECIES : 'taxon_attribute',
     }
 
-    def __init__(self, bdrs, render_factory, value_map, error_map, attribute, record_form, survey, *args, **kwargs):
+    def __init__(self, bdrs, render_factory, value_map, error_map, attribute, record_form, *args, **kwargs):
         """Creates a new instance."""
         super(AttributeForm, self).__init__(bdrs, render_factory, *args, **kwargs)
         self._value_map = value_map
         self._error_map = error_map
         self._attribute = attribute
         self._record_form = record_form
-        self._survey = survey
         self._widget_arg_handler_map = {
             IntegerRange : self.insert_integer_range_args,
             Select: self.insert_multi_options_args,
@@ -154,6 +153,11 @@ class AttributeForm(Form):
             MultiCheckbox: self.insert_multi_options_args,
             TaxonAttribute: self.insert_taxon_attribute_args,
         }
+        try: 
+            self._survey = kwargs['survey']
+        except ValueError, ve:
+            # You need the survey to work out which species to show on attribute species fields.
+            raise Exception, 'Missing named parameter "survey" that is required when creating AttributeForms'
 
     def widget(self, *args, **kwargs):
         """Creates a widget for the Attribute specified by this form."""
