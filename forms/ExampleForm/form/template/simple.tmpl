@@ -68,7 +68,7 @@
                         <div class="element_group">
                             <div class="group_title">4. Just a few more questions</div>
                             #for $attr in $survey.attributes
-                                #set $attr_form = $rf.create_form($attr, $record_form)
+                                #set $attr_form = $rf.create_form($attr, $record_form, survey=$survey)
                                     #set $attr_widget = $attr_form.widget()
                                         <div class="element_set">
                                             #set global $element = $attr_form.widget()
