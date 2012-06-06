@@ -10,6 +10,7 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.taxonlib.ITaxonLibSession;
 import au.com.gaiaresources.taxonlib.TaxonLibException;
 import au.com.gaiaresources.taxonlib.importer.nswflora.NswFloraImporter;
+import org.hibernate.SessionFactory;
 
 public class BdrsNswFloraImporter {
     
@@ -17,7 +18,7 @@ public class BdrsNswFloraImporter {
 
     private NswFloraImporter importer;
 
-    public BdrsNswFloraImporter(ITaxonLibSession session, Date now, TaxaDAO taxaDAO, SpeciesProfileDAO spDAO)
+    public BdrsNswFloraImporter(ITaxonLibSession session, Date now, SessionFactory sessionFactory, TaxaDAO taxaDAO, SpeciesProfileDAO spDAO)
             throws TaxonLibException {
         if (session == null) {
             throw new IllegalArgumentException("TaxonLibSession cannot be null");
@@ -31,7 +32,7 @@ public class BdrsNswFloraImporter {
         if (spDAO == null) {
             throw new IllegalArgumentException("SpeciesProfileDAO cannot be null");
         }
-        BdrsNswFloraImporterRowHandler handler = new BdrsNswFloraImporterRowHandler(session, now, taxaDAO, spDAO);
+        BdrsNswFloraImporterRowHandler handler = new BdrsNswFloraImporterRowHandler(session, now, sessionFactory, taxaDAO, spDAO);
         importer = new NswFloraImporter(session, handler, now);
     }
 

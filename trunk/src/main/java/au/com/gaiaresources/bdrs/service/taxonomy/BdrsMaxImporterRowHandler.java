@@ -192,11 +192,10 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
                 iSpecies.setScientificName(tn.getDisplayName());
                 
                 if (nameRow != null) {
-                	List<ITaxonName> commonNames = temporalContext.getCommonNames(concept);
-                	if (commonNames != null && !commonNames.isEmpty()) {
+                    ITaxonName commonName = temporalContext.getFirstCommonName(concept);
+                	if (commonName != null) {
                 		// there should only ever be 1 commonName in the Max data set so...
-                		String cn = commonNames.get(0).getName();
-                		iSpecies.setCommonName(cn);
+                		iSpecies.setCommonName(commonName.getName());
                 	} else {
                 		iSpecies.setCommonName("");
                 	}

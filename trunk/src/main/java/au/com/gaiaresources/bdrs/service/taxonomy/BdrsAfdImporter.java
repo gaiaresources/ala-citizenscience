@@ -1,9 +1,7 @@
 package au.com.gaiaresources.bdrs.service.taxonomy;
 
-
-
-import java.io.InputStream;
 import java.util.Date;
+import java.util.zip.ZipInputStream;
 
 import org.hibernate.FlushMode;
 import org.hibernate.Session;
@@ -41,7 +39,7 @@ public class BdrsAfdImporter {
 		importer = new AfdImporter(taxonLibSession, rowHandler, now);
 	}
 	
-	public void runImport(InputStream afdCsv) throws Exception {
+	public void runImport(ZipInputStream afdCsv) throws Exception {
 		importer.runImport(afdCsv);
 	}
 }

@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.zip.ZipInputStream;
 
 import junit.framework.Assert;
 
@@ -44,11 +45,11 @@ public class BdrsAfdImporterTest extends TaxonomyImportTest {
 	
 	@Test
 	public void testDoubleImport() throws Exception {
-		runImport("AFD_TEST.csv");
+		runImport("AFD_TEST.csv.zip");
 		
 		Integer indicatorSpeciesCount = taxaDAO.countAllSpecies();
 		
-		runImport("AFD_TEST.csv");
+		runImport("AFD_TEST.csv.zip");
 		
 		assertImport();
 		
@@ -57,7 +58,7 @@ public class BdrsAfdImporterTest extends TaxonomyImportTest {
 
 	@Test
 	public void testImport() throws Exception {
-		runImport("AFD_TEST.csv");
+		runImport("AFD_TEST.csv.zip");
 		assertImport();
 	}
 
@@ -78,7 +79,7 @@ public class BdrsAfdImporterTest extends TaxonomyImportTest {
 				
 				streamsToClose.add(afdStream);
 
-				importer.runImport(afdStream);
+				importer.runImport(new ZipInputStream(afdStream));
 
 			} finally {
 				for (InputStream is : streamsToClose) {
@@ -121,8 +122,15 @@ public class BdrsAfdImporterTest extends TaxonomyImportTest {
 		{
 			IndicatorSpecies chordata = getIndicatorSpecies("ec3c5304-8f9c-4a2a-ad08-38bb712f5edb");
 			assertIndicatorSpecies(chordata, "ec3c5304-8f9c-4a2a-ad08-38bb712f5edb", "CHORDATA", 
-					"Chordates", "", "", TaxonRank.PHYLUM, false, true);
+					"Chordates", "", "", TaxonRank.PHYLUM, true, true);
 		}
+
+        // check animalia
+        {
+            IndicatorSpecies animalia = getIndicatorSpecies("d74fcd5e-29c1-102b-9a4a-00304854f820");
+            assertIndicatorSpecies(animalia, "d74fcd5e-29c1-102b-9a4a-00304854f820", "ANIMALIA",
+                    "", "Linnaeus", "1758", TaxonRank.KINGDOM, false, true);
+        }
 	}
 	
 	private IndicatorSpecies getIndicatorSpecies(String sourceId) {

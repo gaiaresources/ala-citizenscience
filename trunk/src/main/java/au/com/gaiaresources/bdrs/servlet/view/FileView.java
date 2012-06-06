@@ -61,7 +61,7 @@ public class FileView extends AbstractView {
         
         FileInputStream fileInput = null;
         OutputStream output = response.getOutputStream();
-        
+
         try{
 	        if(base64){
 	        	fileInput = new FileInputStream(f);
