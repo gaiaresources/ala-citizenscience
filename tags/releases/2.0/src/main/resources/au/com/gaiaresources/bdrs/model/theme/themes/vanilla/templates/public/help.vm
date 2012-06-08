@@ -1,0 +1,5 @@
+<div class="pageContent">
+
+${bdrs.getContent("public/help")}
+
+</div>
