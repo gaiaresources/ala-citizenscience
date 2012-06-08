@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:security="http://www.springframework.org/schema/security"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop" xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+           http://www.springframework.org/schema/aop
+           http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context-2.5.xsd
+           http://www.springframework.org/schema/security
+           http://www.springframework.org/schema/security/spring-security-3.0.xsd
+           http://www.springframework.org/schema/mvc
+           http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd">
+
+    <!-- HandlerExceptionResolver -->
+    <bean class="au.com.gaiaresources.bdrs.servlet.HandlerExceptionResolver" />
+
+    <!-- security declaration must be before other declarations or redirection could stop working -->
+    <security:global-method-security secured-annotations="enabled" jsr250-annotations="enabled"/>
+
+    <mvc:resources mapping="/**/*.css" location="/css/,/js/" cache-period="31556926"/>
+    <mvc:resources mapping="/**/*.js" location="/js/,/css/" cache-period="31556926"/>
+    <mvc:resources mapping="/**/*.png" location="/js/,/css/" cache-period="31556926"/>
+    <mvc:resources mapping="/**/*.gif" location="/js/,/css/" cache-period="31556926"/>
+    <mvc:resources mapping="/**/*.swf" location="/js/,/css/" cache-period="31556926"/>
+    <mvc:resources mapping="/**/*.xml" location="/js/,/css/" cache-period="31556926"/>
+    <mvc:resources mapping="/**/*.html" location="/js/,/css/" cache-period="31556926"/>
+    <mvc:resources mapping="/**/*.svg" location="/js/,/css/" cache-period="31556926"/>
+    <mvc:resources mapping="/**/*.txt" location="/js/,/css/" cache-period="31556926"/>
+    <mvc:resources mapping="/**/*.jpg" location="/js/,/css/" cache-period="31556926"/>
+
+
+    <context:annotation-config />
+    <context:component-scan
+        base-package="au.com.gaiaresources.bdrs.mobile.controller.test" />
+
+    <bean id="portalPrefixValidator" class="au.com.gaiaresources.bdrs.controller.portal.PortalPrefixValidator">
+        <property name="version">
+            <value>${version}</value>
+        </property>
+    </bean>
+
+    
+    <!-- KML View Resolver -->
+    <bean id="kmlViewResolver"
+        class="au.com.gaiaresources.bdrs.servlet.view.KMLViewResolver">
+        <property name="order" value="10" />
+    </bean>
+    <!-- KML View -->
+    <bean id="kmlView" class="au.com.gaiaresources.bdrs.servlet.view.KMLView" />
+    
+	<!-- Redirect View Resolver -->
+    <bean id="redirectViewResolver"
+        class="au.com.gaiaresources.bdrs.servlet.view.RedirectViewResolver">
+    </bean>
+	
+    <!-- Use the method annotations -->
+    <bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">
+        <property name="alwaysUseFullPath" value="true"/>
+    </bean>
+
+    <!-- Messages -->
+    <!--bean id="messageSource"
+        class="org.springframework.context.support.ResourceBundleMessageSource" 
+        p:basenames="errors" /-->
+    <bean id="messageSource" 
+        class="org.springframework.context.support.ResourceBundleMessageSource">
+        <property name="basenames">
+            <list>
+                <value>bdrs-errors</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- Multi part handler -->
+    <bean id="multipartResolver"
+        class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <!-- 100 megabytes = 104 857 600 bytes -->
+        <property name="maxUploadSize" value="104857600" />
+    </bean>
+    
+    <!-- Scan for controllers -->
+    <context:component-scan base-package="au.com.gaiaresources.bdrs.controller" />
+
+    <bean id="interceptor" class="au.com.gaiaresources.bdrs.servlet.Interceptor" />
+    <bean id="recaptchaInterceptor"
+        class="au.com.gaiaresources.bdrs.servlet.RecaptchaInterceptor" />
+    <!-- Perform handler mapping using the annotations -->
+    <bean id="handlerMapping"
+        class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping">
+        <property name="interceptors">
+            <list>
+                <ref bean="interceptor" />
+                <ref bean="recaptchaInterceptor" />
+            </list>
+        </property>
+        <property name="order" value="1" />
+    </bean>
+
+    <bean id="portalUrlHandlerMapping" class="au.com.gaiaresources.bdrs.servlet.PortalUrlHandlerMapping">
+        <property name="interceptors">
+            <list>
+                <ref bean="interceptor" />
+                <ref bean="recaptchaInterceptor" />
+            </list>
+        </property>
+        <property name="order" value="2" />
+    </bean>
+	
+	<!-- authentication entry point -->
+	<bean id="bdrsAuthenticationEntryPoint" class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint">
+		<property name="loginFormUrl" value="/home.htm?signin=true" />
+		<property name="useForward" value="true" />
+	</bean>
+
+    <!-- authentication filter -->
+    <bean id="bdrsAuthenticationFilter" class=
+        "au.com.gaiaresources.bdrs.servlet.filter.BdrsAuthenticationFilter">
+        <property name="authenticationManager" ref="authenticationManager"/>
+        <property name="filterProcessesUrl" value="/j_spring_security_check"/>
+		<property name="postOnly" value="true" />
+    </bean>
+</beans>
