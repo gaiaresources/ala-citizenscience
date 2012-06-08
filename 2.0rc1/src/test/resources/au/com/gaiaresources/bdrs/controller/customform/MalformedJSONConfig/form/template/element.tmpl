@@ -1,0 +1,43 @@
+#if $element.get('widget_input_type') == 'checkbox' 
+    <div class="element_error">
+        ${ element.error }
+    </div>
+
+    ${ element.widget }
+    ${ element.label }
+        #if $element.required
+            <img src="static.htm?fileName=media/images/required.gif" alt="required" title="This field is required"/>
+        #end if
+
+    
+
+    <div class="element_widget">
+        
+    </div>
+
+#else
+    
+    <div class="element_label">
+        ${ element.label }
+
+        #if $element.required
+            <img src="static.htm?fileName=media/images/required.gif" alt="required" title="This field is required"/>
+        #end if
+    </div>
+
+    <div class="element_error">
+        ${ element.error }
+    </div>
+
+    <div class="element_widget">
+        ${ element.widget }
+    </div>
+
+#end if
+
+
+
+
+<script type="text/javascript">
+    ${ element.script }
+</script>

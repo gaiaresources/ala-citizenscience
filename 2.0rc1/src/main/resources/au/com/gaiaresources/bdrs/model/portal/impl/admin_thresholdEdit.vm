@@ -1,0 +1,6 @@
+<p>
+This page allows you to define a threshold for a particular 
+event to trigger under particular circumstances.  The general 
+pattern is that you set the condition, and then you set the 
+action to occur when the condition is met.
+</p>

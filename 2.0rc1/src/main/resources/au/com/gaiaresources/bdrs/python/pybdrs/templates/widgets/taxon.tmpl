@@ -1,0 +1,13 @@
+<input  id="species" 
+        type="text" 
+        name="${ widget.survey_species_search_name }" 
+        value="${ widget.survey_species_search_value }" 
+/>
+<input  type="text" 
+        class=" #echo ' '.join($widget.widget_class)# 
+                #if $widget.widget_validation_class 
+                    validate(#echo ','.join($widget.widget_validation_class)#)
+                #end if
+            "
+        name="${ widget.widget_name }" 
+        value="${ widget.widget_value }"/>
