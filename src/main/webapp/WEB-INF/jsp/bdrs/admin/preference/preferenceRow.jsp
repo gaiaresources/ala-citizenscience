@@ -56,7 +56,8 @@
             </td>
             <td class="value_col">
             	<div>
-                    <input class="validate(required)" type="text" name="preference_value_${ pref.id }" value="<c:out value="${ pref.value }"/>"/>
+                    <input <c:if test="${ pref.isRequired }">class="validate(required)"</c:if>
+						type="text" name="preference_value_${ pref.id }" value="<c:out value="${ pref.value }"/>"/>
 				</div>
             </td>
             <td class="delete_col">

@@ -202,6 +202,10 @@ public class RecordDeserializer {
             } catch (NumberFormatException nfe) {
                 species = null;
             }
+            String speciesSearch = entry.getValue(entry.prefix+klu.getSpeciesNameKey());
+            if (species == null && StringUtils.notEmpty(speciesSearch)) {
+            	species = this.getSpeciesFromName(speciesSearch);
+            }
         
             // if we are doing moderation only, it is not necessary to validate all of the fields, only the moderation ones
             boolean moderationOnly = record.getId() != null && !currentUser.equals(record.getUser()) &&
@@ -210,7 +214,7 @@ public class RecordDeserializer {
 
             boolean isTaxonomicRecord = Taxonomic.TAXONOMIC.equals(taxonomic) || Taxonomic.OPTIONALLYTAXONOMIC.equals(taxonomic);
             // use the prefix as it is necessary for single site forms
-            String speciesSearch = entry.getValue(entry.prefix+klu.getSpeciesNameKey());
+            
             String numberString = entry.getValue(entry.prefix+klu.getIndividualCountKey());
             
             RecordProperty recordProperty;
@@ -348,16 +352,16 @@ public class RecordDeserializer {
             
             Integer number = null;
             if (isTaxonomicRecord) {
-                    if(species != null && !StringUtils.nullOrEmpty(numberString)) {
-                            number = new Integer(numberString);
-                    }
-                    else if(!StringUtils.nullOrEmpty(speciesSearch) && !StringUtils.nullOrEmpty(numberString)) {
-                            species = getSpeciesFromName(speciesSearch);
-                            number = new Integer(numberString);
-                    }
+                if(species != null && !StringUtils.nullOrEmpty(numberString)) {
+                	try {
+                		number = Integer.valueOf(numberString);	
+                	} catch (NumberFormatException nfe) {
+                		log.warn("Record deserializer could not parse number string to an int : " + numberString);
+                	}
+                }
             } else {
-                    species = null;
-                    number = null;
+                species = null;
+                number = null;
             }
             
             User user = currentUser;

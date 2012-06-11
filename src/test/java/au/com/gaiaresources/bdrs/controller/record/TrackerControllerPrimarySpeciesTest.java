@@ -1,8 +1,7 @@
 package au.com.gaiaresources.bdrs.controller.record;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -14,26 +13,14 @@ import org.springframework.web.servlet.ModelAndView;
 import au.com.gaiaresources.bdrs.controller.AbstractGridControllerTest;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
-import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
-/**
- * Tests the new species attribute type via the tracker controller.
- * 
- * Some whitebox testing here - we know that all webforms use RecordDeserializer
- * which uses WebFormAttributeParser, TaxonValidator etc - we are assuming
- * that since it works via tracker controller the other webforms _should_ be ok
- */
-public class TrackerControllerSpeciesAttributeValueTest extends
-		AbstractGridControllerTest {
+public class TrackerControllerPrimarySpeciesTest extends AbstractGridControllerTest {
 
 	@Autowired
 	private SurveyDAO surveyDAO;
@@ -41,7 +28,6 @@ public class TrackerControllerSpeciesAttributeValueTest extends
 	private MetadataDAO mdDAO;
 	
 	private Survey survey;
-	private Attribute attr;
 	
 	@Before
 	public void setup() {
@@ -52,36 +38,29 @@ public class TrackerControllerSpeciesAttributeValueTest extends
 			p.setRequired(false);
 		}
 		
-		List<Attribute> attrList = new ArrayList<Attribute>();
-		
-		attr = new Attribute();
-		attr.setName("speciesattr");
-		attr.setDescription("species attribute");
-		attr.setTypeCode(AttributeType.SPECIES.getCode());
-		attr.setRequired(true);
-		
-		attrList.add(attr);
-		
-		taxaDAO.save(attr);
-		
-		survey.setAttributes(attrList);
-		
 		surveyDAO.save(survey);
 	}
 	
 	@Test
-	public void testSpeciesAttributeValueByName() throws Exception {
+	public void testPrimarySpeciesAttributeValueByName() throws Exception {
 		
 		login("admin", "password", new String[] { Role.ADMIN });
 
         request.setMethod("POST");
         request.setRequestURI(request.getContextPath()+TrackerController.EDIT_URL);
         request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
-        request.setParameter(String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, "", attr.getId()), this.dropBear.getScientificName());
+        request.setParameter(TrackerController.PARAM_SPECIES_NAME, this.dropBear.getScientificName());
         
         ModelAndView mav = handle(request, response);
         
         Map<String, String> errorMap = (Map<String, String>)mav.getModel().get(TrackerController.MV_ERROR_MAP);
+        
+        if (errorMap != null) {
+        	for (Entry<String, String> e : errorMap.entrySet()) {
+        		log.debug(e.getKey() + " : " + e.getValue());
+        	}
+        }
+        
         Assert.assertNull("error map should be null", errorMap);
         
         Integer recId = (Integer)mav.getModel().get(RecordWebFormContext.MODEL_RECORD_ID);
@@ -90,33 +69,25 @@ public class TrackerControllerSpeciesAttributeValueTest extends
         Record record = recordDAO.getRecord(recId);
         Assert.assertNotNull("record should not be null", record);
         
-        Assert.assertEquals("wrong attribute value count", 1, record.getAttributes().size());
-        
-        AttributeValue av = (AttributeValue)record.getAttributes().toArray()[0];
-        
-        Assert.assertNotNull("species should not be null", av.getSpecies());
-        
-        Assert.assertEquals("wrong species id", av.getSpecies().getId(), this.dropBear.getId());
+        Assert.assertNotNull("record species should not be null", record.getSpecies());
+        Assert.assertEquals("wrong species id", dropBear.getId(), record.getSpecies().getId());
     }
 	
-	/**
-	 * Tricky test where there are 2 elements in the post map but the ID field is whitespace
-	 * @throws Exception
-	 */
 	@Test
-	public void testSpeciesAttributeValueByName2() throws Exception {
+	public void testPrimarySpeciesAttributeValueByNameBlankId() throws Exception {
 		
 		login("admin", "password", new String[] { Role.ADMIN });
 
         request.setMethod("POST");
         request.setRequestURI(request.getContextPath()+TrackerController.EDIT_URL);
         request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
-        request.setParameter(String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, "", attr.getId()), this.dropBear.getScientificName());
-        request.addParameter(String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, "", attr.getId()), "     ");
+        request.setParameter(TrackerController.PARAM_SPECIES_NAME, this.dropBear.getScientificName());
+        request.addParameter(TrackerController.PARAM_SPECIES_ID, " ");
         
         ModelAndView mav = handle(request, response);
         
         Map<String, String> errorMap = (Map<String, String>)mav.getModel().get(TrackerController.MV_ERROR_MAP);
+        
         Assert.assertNull("error map should be null", errorMap);
         
         Integer recId = (Integer)mav.getModel().get(RecordWebFormContext.MODEL_RECORD_ID);
@@ -125,17 +96,12 @@ public class TrackerControllerSpeciesAttributeValueTest extends
         Record record = recordDAO.getRecord(recId);
         Assert.assertNotNull("record should not be null", record);
         
-        Assert.assertEquals("wrong attribute value count", 1, record.getAttributes().size());
-        
-        AttributeValue av = (AttributeValue)record.getAttributes().toArray()[0];
-        
-        Assert.assertNotNull("species should not be null", av.getSpecies());
-        
-        Assert.assertEquals("wrong species id", av.getSpecies().getId(), this.dropBear.getId());
+        Assert.assertNotNull("record species should not be null", record.getSpecies());
+        Assert.assertEquals("wrong species id", dropBear.getId(), record.getSpecies().getId());
     }
 	
 	@Test
-	public void testSpeciesAttributeValueById() throws Exception {
+	public void testPrimarySpeciesAttributeValueById() throws Exception {
 		
 		login("admin", "password", new String[] { Role.ADMIN });
 
@@ -144,8 +110,8 @@ public class TrackerControllerSpeciesAttributeValueTest extends
         request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         // We are using an incorrect name but adding the id as a second parameter.
         // The ID should override the bad name.
-        request.setParameter(String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, "", attr.getId()), "dummy name");
-        request.addParameter(String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, "", attr.getId()), this.dropBear.getId().toString());
+        request.setParameter(TrackerController.PARAM_SPECIES_NAME, "dummy name");
+        request.addParameter(TrackerController.PARAM_SPECIES_ID, this.dropBear.getId().toString());
         
         ModelAndView mav = handle(request, response);
         
@@ -158,14 +124,32 @@ public class TrackerControllerSpeciesAttributeValueTest extends
         Record record = recordDAO.getRecord(recId);
         Assert.assertNotNull("record should not be null", record);
         
-        Assert.assertEquals("wrong attribute value count", 1, record.getAttributes().size());
+        Assert.assertNotNull("record should not be null", record);
         
-        AttributeValue av = (AttributeValue)record.getAttributes().toArray()[0];
-        
-        Assert.assertNotNull("species should not be null", av.getSpecies());
-        
-        Assert.assertEquals("wrong species id", av.getSpecies().getId(), this.dropBear.getId());
+        Assert.assertNotNull("record species should not be null", record.getSpecies());
+        Assert.assertEquals("wrong species id", dropBear.getId(), record.getSpecies().getId());
     }
+	
+	@Test
+	public void testPrimarySpeciesBadName() throws Exception {
+		login("admin", "password", new String[] { Role.ADMIN });
+
+        request.setMethod("POST");
+        request.setRequestURI(request.getContextPath()+TrackerController.EDIT_URL);
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
+        // We are using an incorrect name but adding the id as a second parameter.
+        // The ID should override the bad name.
+        request.setParameter(TrackerController.PARAM_SPECIES_NAME, "dummy name");
+                
+        ModelAndView mav = handle(request, response);
+        
+        Map<String, String> errorMap = (Map<String, String>)mav.getModel().get(TrackerController.MV_ERROR_MAP);
+        Assert.assertNotNull("error map should be null", errorMap);
+        
+        Integer recId = (Integer)mav.getModel().get(RecordWebFormContext.MODEL_RECORD_ID);
+        Assert.assertNull("rec id should not be null", recId);
+	}
+	
 	
     @Override
     protected MockHttpServletRequest createMockHttpServletRequest() {

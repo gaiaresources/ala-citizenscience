@@ -419,110 +419,102 @@ bdrs.contribute.initSpeciesAutocomplete = function(args) {
 	var attributeTbodySelector = args.attributeTbodySelector;
 	var showScientificName = args.showScientificName;
 	
-	var search_elem = jQuery(surveySpeciesSearchSelector);
-	
-    search_elem.keydown(function(event, ui) {
-		var speciesElem = jQuery(surveySpeciesSearchSelector);
-		speciesElem.data('speciesValue', speciesElem.val());
-    });
-    search_elem.keyup(function(event,ui){
-    	var speciesElem = jQuery(surveySpeciesSearchSelector);
-		if (speciesElem.data('speciesValue') !== speciesElem.val()) {
-        	jQuery(speciesIdSelector).val("");
+	var addTaxonTableFunc = function(taxon) {
+		// Load Taxon Group Attributes
+        // Clear the group attribute rows
+        if(taxonAttrRowSelector !== undefined && taxonAttrRowSelector !== null) {
+            jQuery(taxonAttrRowSelector).parents("tr").remove();
         }
-    });
-	search_elem.data("surveyId", surveyId);
-    
-	search_elem.autocomplete({
-		source: bdrs.contribute.getAutocompleteSourceFcn(showScientificName),
-        select: function(event, ui) {
-            var taxon = ui.item.data;
-            jQuery(speciesIdSelector).val(taxon.id).trigger("blur");
-            
-            // Load Taxon Group Attributes
+        
+        // Build GET request parameters
+        var params = {};
+        params.surveyId = surveyId;
+        params.taxonId = taxon.id;
+		params.recordId = recordId;
+        params.editForm = editable;
+
+        // Issue Request
+        if(attributeTbodySelector !== null && attributeTbodySelector !== undefined) {
+            jQuery.get(bdrs.portalContextPath+"/bdrs/user/ajaxTrackerTaxonAttributeTable.htm", params, function(data) {
+				var node = jQuery(attributeTbodySelector);
+                node.append(data);
+			});
+        }
+	};
+	
+	var onChangeFunc = function(event, ui) {
+		if(jQuery(event.target).val().length === 0) {
+            jQuery(speciesIdSelector).val("").trigger("blur");
+        
             // Clear the group attribute rows
             if(taxonAttrRowSelector !== undefined && taxonAttrRowSelector !== null) {
                 jQuery(taxonAttrRowSelector).parents("tr").remove();
             }
-            
-            // Build GET request parameters
-            var params = {};
-            params.surveyId = surveyId;
-            params.taxonId = taxon.id;
-			params.recordId = recordId;
-            params.editForm = editable;
-
-            // Issue Request
-            if(attributeTbodySelector !== null && attributeTbodySelector !== undefined) {
-                jQuery.get(bdrs.portalContextPath+"/bdrs/user/ajaxTrackerTaxonAttributeTable.htm", params, function(data) {
-					var node = jQuery(attributeTbodySelector);
-                    node.append(data);
-					bdrs.contribute.initSpeciesAttributeAutocomplete(node, surveyId, showScientificName);
-				});
-            }
-        },
-        change: function(event, ui) {
-            if(jQuery(event.target).val().length === 0) {
-                jQuery(speciesIdSelector).val("").trigger("blur");
-            
-                // Clear the group attribute rows
-                if(taxonAttrRowSelector !== undefined && taxonAttrRowSelector !== null) {
-                    jQuery(taxonAttrRowSelector).parents("tr").remove();
-                }
-            }
-        },
-        minLength: 2,
-        delay: 300,
-        html: true
-    });
+        }
+	};
+	
+	bdrs.contribute.initSpeciesAttributeAutocomplete(surveySpeciesSearchSelector, speciesIdSelector, surveyId, showScientificName,
+		addTaxonTableFunc, onChangeFunc);
 };
 
 /**
  * Initialise the auto complete for species attribute fields.
- * @param {Object} dom node to search under to find inputs needing auto complete
+ * @param {String} selector for taxon name input.
+ * @param {String} selector for the taxon id hidden input.
  * @param {int} surveyId The survey id.
- * @param {String} showScientificName Shows scientific name if true, otherwise common name.
+ * @param {boolean} showScientificName Shows scientific name if true, otherwise common name.
+ * @param {Function} selectCallback callback to run when the taxon id field is populated.
+ * @param {Function} changeCallback callback to run when the autocomplete fires its change event.
  */
-bdrs.contribute.initSpeciesAttributeAutocomplete = function(node, surveyId, showScientificName) {
+bdrs.contribute.initSpeciesAttributeAutocomplete = function(taxonNameInputSelector, 
+	taxonIdInputSelector, surveyId, showScientificName, selectCallback, changeCallback) {
 	// Attach the autocomplete
 	
-    var search_elem;
-	if (node) {
-		search_elem = node.find(bdrs.contribute.SPECIES_ATTRIBUTE_SELECTOR);
-	} else {
-		search_elem = jQuery(bdrs.contribute.SPECIES_ATTRIBUTE_SELECTOR);	
-	}
+    var speciesNameElem = jQuery(taxonNameInputSelector);
+	var speciesIdElem = jQuery(taxonIdInputSelector);
+	
 	if (surveyId === null || surveyId === undefined) {
 		surveyId = 0;
 	}
 	
-    search_elem.data("surveyId", surveyId);
+    speciesNameElem.data("surveyId", surveyId);
 	
-	search_elem.keydown(function(event, ui) {
-		var elem = jQuery(this);
-		var name = elem.attr('name');
-		var speciesNameElem = jQuery("#" + name + "_0");
+	speciesNameElem.keydown(function(event, ui) {
 		speciesNameElem.data(bdrs.contribute.SPECIES_VALUE_DATA_KEY, speciesNameElem.val());
     });
-    search_elem.keyup(function(event,ui){
-    	var elem = jQuery(this);
-		var name = elem.attr('name');
-		var speciesNameElem = jQuery("#" + name + "_0");
-		var speciesIdElem = jQuery("#" + name + "_1");
-		if (speciesNameElem.data(bdrs.contribute.SPECIES_VALUE_DATA_KEY) !== speciesNameElem.val()) {
-        	speciesIdElem.val("");
-        }
+    speciesNameElem.keyup(function(event,ui){
+		// don't clear the id when hitting the arrow keys which are key codes 37 to 40 inclusive.
+		if (typeof event.keyCode !== 'undefined' && event.keyCode !== 37 && event.keyCode !== 38 
+			&& event.keyCode !== 39 && event.keyCode !== 40) {
+			if (speciesNameElem.data(bdrs.contribute.SPECIES_VALUE_DATA_KEY) !== speciesNameElem.val()) {
+				speciesIdElem.val("");
+			}
+		}
     });
-    search_elem.autocomplete({
+	
+	var assignIdFunc = function(taxon) {
+        speciesIdElem.val(taxon.id).trigger("blur");
+		if (jQuery.isFunction(selectCallback)) {
+			selectCallback(taxon);
+		}
+	};
+	
+    speciesNameElem.autocomplete({
+		autoSelect: false,
         source: bdrs.contribute.getAutocompleteSourceFcn(showScientificName),
+		focus: function (event, ui) {
+			// only set the id field on the focus event when using up/down arrows to focus
+			// menu items.
+            if (typeof event.keyCode !== 'undefined' && event.keyCode !== 0) {
+                var taxon = ui.item.data;
+				assignIdFunc(taxon);
+            }
+        },
 		select: function(event, ui) {
-			var elem = jQuery(this);
-			var name = elem.attr('name');
-			var speciesNameElem = jQuery("#" + name + "_0");
-			var speciesIdElem = jQuery("#" + name + "_1");
 			var taxon = ui.item.data;
-            speciesIdElem.val(taxon.id).trigger("blur");
+			assignIdFunc(taxon);
 		},
+		change: jQuery.isFunction(changeCallback) ? changeCallback : undefined,
         html: true,
         minLength: 2,
         delay: 300
