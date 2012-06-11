@@ -95,23 +95,56 @@ bdrs.review.record.displayRecordInfo = function(record) {
         tmpl_params = {
             'header': attr_val.attribute.description
         };
+		
+		attr = attr_val.attribute;
+		attr_type = bdrs.model.taxa.attributeType.code[attr.typeCode];
+
         // Not displaying empty attribute values. Is that desired?
-        if(attr_val.stringValue && attr_val.stringValue.trim().length > 0) {
-            attr = attr_val.attribute;
-            attr_type = bdrs.model.taxa.attributeType.code[attr.typeCode];
-            
+		if (attr_type === bdrs.model.taxa.attributeType.SPECIES) {
+			if (attr_val.species) {
+				var speciesName;
+				var species = attr_val.species;
+				var isScientific;
+				if (bdrs.showScientific) {
+					// try to use the scientific name first
+					speciesName = species.scientificName;
+					isScientific = true;
+					if (!speciesName) {
+						speciesName = species.commonName;
+						isScientific = false;
+					}
+				} else {
+					// try to use the common name first
+					speciesName = species.commonName;
+					isScientific = false;
+					if (!speciesName) {
+						speciesName = species.commonName;
+						isScientific = true;
+					}
+				}
+				// if we have a non 0 length , non null etc name...
+				if (speciesName) {
+					// The span is here because .html will drop the root elem.
+					var innerHtml = jQuery("<span/>").append(speciesName);
+					if (isScientific) {
+						innerHtml.addClass("scientificName");
+					}
+					tmpl_params._htmlValue = jQuery("<span/>").append(innerHtml).html();
+					// Append the rendered content
+		            body.append(jQuery.tmpl(compiled_content_row, tmpl_params));
+				}
+			}
+		} else if(attr_val.stringValue && attr_val.stringValue.trim().length > 0) {
             // If this is a file attribute, create a link.
             if(attr_type.isFileType()) {
                 // The span is here because .html will drop the root elem.
                 tmpl_params._htmlValue = jQuery("<span/>").append(jQuery.tmpl(bdrs.review.record.DOWNLOAD_LINK, {
                     'text': attr_val.stringValue.trim(), 
                     'url': [bdrs.portalContextPath, bdrs.url.FILE_DOWNLOAD, '?', attr_val.fileURL].join('')
-    
                 })).html();
             } else {
                 tmpl_params._stringValue = attr_val.stringValue.trim();
             }
-            
             // Append the rendered content         
             body.append(jQuery.tmpl(compiled_content_row, tmpl_params));
         }

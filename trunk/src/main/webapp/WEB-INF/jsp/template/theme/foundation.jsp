@@ -116,6 +116,12 @@
 
         
         <script type="text/javascript">
+			<%-- Access the facade to retrieve the preference information --%>
+			<jsp:useBean id="bdrsPluginFacade" scope="request" type="au.com.gaiaresources.bdrs.servlet.BdrsPluginFacade"></jsp:useBean>
+			<c:set var="showScientificName" value="<%= bdrsPluginFacade.getPreferenceBooleanValue(\"taxon.showScientificName\") %>" />
+			<%-- and then store in global javascript object --%>
+			bdrs.showScientific = ${ showScientificName };
+			
         	<%--
         	// override the datepicker format date class...
 			// this allows the datepicker to be updated while the user inputs

@@ -387,7 +387,7 @@
         </div>
     </div>
 </form>
-<script type="text/javascript">
+<script type="text/javascript">	
     jQuery(window).load(function() {
         bdrs.review.mysightings.init(${ user.portal.id });
     });

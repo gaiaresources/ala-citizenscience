@@ -1970,28 +1970,32 @@ bdrs.map.createContentState = function(itemArray, popup, mapServerQueryManager){
                 var key = recordAttrKeys[i];
                 var value;
                 if (key === 'when') {
-                    // Only show the date if non null else we get 'NaN' in the formatted
-                    // date string. The following actually omits the 'when' row
-                    var formatted_date = item._when_formatted;
-                    if (formatted_date !== undefined && formatted_date !== null) {
-                        value = item._when_formatted;
-                    } else {
-                        value = "";
-                    }
-                }
-                else 
-                    if (key === 'species' && item[key]) {
-                        value = jQuery("<i></i>").append(item[key]);
-                    }
-                    else {
-                        value = item[key];
-                    }
-                if (value && value !== null && value.length > 0 && value !== '-1') {
+					// Only show the date if non null else we get 'NaN' in the formatted
+					// date string. The following actually omits the 'when' row
+					var formatted_date = item._when_formatted;
+					if (formatted_date !== undefined && formatted_date !== null) {
+						value = item._when_formatted;
+					}
+					else {
+						value = "";
+					}
+				} else if (key === 'species' && item[key]) {
+					value = jQuery("<i></i>").append(item[key]);
+				} else if (key === 'number' && item[key]) {
+					value = item[key];
+					// It will be a number, change to string
+					if (value.toString) {
+						value = value.toString();	
+					}
+				} else {
+					value = item[key];
+				}
+				if (value && value !== null && value.length > 0 && value !== '-1') {
                     var row = jQuery("<tr></tr>");
                     row.append(jQuery("<th></th>").css('whiteSpace', 'nowrap').append(titleCaps(key.replace("_", " ")) + ":"));
                     row.append(jQuery("<td></td>").css('whiteSpace', 'nowrap').append(value));
                     tbody.append(row);
-                }
+            	}		
             }
         }
         else if (item.type === "geoMapFeature") {

@@ -442,7 +442,7 @@ class Taxon(Widget):
     
     def taxon_name_input_id(self):
         """Returns the id of the input field where the user types in the search text."""
-        return '%ssurvey_species_search' % self._form._record_prefix()
+        return 'id_%ssurvey_species_search' % self._form._record_prefix()
 
     def taxon_name_input_name(self):
         """Returns the name of the input field where the user types in the search text."""
@@ -450,7 +450,7 @@ class Taxon(Widget):
 
     def taxon_id_input_id(self):
         """Returns the id of the hidden input field that is populated via javascript."""
-        return '%sspecies_id' % self._form._record_prefix()
+        return 'id_%sspecies_id' % self._form._record_prefix()
 
     def taxon_id_input_name(self):
         """Returns the name of the hidden input field that is populated via javascript."""

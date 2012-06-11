@@ -1,17 +1,2 @@
-var search_elem = jQuery("#${ widget.taxon_name_input_id }");
-search_elem.data("surveyId", ${ widget.survey.id }); 
-search_elem.autocomplete({
-    source: bdrs.contribute.getAutocompleteSourceFcn(true),
-    select: function(event, ui) {
-        var taxon = ui.item.data;
-        jQuery("#${ widget.taxon_id_input_id }").val(taxon.id).blur();
-    },
-    change: function(event, ui) {
-        if(ui.item === null) {
-            jQuery("#${ widget.taxon_id_input_id }").val('').blur();
-        }
-    },
-    html: true,
-    minLength: 2,
-    delay: 300
-});
+bdrs.contribute.initSpeciesAttributeAutocomplete("#${ widget.taxon_name_input_id }", "#${ widget.taxon_id_input_id }",
+	${ widget.survey.id }, bdrs.showScientific);

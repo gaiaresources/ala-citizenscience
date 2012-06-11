@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import au.com.gaiaresources.bdrs.controller.record.RecordFormValidator;
@@ -274,7 +275,7 @@ public abstract class AttributeParser {
                 	if (addOrUpdateAttribute) {
                 		// Regardless, attrValue should contain the verbatim name.
                 		String[] values = parameterMap.get(paramKey);
-                		if (values.length > 1) {
+                		if (values.length > 1 && values[1] != null && StringUtils.hasLength(values[1].trim())) {
                 			// use the id to retrieve a species.
                 			attributeValue.setStringValue(attrValue);
                 			IndicatorSpecies species = null;

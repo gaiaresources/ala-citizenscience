@@ -123,7 +123,7 @@
         // Species Autocomplete
         var recordIdElem = jQuery("[name=recordId]");
         var speciesAutocompleteArgs = {
-            surveySpeciesSearchSelector: "#survey_species_search",
+            surveySpeciesSearchSelector: "#id_survey_species_search",
             speciesIdSelector: "[name=species]",
             taxonAttrRowSelector:"[name^=taxonGroupAttr_]",
             surveyId: jQuery("[name=surveyId]").val(),

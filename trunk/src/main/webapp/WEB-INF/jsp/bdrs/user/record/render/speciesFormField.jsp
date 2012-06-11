@@ -186,15 +186,14 @@
                 <span class="scientificName">No species recorded</span>
             </c:otherwise>
         </c:choose>
-     </c:otherwise>       
+     </c:otherwise>
 </c:choose>
 
 <%-- do appropriate initialisation --%>
 <c:if test="${not isProperty eq 'true'}">
 <script type="text/javascript">
 	jQuery(function() {
-		var node = jQuery('#'+'${speciesNameInputId}').parent(); 
-		bdrs.contribute.initSpeciesAttributeAutocomplete(node, ${formField.survey != null ? formField.survey.id : 0}, ${showScientificName});
+		bdrs.contribute.initSpeciesAttributeAutocomplete('#${speciesNameInputId}', '#${speciesIdInputId}', ${formField.survey != null ? formField.survey.id : 0}, ${showScientificName});
 	});
 </script>
 </c:if>	

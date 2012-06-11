@@ -339,7 +339,7 @@ public class MySightingsController extends SightingsController {
             List<AttributeValue> sortedAttrs = new ArrayList<AttributeValue>(rec.getAttributes());
             Collections.sort(sortedAttrs, new CompareAttributeValueByAttributeWeight());
             
-            for(AttributeValue attrVal : rec.getAttributes()) {
+            for(AttributeValue attrVal : sortedAttrs) {
                 attrList.add(attrVal.flatten(1));
             }
             rec_flatten.put("attributes", attrList);
