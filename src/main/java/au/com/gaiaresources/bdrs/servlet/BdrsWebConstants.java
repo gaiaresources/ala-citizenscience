@@ -43,4 +43,8 @@ public class BdrsWebConstants {
      * Constant for the session attribute name that stores the wkt string of the location on error.
      */
     public static final String MV_WKT = "wkt";
+    /**
+     * Constant for adding a WebMap object to the ModelAndView
+     */
+    public static final String MV_WEB_MAP = "webMap";
 }

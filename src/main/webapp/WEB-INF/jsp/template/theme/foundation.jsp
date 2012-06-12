@@ -79,6 +79,7 @@
             <script src="${pageContext.request.contextPath}/js${version}/ol/OpenLayers.js" type="text/javascript"></script>
             <script src="http://maps.google.com/maps?file=api&amp;v=2&amp;&amp;sensor=false&amp;key=${bdrsGoogleMapsKey}" type="text/javascript"></script>
             <script src="${pageContext.request.contextPath}/js${version}/BdrsCluster.js" type="text/javascript"></script>
+			<script src="${pageContext.request.contextPath}/js${version}/BdrsLayerSwitcher.js" type="text/javascript"></script>
         </c:if>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/bdrs.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/js${version}/jquery.jcollapsible.min.js"></script>

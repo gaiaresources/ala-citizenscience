@@ -273,6 +273,7 @@ public class AdvancedReviewSightingsControllerTest extends
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortOrder");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "searchText");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "facetList");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.MV_WEB_MAP);
     }
 
     //@Test

@@ -133,6 +133,18 @@ bdrs.isIE7 = function() {
 // Change jqGrid defaults
 jQuery.extend(jQuery.jgrid.defaults,{emptyrecords: "Nothing to display"});
 
+// Add jquery function for div overflow detection.
+jQuery.fn.HasScrollBar = function() {
+    //note: clientHeight= height of holder
+    //scrollHeight= we have content till this height
+    var _elm = $(this)[0];
+    var _hasScrollBar = false; 
+    if ((_elm.clientHeight < _elm.scrollHeight) || (_elm.clientWidth < _elm.scrollWidth)) {
+        _hasScrollBar = true;
+    }
+    return _hasScrollBar;
+}
+
 // This can be set in the theme custom javascript in which 
 // case we don't want to override it.
 if (bdrs.MODAL_DIALOG_Z_INDEX === undefined) {
@@ -437,7 +449,7 @@ bdrs.map.createDefaultMap = function(mapId, mapOptions){
         map.addLayer(mapnik);
     }
     
-    map.addControl(new OpenLayers.Control.LayerSwitcher());
+    map.addControl(new bdrs.map.BdrsLayerSwitcher());
     map.addControl(new OpenLayers.Control.MousePosition());
     
     if (mapOptions.geocode !== undefined && mapOptions.geocode !== null) {
@@ -450,6 +462,15 @@ bdrs.map.createDefaultMap = function(mapId, mapOptions){
     if (jQuery('#OpenLayers_Control_MaximizeDiv_innerImage')) {
         jQuery('#OpenLayers_Control_MaximizeDiv_innerImage').attr("title", "Change the baselayer and turn map layers on or off");
     }
+	
+	var layerSwitcherContainerSelector = '[id^="OpenLayers.Control.LayerSwitcher_"].layersDiv';
+	if (jQuery('#OpenLayers_Control_MinimizeDiv')) {
+		var layerSwitcherDiv = jQuery(layerSwitcherContainerSelector); 
+		layerSwitcherDiv.css("width", "auto");
+        layerSwitcherDiv.css("overflow-y", "auto");
+		layerSwitcherDiv.css("overflow-x", "hidden");
+		layerSwitcherDiv.css("max-height", "300px");
+	}
     
     var graticule = new OpenLayers.Control.Graticule({
         displayInLayerSwitcher: true
@@ -1069,12 +1090,45 @@ bdrs.map.addKmlLayerWithProtocol = function(map, layerName, options, ignoreId, p
     return layer;
 };
 
+/**
+ * Add a WMS layer for a given url. You must append query parameters
+ * onto the URL if you require them. E.g. the LAYERS parameter
+ * is commonly used to specify which layers you want to see rendered.
+ * See the WMS standard for details.
+ * 
+ * @param {Object} map OpenLayers map object.
+ * @param {String} layerName Name of layer.
+ * @param {String} url URL of WMS server.
+ * @return {Object} the created layer object.
+ */
+bdrs.map.addWmsLayer = function(map, layerName, url, options) {
+	if (options === undefined) {
+        options = {};
+    }
+    var defaultOptions = {
+        visible: true,
+		opacity: bdrs.map.DEFAULT_OPACITY
+    };
+    options = jQuery.extend(defaultOptions, options);
+	
+	var layer = new OpenLayers.Layer.WMS( layerName,
+            url,
+            {
+			    transparent: "true"
+			}, {
+				visibility: options.visible,
+				opacity: options.opacity
+			});
+    map.addLayer(layer);
+	return layer;
+};
+
 bdrs.map.getBdrsMapServerUrl = function(){
     return "http://" + document.location.hostname + "/cgi-bin/mapserv?map=bdrs.map&";
 };
 
 bdrs.map.addMapServerLayer = function(map, layerName, url, options){
-    return bdrs.map.addWMSLayer(map, layerName, url, options);
+    return bdrs.map.addBdrsWMSLayer(map, layerName, url, options);
 };
 
 bdrs.map.addWMSHighlightLayer = function(map, layername, url, options){
@@ -1106,7 +1160,7 @@ bdrs.map.addWMSHighlightLayer = function(map, layername, url, options){
     return layer;
 };
 
-bdrs.map.addWMSLayer = function(map, layerName, url, options){
+bdrs.map.addBdrsWMSLayer = function(map, layerName, url, options){
     if (options === undefined) {
         options = {};
     }

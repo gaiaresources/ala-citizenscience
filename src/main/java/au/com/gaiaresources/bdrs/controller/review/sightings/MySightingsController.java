@@ -17,6 +17,9 @@ import javax.servlet.http.HttpServletResponse;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 
+import au.com.gaiaresources.bdrs.model.map.GeoMap;
+import au.com.gaiaresources.bdrs.model.map.GeoMapDAO;
+import au.com.gaiaresources.bdrs.model.map.MapOwner;
 import au.com.gaiaresources.bdrs.model.preference.Preference;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceUtil;
@@ -34,6 +37,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import au.com.gaiaresources.bdrs.controller.map.RecordDownloadFormat;
 import au.com.gaiaresources.bdrs.controller.map.RecordDownloadWriter;
+import au.com.gaiaresources.bdrs.controller.map.WebMap;
 import au.com.gaiaresources.bdrs.db.ScrollableResults;
 import au.com.gaiaresources.bdrs.db.impl.SortOrder;
 import au.com.gaiaresources.bdrs.db.impl.SortingCriteria;
@@ -52,6 +56,7 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import edu.emory.mathcs.backport.java.util.Arrays;
 
 /**
@@ -109,6 +114,8 @@ public class MySightingsController extends SightingsController {
     private TaxaDAO taxaDAO;
     @Autowired
     private PreferenceDAO preferenceDAO;
+    @Autowired
+    private GeoMapDAO geoMapDAO;
 
     /**
      * Displays a tabbed view of a selected set of records.
@@ -216,6 +223,8 @@ public class MySightingsController extends SightingsController {
         mv.addObject("download_shp_selected", Arrays.binarySearch(downloadFormat, RecordDownloadFormat.SHAPEFILE.toString()) > -1);
         mv.addObject("download_xls_selected", Arrays.binarySearch(downloadFormat, RecordDownloadFormat.XLS.toString()) > -1);
         
+        GeoMap geoMap = geoMapDAO.getForOwner(null, MapOwner.REVIEW);
+        mv.addObject(BdrsWebConstants.MV_WEB_MAP, geoMap != null ? new WebMap(geoMap) : null);
         return mv;
     }
     

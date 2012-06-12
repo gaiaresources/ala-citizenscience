@@ -1,11 +1,39 @@
 package au.com.gaiaresources.bdrs.model.survey;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.persistence.AttributeOverride;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.IndexColumn;
+import org.hibernate.annotations.ParamDef;
+
 import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
 import au.com.gaiaresources.bdrs.model.form.CustomForm;
 import au.com.gaiaresources.bdrs.model.group.Group;
 import au.com.gaiaresources.bdrs.model.location.Location;
-import au.com.gaiaresources.bdrs.model.map.BaseMapLayer;
+import au.com.gaiaresources.bdrs.model.map.GeoMap;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
@@ -14,12 +42,6 @@ import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.util.DateUtils;
-import org.hibernate.annotations.*;
-
-import javax.persistence.*;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import java.util.*;
 
 @Entity
 @FilterDef(name=PortalPersistentImpl.PORTAL_FILTER_NAME, parameters=@ParamDef( name="portalId", type="integer" ) )
@@ -44,14 +66,14 @@ public class Survey extends PortalPersistentImpl implements Comparable<Survey> {
 
     private List<Attribute> attributes = new ArrayList<Attribute>();
     private List<CensusMethod> censusMethods = new ArrayList<CensusMethod>();
-    private List<BaseMapLayer> baseMapLayers = new ArrayList<BaseMapLayer>();
-    private List<SurveyGeoMapLayer> geoMapLayers = new ArrayList<SurveyGeoMapLayer>();
 
     private Set<Metadata> metadata = new HashSet<Metadata>();
     
     // Cache of metadata mapped against the key. This is not a database 
     // column or relation.
     private Map<String, Metadata> metadataLookup = null;
+    
+    private GeoMap geoMap;
     
     // the default record publish level
     // Whatever this is set to will by the default settings of all new records
@@ -723,98 +745,6 @@ public class Survey extends PortalPersistentImpl implements Comparable<Survey> {
     }
 
     /**
-     * Get the default map center for this survey.
-     * @return
-     */
-    @Transient
-    public String getMapCenter() {
-        Metadata md = getMetadataByKey(Metadata.MAP_DEFAULT_CENTER);
-        if (md != null) {
-            return md.getValue();
-        }
-        return null;
-    }
-
-    /**
-     * Get the default map zoom level for the survey.
-     * @return
-     */
-    @Transient
-    public String getMapZoom() {
-        Metadata md = getMetadataByKey(Metadata.MAP_DEFAULT_ZOOM);
-        if (md != null) {
-            return md.getValue();
-        }
-        return null;
-    }
-
-    /**
-     * Get the {@link BaseMapLayer} for this survey
-     * @return
-     */
-    @OneToMany(mappedBy="survey", fetch = FetchType.LAZY)
-    public List<BaseMapLayer> getBaseMapLayers() {
-        return baseMapLayers;
-    }
-
-    /**
-     * Set the {@link BaseMapLayer} for this survey
-     * @param newLayers
-     */
-    public void setBaseMapLayers(List<BaseMapLayer> newLayers) {
-        baseMapLayers = newLayers;
-    }
-
-    /**
-     * Get the {@link au.com.gaiaresources.bdrs.model.map.GeoMapLayer} linked to this survey.
-     * @return
-     */
-    @OneToMany(mappedBy="survey", fetch = FetchType.LAZY)
-    public List<SurveyGeoMapLayer> getGeoMapLayers() {
-        return geoMapLayers;
-    }
-
-    /**
-     * Set the {@link au.com.gaiaresources.bdrs.model.map.GeoMapLayer} for this survey
-     * @param newLayers the layers for the survey
-     */
-    public void setGeoMapLayers(List<SurveyGeoMapLayer> newLayers) {
-        geoMapLayers = newLayers;
-    }
-
-    /**
-     * Add a {@link au.com.gaiaresources.bdrs.model.map.GeoMapLayer} to the survey
-     * @param thisLayer the {@link SurveyGeoMapLayer} to add to the survey
-     */
-    public void addGeoMapLayer(SurveyGeoMapLayer thisLayer) {
-        geoMapLayers.add(thisLayer);
-    }
-
-    /**
-     * Remove this {@link au.com.gaiaresources.bdrs.model.map.GeoMapLayer} from the Survey.
-     * @param thisLayer the {@link SurveyGeoMapLayer} to remove from the survey
-     */
-    public void removeGeoMapLayer(SurveyGeoMapLayer thisLayer) {
-        geoMapLayers.remove(thisLayer);
-    }
-
-    /**
-     * Add this {@link BaseMapLayer} to the Survey.
-     * @param layer
-     */
-    public void addBaseMapLayer(BaseMapLayer layer) {
-        baseMapLayers.add(layer);
-    }
-
-    /**
-     * Remove this {@link BaseMapLayer} from the Survey.
-     * @param layer
-     */
-    public void removeBaseMapLayer(BaseMapLayer layer) {
-        baseMapLayers.remove(layer);
-    }
-
-    /**
      * @return the custom form renderer for this survey, or null if one does not exist.
      */
     @ManyToOne
@@ -851,4 +781,13 @@ public class Survey extends PortalPersistentImpl implements Comparable<Survey> {
         
         return false;
     }
+
+    @OneToOne(mappedBy="survey")
+	public GeoMap getMap() {
+		return geoMap;
+	}
+
+	public void setMap(GeoMap geoMap) {
+		this.geoMap = geoMap;
+	}
 }

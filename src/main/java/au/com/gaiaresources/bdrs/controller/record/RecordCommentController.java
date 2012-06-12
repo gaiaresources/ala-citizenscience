@@ -6,6 +6,7 @@ import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
@@ -47,6 +48,9 @@ public class RecordCommentController extends AbstractController {
 
     @Autowired
     private RedirectionService redirectionService;
+    
+    @Autowired
+    private GeoMapService geoMapService;
     
     /**
      * Adds a comment to a Record.
@@ -120,7 +124,7 @@ public class RecordCommentController extends AbstractController {
      */
     private void checkAccess(HttpServletRequest request, Record record){
         User user = RequestContextHolder.getContext().getUser();
-        RecordWebFormContext ctx = new RecordWebFormContext(request, record, user, record.getSurvey());
+        RecordWebFormContext ctx = new RecordWebFormContext(request, record, user, record.getSurvey(), geoMapService);
         if (!ctx.isCommentable()) {
             throw new AccessDeniedException(MSG_CODE_COMMENT_AUTHFAIL);
         }

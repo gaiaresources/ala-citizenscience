@@ -213,6 +213,68 @@ bdrs.review.mysightings.get_kml_url = function() {
     ].join('');
 };
 
+bdrs.review.mysightings.get_map_tab_display_change_handler = function(initLayersFcn) {
+	return function(event, is_selected, on_complete_callback) {
+	    if(bdrs.map.baseMap === null && is_selected) {
+		    // Initialise the maps
+		    bdrs.map.initBaseMap('record_map', { geocode: { selector: '#geocode' }});
+			
+			// add our custom layers.
+			if (initLayersFcn) {
+				initLayersFcn(bdrs.map.baseMap);
+			}
+			
+		    bdrs.map.centerMap(bdrs.map.baseMap, null, 3);
+		    bdrs.map.baseMap.events.register('addlayer', null, bdrs.map.addFeaturePopUpHandler);
+		    bdrs.map.baseMap.events.register('removeLayer', null, bdrs.map.removeFeaturePopUpHandler);
+	    }
+	    
+	    bdrs.map.clearPopups(bdrs.map.baseMap);
+	    bdrs.map.clearAllVectorLayers(bdrs.map.baseMap);
+	    bdrs.review.mysightings.clearRecordCount();
+	    
+	    if(is_selected) {
+	        jQuery(bdrs.review.mysightings.SELECTED_TAB_SELECTOR).val("map");
+	    
+		    var kmlURL = bdrs.review.mysightings.get_kml_url(); 
+		    var selectedId = jQuery(bdrs.review.mysightings.HIGHLIGHTED_RECORD_ID_SELECTOR).val();
+		    var style = bdrs.map.createOpenlayersStyleMap(selectedId.toString());
+		    
+		    var layerOptions = {
+		        visible: true,
+		        includeClusterStrategy: true,
+		        styleMap: style
+		    };
+		
+		    var layer = bdrs.map.addKmlLayer(bdrs.map.baseMap, "Sightings", kmlURL, layerOptions, selectedId);
+		    layer.events.register('loadend', layer, function(event) {
+		        bdrs.map.centerMapToLayerExtent(bdrs.map.baseMap, layer);
+		        if(on_complete_callback !== null && on_complete_callback !== undefined) {
+		            // Update the Record Count
+		            var count = 0;
+		            var features = layer.features;
+		            var feature;
+		            for(var i=0; i<features.length; i++) {
+	                    feature = features[i];
+	                    if(feature.cluster !== undefined) {
+	                        count += feature.cluster.length;
+	                    } else {
+	                        count += 1;
+	                    }
+	                }
+	                bdrs.review.mysightings.update_record_count(count);
+	                
+		            on_complete_callback();
+		        }
+		    });
+	    } else {
+	        if(on_complete_callback !== null && on_complete_callback !== undefined) {
+	           on_complete_callback();
+	        }
+	    }
+	};
+};
+
 /**
  * Updates the mapping tab.
  * @param event [event data] Not used
@@ -223,6 +285,12 @@ bdrs.review.mysightings.map_tab_display_change_handler = function(event, is_sele
     if(bdrs.map.baseMap === null && is_selected) {
 	    // Initialise the maps
 	    bdrs.map.initBaseMap('record_map', { geocode: { selector: '#geocode' }});
+		
+		// add our custom layers.
+		if (jQuery.isFunction(bdrs.review.mysightings.initMapLayersFcn)) {
+			bdrs.review.mysightings.initMapLayersFcn(bdrs.map.baseMap);
+		}
+		
 	    bdrs.map.centerMap(bdrs.map.baseMap, null, 3);
 	    bdrs.map.baseMap.events.register('addlayer', null, bdrs.map.addFeaturePopUpHandler);
 	    bdrs.map.baseMap.events.register('removeLayer', null, bdrs.map.removeFeaturePopUpHandler);
@@ -559,8 +627,9 @@ bdrs.review.mysightings.abort_all_xhr = function() {
 /**
  * Initialises the mysightings view.
  * @portal_id the primary key of the current portal.
+ * @initMapLayersFcn function that takes an openlayers map object. Adds custom layers to the map.
  */ 
-bdrs.review.mysightings.init = function(portal_id) {
+bdrs.review.mysightings.init = function(portal_id, initMapLayersFcn) {
     bdrs.review.mysightings.PORTAL_ID = parseInt(portal_id, 10);
     
     // Initialise XHR Request Management
@@ -664,7 +733,7 @@ bdrs.review.mysightings.init = function(portal_id) {
     tab_handles.click(bdrs.review.mysightings.tab_changed_handler);
     
     jQuery(bdrs.review.mysightings.MAP_TAB_SELECTOR).bind(bdrs.review.mysightings.DISPLAY_CHANGE_EVENT_TYPE, 
-        bdrs.review.mysightings.map_tab_display_change_handler);
+        bdrs.review.mysightings.get_map_tab_display_change_handler(initMapLayersFcn));
 	jQuery(bdrs.review.mysightings.TABLE_TAB_SELECTOR).bind(bdrs.review.mysightings.DISPLAY_CHANGE_EVENT_TYPE, 
         bdrs.review.mysightings.table_tab_display_change_handler);
 	jQuery(bdrs.review.mysightings.DOWNLOAD_TAB_SELECTOR).bind(bdrs.review.mysightings.DISPLAY_CHANGE_EVENT_TYPE, 

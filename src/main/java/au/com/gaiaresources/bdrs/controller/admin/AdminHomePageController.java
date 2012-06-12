@@ -18,14 +18,19 @@ import au.com.gaiaresources.bdrs.security.Role;
 
 @Controller
 public class AdminHomePageController extends AbstractController {
+
+    public static final String ADMIN_TAXONOMY_LANDING_URL = "/bdrs/admin/manageTaxonomy.htm";
+    public static final String ADMIN_MAP_LANDING_URL = "/bdrs/admin/manageMaps.htm";
+    public static final String ADMIN_HOME_URL = "/admin/home.htm";
+
     @Autowired
     private RecordDAO recordDAO;
     @Autowired
     private UserDAO userDAO;
     @Autowired
     private SurveyDAO surveyDAO;
+    
 
-    public static final String ADMIN_HOME_URL = "/admin/home.htm";
 
     @RolesAllowed({Role.ROOT, Role.ADMIN,Role.SUPERVISOR,Role.POWERUSER})
     @RequestMapping(value = ADMIN_HOME_URL, method = RequestMethod.GET)
@@ -61,13 +66,13 @@ public class AdminHomePageController extends AbstractController {
     }
     
     @RolesAllowed({ Role.ROOT, Role.ADMIN })
-    @RequestMapping(value="/bdrs/admin/manageTaxonomy.htm", method=RequestMethod.GET) 
+    @RequestMapping(value=ADMIN_TAXONOMY_LANDING_URL, method=RequestMethod.GET) 
     public ModelAndView renderManageTaxonomy() {
         return new ModelAndView("manageTaxonomy");
     }
     
     @RolesAllowed({ Role.ROOT, Role.ADMIN })
-    @RequestMapping(value="/bdrs/admin/manageMaps.htm", method=RequestMethod.GET) 
+    @RequestMapping(value=ADMIN_MAP_LANDING_URL, method=RequestMethod.GET) 
     public ModelAndView renderManageMaps() {
         return new ModelAndView("manageMaps");
     }

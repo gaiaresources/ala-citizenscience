@@ -65,6 +65,7 @@ public class GeoMapLayerControllerDeleteTest extends AbstractControllerTest {
         
         map = new GeoMap();
         map.setName("map name");
+        map.setOwner(MapOwner.NONE);
         map.setDescription("map desc");
        
         mapDAO.save(map);

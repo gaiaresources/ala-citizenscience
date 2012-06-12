@@ -52,6 +52,7 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 /**
@@ -120,6 +121,8 @@ public class YearlySightingsController extends RecordController {
     private LocationService locationService;
     @Autowired
     private TaxaDAO taxaDAO;
+    @Autowired
+    private GeoMapService geoMapService;
     
     private FormFieldFactory formFieldFactory = new FormFieldFactory();
 
@@ -144,7 +147,7 @@ public class YearlySightingsController extends RecordController {
         
         Survey survey = surveyDAO.getSurvey(surveyId);
         
-        RecordWebFormContext context = new RecordWebFormContext(request, record, loggedInUser, survey);
+        RecordWebFormContext context = new RecordWebFormContext(request, record, loggedInUser, survey, geoMapService);
 
         // Jan Feb Mar
         // 1

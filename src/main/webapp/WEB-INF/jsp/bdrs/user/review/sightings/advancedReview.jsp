@@ -131,11 +131,19 @@
       bdrs.advancedReview.initTabHandlers();
    });
 
+   <c:if test="${ mapViewSelected }">
    jQuery(window).load(function() {
-      <c:if test="${ mapViewSelected }">
+	  var initMapLayersFcn = <tiles:insertDefinition name="initMapLayersFcn">
+							<tiles:putAttribute name="webMap" value="${webMap}"/>
+						</tiles:insertDefinition>;	
+		
 	  // only init the map view if the map view is selected
       bdrs.advancedReview.initMapView('#facetForm',  
-              'atlasSightingsMap', { geocode: { selector: '#geocode' }}, '#recordId');
-	  </c:if>
+              'atlasSightingsMap', { geocode: { selector: '#geocode' }}, '#recordId', initMapLayersFcn);
+	  
    });
+   	<tiles:insertDefinition name="initBaseMapLayersFcn">
+		<tiles:putAttribute name="webMap" value="${webMap}" />
+	</tiles:insertDefinition>
+   </c:if>
 </script>

@@ -4,17 +4,17 @@
 
 <h2>Edit Map Settings</h2>
 
+<c:if test="${not empty survey}">
     <p>
         Click and drag the map below to configure the default zoom level and center of the 
         maps for this project.
     </p>
+</c:if>
 <tiles:insertDefinition name="settingsMap">
-    <tiles:putAttribute name="survey" value="${survey}"/>
-    <tiles:putAttribute name="mapCenter" value="${survey.mapCenter}"/>
-    <tiles:putAttribute name="mapZoom" value="${survey.mapZoom}"/>
+    <tiles:putAttribute name="webMap" value="${webMap}" />
 </tiles:insertDefinition>
 
-<form method="POST" action="${portalContextPath}/bdrs/admin/survey/editMap.htm" onsubmit="setCenterAndZoom();">
+<form method="POST" onsubmit="setCenterAndZoom();">
     <input type="hidden" name="surveyId" value="${survey.id}"/>
     <div>
         <h2>Base Layers</h2>
@@ -42,9 +42,9 @@
         </table>
 
      <h2>Overlay Layers</h2>
-        
+	 
        <p>
-        Use the overlay layer selector below to determine which <a>custom layers</a> 
+        Use the overlay layer selector below to determine which <a href="${portalContextPath}/bdrs/admin/mapLayer/listing.htm">custom layers</a> 
         will show on the map as well as the other layer options that will show in 
         the layer selector.
        </p>
@@ -52,7 +52,8 @@
             <thead>
                 <tr>
                     <th>&nbsp;</th>
-                    <th>Show Layer?</th>
+                    <th>Layer On Map</th>
+					<th>Visible On Load</th>
                     <th>Layer Name</th>
                     <th>Layer Description</th>
                 </tr>
@@ -100,7 +101,8 @@
         // this is okay to add because we know it is always a point
         // in future openlayers versions, use extractGeometry, which correctly 
         // builds a complete WKT string for you
-        jQuery('#mapCenter').val("POINT("+wktFormatter.extract.point(point)+")");
+		var coords = wktFormatter.extract.point(point);
+        jQuery('#mapCenter').val("POINT("+coords+")");
     };
 
     jQuery(function() {
@@ -109,70 +111,16 @@
     });
     
     var changeDefaultLayer = function(layerName) {
-    	console.log(layerName);
         // change the base layer of the map to the selected layer
         bdrs.map.baseLayer = bdrs.map.baseMap.getLayersByName(layerName);
-        console.log(bdrs.map.baseLayer);
         if(bdrs.map.baseLayer) {
             //bdrs.map.baseMap.setBaseLayer(bdrs.map.baseLayer);
             bdrs.map.baseMap.setLayerIndex(bdrs.map.baseLayer, 0);
         }
     };
     
-
-    bdrs.map.customMapLayers = function() {
-        var layers =  [];
-        var baseLayers = ${baseLayers};
-        for (var i = 0; i < baseLayers.length; i++) {
-            var layer = baseLayers[i];
-            var thisLayer;
-            console.log(layer.layerSource);
-            if(layer.layerSource === 'G_PHYSICAL_MAP' && window.G_PHYSICAL_MAP !== undefined && window.G_PHYSICAL_MAP !== null) {
-                thisLayer = new OpenLayers.Layer.Google('Google Physical', {
-                    type: G_PHYSICAL_MAP,
-                    sphericalMercator: true,
-                    MIN_ZOOM_LEVEL: bdrs.map.MIN_GOOGLE_ZOOM_LEVEL
-                });
-            } else if(layer.layerSource === 'G_NORMAL_MAP' && window.G_NORMAL_MAP !== undefined && window.G_NORMAL_MAP !== null) {
-                thisLayer = new OpenLayers.Layer.Google('Google Streets', // the default
-                {
-                    type: G_NORMAL_MAP,
-                    numZoomLevels: 20,
-                    sphericalMercator: true,
-                    MIN_ZOOM_LEVEL: bdrs.map.MIN_GOOGLE_ZOOM_LEVEL
-                });
-            } else if(layer.layerSource === 'G_HYBRID_MAP' && window.G_HYBRID_MAP !== undefined && window.G_HYBRID_MAP !== null) {
-                thisLayer = new OpenLayers.Layer.Google('Google Hybrid', {
-                    type: G_HYBRID_MAP,
-                    numZoomLevels: 20,
-                    sphericalMercator: true,
-                    MIN_ZOOM_LEVEL: bdrs.map.MIN_GOOGLE_ZOOM_LEVEL
-                });
-            } else if(layer.layerSource === 'G_SATELLITE_MAP' && window.G_SATELLITE_MAP !== undefined && window.G_SATELLITE_MAP !== null) {
-                thisLayer = new OpenLayers.Layer.Google('Google Satellite', {
-                    type: G_SATELLITE_MAP,
-                    numZoomLevels: 22,
-                    sphericalMercator: true,
-                    MIN_ZOOM_LEVEL: bdrs.map.MIN_GOOGLE_ZOOM_LEVEL
-                });
-            } else if (layer.layerSource === 'OSM') {
-                thisLayer = new OpenLayers.Layer.OSM("Open Street Map");
-            }
-
-            if (thisLayer) {
-                layers.push(thisLayer);
-            }
-            
-            if (layer['default']) {
-                bdrs.map.baseLayer = thisLayer;
-            }
-        }
-        
-        if(layers.length === 0) {
-            var nobase = new OpenLayers.Layer("No Basemap",{isBaseLayer: true, 'displayInLayerSwitcher': true});
-            layers.push(nobase);
-        }
-
-        return layers;
-    };
+	<tiles:insertDefinition name="initBaseMapLayersFcn">
+		<tiles:putAttribute name="webMap" value="${webMap}" />
+	</tiles:insertDefinition>
+	
 </script>

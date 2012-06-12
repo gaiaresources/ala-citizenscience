@@ -6,14 +6,25 @@ import java.util.List;
 import javax.persistence.AttributeOverride;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
-import org.hibernate.annotations.IndexColumn;
+import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.ParamDef;
+import org.hibernate.annotations.Type;
+
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Point;
 
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
+import au.com.gaiaresources.bdrs.model.survey.Survey;
 
 @Entity
 @FilterDef(name=PortalPersistentImpl.PORTAL_FILTER_NAME, parameters=@ParamDef( name="portalId", type="integer" ) )
@@ -29,6 +40,46 @@ public class GeoMap extends PortalPersistentImpl {
     String roleRequired = ""; // can be null / empty string
     boolean publish = false;
     boolean anonymousAccess = false;
+    private MapOwner owner = null; // must set
+    private Survey survey;
+    private List<BaseMapLayer> baseMapLayers = new ArrayList<BaseMapLayer>();
+    private List<AssignedGeoMapLayer> assignedGeoMapLayers = new ArrayList<AssignedGeoMapLayer>();
+    private Point center;
+    private Integer zoom;
+    
+    /**
+     * Get the {@link BaseMapLayer} for this map
+     * @return
+     */
+    @OneToMany(mappedBy="map", fetch = FetchType.LAZY)
+    public List<BaseMapLayer> getBaseMapLayers() {
+        return baseMapLayers;
+    }
+
+    /**
+     * Set the {@link BaseMapLayer} for this map.
+     * @param newLayers
+     */
+    public void setBaseMapLayers(List<BaseMapLayer> newLayers) {
+        baseMapLayers = newLayers;
+    }
+    
+    /**
+     * Get the assigned layers for this map.
+     * @return list of assigned layers.
+     */
+    @OneToMany(mappedBy="map", fetch = FetchType.LAZY)
+    public List<AssignedGeoMapLayer> getAssignedLayers() {
+    	return this.assignedGeoMapLayers;
+    }
+    
+    /**
+     * Set the assigned layers for this map.
+     * @param assignedLayers list of layers to assign.
+     */
+    public void setAssignedLayers(List<AssignedGeoMapLayer> assignedLayers) {
+    	assignedGeoMapLayers = assignedLayers;
+    }
     
     /**
      * The name of this map
@@ -102,4 +153,76 @@ public class GeoMap extends PortalPersistentImpl {
     public void setAnonymousAccess(boolean value) {
         this.anonymousAccess = value;
     }
+    
+    /**
+     * Get the owner of the map. 
+     * @return the owner of the map.
+     */
+    @Column(name = "map_owner", nullable=false)
+    @Enumerated(EnumType.STRING)
+	public MapOwner getOwner() {
+		return owner;
+	}
+
+    /**
+     * Set the owner of the map.
+     * @param owner the owner of the map.
+     */
+	public void setOwner(MapOwner owner) {
+		this.owner = owner;
+	}
+	
+	/**
+	 * Get the survey this map belongs to. Can be null.
+	 * @return survey for map.
+	 */
+    @ManyToOne
+    @JoinColumn(name = "survey_id", nullable = true)
+    @ForeignKey(name = "GEO_MAP_TO_SURVEY_FK")
+	public Survey getSurvey() {
+		return survey;
+	}
+	
+	/**
+	 * Sets the survey this map belongs to. Can be null.
+	 * @param survey survey to set.
+	 */
+	public void setSurvey(Survey survey) {
+		this.survey = survey;
+	}
+
+	/**
+	 * Get the center of the map.
+	 * @return Point object describing the center of the map.
+	 */
+    @Column(name = "center", nullable=true)
+    @Type(type = "org.hibernatespatial.GeometryUserType")
+	public Point getCenter() {
+		return center;
+	}
+
+	/**
+	 * Set the center of the map.
+	 * @param center Point object describing the center of the map.
+	 */
+	public void setCenter(Point center) {
+		this.center = center;
+	}
+
+	/**
+	 * Get the zoom level for the map.
+	 * @return Integer describing the zoom level for the map.
+	 */
+    @Column(name = "zoom", nullable=true)
+	public Integer getZoom() {
+		return zoom;
+	}
+
+	/**
+	 * Set the zoom level for the map.
+	 * @param zoom Integer describing the zoom level for the map.
+	 */
+	public void setZoom(Integer zoom) {
+		this.zoom = zoom;
+	}
 }

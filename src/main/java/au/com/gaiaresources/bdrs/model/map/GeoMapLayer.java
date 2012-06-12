@@ -13,6 +13,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
@@ -31,28 +32,27 @@ import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 @AttributeOverride(name = "id", column = @Column(name = "GEO_MAP_LAYER_ID"))
 public class GeoMapLayer extends PortalPersistentImpl implements Comparable<GeoMapLayer> {
 
-    Survey survey = null;
-    String name = "";
-    String description = "";
-    boolean hidePrivateDetails = false;
-    String managedFileUUID = "";
+    private Survey survey = null;
+    private String name = "";
+    private String description = "";
+    private boolean hidePrivateDetails = false;
+    private String managedFileUUID = "";
     // Will probably do this using hierarchical roles.
-    String roleRequired = ""; // can be null / empty string
-    boolean publish = true;
+    private String roleRequired = ""; // can be null / empty string
+    private boolean publish = true;
     GeoMapLayerSource layerSrc = null;
+    private String serverUrl = "";
     
     public static final String DEFAULT_STROKE_COLOR = "#000000";
     public static final String DEFAULT_FILL_COLOR = "#EE9900";
     
     // Styling
-    String strokeColor = DEFAULT_STROKE_COLOR;
-    String fillColor = DEFAULT_FILL_COLOR;
-    int symbolSize = 5;
-    int strokeWidth = 1;
+    private String strokeColor = DEFAULT_STROKE_COLOR;
+    private String fillColor = DEFAULT_FILL_COLOR;
+    private int symbolSize = 5;
+    private int strokeWidth = 1;
     
     List<Attribute> attributes = new LinkedList<Attribute>();
-    
-    private boolean showOnSurveyMap = false;
     
     @ManyToOne
     @JoinColumn(name = "SURVEY_ID", nullable = true)
@@ -163,6 +163,15 @@ public class GeoMapLayer extends PortalPersistentImpl implements Comparable<GeoM
     public void setStrokeWidth(int strokeWidth) {
         this.strokeWidth = strokeWidth;
     }
+    
+    @Column(name = "SERVER_URL")
+    public String getServerUrl() {
+		return serverUrl;
+	}
+	public void setServerUrl(String serverUrl) {
+		this.serverUrl = serverUrl;
+	}
+    
     @Override
     public int compareTo(GeoMapLayer other) {
         int compareVal = this.getWeight().compareTo(((GeoMapLayer)other).getWeight());
@@ -171,24 +180,5 @@ public class GeoMapLayer extends PortalPersistentImpl implements Comparable<GeoM
             compareVal = this.getName().compareTo(((GeoMapLayer)other).getName());
         }
         return compareVal;
-    }
-    
-    @Override
-    public boolean equals(Object other) {
-        if (!super.equals(other) || !(other instanceof GeoMapLayer)) {
-            return false;
-        }
-        
-        GeoMapLayer that = (GeoMapLayer) other;
-        return this.getName().equals(that.getName()) && 
-                // either both surveys are null or they are equal
-               (this.getSurvey() == null && that.getSurvey() == null || 
-                       (this.getSurvey() != null && this.getSurvey().equals(that.getSurvey()))) &&
-               this.getLayerSource().equals(that.getLayerSource());
-    }
-    
-    @Override
-    public int hashCode() {
-        return this.getName().hashCode() + this.getSurvey().hashCode() + this.getLayerSource().hashCode();
     }
 }

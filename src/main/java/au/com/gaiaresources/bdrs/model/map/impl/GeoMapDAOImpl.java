@@ -1,5 +1,7 @@
 package au.com.gaiaresources.bdrs.model.map.impl;
 
+import org.hibernate.Query;
+import org.hibernate.Session;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
@@ -11,6 +13,8 @@ import au.com.gaiaresources.bdrs.db.impl.Predicate;
 import au.com.gaiaresources.bdrs.db.impl.QueryPaginator;
 import au.com.gaiaresources.bdrs.model.map.GeoMap;
 import au.com.gaiaresources.bdrs.model.map.GeoMapDAO;
+import au.com.gaiaresources.bdrs.model.map.MapOwner;
+import au.com.gaiaresources.bdrs.model.survey.Survey;
 
 @Repository
 public class GeoMapDAOImpl extends AbstractDAOImpl implements GeoMapDAO {
@@ -45,6 +49,7 @@ public class GeoMapDAOImpl extends AbstractDAOImpl implements GeoMapDAO {
         if (publish != null) {
             q.and(Predicate.eq("gm.publish", publish));
         }
+        q.and(Predicate.eq("gm.owner", MapOwner.NONE));
         return new QueryPaginator<GeoMap>().page(this.getSession(), q.getQueryString(), q.getParametersValue(), filter, "gm");
     }
 
@@ -57,4 +62,24 @@ public class GeoMapDAOImpl extends AbstractDAOImpl implements GeoMapDAO {
     public void delete(GeoMap obj) {
         super.delete(obj);
     }
+    
+    @Override
+    public GeoMap getForSurvey(Session sesh, Survey survey) {
+    	if (sesh == null) {
+    		sesh = this.getSession();
+    	}
+    	Query q = sesh.createQuery("from GeoMap where survey = :survey");
+    	q.setParameter("survey", survey);
+    	return (GeoMap)q.uniqueResult();
+    }
+
+	@Override
+	public GeoMap getForOwner(Session sesh, MapOwner owner) {
+		if (sesh == null) {
+    		sesh = this.getSession();
+    	}
+    	Query q = sesh.createQuery("from GeoMap where owner = :owner");
+    	q.setParameter("owner", owner);
+    	return (GeoMap)q.uniqueResult();
+	}
 }

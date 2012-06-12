@@ -113,6 +113,7 @@ public class GeoMapController extends AbstractController {
         gm.setAnonymousAccess(anonAccess);
         gm.setPublish(publish);
         gm.setHidePrivateDetails(hidePrivateDetails);
+        gm.setOwner(MapOwner.NONE);
         gm.setWeight(weight);
         
         if (newMap) {

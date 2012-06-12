@@ -16,6 +16,7 @@ import au.com.gaiaresources.bdrs.model.map.GeoMapDAO;
 import au.com.gaiaresources.bdrs.model.map.GeoMapLayer;
 import au.com.gaiaresources.bdrs.model.map.GeoMapLayerDAO;
 import au.com.gaiaresources.bdrs.model.map.GeoMapLayerSource;
+import au.com.gaiaresources.bdrs.model.map.MapOwner;
 
 public class GeoMapLayerDAOImplTest extends AbstractControllerTest {
 
@@ -52,6 +53,7 @@ public class GeoMapLayerDAOImplTest extends AbstractControllerTest {
         layerDAO.save(layer3);
         
         map1 = new GeoMap();
+        map1.setOwner(MapOwner.NONE);
         mapDAO.save(map1);
         
         List<AssignedGeoMapLayer> layerList = new ArrayList<AssignedGeoMapLayer>();

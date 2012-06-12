@@ -39,16 +39,19 @@ public class GeoMapControllerTest extends AbstractControllerTest {
         map1.setName("aaaa");
         map1.setAnonymousAccess(true);
         map1.setPublish(false);
+        map1.setOwner(MapOwner.NONE);
         map1.setWeight(100);
         
         map2 = new GeoMap();
         map2.setName("bbbb");
         map2.setAnonymousAccess(true);
+        map2.setOwner(MapOwner.NONE);
         map2.setPublish(true);
         
         map3 = new GeoMap();
         map3.setName("cccc");
         map3.setAnonymousAccess(false);
+        map3.setOwner(MapOwner.NONE);
         map3.setPublish(true);
         
         geoMapDAO.save(map1);
@@ -96,6 +99,7 @@ public class GeoMapControllerTest extends AbstractControllerTest {
         map4.setAnonymousAccess(true);
         map4.setPublish(false);
         map4.setWeight(100);
+        map4.setOwner(MapOwner.NONE);
         geoMapDAO.save(map4);
         
         List<AssignedGeoMapLayer> layerList = new ArrayList<AssignedGeoMapLayer>();
@@ -330,6 +334,7 @@ public class GeoMapControllerTest extends AbstractControllerTest {
         map4.setAnonymousAccess(true);
         map4.setPublish(false);
         map4.setWeight(100);
+        map4.setOwner(MapOwner.NONE);
         geoMapDAO.save(map4);
         
         List<AssignedGeoMapLayer> layerList = new ArrayList<AssignedGeoMapLayer>();
@@ -363,6 +368,7 @@ public class GeoMapControllerTest extends AbstractControllerTest {
         map4.setAnonymousAccess(false);
         map4.setPublish(false);
         map4.setWeight(100);
+        map4.setOwner(MapOwner.NONE);
         geoMapDAO.save(map4);
         
         List<AssignedGeoMapLayer> layerList = new ArrayList<AssignedGeoMapLayer>();

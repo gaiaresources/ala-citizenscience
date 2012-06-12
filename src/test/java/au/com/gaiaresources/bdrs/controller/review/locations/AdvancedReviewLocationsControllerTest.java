@@ -204,6 +204,7 @@ public class AdvancedReviewLocationsControllerTest extends
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortOrder");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "searchText");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "facetList");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.MV_WEB_MAP);
 
         List<Facet> facetList = (List<Facet>) mv.getModel().get("facetList");
         for (Facet facet : facetList) {
@@ -236,6 +237,7 @@ public class AdvancedReviewLocationsControllerTest extends
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "sortOrder");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "searchText");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "facetList");
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.MV_WEB_MAP);
     }
 
     //@Test

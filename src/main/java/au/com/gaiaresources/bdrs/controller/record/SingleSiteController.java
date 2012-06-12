@@ -66,6 +66,7 @@ import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.content.ContentService;
+import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 
@@ -148,6 +149,8 @@ public abstract class SingleSiteController extends RecordController {
     private MetadataDAO metadataDAO;
     @Autowired
     private RecordService recordService;
+    @Autowired
+    private GeoMapService geoMapService;
 
     @Autowired
     private LocationService locationService;
@@ -321,7 +324,7 @@ public abstract class SingleSiteController extends RecordController {
         }
         Collections.sort(formFieldList);
         
-        RecordWebFormContext context = new RecordWebFormContext(request, record, getRequestContext().getUser(), survey);
+        RecordWebFormContext context = new RecordWebFormContext(request, record, getRequestContext().getUser(), survey, geoMapService);
         context.addFormFields("formFieldList", formFieldList);
 
         ModelAndView mv = new ModelAndView(ROW_VIEW);
@@ -372,7 +375,7 @@ public abstract class SingleSiteController extends RecordController {
         
         User accessor = getRequestContext().getUser();
         
-        RecordWebFormContext context = new RecordWebFormContext(request, record, accessor, survey);
+        RecordWebFormContext context = new RecordWebFormContext(request, record, accessor, survey, geoMapService);
         
         // get the records for this form instance (if any)
         List<Record> recordsForFormInstance = getRecordsForFormInstance(record, accessor);

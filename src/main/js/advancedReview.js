@@ -221,9 +221,14 @@ bdrs.advancedReview.doBulkAction = function(noneSelectedMessage, confirmMessage,
  * @param mapId the id of the element where the map will be inserted.
  * @param mapOptions options to be used for map initialisation.
  */
-bdrs.advancedReview.initMapView = function(formSelector, mapId, mapOptions, idSelector) {
+bdrs.advancedReview.initMapView = function(formSelector, mapId, mapOptions, idSelector, initMapLayersFcn) {
 
     bdrs.map.initBaseMap(mapId, mapOptions);
+	
+	if (jQuery.isFunction(initMapLayersFcn)) {
+		initMapLayersFcn(bdrs.map.baseMap);
+	}
+	
     bdrs.map.centerMap(bdrs.map.baseMap);
     bdrs.map.baseMap.events.register('addlayer', null, bdrs.map.addFeaturePopUpHandler);
     bdrs.map.baseMap.events.register('removeLayer', null, bdrs.map.removeFeaturePoupUpHandler);
