@@ -603,3 +603,72 @@ alter table indicator_species_attribute add constraint indicator_species_attribu
 
 rollback;
 </code>
+
+= r346 =
+<code language="sql">
+
+begin;
+
+-- Add extra column for geo map layer to store server url for wms servers
+alter table geo_map_layer add column server_url text;
+
+-- alter geo_map
+alter table geo_map add column survey_id int;
+alter table geo_map add constraint GEO_MAP_TO_SURVEY_FK foreign key (survey_id) references survey;
+alter table geo_map add column map_owner text not null;
+alter table geo_map add column zoom int;
+-- add column 'center' to table 'geo_map' with SRID=4326, type=POINT and 2 dimensions.
+select AddGeometryColumn('geo_map', 'center', 4326, 'POINT', 2);
+
+-- database migration...
+
+-- create new maps for each survey
+insert into geo_map (name, description, hide_private_details, role_required, publish, anonymous_access, portal_id, map_owner, survey_id)
+select 
+'survey map',
+'map description',
+false,
+'',
+true,
+true,
+s.portal_id,
+'SURVEY',
+s.survey_id
+from survey s;
+
+-- ***************************************************
+-- Note the below statements use postgresql functions!
+-- ***************************************************
+-- update zoom of geomap from survey metadata
+update geo_map gm set zoom=(select to_number(m.value, '99') from survey s join survey_metadata sm on s.survey_id=sm.survey_survey_id join metadata m on sm.metadata_id=m.id where s.survey_id=gm.survey_id and m.key='Survey.MapZoom' and char_length(m.value) > 0);
+-- update center of geomap from survey metadata
+update geo_map gm set center=(select ST_PointFromText(m.value, 4326) from survey s join survey_metadata sm on s.survey_id=sm.survey_survey_id join metadata m on sm.metadata_id=m.id where s.survey_id=gm.survey_id and m.key='Survey.MapCenter' and char_length(m.value) > 0);
+
+-- add geo map to base map layer
+alter table base_map_layer add column geo_map_id int;
+alter table base_map_layer add constraint BASE_MAP_LAYER_TO_GEO_MAP_FK foreign key (geo_map_id) references geo_map;
+
+-- assign geo_map_ids
+update base_map_layer bml set geo_map_id=(select m.geo_map_id from geo_map m where bml.survey_id=m.survey_id);
+
+alter table base_map_layer drop constraint BASE_MAP_LAYER_TO_SURVEY_FK;
+alter table base_map_layer drop column survey_id;
+
+-- copy survey_geo_map_layer table over to assigned_geo_map_layer table
+insert into assigned_geo_map_layer (weight, created_at, updated_at, visible, geo_map_layer_id, portal_id, geo_map_id)
+select
+sgml.weight,
+sgml.created_at,
+sgml.updated_at,
+true,
+sgml.layer_geo_map_layer_id,
+sgml.portal_id,
+gm.geo_map_id
+from survey_geo_map_layer sgml join survey s on sgml.survey_survey_id=s.survey_id join geo_map gm on gm.survey_id=s.survey_id;
+
+-- drop unused table.
+drop table survey_geo_map_layer;
+
+rollback;
+
+</code>
