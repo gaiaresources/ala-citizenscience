@@ -615,7 +615,9 @@ alter table geo_map_layer add column server_url text;
 -- alter geo_map
 alter table geo_map add column survey_id int;
 alter table geo_map add constraint GEO_MAP_TO_SURVEY_FK foreign key (survey_id) references survey;
-alter table geo_map add column map_owner text not null;
+alter table geo_map add column map_owner text;
+update geo_map set map_owner='NONE';
+alter table geo_map alter column map_owner set not null;
 alter table geo_map add column zoom int;
 -- add column 'center' to table 'geo_map' with SRID=4326, type=POINT and 2 dimensions.
 select AddGeometryColumn('geo_map', 'center', 4326, 'POINT', 2);
