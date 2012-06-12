@@ -43,6 +43,10 @@
             jQuery(entryForm.latSelector).attr('disabled', 'disabled');
         }
     };
+	
+	var initMapLayers = <tiles:insertDefinition name="initMapLayersFcn">
+							<tiles:putAttribute name="webMap" value="${recordWebFormContext.webMap}"/>
+						</tiles:insertDefinition>;
     
     jQuery(window).load(function() {
         bdrs.map.initWktOnChangeValidation('input[name=wkt]', '#wktMessage');
@@ -91,47 +95,9 @@
 
         // add the vector layers to the map
         // add the vector layers
-        var geoMapLayers = ${recordWebFormContext.geoMapLayers};
-        var layerArray = new Array();
-        <c:forEach items="${survey.geoMapLayers}" var="assignedLayer">
-        {
-            var layer;
-            <c:choose>
-            <c:when test="${assignedLayer.layer.layerSource == \"SHAPEFILE\" || assignedLayer.layer.layerSource == \"SURVEY_MAPSERVER\"}">
-                var layerOptions = {
-                    bdrsLayerId: ${assignedLayer.layer.id},
-                    visible: true,
-                    opacity: bdrs.map.DEFAULT_OPACITY,
-                    fillColor: "${assignedLayer.layer.fillColor}",
-                    strokeColor: "${assignedLayer.layer.strokeColor}",
-                    strokeWidth: ${assignedLayer.layer.strokeWidth},
-                    size: ${assignedLayer.layer.symbolSize}
-                };
-                // intentionally don't add this one as mapserver layers use transparent tiles not kml features
-                bdrs.map.addMapServerLayer(bdrs.map.baseMap, "${assignedLayer.layer.name}", bdrs.map.getBdrsMapServerUrl(), layerOptions);
-            </c:when>
-            <c:when test="${assignedLayer.layer.layerSource == \"SURVEY_KML\"}">
-                var layerOptions = {
-                    visible: true,
-                    // cluster strategy doesn't work properly for polygons
-                    includeClusterStrategy: true
-                };
-                layer = bdrs.map.addKmlLayer(bdrs.map.baseMap, "${assignedLayer.layer.name}", "${portalContextPath}/bdrs/map/getLayer.htm?layerPk=${assignedLayer.layer.id}", layerOptions);
-            </c:when>
-            <c:when test="${assignedLayer.layer.layerSource == \"KML\"}">
-                var layerOptions = {
-                    visible: true,
-                    // cluster strategy doesn't work properly for polygons
-                    includeClusterStrategy: false
-                };
-                layer = bdrs.map.addKmlLayer(bdrs.map.baseMap, "${assignedLayer.layer.name}", "${portalContextPath}/bdrs/map/getLayer.htm?layerPk=${assignedLayer.layer.id}", layerOptions);
-            </c:when>
-            </c:choose>
-            if (layer) {
-                layerArray.push(layer);
-            }
-        }
-        </c:forEach>
+        var geoMapLayers = ${recordWebFormContext.webMap.geoMapLayers};
+        
+		var layerArray = initMapLayers(bdrs.map.baseMap);
 
         // leaving the select handler out for now because it overrides the select handler
         // for adding a new point, so you can't move new points once they are created
@@ -197,80 +163,22 @@
             });
         } else {
             // default center map
-            var geom = OpenLayers.Geometry.fromWKT('${survey.mapCenter}');
+            var geom = OpenLayers.Geometry.fromWKT('${recordWebFormContext.webMap.center}');
             if (geom) {
                 var point = geom.getCentroid();
                 bdrs.map.defaultCenterLat = point.y;
                 bdrs.map.defaultCenterLong = point.x;
             }
-            if ('${survey.mapZoom}' != '') {
-                bdrs.map.defaultCenterZoom = '${survey.mapZoom}';
+            if ('${recordWebFormContext.webMap.zoom}' != '') {
+                bdrs.map.defaultCenterZoom = '${recordWebFormContext.webMap.zoom}';
             }
 
             bdrs.map.centerMap(bdrs.map.baseMap);
         }
     });
 
-    bdrs.map.customMapLayers = function() {
-        var layers =  [];
-        var baseLayers = ${recordWebFormContext.mapBaseLayers};
-        for (var i = 0; i < baseLayers.length; i++) {
-            var layer = baseLayers[i];
-            var thisLayer;
-            
-            if(layer.layerSource === 'G_PHYSICAL_MAP' && window.G_PHYSICAL_MAP !== undefined && window.G_PHYSICAL_MAP !== null) {
-                thisLayer = new OpenLayers.Layer.Google('Google Physical', {
-                    type: G_PHYSICAL_MAP,
-                    sphericalMercator: true,
-                    MIN_ZOOM_LEVEL: bdrs.map.MIN_GOOGLE_ZOOM_LEVEL
-                });
-            } else if(layer.layerSource === 'G_NORMAL_MAP' && window.G_NORMAL_MAP !== undefined && window.G_NORMAL_MAP !== null) {
-                thisLayer = new OpenLayers.Layer.Google('Google Streets', // the default
-                {
-                    type: G_NORMAL_MAP,
-                    numZoomLevels: 20,
-                    sphericalMercator: true,
-                    MIN_ZOOM_LEVEL: bdrs.map.MIN_GOOGLE_ZOOM_LEVEL
-                });
-            } else if(layer.layerSource === 'G_HYBRID_MAP' && window.G_HYBRID_MAP !== undefined && window.G_HYBRID_MAP !== null) {
-                thisLayer = new OpenLayers.Layer.Google('Google Hybrid', {
-                    type: G_HYBRID_MAP,
-                    numZoomLevels: 20,
-                    sphericalMercator: true,
-                    MIN_ZOOM_LEVEL: bdrs.map.MIN_GOOGLE_ZOOM_LEVEL
-                });
-            } else if(layer.layerSource === 'G_SATELLITE_MAP' && window.G_SATELLITE_MAP !== undefined && window.G_SATELLITE_MAP !== null) {
-                thisLayer = new OpenLayers.Layer.Google('Google Satellite', {
-                    type: G_SATELLITE_MAP,
-                    numZoomLevels: 22,
-                    sphericalMercator: true,
-                    MIN_ZOOM_LEVEL: bdrs.map.MIN_GOOGLE_ZOOM_LEVEL
-                });
-            } else if (layer.layerSource === 'OSM') {
-                thisLayer = new OpenLayers.Layer.OSM();
-            } else if (layer.layerSource === 'OPEN_LAYERS_WMS') {
-                thisLayer = new OpenLayers.Layer.WMS( "OpenLayers WMS", 
-                        "http://vmap0.tiles.osgeo.org/wms/vmap0?", {layers: 'basic'});
-            } else if (layer.layerSource === 'STAMEN_TONER') {
-            	thisLayer = new OpenLayers.Layer.Stamen("toner");
-            } else if (layer.layerSource === 'STAMEN_WATERCOLOR') {
-            	thisLayer = new OpenLayers.Layer.Stamen("watercolor");
-            }
+	<tiles:insertDefinition name="initBaseMapLayersFcn">
+		<tiles:putAttribute name="webMap" value="${recordWebFormContext.webMap}" />
+	</tiles:insertDefinition>
 
-            if (thisLayer) {
-                layers.push(thisLayer);
-            }
-            
-            if (layer['default']) {
-                bdrs.map.baseLayer = thisLayer;
-            }
-        }
-        
-        if(layers.length === 0) {
-            var nobase = new OpenLayers.Layer("No Basemap",{isBaseLayer: true, 'displayInLayerSwitcher': true});
-            layers.push(nobase);
-        }
-
-        return layers;
-    };
 </script>

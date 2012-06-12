@@ -1,5 +1,6 @@
 package au.com.gaiaresources.bdrs.controller.review;
 
+import au.com.gaiaresources.bdrs.controller.map.WebMap;
 import au.com.gaiaresources.bdrs.controller.review.locations.AdvancedReviewLocationsController;
 import au.com.gaiaresources.bdrs.controller.review.sightings.SightingsController;
 import au.com.gaiaresources.bdrs.db.FilterManager;
@@ -14,6 +15,9 @@ import au.com.gaiaresources.bdrs.kml.KMLWriter;
 import au.com.gaiaresources.bdrs.model.index.IndexingConstants;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationService;
+import au.com.gaiaresources.bdrs.model.map.GeoMap;
+import au.com.gaiaresources.bdrs.model.map.GeoMapDAO;
+import au.com.gaiaresources.bdrs.model.map.MapOwner;
 import au.com.gaiaresources.bdrs.model.preference.Preference;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceUtil;
@@ -119,6 +123,10 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
     
     @Autowired
     private SearchService searchService;
+    
+    @Autowired
+    private GeoMapDAO geoMapDAO;
+    
     /**
      * Returns the view for the request
      * @param newParamMap the request for the view
@@ -163,6 +171,9 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
         // Avoid the situation where the number of results per page is increased
         // thereby leaving a page number higher than the total page count.
         mv.addObject("pageNumber", Math.min(pageCount, pageNumber.longValue()));
+        
+        GeoMap geoMap = geoMapDAO.getForOwner(null, MapOwner.REVIEW);
+        mv.addObject(BdrsWebConstants.MV_WEB_MAP, geoMap != null ? new WebMap(geoMap) : null);
 
         return mv;
     }

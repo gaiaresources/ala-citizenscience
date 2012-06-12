@@ -1,5 +1,9 @@
 package au.com.gaiaresources.bdrs.model.map;
 
+import java.util.List;
+
+import org.hibernate.Session;
+
 import au.com.gaiaresources.bdrs.db.TransactionDAO;
 
 /**

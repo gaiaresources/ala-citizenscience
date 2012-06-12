@@ -9,14 +9,14 @@ import au.com.gaiaresources.bdrs.model.survey.Survey;
  */
 public interface MapLayer extends Comparable<MapLayer> {
     /**
-     * @return The {@link Survey} containing the map on which the layer will show.
+     * @return The {@link GeoMap} on which the layer will show.
      */
-    public Survey getSurvey();
+    public GeoMap getMap();
     /**
-     * Set the {@link Survey} containing the map on which the layer will show.
-     * @param survey the {@link Survey} containing the map on which the layer will show
+     * Set the {@link GeoMap} on which the layer will show.
+     * @param survey the {@link GeoMap} on which the layer will show
      */
-    public void setSurvey(Survey survey);
+    public void setMap(GeoMap geoMap);
     /**
      * The source for the map layer. This will describe to the renderer how to create the layer.
      * @return the {@link MapLayerSource} describing the origin of the map layer

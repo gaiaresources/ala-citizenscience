@@ -6,6 +6,7 @@ import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
@@ -19,13 +20,14 @@ import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
 @Filter(name=PortalPersistentImpl.PORTAL_FILTER_NAME, condition=":portalId = PORTAL_ID")
 @Table(name = "ASSIGNED_GEO_MAP_LAYER")
 @AttributeOverride(name = "id", column = @Column(name = "ASSIGNED_GEO_MAP_LAYER_ID"))
-public class AssignedGeoMapLayer extends PortalPersistentImpl {
+public class AssignedGeoMapLayer extends PortalPersistentImpl implements MapLayer {
 
     private GeoMapLayer layer;
     private GeoMap map;
-    private boolean visible = true;
+    private boolean visible = false;
     private Integer upperZoomLimit = null;
     private Integer lowerZoomLimit = null;
+    private boolean showOnMap = false;
     
     // we will use the 'weight' member to record order
 
@@ -48,7 +50,7 @@ public class AssignedGeoMapLayer extends PortalPersistentImpl {
      * @return
      */
     @ManyToOne
-    @JoinColumn(name="GEO_MAP_ID", nullable=false)
+    @JoinColumn(name="GEO_MAP_ID", nullable=true)
     @ForeignKey(name = "ASSIGNED_GEO_MAP_LAYER_TO_GEO_MAP_FK")
     public GeoMap getMap() {
         return map;
@@ -100,4 +102,51 @@ public class AssignedGeoMapLayer extends PortalPersistentImpl {
     public void setLowerZoomLimit(Integer lowerZoomLimit) {
         this.lowerZoomLimit = lowerZoomLimit;
     }
+	
+	/**
+     * Sets the selected status of the layer.
+     * @param showOnMap selected status of the layer.
+     */
+    public void setShowOnMap(boolean showOnMap) {
+        this.showOnMap = showOnMap;
+    }
+    
+    /**
+     * Gets the selected status of the layer.
+     * @return true if selected.
+     */
+    @Transient
+    public boolean getShowOnMap() {
+        return showOnMap;
+    }
+
+	@Override
+	public int compareTo(MapLayer other) {
+		// compare the weights
+        int compareVal = this.getWeight().compareTo(((AssignedGeoMapLayer)other).getWeight());
+        // if they are equal, use the names for sorting
+        if (compareVal == 0) {
+            compareVal = this.getLayer().compareTo(((AssignedGeoMapLayer)other).getLayer());
+        } else {
+         // if one of the weights is 0, that value always comes last
+            if (this.getWeight() == 0) {
+                compareVal = 1;
+            } else if (((AssignedGeoMapLayer)other).getWeight() == 0) {
+                compareVal = -1;
+            }
+        }
+        return compareVal;
+	}
+
+	@Transient
+	@Override
+	public MapLayerSource getLayerSource() {
+		return layer.getLayerSource();
+	}
+
+	@Transient
+	@Override
+	public void setLayerSource(MapLayerSource source) {
+		layer.setLayerSource(source);
+	}
 }

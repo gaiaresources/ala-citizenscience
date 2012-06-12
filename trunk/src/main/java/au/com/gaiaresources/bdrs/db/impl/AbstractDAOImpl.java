@@ -101,6 +101,10 @@ public abstract class AbstractDAOImpl implements TransactionDAO {
         return (Long)sessionFactory.getCurrentSession().createQuery(queryString).iterate().next();
     }
     
+    public <T extends Persistent> void refresh(T instance) {
+    	this.getSession().refresh(instance);
+    }
+    
     private void updateTimestamp(Persistent persistent) {
         persistent.setUpdatedAt(new Date());
     }

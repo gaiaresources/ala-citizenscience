@@ -388,7 +388,15 @@
     </div>
 </form>
 <script type="text/javascript">	
+	var initMapLayersFcn = <tiles:insertDefinition name="initMapLayersFcn">
+							<tiles:putAttribute name="webMap" value="${webMap}"/>
+						</tiles:insertDefinition>;
+						
     jQuery(window).load(function() {
-        bdrs.review.mysightings.init(${ user.portal.id });
+        bdrs.review.mysightings.init(${ user.portal.id }, initMapLayersFcn);
     });
+	
+	<tiles:insertDefinition name="initBaseMapLayersFcn">
+		<tiles:putAttribute name="webMap" value="${webMap}" />
+	</tiles:insertDefinition>
 </script>

@@ -146,4 +146,12 @@
         <put-attribute name="content" value="/WEB-INF/jsp/bdrs/public/review.jsp"/>
     </definition>
 	
+	<!-- geo map layer javascript generation -->
+	<definition name="initMapLayersFcn" template="/WEB-INF/jsp/bdrs/map/initMapLayersFcn.jsp">
+	</definition>
+	
+	<!-- base map layer javascript generation -->
+	<definition name="initBaseMapLayersFcn" template="/WEB-INF/jsp/bdrs/map/initBaseMapLayersFcn.jsp">
+	</definition>
+	
 </tiles-definitions>

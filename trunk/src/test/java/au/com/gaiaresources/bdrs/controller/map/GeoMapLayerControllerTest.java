@@ -209,7 +209,7 @@ public class GeoMapLayerControllerTest extends AbstractControllerTest {
         Assert.assertEquals("#BBBBBB", gml.getFillColor());
         Assert.assertEquals(0, gml.getStrokeWidth());
         Assert.assertEquals(0, gml.getSymbolSize());
-    }
+    }    
     
     @Test
     public void testSaveNewAndReturn_InvalidColor() throws Exception {
@@ -549,6 +549,44 @@ public class GeoMapLayerControllerTest extends AbstractControllerTest {
         Assert.assertEquals(1, rowArray.size());
         Assert.assertEquals(3, json.getLong("records"));
         Assert.assertEquals("aaaa", ((JSONObject)rowArray.get(0)).getString("name"));      
+    }
+    
+    @Test
+    public void testSaveWmsType() throws Exception {
+    	requestDropDatabase();
+        commit();
+        
+        String testUrl = "http://www.blah.com/cgi-bin/mapserv?LAYERS=hello";
+        
+        request.setRequestURI(GeoMapLayerController.EDIT_URL);
+        request.setMethod("POST");
+        
+        request.setParameter(GeoMapLayerController.PARAM_NAME, "hello world");
+        request.setParameter(GeoMapLayerController.PARAM_DESCRIPTION, "this is the world");
+        request.setParameter(GeoMapLayerController.PARAM_MAP_LAYER_SRC, GeoMapLayerSource.WMS_SERVER.toString());
+        request.setParameter(GeoMapLayerController.PARAM_SERVER_URL, testUrl);
+        
+        ModelAndView mv = this.handle(request, response);
+        
+        // return to listing page
+        RedirectView redirect = (RedirectView)mv.getView();
+        assertUrlEquals(GeoMapLayerController.LISTING_URL, redirect.getUrl());
+        
+        PagedQueryResult<GeoMapLayer> result = layerDAO.search(null, "hello world", null);
+        
+        Assert.assertEquals(1, result.getCount());
+        GeoMapLayer gml = result.getList().get(0);
+        Assert.assertEquals("hello world", gml.getName());
+        Assert.assertEquals("this is the world", gml.getDescription());
+        Assert.assertEquals(GeoMapLayerSource.WMS_SERVER, gml.getLayerSource());
+        Assert.assertEquals("wrong server url", testUrl, gml.getServerUrl());
+        Assert.assertEquals(false, gml.isPublish());
+        Assert.assertEquals(false, gml.isHidePrivateDetails());
+        
+        Assert.assertEquals(GeoMapLayer.DEFAULT_STROKE_COLOR, gml.getStrokeColor());
+        Assert.assertEquals(GeoMapLayer.DEFAULT_FILL_COLOR, gml.getFillColor());
+        Assert.assertEquals(0, gml.getStrokeWidth());
+        Assert.assertEquals(0, gml.getSymbolSize());
     }
     
     @SuppressWarnings("unchecked")

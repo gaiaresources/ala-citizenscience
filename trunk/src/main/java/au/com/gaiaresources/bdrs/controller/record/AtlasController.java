@@ -1,5 +1,25 @@
 package au.com.gaiaresources.bdrs.controller.record;
 
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.servlet.ModelAndView;
+
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormFieldFactory;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
@@ -16,26 +36,20 @@ import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordService;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
-import au.com.gaiaresources.bdrs.model.taxa.*;
+import au.com.gaiaresources.bdrs.model.taxa.Attribute;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeUtil;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValueUtil;
+import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.service.web.AtlasService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 import edu.emory.mathcs.backport.java.util.Collections;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
-import org.springframework.web.servlet.ModelAndView;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.text.ParseException;
-import java.util.*;
 
 /**
  * Controller for rendering the atlas form. note that the POST handler redirects
@@ -74,6 +88,8 @@ public class AtlasController extends RecordController {
     private TrackerController tc;
     @Autowired
     private LocationService locationService;
+    @Autowired
+    private GeoMapService geoMapService;
     
     private FormFieldFactory formFieldFactory = new FormFieldFactory();
 
@@ -104,7 +120,7 @@ public class AtlasController extends RecordController {
         record = record == null ? new Record() : record;
         
         User loggedInUser = getRequestContext().getUser();
-        RecordWebFormContext webFormContext = new RecordWebFormContext(request, record, loggedInUser, survey);
+        RecordWebFormContext webFormContext = new RecordWebFormContext(request, record, loggedInUser, survey, geoMapService);
         
         // Set record visibility to survey default. Setting via web form not supported.
         // Survey's default record visibility can be set in the 'admin -> projects' interface

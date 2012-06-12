@@ -22,6 +22,7 @@ import au.com.gaiaresources.bdrs.model.taxa.*;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.content.ContentService;
+import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
@@ -252,6 +253,8 @@ public class TrackerController extends RecordController {
     /** Required to get the user who last updated the Record */
     @Autowired
     private RecordService recordService;
+    @Autowired
+    private GeoMapService geoMapService;
 
     private FormFieldFactory formFieldFactory = new FormFieldFactory();
 
@@ -293,7 +296,7 @@ public class TrackerController extends RecordController {
         record = record == null ? new Record() : record;
         
         User loggedInUser = getRequestContext().getUser();
-        RecordWebFormContext context = new RecordWebFormContext(request, record, loggedInUser, survey);
+        RecordWebFormContext context = new RecordWebFormContext(request, record, loggedInUser, survey, geoMapService);
         
         // if this is a new record...
         if (record.getId() == null) {
@@ -671,7 +674,7 @@ public class TrackerController extends RecordController {
         Record record = recordPk > 0 ? recordDAO.getRecord(recordPk) : new Record();
         
         User loggedInUser = getRequestContext().getUser();
-        RecordWebFormContext context = new RecordWebFormContext(request, record, loggedInUser, survey);
+        RecordWebFormContext context = new RecordWebFormContext(request, record, loggedInUser, survey, geoMapService);
         
         List<FormField> formFieldList = new ArrayList<FormField>();
         List<Attribute> taxonGroupAttributeList = new ArrayList<Attribute>();

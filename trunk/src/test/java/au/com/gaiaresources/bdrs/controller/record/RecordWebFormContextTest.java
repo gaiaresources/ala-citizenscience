@@ -1,20 +1,36 @@
 package au.com.gaiaresources.bdrs.controller.record;
 
 import au.com.gaiaresources.bdrs.model.record.Record;
+import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
+import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.map.GeoMapService;
+import au.com.gaiaresources.bdrs.test.AbstractSpringContextTest;
+import au.com.gaiaresources.bdrs.test.AbstractTransactionalTest;
 import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.access.AccessDeniedException;
 
-public class RecordWebFormContextTest {
+public class RecordWebFormContextTest extends AbstractTransactionalTest {
 
+	@Autowired
+	private RecordDAO recordDAO;
+	@Autowired
+	private UserDAO userDAO;
+	@Autowired
+	private SurveyDAO surveyDAO;
+    @Autowired
+    private GeoMapService geoMapService;
+	
     private Record record;
     private User owner;
     private User nonOwner;
@@ -29,25 +45,18 @@ public class RecordWebFormContextTest {
         
         // minimum test setup. these objects are not persistable due to null fields
         survey  = new Survey();
-        survey.setId(99);
+        surveyDAO.save(survey);
         
-        owner = new User();
-        owner.setId(1);
-        owner.setRoles(new String[] { Role.USER });
-        
-        nonOwner = new User();
-        nonOwner.setId(2);
-        nonOwner.setRoles(new String[] { Role.USER });
-        
-        admin = new User();
-        admin.setId(3);
-        admin.setRoles(new String[] { Role.ADMIN });
+        owner = userDAO.createUser("owneruser", "ownerfirst", "ownerlast", "owner@owner.com", "password", "regkey", Role.USER);
+        nonOwner = userDAO.createUser("nonowneruser", "nonownerfirst", "nonownerlast", "nonowner@nonowner.com", "password", "regkey", Role.USER);
+        admin = userDAO.createUser("adminuser", "adminfirst", "adminlast", "admin@admin.com", "password", "regkey", Role.ADMIN);
         
         record = new Record();
         record.setId(1);
         record.setRecordVisibility(RecordVisibility.OWNER_ONLY);
         record.setUser(owner);
         record.setSurvey(survey);
+        recordDAO.save(record);
     }
     
     @Test
@@ -242,7 +251,7 @@ public class RecordWebFormContextTest {
                 expectedEx.expectMessage(RecordWebFormContext.MSG_CODE_VIEW_AUTHFAIL);
             }
         }
-        RecordWebFormContext context = new RecordWebFormContext(request, rec, loginUser, survey);
+        RecordWebFormContext context = new RecordWebFormContext(request, rec, loginUser, survey, geoMapService);
         Assert.assertEquals("editable state does not match expected", expectedFormEditState, context.isEditable());
         Assert.assertEquals("unlockable state does not match expected", expectedUnlock, context.isUnlockable());
         Assert.assertEquals("existing state does not match expected", expectedExisting, context.isExistingRecord());

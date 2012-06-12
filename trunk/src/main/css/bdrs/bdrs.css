@@ -2001,3 +2001,20 @@ div.blockUI.blockMsg.blockPage h1 {
     float: left;
     color: red;
 }
+
+/***********************************************/
+/* map layer editing                           */
+/***********************************************/
+#mapLayerForm table {
+	width: 100%;
+}
+
+#mapLayerForm th {
+	width: 25%;
+	text-align: left;
+}
+
+#mapLayerForm .long_input {
+	width: 40em;
+}
+

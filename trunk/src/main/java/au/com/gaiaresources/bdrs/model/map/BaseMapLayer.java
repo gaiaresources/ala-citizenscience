@@ -16,7 +16,6 @@ import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.ParamDef;
 
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
-import au.com.gaiaresources.bdrs.model.survey.Survey;
 
 /**
  * Represents a layer to use as the base layer for record entry maps.
@@ -29,10 +28,6 @@ import au.com.gaiaresources.bdrs.model.survey.Survey;
 @Table(name = "BASE_MAP_LAYER")
 @AttributeOverride(name = "id", column = @Column(name = "BASE_MAP_LAYER_ID"))
 public class BaseMapLayer extends PortalPersistentImpl implements MapLayer {
-    /**
-     * The {@link Survey} to apply the map settings to.
-     */
-    private Survey survey = null;
     /**
      * The {@link BaseMapLayerSource} for the base layer
      */
@@ -47,6 +42,8 @@ public class BaseMapLayer extends PortalPersistentImpl implements MapLayer {
      */
     private boolean showOnMap;
     
+    private GeoMap geoMap;
+    
     /**
      * Default constructor
      */
@@ -56,13 +53,13 @@ public class BaseMapLayer extends PortalPersistentImpl implements MapLayer {
     
     /**
      * Constructor that sets the fields for the object
-     * @param survey The survey the layer will be used for
+     * @param geoMap The map the layer will be used for
      * @param layerSrc The {@link BaseMapLayerSource} that defines the source of the map images
      * @param isDefault boolean flag indicating if this one is shown by default
      * @param showOnMap boolean flag indicating if this one shows in the layer switcher
      */
-    public BaseMapLayer(Survey survey, BaseMapLayerSource layerSrc, boolean isDefault, boolean showOnMap) {
-        this.survey = survey;
+    public BaseMapLayer(GeoMap geoMap, BaseMapLayerSource layerSrc, boolean isDefault, boolean showOnMap) {
+    	this.geoMap = geoMap;
         this.layerSrc = layerSrc;
         this.isDefault = isDefault;
         this.showOnMap = showOnMap;
@@ -70,28 +67,13 @@ public class BaseMapLayer extends PortalPersistentImpl implements MapLayer {
     
     /**
      * Constructor that sets the fields for the object.  Note that this calls 
-     * {@code BaseMapLayer(Survey survey, BaseMapLayerSource layerSrc, boolean isDefault, boolean showOnMap)}
+     * {@code BaseMapLayer(GeoMap geoMap, BaseMapLayerSource layerSrc, boolean isDefault, boolean showOnMap)}
      * and sets isDefault and showOnMap to false
-     * @param survey The survey the layer will be used for
+     * @param geoMap The GeoMap the layer will be used for
      * @param layerSrc The {@link BaseMapLayerSource} that defines the source of the map images
      */
-    public BaseMapLayer(Survey survey, BaseMapLayerSource layerSource) {
-        this(survey, layerSource, false, false);
-    }
-    /**
-     * Gets the {@link Survey} to apply the map settings to.
-     */
-    @ManyToOne
-    @JoinColumn(name = "SURVEY_ID", nullable = false)
-    @ForeignKey(name = "BASE_MAP_LAYER_TO_SURVEY_FK")
-    public Survey getSurvey() {
-        return survey;
-    }
-    /**
-     * Sets the {@link Survey} to apply the map settings to.
-     */
-    public void setSurvey(Survey survey) {
-        this.survey = survey;
+    public BaseMapLayer(GeoMap geoMap, BaseMapLayerSource layerSource) {
+        this(geoMap, layerSource, false, false);
     }
     
     /**
@@ -123,6 +105,18 @@ public class BaseMapLayer extends PortalPersistentImpl implements MapLayer {
     public boolean isDefault() {
         return isDefault;
     }
+    
+    @ManyToOne
+    @JoinColumn(name = "GEO_MAP_ID", nullable = false)
+    @ForeignKey(name = "BASE_MAP_LAYER_TO_GEO_MAP_FK")
+	public GeoMap getMap() {
+		return geoMap;
+	}
+
+	public void setMap(GeoMap geoMap) {
+		this.geoMap = geoMap;
+	}
+	
     /**
      * Set the Boolean flag indicating if the layer is "selected", meaning whether or not it 
      * will show in the layer switcher or not
@@ -158,23 +152,5 @@ public class BaseMapLayer extends PortalPersistentImpl implements MapLayer {
         }
         // if it is not a BaseMapLayer, they cannot be compared and will just be considered equal
         return 0;
-    }
-    
-    @Override
-    public boolean equals(Object other) {
-        if (!(other instanceof BaseMapLayer) || !super.equals(other)) {
-            return false;
-        }
-        
-        BaseMapLayer that = (BaseMapLayer) other;
-        return this.getSurvey().equals(that.getSurvey()) && 
-               this.getLayerSource().equals(that.getLayerSource()) && 
-               this.getShowOnMap() == that.getShowOnMap() && 
-               this.isDefault() == that.isDefault();
-    }
-    
-    @Override
-    public int hashCode() {
-        return super.hashCode() + survey.hashCode() + layerSrc.hashCode();
     }
 }

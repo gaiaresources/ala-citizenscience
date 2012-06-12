@@ -18,7 +18,8 @@ public enum GeoMapLayerSource implements JSONEnum, MapLayerSource {
     KML,
     SHAPEFILE,
     SURVEY_KML,
-    SURVEY_MAPSERVER;
+    SURVEY_MAPSERVER,
+    WMS_SERVER;
     
     public static GeoMapLayerSource fromString(String value) {
         if (GeoMapLayerSource.KML.toString().equals(value)) {
@@ -29,6 +30,8 @@ public enum GeoMapLayerSource implements JSONEnum, MapLayerSource {
             return GeoMapLayerSource.SURVEY_KML;
         } else if (GeoMapLayerSource.SURVEY_MAPSERVER.toString().equals(value)) {
             return GeoMapLayerSource.SURVEY_MAPSERVER;
+        } else if (GeoMapLayerSource.WMS_SERVER.toString().equals(value)) {
+        	return GeoMapLayerSource.WMS_SERVER;
         } else {
             throw new IllegalArgumentException(value + " is not a valid String representation of GeoMapLayerSource");
         }

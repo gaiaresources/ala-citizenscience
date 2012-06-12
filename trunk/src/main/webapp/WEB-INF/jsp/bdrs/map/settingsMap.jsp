@@ -5,8 +5,9 @@
 
 <jsp:useBean id="context" scope="request" type="au.com.gaiaresources.bdrs.servlet.RequestContext"></jsp:useBean>
 
-<tiles:useAttribute name="mapCenter" classname="java.lang.String" ignore="true"/>
-<tiles:useAttribute name="mapZoom" ignore="true"/>
+<tiles:useAttribute name="webMap" classname="au.com.gaiaresources.bdrs.controller.map.WebMap" ignore="true" />
+<c:set var="mapCenter" value="${webMap.center}" />
+<c:set var="mapZoom" value="${webMap.zoom}" />
 
 <div class="clear"></div>
 
@@ -17,6 +18,11 @@
 <div class="clear"></div>
 
 <script type="text/javascript">
+	
+	var initMapLayersFcn = <tiles:insertDefinition name="initMapLayersFcn">
+								<tiles:putAttribute name="webMap" value="${webMap}"/>
+							</tiles:insertDefinition>;
+
 
     jQuery(window).load(function() {
         var mapOpts = {enlargeMapLink: false, zoomLock: false};
@@ -29,8 +35,8 @@
         if ('' !== '${mapZoom}') {
             bdrs.map.defaultCenterZoom = '${mapZoom}';
         }
-        console.log(mapOpts);
         bdrs.map.initBaseMap('view_base_map', mapOpts);
+		initMapLayersFcn(bdrs.map.baseMap);
         
         var layerArray = new Array();
         <c:forEach items="${assignedLayers}" var="assignedLayer">

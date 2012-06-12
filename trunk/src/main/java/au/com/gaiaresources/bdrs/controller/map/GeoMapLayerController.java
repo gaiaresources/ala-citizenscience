@@ -105,6 +105,8 @@ public class GeoMapLayerController extends AbstractController {
     public static final String PARAM_SYMBOL_SIZE = "symbolSize";
     public static final String PARAM_STROKE_WIDTH = "strokeWidth";
     
+    public static final String PARAM_SERVER_URL = "serverUrl";
+    
     public static final String PARAM_RECORD_ID = "recordPk";
     
     public static final String JSON_KEY_ITEMS = "items";
@@ -177,10 +179,11 @@ public class GeoMapLayerController extends AbstractController {
             @RequestParam(value = PARAM_MANAGED_FILE_UUID, defaultValue="") String mfuuid,
             @RequestParam(value = PARAM_MAP_LAYER_SRC, required=true) String mapLayerSrc,
             @RequestParam(value = PARAM_SHAPE_TO_DB, defaultValue="false") boolean shapeToDatabase,
-            @RequestParam(value = PARAM_STROKE_COLOR, required=true) String strokeColor,
-            @RequestParam(value = PARAM_FILL_COLOR, required=true) String fillColor,
-            @RequestParam(value = PARAM_SYMBOL_SIZE, required=true) int symbolSize,
-            @RequestParam(value = PARAM_STROKE_WIDTH, required=true) int strokeWidth) throws IOException {
+            @RequestParam(value = PARAM_STROKE_COLOR, defaultValue="") String strokeColor,
+            @RequestParam(value = PARAM_FILL_COLOR, defaultValue="") String fillColor,
+            @RequestParam(value = PARAM_SYMBOL_SIZE, defaultValue="0") int symbolSize,
+            @RequestParam(value = PARAM_STROKE_WIDTH, defaultValue="0") int strokeWidth,
+            @RequestParam(value = PARAM_SERVER_URL, defaultValue="") String serverUrl) throws IOException {
         
         Session sesh = null;
         try {
@@ -209,6 +212,7 @@ public class GeoMapLayerController extends AbstractController {
             gml.setStrokeWidth(strokeWidth > 0 ? strokeWidth : 0);
             gml.setSymbolSize(symbolSize > 0 ? symbolSize : 0);
             gml.setFillColor(validFillColor ? fillColor : GeoMapLayer.DEFAULT_FILL_COLOR);
+            gml.setServerUrl(StringUtils.hasLength(serverUrl) ? serverUrl.trim() : "");
             
             if (mapLayerPk == 0) {
                 layerDAO.save(sesh, gml);
@@ -286,8 +290,10 @@ public class GeoMapLayerController extends AbstractController {
                 getRequestContext().addMessage("bdrs.geoMapLayer.save.success", new Object[] { gml.getName() });
             }
             
-            if (!validStrokeColor || !validFillColor) {
-                getRequestContext().addMessage("bdrs.geoMapLayer.save.invalidColor", new Object[] { gml.getName() });
+            if (StringUtils.hasLength(strokeColor) || StringUtils.hasLength(fillColor)) {
+            	if (!validStrokeColor || !validFillColor) {
+                    getRequestContext().addMessage("bdrs.geoMapLayer.save.invalidColor", new Object[] { gml.getName() });
+                }
             }
         } finally {
             if (sesh != null) {

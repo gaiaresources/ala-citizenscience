@@ -67,7 +67,6 @@
         <mapping class="au.com.gaiaresources.bdrs.model.map.GeoMap"/>
         <mapping class="au.com.gaiaresources.bdrs.model.map.AssignedGeoMapLayer"/>
         <mapping class="au.com.gaiaresources.bdrs.model.map.BaseMapLayer"/>
-        <mapping class="au.com.gaiaresources.bdrs.model.survey.SurveyGeoMapLayer"/>
 
         <mapping class="au.com.gaiaresources.bdrs.model.showcase.Gallery"/>
         

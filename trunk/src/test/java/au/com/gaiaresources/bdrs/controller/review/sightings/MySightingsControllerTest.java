@@ -27,6 +27,7 @@ import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 
 /**
@@ -159,6 +160,7 @@ public class MySightingsControllerTest extends AbstractGridControllerTest {
 
         ModelAndView mv = handle(request, response);
         testMySightings(request.getParameterMap(), mv);
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.MV_WEB_MAP);
     }
     
     @Test
