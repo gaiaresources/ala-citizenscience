@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 import java.text.DateFormat;
@@ -67,6 +68,8 @@ public class RecordDwcaWriter {
     
     private Map<CorePropertyGetter, ConceptTerm> DWC_TERMS;
     private Map<MeasurementOrFactExtensionPropertyGetter, ConceptTerm> MOF_EXT_TERMS;
+    
+    private static final String BYTE_ENCODING = "UTF-8";
     
     public RecordDwcaWriter(LSIDService lsidService, LocationService locService, RedirectionService redirService) { 
         
@@ -252,11 +255,15 @@ public class RecordDwcaWriter {
             throw new IOException("Could not create occurence file : " + occurrenceFile.getAbsolutePath());
         }
         
+        FileOutputStream coreFos = null;
+        FileOutputStream mofFos = null;
         Writer coreWriter = null;
         Writer mofWriter = null;
         try {
-            coreWriter = new FileWriter(occurrenceFile);
-            mofWriter = new FileWriter(mofFile);
+        	coreFos = new FileOutputStream(occurrenceFile);
+        	mofFos = new FileOutputStream(mofFile);
+        	coreWriter = new OutputStreamWriter(coreFos, BYTE_ENCODING);
+            mofWriter = new OutputStreamWriter(mofFos, BYTE_ENCODING);
             
             while (scrollableRecords.hasMoreElements()) {
 
@@ -272,16 +279,23 @@ public class RecordDwcaWriter {
                 }
             }   
         } finally {
+        	if (coreWriter != null) {
+        		coreWriter.flush();
+        	}
+        	if (mofWriter != null) {
+        		mofWriter.flush();
+        	}
             try {
-                if (coreWriter != null) {
-                    coreWriter.close();
+                if (coreFos != null) {
+                	
+                	coreFos.close();
                 }
             } catch (IOException ioe) {
                 log.error("could not close writer", ioe);
             }
             try {
-                if (mofWriter != null) {
-                    mofWriter.close();
+                if (mofFos != null) {
+                	mofFos.close();
                 }
             } catch (IOException ioe) {
                 log.error("could not close writer", ioe);
