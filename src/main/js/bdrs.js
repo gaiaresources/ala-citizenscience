@@ -641,7 +641,7 @@ bdrs.map.getEnlargeMapControl = function(controlPanel, available, map) {
     control.text(bdrs.map.ENLARGE_MAP_LABEL);
     control.click(function(event) {
         var trigger = jQuery(event.currentTarget);
-        bdrs.map.maximiseMap(map, trigger, 
+        bdrs.map.maximiseMap(map, controlPanel, trigger, 
                             bdrs.map.ENLARGE_MAP_LABEL, bdrs.map.SHRINK_MAP_LABEL,
                             bdrs.map.ENLARGE_MAP_CLASS, bdrs.map.SHRINK_MAP_CLASS);
     });
@@ -709,13 +709,14 @@ bdrs.map.getHideShowControl = function(controlPanel, available, map) {
 /**
  * Maximise or minimise the specified map.
  * @param map [object] the Open Layers map instance
+ * @param controlPanel [jQuery element] The element of the control panel that contains the trigger element (see next param). 
  * @param trigger [jQuery element] The element containing the text to indicate if clicking it will enlarge or shrink the map.
  * @param enlargeMapLabel [string] The lable used to indicate that the map will be enlarged if the element is clicked.
  * @param shrinkMapLabel [string] The label used to indicate that the map will be shrunk if the element is clicked.
  * @param enlargeMapClass [string] The class that is attached to the element containing the map if it is enlarged.
  * @param shrinkMapClass [string] The class that is attached to the element containing the map if it is shrunk.
  */
-bdrs.map.maximiseMap = function(map, trigger, enlargeMapLabel, shrinkMapLabel, enlargeMapClass, shrinkMapClass) {
+bdrs.map.maximiseMap = function(map, controlPanel, trigger, enlargeMapLabel, shrinkMapLabel, enlargeMapClass, shrinkMapClass) {
     var mapDiv = jQuery(map.div);
     var mapContainer = mapDiv.parent();
     var isShrinking = mapDiv.hasClass(enlargeMapClass);
@@ -740,6 +741,21 @@ bdrs.map.maximiseMap = function(map, trigger, enlargeMapLabel, shrinkMapLabel, e
         
         // Restore scroll zooming based on cookie.
         bdrs.map.restoreScrollZoomState(map);
+		
+		// return control panel to original position.
+		if (map.controlPanelPlaceHolder !== undefined) {
+			controlPanel.detach();
+			controlPanel.insertBefore(map.controlPanelPlaceHolder);
+			map.controlPanelPlaceHolder.remove();
+			delete map.controlPanelPlaceHolder;
+		}
+		// return map to original position.
+		if (map.mapPlaceHolder !== undefined) {
+			mapContainer.detach();
+			mapContainer.insertBefore(map.mapPlaceHolder);
+			map.mapPlaceHolder.remove();
+			delete map.mapPlaceHolder;
+		}
         
         // Restore the scrollbar to the original position
         if(map.scrollMemory !== undefined) {
@@ -755,6 +771,19 @@ bdrs.map.maximiseMap = function(map, trigger, enlargeMapLabel, shrinkMapLabel, e
             scrollTop: win.scrollTop()
         };
         win.scrollTop(0).scrollLeft(0);
+		
+		// save original position of map container
+		var mapPlaceHolder = jQuery("<div/>");
+		mapPlaceHolder.insertBefore(mapContainer);
+		map.mapPlaceHolder = mapPlaceHolder;
+		// save original position of control panel
+		var controlPanelPlaceHolder = jQuery("<div/>");
+		controlPanelPlaceHolder.insertBefore(controlPanel);
+		map.controlPanelPlaceHolder = controlPanelPlaceHolder;
+		
+		// prepare to move items.
+		mapContainer.detach();
+		controlPanel.detach();
     
         // Maximise the currently minimised map
         var wrapper = jQuery("<div></div>");
@@ -764,7 +793,7 @@ bdrs.map.maximiseMap = function(map, trigger, enlargeMapLabel, shrinkMapLabel, e
             bottom: 0,
             left: 0,
             right: 0,
-            backgroundColor: 'transparent',
+            backgroundColor: 'white',
             zIndex: 3000
         });
         mapContainer.wrap(wrapper).css({'width':'100%', 'height':'100%'});
@@ -783,6 +812,11 @@ bdrs.map.maximiseMap = function(map, trigger, enlargeMapLabel, shrinkMapLabel, e
         // Update the enlarge/shrink label
         trigger.addClass("shrinkMapLink");
         trigger.text(shrinkMapLabel);
+		
+		// add to items to body element.
+		var targetElem = jQuery("body").first();
+		targetElem.prepend(controlPanel);
+		targetElem.prepend(mapContainer.parent());
         
         // Attach the esc key listener
         var keyHandler = function(event) {

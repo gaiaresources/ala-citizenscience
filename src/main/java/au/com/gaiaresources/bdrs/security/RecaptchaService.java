@@ -22,6 +22,8 @@ public class RecaptchaService {
     
     private static RecaptchaService INSTANCE;
     
+    private static final String BYTE_ENCODING = "UTF-8";
+    
     public static RecaptchaService create() throws Exception {
         INSTANCE = new RecaptchaService();
         return INSTANCE;
@@ -57,7 +59,7 @@ public class RecaptchaService {
     }
     
     public void render(String id, OutputStream out) throws IOException {
-        out.write(getContent(id).getBytes());
+        out.write(getContent(id).getBytes(BYTE_ENCODING));
     }
     
     public void render(String id, Writer writer) throws IOException {

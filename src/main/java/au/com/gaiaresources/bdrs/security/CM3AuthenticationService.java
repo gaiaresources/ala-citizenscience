@@ -34,6 +34,8 @@ public class CM3AuthenticationService implements UserDetailsService {
     private UserDAO userDAO;
 
     private Logger logger = Logger.getLogger(getClass());
+    
+    private static final String BYTE_ENCODING = "UTF-8";
 
     @Override
     public UserDetails loadUserByUsername(String username)
@@ -53,7 +55,7 @@ public class CM3AuthenticationService implements UserDetailsService {
             key += formatter.format(currentTime);
 
             MessageDigest m = MessageDigest.getInstance("MD5");
-            m.update(key.getBytes(), 0, key.length());
+            m.update(key.getBytes(BYTE_ENCODING), 0, key.length());
             String hash = new BigInteger(1, m.digest()).toString(16);
             while (hash.length() < 32) {
                 hash = "0" + hash;
@@ -79,7 +81,7 @@ public class CM3AuthenticationService implements UserDetailsService {
                     String pass = "pr1ject5";
                     String password = user + ":" + pass;
                     Base64 b = new Base64();
-                    byte[] encodedPassword = b.encode(password.getBytes());
+                    byte[] encodedPassword = b.encode(password.getBytes(BYTE_ENCODING));
                     logger.info("Sending auth: " + new String(encodedPassword)
                             + "\n");
 
@@ -91,7 +93,7 @@ public class CM3AuthenticationService implements UserDetailsService {
             }
 
             is = new BufferedReader(new InputStreamReader(
-                    new DataInputStream(urlConn.getInputStream())));
+                    new DataInputStream(urlConn.getInputStream()), BYTE_ENCODING));
 
             String str;
             logger.info("Reading Response\n");
