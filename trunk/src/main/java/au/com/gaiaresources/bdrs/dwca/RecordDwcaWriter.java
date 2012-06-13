@@ -281,10 +281,22 @@ public class RecordDwcaWriter {
         } finally {
         	if (coreWriter != null) {
         		coreWriter.flush();
+        		try {
+        			coreWriter.close();	
+        		} catch (IOException ioe) {
+        			log.error("could not close writer", ioe);
+        		}
+        		
         	}
         	if (mofWriter != null) {
         		mofWriter.flush();
+        		try {
+        			mofWriter.close();	
+        		} catch (IOException ioe) {
+        			log.error("could not close writer", ioe);
+        		}
         	}
+        	// closing underlying streams just to be safe
             try {
                 if (coreFos != null) {
                 	
