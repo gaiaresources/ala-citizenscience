@@ -49,6 +49,7 @@ public class BulkUpload {
     private List<String> missingUsers = Collections.emptyList();
     private List<String> missingSurveys = Collections.emptyList();
     private List<String> missingIndicatorSpecies = Collections.emptyList();
+    private Set<String> ambiguousSpeciesNames = new HashSet<String>();
     
     private Map<IndicatorSpecies, Survey> invalidSurveySpecies = new HashMap<IndicatorSpecies, Survey>(); 
 
@@ -134,6 +135,10 @@ public class BulkUpload {
         surveyNameSet.add(surveyName);
     }
 
+    public Collection<Survey> getSurveys() {
+        return Collections.unmodifiableCollection(surveyMap.values());
+    }
+
     public Survey getSurveyByName(String surveyName) {
         return surveyMap.get(surveyName);
     }
@@ -149,8 +154,19 @@ public class BulkUpload {
     // ----- Indicator Species
 
     public void addIndicatorSpecies(IndicatorSpecies indicatorSpecies) {
-        indicatorSpeciesScientificNameMap.put(indicatorSpecies.getScientificName(), indicatorSpecies);
-        indicatorSpeciesCommonNameMap.put(indicatorSpecies.getCommonName(), indicatorSpecies);
+        addToNameMap(indicatorSpeciesScientificNameMap, indicatorSpecies.getScientificName(), indicatorSpecies);
+        addToNameMap(indicatorSpeciesCommonNameMap, indicatorSpecies.getCommonName(), indicatorSpecies);
+    }
+
+    private void addToNameMap(Map<String, IndicatorSpecies> nameMap, String name, IndicatorSpecies taxon) {
+        if(name != null && name.trim().length() > 0) {
+            IndicatorSpecies val = nameMap.get(name);
+            if(val != null && !val.equals(taxon)) {
+                this.addAmbiguousName(name);
+            } else {
+                nameMap.put(name, taxon);
+            }
+        }
     }
 
     // Scientific Name
@@ -288,4 +304,15 @@ public class BulkUpload {
                 || !missingIndicatorSpecies.isEmpty();
     }
 
+    public void addAmbiguousName(String scientificName) {
+        this.ambiguousSpeciesNames.add(scientificName);
+    }
+
+    public Set<String> getAmbiguousSpeciesNames() {
+        return Collections.unmodifiableSet(this.ambiguousSpeciesNames);
+    }
+
+    public void setAmbiguousSpeciesNames(Set<String> ambiguousSpeciesNames) {
+        this.ambiguousSpeciesNames = new HashSet<String>(ambiguousSpeciesNames);
+    }
 }

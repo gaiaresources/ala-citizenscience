@@ -6,13 +6,7 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import javax.security.sasl.AuthenticationException;
 
@@ -647,7 +641,7 @@ public abstract class AbstractBulkDataService {
     public List<Record> saveRecords(User owner, BulkUpload bulkUpload,
             boolean createMissingData) throws MissingDataException,
             AuthenticationException, InvalidSurveySpeciesException,
-            DataReferenceException {
+            DataReferenceException, AmbiguousDataException {
 
         if (bulkUpload.hasError()) {
             return null;
@@ -669,6 +663,8 @@ public abstract class AbstractBulkDataService {
             // Set up all the src data
             bulkUpload.setMissingGroups(populateGroups(sesh, ownerForSesh, bulkUpload, createMissingData));
             bulkUpload.setMissingUsers(populateUsers(sesh, ownerForSesh, bulkUpload, createMissingData));
+            // It is imperative that the surveys are populated before the indicator species because the surveys
+            // will inform what species are eligible for lookup.
             bulkUpload.setMissingSurveys(populateSurveys(sesh, ownerForSesh, bulkUpload, createMissingData));
             bulkUpload.setMissingIndicatorSpecies(populateIndicatorSpecies(sesh, bulkUpload));
 
@@ -683,6 +679,9 @@ public abstract class AbstractBulkDataService {
                     // You need to switch on creation of missing data.
                     throw new MissingDataException();
                 }
+            } else if(!bulkUpload.getAmbiguousSpeciesNames().isEmpty()) {
+                tx.rollback();
+                throw new AmbiguousDataException();
             }
 
             // Create the locations
@@ -960,10 +959,11 @@ public abstract class AbstractBulkDataService {
                         "Spreadsheet upload of file data is not supported.");
             case SPECIES:
             {
-            	IndicatorSpecies species = taxaDAO.getIndicatorSpeciesByScientificName(sesh, attributeValueStr);
-            	if (species == null) {
-            		species = taxaDAO.getIndicatorSpeciesByCommonName(sesh, attributeValueStr);
-            	}
+                IndicatorSpecies species = bulkUpload.getIndicatorSpeciesByScientificName(attributeValueStr);
+                if(species == null) {
+                    species = bulkUpload.getIndicatorSpeciesByCommonName(attributeValueStr);
+                }
+
             	if (species == null) {
             		 // clear the attribute value of species
             		 attrVal.setSpecies(null);
@@ -1177,29 +1177,32 @@ public abstract class AbstractBulkDataService {
         return missingItems;
     }
     
-    private IndicatorSpecies searchForSpeciesName(Session sesh, String speciesName) {
-    	IndicatorSpecies species = taxaDAO.getIndicatorSpeciesByScientificName(sesh, speciesName);
-    	if (species == null) {
-    		species = taxaDAO.getIndicatorSpeciesByCommonName(sesh, speciesName);
+    private List<IndicatorSpecies> searchForSpeciesName(Session sesh, Collection<Survey> surveys, String speciesName) {
+    	List<IndicatorSpecies> matchingSpecies = taxaDAO.getIndicatorSpeciesByScientificName(sesh, surveys, speciesName);
+    	if (matchingSpecies.isEmpty()) {
+    		matchingSpecies = taxaDAO.getIndicatorSpeciesByCommonName(sesh, surveys, speciesName);
     	}
-    	return species;
+    	return matchingSpecies;
     }
 
     private List<String> populateIndicatorSpecies(Session sesh,
             BulkUpload bulkUpload) {
-        IndicatorSpecies species;
         List<String> missingItems = new ArrayList<String>();
         for (String scientificName : bulkUpload.getIndicatorSpeciesScientificName()) {
         	scientificName = scientificName != null ? scientificName.trim() : "";
         	if (!scientificName.isEmpty()) {
-        		species = taxaDAO.getIndicatorSpeciesByScientificName(sesh, scientificName);
-                if (species == null) {
+                List<IndicatorSpecies> matchingSpecies =
+                        taxaDAO.getIndicatorSpeciesByScientificName(sesh, bulkUpload.getSurveys(), scientificName);
+                if (matchingSpecies.isEmpty()) {
                     log.debug("Cannot find Indicator Species with scientific name: "
                             + scientificName);
                     missingItems.add(scientificName);
+                } else if(matchingSpecies.size() > 1) {
+                    log.debug("Multiple matching taxa found for the scientific name: " + scientificName);
+                    bulkUpload.addAmbiguousName(scientificName);
                 } else {
-                    log.debug("x Retrieved Indicator Species: " + scientificName);
-                    bulkUpload.addIndicatorSpecies(species);
+                    log.debug("Retrieved Indicator Species: " + scientificName);
+                    bulkUpload.addIndicatorSpecies(matchingSpecies.get(0));
                 }	
         	}
         }
@@ -1207,14 +1210,18 @@ public abstract class AbstractBulkDataService {
         for (String commonName : bulkUpload.getIndicatorSpeciesCommonName()) {
         	commonName = commonName != null ? commonName.trim() : "";
         	if (!commonName.isEmpty()) {
-        		species = taxaDAO.getIndicatorSpeciesByCommonName(sesh, commonName);
-                if (species == null) {
+                List<IndicatorSpecies> matchingSpecies =
+                    taxaDAO.getIndicatorSpeciesByCommonName(sesh, bulkUpload.getSurveys(), commonName);
+                if (matchingSpecies.isEmpty()) {
                     log.debug("Cannot find Indicator Species with common name: "
                             + commonName);
                     missingItems.add(commonName);
+                } else if(matchingSpecies.size() > 1) {
+                    log.debug("Multiple matching taxa found for the common name: " + commonName);
+                    bulkUpload.addAmbiguousName(commonName);
                 } else {
-                    log.debug("y Retrieved Indicator Species: " + commonName);
-                    bulkUpload.addIndicatorSpecies(species);
+                    log.debug("Retrieved Indicator Species: " + commonName);
+                    bulkUpload.addIndicatorSpecies(matchingSpecies.get(0));
                 }	
         	}
         }
@@ -1248,11 +1255,14 @@ public abstract class AbstractBulkDataService {
             String speciesName = recordUpload.getNamedAttribute(namespace, attr.getDescription());
             speciesName = speciesName != null ? speciesName.trim() : "";
             if (!speciesName.isEmpty()) {
-            	IndicatorSpecies species = searchForSpeciesName(sesh, speciesName);
-            	if (species == null) {
+            	List<IndicatorSpecies> matchingSpecies = searchForSpeciesName(sesh, bulkUpload.getSurveys(), speciesName);
+            	if (matchingSpecies.isEmpty()) {
                     missingItems.add(speciesName);
+                } else if(matchingSpecies.size() > 1) {
+                    bulkUpload.addAmbiguousName(speciesName);
+                    log.debug("Multiple matching taxa found for the name: " + speciesName);
                 } else {
-                    bulkUpload.addIndicatorSpecies(species);
+                    bulkUpload.addIndicatorSpecies(matchingSpecies.get(0));
                 }
             }	
     	}

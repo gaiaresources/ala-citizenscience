@@ -647,6 +647,60 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
     }
 
     @Override
+    public List<IndicatorSpecies> getIndicatorSpeciesByCommonName(Session sesh, Collection<Survey> surveys, String commonName) {
+        String allSpeciesQuery = "from IndicatorSpecies i where UPPER(commonName) = UPPER(:commonName)";
+        String surveySpeciesQuery = "select i from Survey s left join s.species i where UPPER(i.commonName) = UPPER(:commonName) and s.id = :surveyId";
+
+        ArrayList<IndicatorSpecies> speciesList = new ArrayList<IndicatorSpecies>();
+
+        if(sesh == null) {
+            sesh = getSession();
+        }
+        for(Survey survey : surveys) {
+            Query q = null;
+            if(survey.getSpecies().isEmpty()) {
+                // All species
+                q = sesh.createQuery(allSpeciesQuery);
+            } else {
+                // Species Subset
+                q = sesh.createQuery(surveySpeciesQuery);
+                q.setParameter("surveyId", survey.getId());
+            }
+
+            q.setParameter("commonName", commonName);
+            speciesList.addAll(q.list());
+        }
+        return speciesList;
+    }
+
+    @Override
+    public List<IndicatorSpecies> getIndicatorSpeciesByScientificName(Session sesh, Collection<Survey> surveys, String scientificName) {
+        String allSpeciesQuery = "from IndicatorSpecies i where UPPER(scientificName) = UPPER(:scientificName)";
+        String surveySpeciesQuery = "select i from Survey s left join s.species i where UPPER(i.scientificName) = UPPER(:scientificName) and s.id = :surveyId";
+
+        ArrayList<IndicatorSpecies> speciesList = new ArrayList<IndicatorSpecies>();
+
+        if(sesh == null) {
+            sesh = getSession();
+        }
+        for(Survey survey : surveys) {
+            Query q = null;
+            if(survey.getSpecies().isEmpty()) {
+                // All species
+                q = sesh.createQuery(allSpeciesQuery);
+            } else {
+                // Species Subset
+                q = sesh.createQuery(surveySpeciesQuery);
+                q.setParameter("surveyId", survey.getId());
+            }
+
+            q.setParameter("scientificName", scientificName);
+            speciesList.addAll(q.list());
+        }
+        return speciesList;
+    }
+
+    @Override
     public IndicatorSpecies getIndicatorSpeciesByCommonName(Session sesh,
             String commonName) {
         List<IndicatorSpecies> species = find(sesh,
@@ -704,8 +758,7 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
             return null;
         } else {
             if (species.size() > 1) {
-                log
-                        .warn("Multiple IndicatorSpecies with the same scientific name found. Returning the first");
+                log.warn("Multiple IndicatorSpecies with the same scientific name found. Returning the first");
             }
             return species.get(0);
         }

@@ -100,6 +100,15 @@
                             <td>This species cannot be recorded against this project. Please contact your project administrator.</td>
                         </tr>
                     </c:forEach>
+                    <c:forEach items="${bulkUpload.ambiguousSpeciesNames}" var="speciesName">
+                        <tr>
+                           <td>Species Name</td>
+                           <td>
+                                <c:out value="${speciesName}"/>
+                            </td>
+                            <td>This name cannot be resolved to a single species for the survey. Try making the name more specific.</td>
+                        </tr>
+                    </c:forEach>
                 </table>
             </tiles:putAttribute>
         </tiles:insertDefinition>

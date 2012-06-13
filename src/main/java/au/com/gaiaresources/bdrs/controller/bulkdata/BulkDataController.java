@@ -13,6 +13,7 @@ import javax.security.sasl.AuthenticationException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import au.com.gaiaresources.bdrs.service.bulkdata.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.HibernateException;
@@ -39,11 +40,6 @@ import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.service.bulkdata.BulkDataService;
-import au.com.gaiaresources.bdrs.service.bulkdata.BulkUpload;
-import au.com.gaiaresources.bdrs.service.bulkdata.DataReferenceException;
-import au.com.gaiaresources.bdrs.service.bulkdata.InvalidSurveySpeciesException;
-import au.com.gaiaresources.bdrs.service.bulkdata.MissingDataException;
 import au.com.gaiaresources.bdrs.spatial.ShapeFileReader;
 import au.com.gaiaresources.bdrs.spatial.ShapeFileWriter;
 import au.com.gaiaresources.bdrs.spatial.ShapefileAttributeDictionaryFactory;
@@ -149,8 +145,6 @@ public class BulkDataController extends AbstractController {
                     InputStream inp = uploadedFile.getInputStream();
                     boolean createMissing = req.getParameter("createMissing") != null;
                     BulkUpload bulkUpload = bulkDataService.importBulkData(survey, inp);
-                    log.debug("1103 BulkDataControler[/bulkdata/upload.htm, POST]: Received Bulkupload");
-
                     view.addObject("bulkUpload", bulkUpload);
 
                     if(bulkUpload.hasError()) {
@@ -165,7 +159,6 @@ public class BulkDataController extends AbstractController {
                             errorDescription = "Please ensure the spreadsheet is in the correct format and retry your upload";
                         }
                         log.warn(errorMessage);
-
                     } else {
                         bulkDataService.saveRecords(getRequestContext().getUser(),
                                 bulkUpload, createMissing);
@@ -193,6 +186,12 @@ public class BulkDataController extends AbstractController {
             errorMessage = "The records could not be imported because there is missing data";
             errorDescription = "Errors are shown in the table below.";
             log.warn(mde.toString(), mde);
+        }
+        catch(AmbiguousDataException ade) {
+            dataError = true;
+            errorMessage = "The records could not be imported because there is ambiguous data.";
+            errorDescription = "Errors are shown in the table below.";
+            log.warn(ade.toString(), ade);
         }
         catch(InvalidSurveySpeciesException ise) {
             // Thrown if an attempt was made to add an invalid species to a survey.
