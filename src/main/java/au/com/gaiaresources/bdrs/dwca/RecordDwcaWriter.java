@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
@@ -279,39 +280,44 @@ public class RecordDwcaWriter {
                 }
             }   
         } finally {
-        	if (coreWriter != null) {
-        		coreWriter.flush();
-        		try {
-        			coreWriter.close();	
-        		} catch (IOException ioe) {
-        			log.error("could not close writer", ioe);
-        		}
-        		
-        	}
-        	if (mofWriter != null) {
-        		mofWriter.flush();
-        		try {
-        			mofWriter.close();	
-        		} catch (IOException ioe) {
-        			log.error("could not close writer", ioe);
-        		}
-        	}
-        	// closing underlying streams just to be safe
-            try {
-                if (coreFos != null) {
-                	
-                	coreFos.close();
-                }
-            } catch (IOException ioe) {
-                log.error("could not close writer", ioe);
+        	closeWriter(coreWriter);
+        	closeWriter(mofWriter);
+        	closeStream(coreFos);
+        	closeStream(mofFos);
+        }
+    }
+    
+    /**
+     * Convenience method for closing a writer.
+     * @param writer Writer to close.
+     */
+    private void closeWriter(Writer writer) {
+    	if (writer != null) {
+    		try {
+    			writer.flush();	
+    		} catch (IOException ioe) {
+    			log.error("could not flush writer", ioe);
+    		}
+    		
+    		try {
+    			writer.close();	
+    		} catch (IOException ioe) {
+    			log.error("could not close writer", ioe);
+    		}
+    	}
+    }
+    
+    /**
+     * Convenience method for closing an OutputStream.
+     * @param stream Stream to close.
+     */
+    private void closeStream(OutputStream stream) {
+    	try {
+            if (stream != null) {
+            	stream.close();
             }
-            try {
-                if (mofFos != null) {
-                	mofFos.close();
-                }
-            } catch (IOException ioe) {
-                log.error("could not close writer", ioe);
-            }
+        } catch (IOException ioe) {
+            log.error("could not close stream", ioe);
         }
     }
     
