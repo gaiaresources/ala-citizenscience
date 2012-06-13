@@ -113,6 +113,8 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 	TaxonGroup taxongroup;
 	IndicatorSpecies species;
 	IndicatorSpecies species2;
+    IndicatorSpecies species3;
+    IndicatorSpecies species4;
 	private Location loc, uploadLoc;
 	private AttributeValue locAttrVal;
 	public static final String CUSTOM_PREFIX = "custom_";
@@ -198,10 +200,22 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 				"common two", 
 				taxongroup, new ArrayList<Region>(),
 				new ArrayList<SpeciesProfile>());
+
+        species3 = taxaDAO.createIndicatorSpecies("species three",
+                "",
+                taxongroup, new ArrayList<Region>(),
+                new ArrayList<SpeciesProfile>());
+
+        species4 = taxaDAO.createIndicatorSpecies("species four",
+                "",
+                taxongroup, new ArrayList<Region>(),
+                new ArrayList<SpeciesProfile>());
 		
 		Set<IndicatorSpecies> speciesSet = new HashSet<IndicatorSpecies>();
 		speciesSet.add(species);
 		speciesSet.add(species2);
+        speciesSet.add(species3);
+        speciesSet.add(species4);
 		survey.setSpecies(speciesSet);
 
 		surveyDAO.updateSurvey(survey);
@@ -254,7 +268,6 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 				RecordPropertyType.NOTES, metadataDAO);
 		notesProperty.setRequired(true);
 		notesProperty.setHidden(false);
-
 	}
 
 	@Test
@@ -401,8 +414,8 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 
 	@Test
 	public void testImportLocations() throws IOException, ParseException,
-			MissingDataException, InvalidSurveySpeciesException,
-			DataReferenceException {
+            MissingDataException, InvalidSurveySpeciesException,
+            DataReferenceException, AmbiguousDataException {
 
 		surveyDAO.updateSurvey(survey);
 
@@ -629,8 +642,8 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 
 	@Test
 	public void testImportSurveyNumericIds() throws IOException,
-			ParseException, MissingDataException,
-			InvalidSurveySpeciesException, DataReferenceException {
+            ParseException, MissingDataException,
+            InvalidSurveySpeciesException, DataReferenceException, AmbiguousDataException {
 		surveyDAO.updateSurvey(survey);
 		setRequired(survey, false);
 
@@ -698,11 +711,6 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 
 		BulkUpload bulkUpload = bulkDataService.importBulkData(survey,
 				inStream2);
-		//debug
-		List<RecordUpload> rul = bulkUpload.getErrorRecordUploadList();
-		for (RecordUpload r : rul) {
-			log.debug("1104 ERRORMESSAGE = " + r.getErrorMessage());
-		}
 
 		Assert.assertEquals(2, bulkUpload.getRecordUploadList().size());
 
@@ -781,8 +789,8 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 
 	@Test(expected = DataReferenceException.class)
 	public void testImportSurveyNoCensusMethod() throws IOException,
-			ParseException, MissingDataException,
-			InvalidSurveySpeciesException, DataReferenceException {
+            ParseException, MissingDataException,
+            InvalidSurveySpeciesException, DataReferenceException, AmbiguousDataException {
 		// Will throw an exception
 		survey.setCensusMethods(new ArrayList<CensusMethod>());
 		surveyDAO.updateSurvey(survey);
@@ -894,8 +902,8 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 	@SuppressWarnings("deprecation")
 	@Test
 	public void testExportEditXls() throws IOException, ParseException,
-			MissingDataException, InvalidSurveySpeciesException,
-			DataReferenceException {
+            MissingDataException, InvalidSurveySpeciesException,
+            DataReferenceException, AmbiguousDataException {
 
 		setRequired(survey, false);
 		Calendar cal = Calendar.getInstance();
@@ -1113,8 +1121,8 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 
 	@Test
 	public void testImportSurveyCensusMethodRecordInRecord()
-			throws IOException, ParseException, MissingDataException,
-			InvalidSurveySpeciesException, DataReferenceException {
+            throws IOException, ParseException, MissingDataException,
+            InvalidSurveySpeciesException, DataReferenceException, AmbiguousDataException {
 		setRequired(survey, false);
 		File spreadSheetTmp = File
 				.createTempFile(
@@ -1289,16 +1297,11 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 		Calendar cal = Calendar.getInstance();
 		cal.set(2011, 6, 1, 0, 0, 0);
 		survey.setStartDate(cal.getTime());
-		log.debug("1104 STARTDATE = " + cal.getTime());
 		cal.add(Calendar.DAY_OF_MONTH, 7);
 		survey.setEndDate(cal.getTime());
-		log.debug("1104 ENDDATE = " + cal.getTime());
 
 		BulkUpload bulkUpload = bulkDataService.importBulkData(survey, stream);
 		List<RecordUpload> errors = bulkUpload.getErrorRecordUploadList();
-		for (RecordUpload r : errors) {
-			log.debug("1104 ERROR = " + r.getErrorMessage());
-		}
 
 		Assert.assertEquals(0, errors.size());
 		Assert.assertEquals(2, bulkUpload.getRecordUploadList().size());
@@ -1307,7 +1310,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
     @Test
     public void testImportRecordAndMissingLocation() throws IOException,
             ParseException, MissingDataException,
-            InvalidSurveySpeciesException, DataReferenceException {
+            InvalidSurveySpeciesException, DataReferenceException, AmbiguousDataException {
         setRequired(survey, false);
         File spreadSheetTmp = File.createTempFile("BulkDataServiceTest.testImportRecordAndMissingLocation", ".xls");
         FileOutputStream outStream = new FileOutputStream(spreadSheetTmp);
@@ -1373,8 +1376,8 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 
 	@Test
 	public void testImportRecordDateTime() throws IOException, ParseException,
-			MissingDataException, InvalidSurveySpeciesException,
-			DataReferenceException {
+            MissingDataException, InvalidSurveySpeciesException,
+            DataReferenceException, AmbiguousDataException {
 		setRequired(survey, false);
 		File spreadSheetTmp = File.createTempFile(
 				"BulkDataServiceTest.testImportRecordDateTime", ".xls");
@@ -1441,33 +1444,172 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 					.getTime(), r.getWhen().getTime());
 		}
 	}
-	
+
+    @Test(expected = AmbiguousDataException.class)
+    public void testAmbiguousDataImport() throws IOException, ParseException,
+            MissingDataException, InvalidSurveySpeciesException,
+            DataReferenceException, AmbiguousDataException {
+        TaxonGroup taxongroup2 = taxaDAO.createTaxonGroup("a different taxon group", false, false,
+                false, false, false, false);
+        IndicatorSpecies species3_1 = taxaDAO.createIndicatorSpecies(species3.getScientificName(),
+                species3.getCommonName(), taxongroup2, new ArrayList<Region>(),
+                new ArrayList<SpeciesProfile>());
+        IndicatorSpecies species4_1 = taxaDAO.createIndicatorSpecies(species4.getScientificName(),
+                species4.getCommonName(), taxongroup2, new ArrayList<Region>(),
+                new ArrayList<SpeciesProfile>());
+        survey.setSpecies(new HashSet<IndicatorSpecies>());
+
+        setRequired(survey, false);
+        File spreadSheetTmp = File.createTempFile(
+                "BulkDataServiceTest.testAmbiguousDataImport", ".xls");
+        FileOutputStream outStream = new FileOutputStream(spreadSheetTmp);
+        bulkDataService.exportSurveyTemplate(sesh, survey, outStream);
+        registerStream(outStream);
+
+        InputStream inStream = new FileInputStream(spreadSheetTmp);
+        Workbook wb = new HSSFWorkbook(inStream);
+        registerStream(inStream);
+
+        Sheet obSheet = wb.getSheet(AbstractBulkDataService.RECORD_SHEET_NAME);
+        // enter records starting at row 3
+
+        Calendar cal = Calendar.getInstance();
+        cal.clear();
+        cal.set(2011, 2, 27, 14, 42, 0);
+
+        IndicatorSpecies[] speciesArray = new IndicatorSpecies[]{ species, species2,
+                species3, species3_1,
+                species4, species4_1 };
+        for(int i=0; i<speciesArray.length; i++) {
+            IndicatorSpecies species = speciesArray[i];
+            MyTestRow row = new MyTestRow();
+            row.setScientificName(species.getScientificName());
+            row.setCommonName(species.getCommonName());
+            row.setLatitude(0);
+            row.setLongitude(0);
+
+            row.setSurveyAttr1(1);
+            row.setSurveyAttr2("string1");
+            row.createRow(obSheet, 3 + i);
+        }
+
+        FileOutputStream outStream2 = new FileOutputStream(spreadSheetTmp);
+        wb.write(outStream2);
+        registerStream(outStream2);
+
+        FileInputStream inStream2 = new FileInputStream(spreadSheetTmp);
+        registerStream(inStream2);
+
+        BulkUpload bulkUpload = bulkDataService.importBulkData(survey,
+                inStream2);
+
+        Assert.assertEquals(speciesArray.length, bulkUpload.getRecordUploadList().size());
+
+        sessionFactory.getCurrentSession().getTransaction().commit();
+        // we need a new one to use our DAOs.
+        sessionFactory.getCurrentSession().beginTransaction();
+
+        bulkDataService.saveRecords(user, bulkUpload, true);
+    }
+
+    @Test
+    public void testNonMandatoryTaxonomicImport() throws IOException, ParseException,
+            MissingDataException, InvalidSurveySpeciesException,
+            DataReferenceException, AmbiguousDataException {
+        setRequired(survey, false);
+        File spreadSheetTmp = File.createTempFile(
+                "BulkDataServiceTest.testNonMandatoryTaxonomicImport", ".xls");
+        FileOutputStream outStream = new FileOutputStream(spreadSheetTmp);
+        bulkDataService.exportSurveyTemplate(sesh, survey, outStream);
+        registerStream(outStream);
+
+        InputStream inStream = new FileInputStream(spreadSheetTmp);
+        Workbook wb = new HSSFWorkbook(inStream);
+        registerStream(inStream);
+
+        Sheet obSheet = wb.getSheet(AbstractBulkDataService.RECORD_SHEET_NAME);
+        // enter records starting at row 3
+
+        Calendar cal = Calendar.getInstance();
+        cal.clear();
+        cal.set(2011, 2, 27, 14, 42, 0);
+
+        Set<IndicatorSpecies> speciesSet = new HashSet<IndicatorSpecies>();
+        speciesSet.add(species);
+        speciesSet.add(species2);
+        speciesSet.add(species3);
+        speciesSet.add(species4);
+        int index = 0;
+        for(IndicatorSpecies species : speciesSet) {
+            MyTestRow row = new MyTestRow();
+            row.setScientificName(species.getScientificName());
+            row.setCommonName(species.getCommonName());
+            row.setLatitude(0);
+            row.setLongitude(0);
+
+            row.setSurveyAttr1(1);
+            row.setSurveyAttr2("string1");
+            row.createRow(obSheet, 3 + index);
+
+            index += 1;
+        }
+
+        FileOutputStream outStream2 = new FileOutputStream(spreadSheetTmp);
+        wb.write(outStream2);
+        registerStream(outStream2);
+
+        FileInputStream inStream2 = new FileInputStream(spreadSheetTmp);
+        registerStream(inStream2);
+
+        BulkUpload bulkUpload = bulkDataService.importBulkData(survey,
+                inStream2);
+
+        Assert.assertEquals(speciesSet.size(), bulkUpload.getRecordUploadList().size());
+
+        sessionFactory.getCurrentSession().getTransaction().commit();
+        // we need a new one to use our DAOs.
+        sessionFactory.getCurrentSession().beginTransaction();
+
+        bulkDataService.saveRecords(user, bulkUpload, true);
+
+        Assert.assertEquals(speciesSet.size(), recDAO.countAllRecords().intValue());
+        List<Record> recList = recDAO.getRecords(user);
+        for(Record rec : recList) {
+            Assert.assertNotNull(rec.getSpecies());
+            // Expect 4 unique species.
+            Assert.assertTrue(speciesSet.remove(rec.getSpecies()));
+        }
+
+        // At this point, we have added 4 species and removed 4 species. Therefore the set is empty.
+        Assert.assertTrue(speciesSet.isEmpty());
+    }
+
 	@Test
 	public void testSpeciesAttributeImport_ok() throws IOException, ParseException,
-			MissingDataException, InvalidSurveySpeciesException,
-			DataReferenceException {
-		testSpeciesAttribteImport(species2.getScientificName(), species2.getCommonName(), species2);
+            MissingDataException, InvalidSurveySpeciesException,
+            DataReferenceException, AmbiguousDataException {
+		testSpeciesAttributeImport(species2.getScientificName(), species2.getCommonName(), species2);
 	}
 	
 	@Test
-	public void testSpeciesAttributeImport_badName()  throws IOException, ParseException,
-		MissingDataException, InvalidSurveySpeciesException,
-		DataReferenceException {
+	public void testSpeciesAttributeImport_badName() throws IOException, ParseException,
+            MissingDataException, InvalidSurveySpeciesException,
+            DataReferenceException, AmbiguousDataException {
 		thrown.expect(AuthenticationException.class);
-		testSpeciesAttribteImport("blahblahblahrandomtext", "asdfjke89sduh", species2);
+		testSpeciesAttributeImport("blahblahblahrandomtext", "asdfjke89sduh", species2);
 	}
 	
 	@Test
 	public void testSpeciesAttributeImport_nothing() throws IOException, ParseException,
-	MissingDataException, InvalidSurveySpeciesException,
-	DataReferenceException {
+            MissingDataException, InvalidSurveySpeciesException,
+            DataReferenceException, AmbiguousDataException {
 		// use empty white space
-		testSpeciesAttribteImport("   ", "   ", null);
+		testSpeciesAttributeImport("   ", "   ", null);
 	}
 	
-	private void testSpeciesAttribteImport(String scientificName, String commonName, IndicatorSpecies expectedSpecies) 
-			throws IOException, ParseException, MissingDataException, InvalidSurveySpeciesException,
-	DataReferenceException {
+	private void testSpeciesAttributeImport(String scientificName, String commonName, IndicatorSpecies expectedSpecies)
+            throws IOException, ParseException, MissingDataException, InvalidSurveySpeciesException,
+            DataReferenceException, AmbiguousDataException {
 		setRequired(survey, false);
 		
 		// add a species attribute.

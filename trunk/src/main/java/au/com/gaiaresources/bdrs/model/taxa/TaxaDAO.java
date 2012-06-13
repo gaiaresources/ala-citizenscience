@@ -217,6 +217,28 @@ public interface TaxaDAO extends TransactionDAO {
     List<IndicatorSpecies> getIndicatorSpeciesByCommonName(String commonName);
 
     /**
+     * Performs a case insensitive exact match on the indicator species within one of the surveys with the
+     * specified common name using the session provided.
+     *
+     * @param sesh the session to be used to perform the query.
+     * @param surveys the candidate surveys containing the species.
+     * @param commonName the common name of the indicator species to be retrieved.
+     * @return the list of matching indicator species.
+     */
+    List<IndicatorSpecies> getIndicatorSpeciesByCommonName(Session sesh, Collection<Survey> surveys, String commonName);
+
+    /**
+     * Performs a case insensitive exact match on the indicator species within one of the surveys named with the
+     * specified scientific name using the session provided.
+     *
+     * @param sesh the session to be used to perform the query.
+     * @param surveys the candidate surveys containing the species.
+     * @param scientificName the scientific name of the indicator species to be retrieved.
+     * @return the list of matching indicator species.
+     */
+    List<IndicatorSpecies> getIndicatorSpeciesByScientificName(Session sesh, Collection<Survey> surveys, String scientificName);
+
+    /**
      * Refreshes the IndicatorSpecies object
      * @param s IndicatorSpecies to refresh.
      * @return Refreshed IndicatorSpecies
