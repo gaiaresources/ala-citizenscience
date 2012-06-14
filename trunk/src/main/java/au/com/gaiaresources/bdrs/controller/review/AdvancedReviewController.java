@@ -140,10 +140,7 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
      */
     protected ModelAndView getAdvancedReviewView(Map<String, String[]> newParamMap, 
             Integer surveyId, Integer resultsPerPage, Integer pageNumber, List<Facet> facetList, Long recordCount, String viewName) {
-        long pageCount = recordCount / resultsPerPage;
-        if((recordCount % resultsPerPage) > 0) {
-            pageCount += 1;
-        }
+        long pageCount = countPages(resultsPerPage, recordCount);
         
         ModelAndView mv = new ModelAndView(viewName);
         
@@ -177,7 +174,15 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
 
         return mv;
     }
-    
+
+    protected long countPages(Integer resultsPerPage, Long recordCount) {
+        long pageCount = recordCount / resultsPerPage;
+        if((recordCount % resultsPerPage) > 0) {
+            pageCount += 1;
+        }
+        return pageCount;
+    }
+
     /**
      * Returns a list of reports that are available to the view.
      * @return
@@ -311,7 +316,7 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
      *                          in which case the default is determined by the Preference.DEFAULT_TO_MAP_VIEW_KEY preference.
      * @return the name of the view model object used by the page to select the correct view.
      */
-    private String getViewType(String viewTypeParameter) {
+    protected String getViewType(String viewTypeParameter) {
         if (VIEW_TYPE_DOWNLOAD.equals(viewTypeParameter)) {
            return MODEL_DOWNLOAD_VIEW_SELECTED;
         } else if (VIEW_TYPE_TABLE.equals(viewTypeParameter)) {
@@ -357,7 +362,19 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
      * @return The number of values matching the facet selections, surveyId, and searchText
      */
     protected long countMatchingRecords(List<Facet> facetList, Integer surveyId, String searchText) {
-        HqlQuery hqlQuery = new HqlQuery(getCountSelect());
+        return countMatchingRecords(new HqlQuery(getCountSelect()), facetList, surveyId, searchText);
+    }
+
+    /**
+     * Counts the number of values that match the supplied query, facet selections, the surveyId, and the searchText
+     * @param hqlQuery The query to run to perform the count.
+     * @param facetList The list of {@link Facet} on the screen
+     * @param surveyId (optional) surveyId to filter by
+     * @param searchText (optional) value to search entries for
+     * @return The number of values matching the facet selections, surveyId, and searchText
+     */
+    protected long countMatchingRecords(HqlQuery hqlQuery, List<Facet> facetList, Integer surveyId, String searchText) {
+
         applyFacetsToQuery(hqlQuery, facetList, surveyId, searchText);
 
         Query query = toHibernateQuery(hqlQuery);

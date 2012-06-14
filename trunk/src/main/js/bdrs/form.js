@@ -46,3 +46,43 @@ bdrs.form.init_form_validation = function() {
 
     form_list.ketchup();
 }
+
+/**
+ * @return {Boolean} Returns true if the browser natively supports the (html 5) "placeholder" attribute
+ */
+bdrs.form.hasPlaceholderSupport = function() {
+    var input = document.createElement('input');
+    return typeof input.placeholder !== 'undefined';
+}
+
+/**
+ * Checks to see if the browser supports the html 5 placeholder attribute and fakes it if it does not.
+ */
+bdrs.form.addPlaceholderSupport = function() {
+
+    if(!bdrs.form.hasPlaceholderSupport()){
+
+        $('[placeholder]').focus(function() {
+            var input = $(this);
+            if (input.val() == input.attr('placeholder')) {
+                input.val('');
+                input.removeClass('placeholder');
+            }
+        }).blur(function() {
+                var input = $(this);
+                if (input.val() == '' || input.val() == input.attr('placeholder')) {
+                    input.addClass('placeholder');
+                    input.val(input.attr('placeholder'));
+                }
+            }).blur();
+        $('[placeholder]').parents('form').submit(function() {
+            $(this).find('[placeholder]').each(function() {
+                var input = $(this);
+                if (input.val() == input.attr('placeholder')) {
+                    input.val('');
+                }
+            })
+        });
+
+    }
+};

@@ -4,6 +4,7 @@ import au.com.gaiaresources.bdrs.db.impl.HqlQuery;
 import au.com.gaiaresources.bdrs.db.impl.Predicate;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.service.facet.option.FacetOption;
+import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,12 +12,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
-
 /**
  *  Provides basic accessor and mutator functions for {@link Facet} implementations.
  */
 public abstract class AbstractFacet implements Facet {
+
+    /** As many facets require a join on the ATTRIBUTE_VALUE table, they use a common alias */
+    public static final String ATTRIBUTE_VALUE_QUERY_ALIAS = "attributeVal";
+    public static final String ATTRIBUTE_QUERY_ALIAS = "attribute";
 
     /** Suffix applied to request parameters that contain option values */
     public static final String OPTION_SUFFIX = "";

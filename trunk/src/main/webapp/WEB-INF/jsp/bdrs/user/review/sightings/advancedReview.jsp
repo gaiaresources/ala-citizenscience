@@ -32,7 +32,7 @@
 	    <div class="resultCol right">
 	        <div class="columnBanner">
 	           <span id="count">
-	               <c:out value="${ resultCount }"/>&nbsp;${resultsType}<c:if test="${ recordCount != 1 }">s</c:if>&nbsp;returned
+	               <c:out value="${ resultCount }"/>&nbsp;${resultsType}<c:if test="${ recordCount != 1 }">s</c:if><span id="imageCountPlaceholder"></span>&nbsp;returned
                </span>
 	        </div>
 	        
@@ -40,18 +40,20 @@
 		        <div class="controlPanel">
 		            <div>
 		                <span class="searchContainer">
-		                    <label for="searchText">Search within results</label>
-	                        <input type="text" id="searchText" name="searchText" value="<c:out value="${ searchText }"/>"/>
+		                    <input type="text" id="searchText" name="searchText" placeholder="Search within results" value="<c:out value="${ searchText }"/>"/>
 	                        <input id="searchButton" class="form_action" type="submit" name="facetUpdate" value="Search"/>
 	                    </span>
 		                <input type="hidden" name="viewType"
 		                    <c:choose>
-							   <c:when test="${ tableViewSelected }">
+							    <c:when test="${ tableViewSelected }">
 			                       value="table"
-			                   </c:when>
-			                   <c:when test="${ downloadViewSelected }">
+			                    </c:when>
+			                    <c:when test="${ downloadViewSelected }">
 			                       value="download"
-			                   </c:when>
+			                    </c:when>
+                                <c:when test="${ imagesViewSelected }">
+                                    value="images"
+                                </c:when>
 			                    <c:otherwise>
 			                       value="map"
 			                   </c:otherwise>
@@ -66,6 +68,11 @@
 		                <a href="javascript: void(0);">
 		                   <div id="mapViewTab" class="displayTab right <c:if test="${ mapViewSelected }">displayTabSelected</c:if>">Map</div>
 	                    </a>
+                        <c:if test="${resultsType == 'record'}">
+                            <a href="javascript: void(0);">
+                                <div id="imagesViewTab" class="displayTab right <c:if test="${imagesViewSelected}">displayTabSelected</c:if>">Images</div>
+                            </a>
+                        </c:if>
 	                    <div class="clear"></div>
 		            </div>
 		        </div>
@@ -98,6 +105,9 @@
                             </c:if>
                         </sec:authorize>
 				   </c:when>
+                    <c:when test="${imagesViewSelected}">
+                        <tiles:insertDefinition name="advancedReviewImagesView" />
+                    </c:when>
                     <c:otherwise>
                         <tiles:insertDefinition name="advancedReviewMapView">
                             <tiles:putAttribute name="recordId" value="${ recordId }"/>
@@ -112,6 +122,7 @@
 
 <script type="text/javascript">
    jQuery(function() {
+       bdrs.form.addPlaceholderSupport();
        // Insert click handlers to show and hide facet options
        <c:forEach var="facet" items="${ facetList }">
            jQuery(".${ facet.prefix }_${ facet.queryParamName }_tree_node_handler").click(function() {

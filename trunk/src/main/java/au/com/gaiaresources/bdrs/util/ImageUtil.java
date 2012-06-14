@@ -1,20 +1,17 @@
 package au.com.gaiaresources.bdrs.util;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import org.apache.log4j.Logger;
+
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.FileImageOutputStream;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-
-import javax.imageio.ImageIO;
-import javax.imageio.ImageWriter;
-import javax.imageio.stream.FileImageOutputStream;
-
-import org.apache.log4j.Logger;
 
 
 public class ImageUtil {
@@ -24,8 +21,37 @@ public class ImageUtil {
     private static final String JPEG_MIMETYPE = "image/jpeg";
     
     private static Logger log = Logger.getLogger(ImageUtil.class);
-    
+
+
+    /**
+     * Returns a BufferedImage containing a scaled (to the supplied width and height) version of the image supplied
+     * as an InputStream.  The aspect ratio of the original image will be preserved so there may be blank space
+     * in the scaled image.
+     *
+     * @param inputStream the original image.
+     * @param width the desired width of the scaled image.
+     * @param height the desired height of the scaled image.
+     * @return a BufferedImage containing a scaled verison of the original image.
+     * @throws IOException if there is an error reading the original image.
+     */
     public static BufferedImage resizeImage(InputStream inputStream, Integer width, Integer height) throws IOException {
+        return resizeImage(inputStream, width, height, false);
+    }
+
+    /**
+     * Returns a BufferedImage containing a scaled (to the supplied width and height) version of the image supplied
+     * as an InputStream.
+     *
+     * @param inputStream the original image.
+     * @param width the desired width of the scaled image.
+     * @param height the desired height of the scaled image.
+     * @param clip true if the original image should be clipped so that the scaled image contains no blank space.
+     *             Otherwise the full contents of the original image will be contained in the scaled image, however
+     *             as the aspect ratio is preserved, the scaled image may contain blank space.
+     * @return a BufferedImage containing a scaled verison of the original image.
+     * @throws IOException if there is an error reading the original image.
+     */
+    public static BufferedImage resizeImage(InputStream inputStream, Integer width, Integer height, boolean clip) throws IOException {
         // Resize the image as required to fit the space
         BufferedImage sourceImage = ImageIO.read(inputStream);
         
@@ -43,20 +69,23 @@ public class ImageUtil {
             
             double widthRatio = (double)width / (double) origWidth;
             double heightRatio = (double)height / (double) origHeight;
-            
+
             int x = 0, y = 0;
             int scaledWidth = width;
             int scaledHeight = height;
-            if (heightRatio > widthRatio) {
-                x = 0;
-                y = (scaledImage.getHeight() - scaledHeight) / 2;
+
+            if ((!clip && heightRatio > widthRatio) || (clip && widthRatio > heightRatio)) {
                 scaledWidth = scaledImage.getWidth();
                 scaledHeight = (int) Math.round(widthRatio * origHeight);
+                x = 0;
+                y = (scaledImage.getHeight() - scaledHeight) / 2;
+
             } else {
-                x = (scaledImage.getWidth() - scaledWidth) / 2;
-                y = 0;
                 scaledWidth = (int) Math.round(heightRatio * origWidth);
                 scaledHeight = scaledImage.getHeight();
+                x = (scaledImage.getWidth() - scaledWidth) / 2;
+                y = 0;
+
             }
             g2_scaled.drawImage(sourceImage, x, y, scaledWidth, scaledHeight, g2_scaled.getBackground(), null);
             return scaledImage;
@@ -87,7 +116,7 @@ public class ImageUtil {
             throw new IllegalArgumentException("not supported");
         }
     }
-    
+
     public static void saveImage(File targetFile, BufferedImage image, String mimeType) throws FileNotFoundException, IOException {
         saveImage(targetFile, image, mimeType, 100);
     }

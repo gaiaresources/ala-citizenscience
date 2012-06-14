@@ -60,5 +60,14 @@ public class FilterManager {
 
         return portalId;
     }
+
+    /**
+     * Enables the Record filter that only returns Records with attributes of type
+     * 'IMAGE'.
+     * @param session the Session to enable the filter on.
+     */
+    public static void enableImagesFilter(Session session) {
+        session.enableFilter(Record.IMAGE_FILTER);
+    }
     
 }

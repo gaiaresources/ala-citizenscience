@@ -1,7 +1,14 @@
 package au.com.gaiaresources.bdrs.model.taxa.impl;
 
 import au.com.gaiaresources.bdrs.db.QueryOperation;
-import au.com.gaiaresources.bdrs.db.impl.*;
+import au.com.gaiaresources.bdrs.db.impl.AbstractDAOImpl;
+import au.com.gaiaresources.bdrs.db.impl.HqlQuery;
+import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
+import au.com.gaiaresources.bdrs.db.impl.PaginationFilter;
+import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
+import au.com.gaiaresources.bdrs.db.impl.Predicate;
+import au.com.gaiaresources.bdrs.db.impl.QueryPaginator;
+import au.com.gaiaresources.bdrs.db.impl.SortOrder;
 import au.com.gaiaresources.bdrs.model.index.IndexingConstants;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.region.Region;
@@ -10,7 +17,6 @@ import au.com.gaiaresources.bdrs.model.taxa.*;
 import au.com.gaiaresources.bdrs.search.SearchService;
 import au.com.gaiaresources.bdrs.service.db.DeleteCascadeHandler;
 import au.com.gaiaresources.bdrs.service.db.DeletionService;
-import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 import au.com.gaiaresources.bdrs.util.Pair;
 import au.com.gaiaresources.bdrs.util.StringUtils;
@@ -27,7 +33,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * 
@@ -884,14 +896,16 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
         
         return new QueryPaginator<IndicatorSpecies>().page(this.getSession(), q.getQueryString(), q.getParametersValue(), filter);
     }
-    
+
     public PagedQueryResult<IndicatorSpecies> getIndicatorSpeciesByGroup(Integer taxonGroupId, PaginationFilter filter) {
-        HqlQuery q = new HqlQuery("from IndicatorSpecies s");
+        HqlQuery q = new HqlQuery("select distinct s from IndicatorSpecies s");
         if (taxonGroupId != null) {
+            q.leftJoin("s.secondaryGroups", "secondaryGroup");
             q.and(Predicate.eq("s.taxonGroup.id", taxonGroupId));
+            q.or(Predicate.eq("secondaryGroup.id", taxonGroupId));
         }
         
-        return new QueryPaginator<IndicatorSpecies>().page(this.getSession(), q.getQueryString(), q.getParametersValue(), filter);
+        return new QueryPaginator<IndicatorSpecies>().page(this.getSession(), q.getQueryString(), q.getParametersValue(), filter, "s");
     }
     
     @Override

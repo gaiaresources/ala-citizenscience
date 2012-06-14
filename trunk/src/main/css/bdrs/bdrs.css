@@ -301,6 +301,10 @@ label.multiCheckboxLabel {
     list-style:none;
 }
 
+.searchContainer #searchText {
+    width : 20em;
+}
+
 .facetOptions {
     padding-bottom: 2em;
 }
@@ -316,6 +320,31 @@ label.multiCheckboxLabel {
 .facetOptions .showLess a {
     padding-right: 1em;
 }
+
+/*****************************************/
+/* Image gallery styling (advanced review)
+/*****************************************/
+.galleryImage {
+    width: 90px;
+    float: left;
+    margin: 5px 10px 5px 10px;
+    list-style: none;
+    height: 145px;
+    text-align: center;
+}
+
+.galleryImage img {
+    width: 70px;
+    height: 80px;
+}
+
+.galleryImage p {
+    padding: 0px;
+    margin: 0px;
+    font-size: 0.8em;
+    line-height: 1.1em;
+}
+
 
 /************************************/
 /* Drag Row Styling                 */
@@ -1448,6 +1477,11 @@ div.alaSightingsTableHeaderDoubleLineArrows {
     border-style: solid;
     border-color: #2D4977;
     border-width: 1px 1px 0px 1px;
+}
+
+/* Override padding for the advanced review screen to allow the tabs to fit */
+.alaSightingsContent .displayTab {
+    padding: 0.0em 0.8em 0.0em 0.8em;
 }
 
 .displayTab:hover {

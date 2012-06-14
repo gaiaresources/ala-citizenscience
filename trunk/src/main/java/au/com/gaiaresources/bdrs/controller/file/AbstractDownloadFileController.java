@@ -1,17 +1,11 @@
 package au.com.gaiaresources.bdrs.controller.file;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.Date;
-
-import javax.activation.FileDataSource;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.ws.http.HTTPException;
-
+import au.com.gaiaresources.bdrs.controller.AbstractController;
+import au.com.gaiaresources.bdrs.db.Persistent;
+import au.com.gaiaresources.bdrs.file.FileService;
+import au.com.gaiaresources.bdrs.servlet.view.FileView;
+import au.com.gaiaresources.bdrs.util.ZipUtils;
+import com.ibm.icu.text.SimpleDateFormat;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.apache.tika.exception.TikaException;
@@ -24,57 +18,72 @@ import org.springframework.web.servlet.ModelAndView;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
-import com.ibm.icu.text.DateFormat;
-import com.ibm.icu.text.SimpleDateFormat;
-
-import au.com.gaiaresources.bdrs.controller.AbstractController;
-import au.com.gaiaresources.bdrs.db.Persistent;
-import au.com.gaiaresources.bdrs.file.FileService;
-import au.com.gaiaresources.bdrs.servlet.view.FileView;
-import au.com.gaiaresources.bdrs.util.ZipUtils;
+import javax.activation.FileDataSource;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.ws.http.HTTPException;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Date;
 
 @Component
 public class AbstractDownloadFileController extends AbstractController {
     private static final String FILE_DATE_FORMAT = "YYYY-MM-dd-HH-mm";
 
     @Autowired
-    private FileService fileService;
+    protected FileService fileService;
 
     Logger log = Logger.getLogger(AbstractDownloadFileController.class);
 
     protected ModelAndView downloadFile(String className, Integer id, String fileName) {
         return downloadFile(className, id, fileName, null, false);
     }
-    
+
     protected ModelAndView downloadFile(String className, Integer id, String fileName, String contentType) {
-    	 return downloadFile(className, id, fileName, null, false);
+    	 return downloadFile(className, id, fileName, contentType, false);
     }
-    
+
+
     @SuppressWarnings("unchecked")
     protected ModelAndView downloadFile(String className, Integer id, String fileName, String contentType, Boolean base64) {
-        Class<? extends Persistent> persistentClass = null;
         try {
-            persistentClass = (Class<? extends Persistent>) Class.forName(className);
+            Class<? extends Persistent>  persistentClass = (Class<? extends Persistent>) Class.forName(className);
             FileDataSource file = fileService.getFile(persistentClass, id, fileName);
-            FileView fileView = new FileView(file);
-            fileView.setEncoding(base64);
-            fileView.setFileType(file.getContentType());
-            
-            if(contentType == null) {
-                contentType = getContentType(file);
-            }
-            fileView.setContentType(contentType);
-                
-            return new ModelAndView(fileView);
-            
+            return downloadFile(fileName, contentType, base64, file);
+
         } catch (ClassNotFoundException cnfe) {
-            log.error("Class " + className + " does not exist.");
+            log.error("Class " + className + " does not exist.", cnfe);
             throw new HTTPException(HttpServletResponse.SC_NOT_FOUND);
         } catch (IllegalArgumentException iae) {
             log.error("Unable to download file : " + fileName, iae);
             throw new HTTPException(HttpServletResponse.SC_NOT_FOUND);
         }
     }
+
+    @SuppressWarnings("unchecked")
+    protected ModelAndView downloadFile(String fileName, String contentType, Boolean base64, FileDataSource file) {
+        try {
+            FileView fileView = new FileView(file);
+            fileView.setEncoding(base64);
+            fileView.setFileType(file.getContentType());
+
+            if(contentType == null) {
+                contentType = getContentType(file);
+            }
+            fileView.setContentType(contentType);
+
+            return new ModelAndView(fileView);
+            
+        } catch (Exception e) {
+            log.error("Unable to download file : " + fileName, e);
+            throw new HTTPException(HttpServletResponse.SC_NOT_FOUND);
+        }
+    }
+
+
 
     protected void downloadFile(File file, HttpServletResponse response, String filePrefix, String fileSuffix) throws IOException {
         downloadFile(file, response, filePrefix, fileSuffix, "application/octet-stream");
