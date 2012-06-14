@@ -1,10 +1,12 @@
 package au.com.gaiaresources.bdrs.db.impl;
 
-import java.io.IOException;
-import java.io.Writer;
-
 import au.com.gaiaresources.bdrs.json.JSONEnum;
 import au.com.gaiaresources.bdrs.json.JSONEnumUtil;
+
+import java.io.IOException;
+import java.io.Writer;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Davide Alberto Molin (davide.molin@gmail.com)
@@ -22,6 +24,8 @@ public class HqlQuery extends Predicate {
     //distinct predicate
     String distinct;
     boolean count = false;
+
+    private Set<String> aliases = new HashSet<String>();
 
     public enum SortOrder implements JSONEnum {
         ASC, DESC;
@@ -61,18 +65,41 @@ public class HqlQuery extends Predicate {
      * @return
      */
     public HqlQuery join(String expression, String alias) {
+        checkAlias(alias);
         header += " join " + expression + " as " + alias;
         return this;
     }
 
     public HqlQuery leftJoin(String expression, String alias) {
+        checkAlias(alias);
         header += " left join " + expression + " as " + alias;
         return this;
     }
 
     public HqlQuery rightJoin(String expression, String alias) {
+        checkAlias(alias);
         header += " right join " + expression + " as " + alias;
         return this;
+    }
+
+    /**
+     * Checks if an SQL alias has already been used.
+     * @param alias the alias to check.
+     */
+    private void checkAlias(String alias) {
+        if (aliases.contains(alias)) {
+            throw new IllegalArgumentException("Alias "+alias+" is already used by this query");
+        }
+        aliases.add(alias);
+    }
+
+    /**
+     * Returns true if this HqlQuery is already using the supplied alias.
+     * @param alias the alias to check.
+     * @return true if this HqlQuery is already using the supplied alias.
+     */
+    public boolean hasAlias(String alias) {
+        return aliases.contains(alias);
     }
 
     public HqlQuery count() {

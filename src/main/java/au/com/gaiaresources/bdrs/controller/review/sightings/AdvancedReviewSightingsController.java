@@ -1,11 +1,14 @@
 package au.com.gaiaresources.bdrs.controller.review.sightings;
 
 import au.com.gaiaresources.bdrs.controller.review.AdvancedReviewController;
+import au.com.gaiaresources.bdrs.db.FilterManager;
 import au.com.gaiaresources.bdrs.db.ScrollableResults;
 import au.com.gaiaresources.bdrs.db.impl.HqlQuery;
 import au.com.gaiaresources.bdrs.db.impl.HqlQuery.SortOrder;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
 import au.com.gaiaresources.bdrs.db.impl.Predicate;
+import au.com.gaiaresources.bdrs.db.impl.ScrollableResultsImpl;
+import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.kml.KMLWriter;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
@@ -16,6 +19,7 @@ import au.com.gaiaresources.bdrs.model.report.impl.ReportView;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.service.facet.AbstractFacet;
 import au.com.gaiaresources.bdrs.service.facet.Facet;
 import au.com.gaiaresources.bdrs.service.facet.LocationFacet;
 import au.com.gaiaresources.bdrs.service.facet.SurveyFacet;
@@ -52,12 +56,14 @@ import java.util.Set;
 @Controller
 public class AdvancedReviewSightingsController extends AdvancedReviewController<Record> {
 
-
-
     /**
      * Report URL.
      */
     public static final String  ADVANCED_REVIEW_REPORT_URL = "/review/sightings/advancedReviewReport.htm";
+
+    public static final String MODEL_IMAGES_VIEW_SELECTED = "imagesViewSelected";
+    public static final String VIEW_TYPE_IMAGES = "images";
+
 
     /**
      * Parameter for latest record.
@@ -71,7 +77,8 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
 
     /** The names of the Record properties to be included in the JSON returned by a search */
     private static final Map<Class<?>, Set<String>> JSON_PROPERTIES;
-    
+
+
     /**
      * Parameter for report id in query.
      */
@@ -84,7 +91,8 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
     /**
      * Alias used in the facet independent joins for the facet query.
      */
-    private static final String ATTRIBUTE_VALUE_ALIAS = "recordAttributeVal";
+    private static final String ATTRIBUTE_VALUE_ALIAS = AbstractFacet.ATTRIBUTE_VALUE_QUERY_ALIAS;
+    private static final String ATTRIBUTE_ALIAS = AbstractFacet.ATTRIBUTE_QUERY_ALIAS;
     /**
      * Alias used in the facet independent joins for the facet query.
      */
@@ -96,6 +104,18 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
     public static final String BASE_FACET_QUERY = "select distinct record, "
         + SPECIES_ALIAS + ".scientificName, " + SPECIES_ALIAS 
         + ".commonName, location.name, censusMethod.type from Record record";
+
+    /** The result set List index that references the Record object in the IMAGES_QUERY results */
+    private static final int IMAGES_QUERY_RESULTS_RECORD_INDEX = 0;
+    private static final int IMAGES_QUERY_RESULTS_ATTRIBUTE_ID_INDEX = 5;
+    private static final int IMAGES_QUERY_RESULTS_FILE_NAME_INDEX = 6;
+
+
+    /** The hql query used for retrieving record images */
+    public static final String IMAGES_QUERY = "select distinct new List(record, "
+            + SPECIES_ALIAS + ".scientificName, " + SPECIES_ALIAS
+            + ".commonName, location.name, censusMethod.type, "+ATTRIBUTE_VALUE_ALIAS+".id, "+
+            ATTRIBUTE_VALUE_ALIAS+".stringValue, record.when, record.user) from Record record";
     
     static {
         Set<String> temp = new HashSet<String>();
@@ -105,6 +125,7 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
         temp.add("location.name");
         temp.add("censusMethod.type");
         temp.add("record.user");
+        temp.add("record.id");
         VALID_SORT_PROPERTIES = Collections.unmodifiableSet(temp);
 
         String[] recordProperties = {"when", "createdAt", "id", "user", "geometry", "latitude", "longitude", "species", "censusMethod", "survey"};
@@ -138,6 +159,9 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
                                        @RequestParam(value=PAGE_NUMBER_QUERY_PARAM_NAME, required=false, defaultValue=DEFAULT_PAGE_NUMBER) Integer pageNumber) {
 
         configureHibernateSession();
+        if (MODEL_IMAGES_VIEW_SELECTED.equals(getViewType(request.getParameter(PARAM_VIEW_TYPE)))) {
+            FilterManager.enableImagesFilter(getRequestContext().getHibernate());
+        }
      
         Map<String, String[]> newParamMap = new HashMap<String, String[]>(request.getParameterMap());
         
@@ -152,6 +176,12 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
         // Add an optional parameter to set a record to highlight
         if (!StringUtils.nullOrEmpty(getParameter(newParamMap, LATEST_RECORD_ID))) {
             mv.addObject(LATEST_RECORD_ID, getParameter(newParamMap, LATEST_RECORD_ID));
+        }
+
+        if (MODEL_IMAGES_VIEW_SELECTED.equals(getViewType(request.getParameter(PARAM_VIEW_TYPE)))) {
+            long imageCount = getImageCount(facetList, surveyId, getParameter(newParamMap, SEARCH_QUERY_PARAM_NAME));
+            mv.addObject("imageCount", imageCount);
+            mv.addObject("pageCount", countPages(resultsPerPage, imageCount));
         }
         
         return mv;
@@ -285,7 +315,8 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
                                                              pageNumber, resultsPerPage);
         advancedReviewJSONSightings(response, facetList, sc);
     }
-    
+
+
     /**
      * Returns an XLS representation of representation of records matching the
      * {@link Facet} criteria. This function should only be used if the records
@@ -326,6 +357,50 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
     }
 
     /**
+     * Returns a JSON array of records matching the {@link Facet} criteria.
+     */
+    @RequestMapping(value = "/review/sightings/advancedReviewJSONImages.htm", method = {RequestMethod.GET, RequestMethod.POST})
+    public void advancedReviewJSONImages(HttpServletRequest request,
+                                            HttpServletResponse response,
+                                            @RequestParam(value=SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME, required=false) Integer surveyId,
+                                            @RequestParam(value=RESULTS_PER_PAGE_QUERY_PARAM_NAME, required=false, defaultValue=DEFAULT_RESULTS_PER_PAGE) Integer resultsPerPage,
+                                            @RequestParam(value=PAGE_NUMBER_QUERY_PARAM_NAME, required=false, defaultValue=DEFAULT_PAGE_NUMBER) Integer pageNumber) throws IOException {
+        configureHibernateSession();
+        //FilterManager.enableImagesFilter(getRequestContext().getHibernate());
+        Map<String, String[]> params = request.getParameterMap();
+        List<Facet> facetList = facetService.getFacetList(currentUser(), params);
+        HqlQuery hqlQuery = new HqlQuery(IMAGES_QUERY);
+        joinRecordsWithImages(hqlQuery);
+        Query query = createQuery(facetList, surveyId,
+                getParameter(params, SORT_BY_QUERY_PARAM_NAME),
+                getParameter(params, SORT_ORDER_QUERY_PARAM_NAME),
+                "record.id",
+                "DESC",
+                getParameter(params, SEARCH_QUERY_PARAM_NAME),
+                hqlQuery);
+
+
+        ScrollableResults<List> results = new ScrollableResultsImpl<List>(query, pageNumber, resultsPerPage);
+
+        JSONArray records = new JSONArray();
+        while (results.hasMoreElements()) {
+            List row = results.nextElement();
+            Map<String, Object> record = flatten((Record) row.get(IMAGES_QUERY_RESULTS_RECORD_INDEX));
+            record.put("attributeValueId", row.get(IMAGES_QUERY_RESULTS_ATTRIBUTE_ID_INDEX));
+            record.put("fileName", row.get(IMAGES_QUERY_RESULTS_FILE_NAME_INDEX));
+            records.add(record);
+        }
+
+        writeJson(request, response, records.toString());
+    }
+
+    private void joinRecordsWithImages(HqlQuery hqlQuery) {
+        hqlQuery.join("record.attributes", ATTRIBUTE_VALUE_ALIAS);
+        hqlQuery.join(ATTRIBUTE_VALUE_ALIAS+".attribute", ATTRIBUTE_ALIAS);
+        hqlQuery.and(new Predicate(ATTRIBUTE_ALIAS+".typeCode = 'IM'").and(new Predicate(ATTRIBUTE_VALUE_ALIAS+".stringValue is not null")));
+    }
+
+    /**
      * Creates a scrollable records instance from the facet selection and renders the specified report using the
      * scrollable records.
      *
@@ -363,7 +438,26 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
     protected String getCountSelect() {
         return "select count(distinct record) from Record record";
     }
-    
+
+    private long getImageCount(List<Facet> facetList, Integer surveyId, String searchText) {
+        HqlQuery countQuery = new HqlQuery("select count(*) from Record record");
+        joinRecordsWithImages(countQuery);
+        return countMatchingRecords(countQuery, facetList, surveyId, searchText);
+    }
+
+    /**
+     * Overrides getViewType to support an additional view (the image gallery).
+     * @param viewTypeParameter the value of the request parameter used to request a particular view type.  May be null,
+     *                          in which case the default is determined by the Preference.DEFAULT_TO_MAP_VIEW_KEY preference.
+     * @return the name of the view model object used by the page to select the correct view.
+     */
+    protected String getViewType(String viewTypeParameter) {
+        if (VIEW_TYPE_IMAGES.equals(viewTypeParameter)) {
+            return MODEL_IMAGES_VIEW_SELECTED;
+        }
+        return super.getViewType(viewTypeParameter);
+    }
+
     /*
      * (non-Javadoc)
      * @see au.com.gaiaresources.bdrs.controller.review.AdvancedReviewController#applyFacetsToQuery(au.com.gaiaresources.bdrs.db.impl.HqlQuery, java.util.List, java.lang.Integer, java.lang.String)
@@ -375,15 +469,12 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
     	
     	// If we are doing a text search, add a few extra joins.
     	if(searchText != null && !searchText.isEmpty()) {
-            hqlQuery.leftJoin("record.attributes", ATTRIBUTE_VALUE_ALIAS);
-            hqlQuery.leftJoin("recordAttributeVal.attribute", "recordAttribute");
+            if (!hqlQuery.hasAlias(ATTRIBUTE_VALUE_ALIAS)) {
+                hqlQuery.leftJoin("record.attributes", ATTRIBUTE_VALUE_ALIAS);
+            }
             hqlQuery.leftJoin(ATTRIBUTE_VALUE_ALIAS+".species", ATTRIBUTE_VALUE_SPECIES_ALIAS);
     	}
-        
-    	//hqlQuery.leftJoin("record.location", "location");
-        //hqlQuery.leftJoin("record.species", "species");
-        //hqlQuery.leftJoin("record.censusMethod", "censusMethod");
-        
+
         for(Facet f : facetList) {
             if(f.isActive()) {
                 Predicate p = f.getPredicate();
@@ -397,14 +488,12 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
         if(searchText != null && !searchText.isEmpty()) {
         	String formattedSearchText = String.format("%%%s%%", searchText);
             Predicate searchPredicate = Predicate.ilike("record.notes", formattedSearchText);
+            searchPredicate.or(Predicate.ilike("record.user.name", String.format("%%%s%%", searchText)));
             searchPredicate.or(Predicate.ilike(SPECIES_ALIAS + ".scientificName", formattedSearchText));
             searchPredicate.or(Predicate.ilike(SPECIES_ALIAS + ".commonName", formattedSearchText));
             searchPredicate.or(Predicate.ilike(ATTRIBUTE_VALUE_SPECIES_ALIAS+".scientificName", formattedSearchText));
             searchPredicate.or(Predicate.ilike(ATTRIBUTE_VALUE_SPECIES_ALIAS+".commonName", formattedSearchText));
-            //Predicate searchPredicate = Predicate.ilike("record.notes", String.format("%%%s%%", searchText));
-            //searchPredicate.or(Predicate.ilike("species.scientificName", String.format("%%%s%%", searchText)));
-            //searchPredicate.or(Predicate.ilike("species.commonName", String.format("%%%s%%", searchText)));
-            //searchPredicate.or(Predicate.ilike("record.user.name", String.format("%%%s%%", searchText)));
+
             hqlQuery.and(searchPredicate);
         }
         
@@ -421,7 +510,6 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
      */
     public static void applyJoinsForBaseQuery(HqlQuery hqlQuery) {
     	hqlQuery.leftJoin("record.location", "location");
-        // hqlQuery.leftJoin("location.attributes", "locAttribute");
         hqlQuery.leftJoin("record.species", SPECIES_ALIAS);
         hqlQuery.leftJoin("record.censusMethod", "censusMethod");
     }
@@ -444,22 +532,59 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
     protected Query createFacetQuery(List<Facet> facetList, Integer surveyId, String sortProperty, String sortOrder, String searchText) {
         // extra columns in select are used for ordering
         HqlQuery hqlQuery = new HqlQuery(BASE_FACET_QUERY);
-        
+
+        return createQuery(facetList, surveyId, sortProperty, sortOrder, searchText, hqlQuery);
+    }
+
+    /**
+     * Creates a Hibernate Query object from the supplied parameters.
+     * @param facetList the active Facets to apply to the query.
+     * @param surveyId the surveyId, may be null.
+     * @param sortProperty the property to order the results by.
+     * @param sortOrder the sort order, ascending (ASC) or decending (DESC)
+     * @param searchText text that must appear in the species scientific or common name, user name or notes.
+     * @param hqlQuery the HqlQuery that is being built (and will be transformed into a Query object).
+     * @return a new Query object ready to be executed.
+     */
+    private Query createQuery(List<Facet> facetList, Integer surveyId, String sortProperty, String sortOrder, String searchText, HqlQuery hqlQuery) {
+       return createQuery(facetList, surveyId, sortProperty, sortOrder, null, null, searchText, hqlQuery);
+    }
+
+    /**
+     * Creates a Hibernate Query object from the supplied parameters.
+     * @param facetList the active Facets to apply to the query.
+     * @param surveyId the surveyId, may be null.
+     * @param sortProperty the property to order the results by.
+     * @param sortOrder the sort order, ascending (ASC) or descending (DESC)
+     * @param sortProperty a second property to order the results by.
+     * @param sortOrder the sort order for the second sort property, ascending (ASC) or descending (DESC)
+     * @param searchText text that must appear in the species scientific or common name, user name or notes.
+     * @param hqlQuery the HqlQuery that is being built (and will be transformed into a Query object).
+     * @return a new Query object ready to be executed.
+     */
+    private Query createQuery(List<Facet> facetList, Integer surveyId, String sortProperty, String sortOrder, String sortProperty2, String sortOrder2,
+                              String searchText, HqlQuery hqlQuery) {
         applyFacetsToQuery(hqlQuery, facetList, surveyId, searchText);
 
         // NO SQL injection for you
-        if(sortProperty != null && sortOrder != null && VALID_SORT_PROPERTIES.contains(sortProperty)) {
-            hqlQuery.order(sortProperty, 
-                           SortOrder.valueOf(sortOrder).name(),
-                           null);
+        if(StringUtils.notEmpty(sortProperty) && StringUtils.notEmpty(sortOrder) && VALID_SORT_PROPERTIES.contains(sortProperty)) {
+            hqlQuery.order(sortProperty,
+                    SortOrder.valueOf(sortOrder).name(),
+                    null);
         }
-        return toHibernateQuery(hqlQuery);  
+        if(StringUtils.notEmpty(sortProperty2) && StringUtils.notEmpty(sortOrder2) && VALID_SORT_PROPERTIES.contains(sortProperty2)) {
+            hqlQuery.order(sortProperty2,
+                    SortOrder.valueOf(sortOrder2).name(),
+                    null);
+        }
+
+        return toHibernateQuery(hqlQuery);
     }
-    
+
     /*
-     * (non-Javadoc)
-     * @see au.com.gaiaresources.bdrs.controller.review.AdvancedReviewController#writeKMLResults(au.com.gaiaresources.bdrs.kml.KMLWriter, au.com.gaiaresources.bdrs.model.user.User, java.lang.String, java.util.List)
-     */
+    * (non-Javadoc)
+    * @see au.com.gaiaresources.bdrs.controller.review.AdvancedReviewController#writeKMLResults(au.com.gaiaresources.bdrs.kml.KMLWriter, au.com.gaiaresources.bdrs.model.user.User, java.lang.String, java.util.List)
+    */
     @Override
     protected void writeKMLResults(KMLWriter writer, User currentUser,
             String contextPath, List<Record> rList) {

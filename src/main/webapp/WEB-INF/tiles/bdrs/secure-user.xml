@@ -86,7 +86,7 @@
             <add-attribute>advancedReviewLocations.js</add-attribute>
         </put-list-attribute>
     </definition>
-    
+
     <definition name="downloadSightingsWidget" template="/WEB-INF/jsp/bdrs/user/review/sightings/downloadSightingsWidget.jsp">
     </definition>
     
@@ -106,6 +106,12 @@
         <put-attribute name="sortBy" type="object"/>
         <put-attribute name="sortOrder" type="object"/>
     </definition>
+
+    <definition name="advancedReviewImagesView" template="/WEB-INF/jsp/bdrs/user/review/sightings/advancedReviewImagesView.jsp">
+        <put-attribute name="sortBy" type="object"/>
+        <put-attribute name="sortOrder" type="object"/>
+    </definition>
+
 
     <!-- Record Listing -->
     <definition name="recordListing" extends="user-template">

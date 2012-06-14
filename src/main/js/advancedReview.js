@@ -45,6 +45,11 @@ bdrs.advancedReview.initTabHandlers = function() {
         jQuery("input[name=viewType]").val("download");
         jQuery(bdrs.advancedReview.FACET_FORM_SELECTOR).submit();
     });
+
+    jQuery("#imagesViewTab").click(function() {
+        jQuery("input[name=viewType]").val("images");
+        jQuery(bdrs.advancedReview.FACET_FORM_SELECTOR).submit();
+    });
 };
 
 /**
@@ -113,10 +118,7 @@ bdrs.advancedReview.initTableView = function(formSelector,
  * AJAX loads content to the table described by tableselector.
  */
 bdrs.advancedReview.loadTableContent = function(formSelector, tableSelector, viewStyle) {
-    // AJAX load the content for the table
-    var url = bdrs.portalContextPath + bdrs.advancedReview.JSON_URL;
-    var queryParams = bdrs.serializeObject(formSelector, false);
-    
+
     var getRecordsHandlerFcn;
     
     if (viewStyle === bdrs.advancedReview.VIEW_STYLE_DIV) {
@@ -126,8 +128,19 @@ bdrs.advancedReview.loadTableContent = function(formSelector, tableSelector, vie
         getRecordsHandlerFcn = bdrs.advancedReview.getInitViewStyleTableFcn(tableSelector);
     }
 
-    bdrs.ajaxPostWith(url, queryParams, getRecordsHandlerFcn);
+    bdrs.advancedReview.loadRecords(formSelector, getRecordsHandlerFcn);
 };
+
+
+bdrs.advancedReview.loadRecords = function(formSelector, callback, url) {
+    // AJAX load the content for the table
+    if (!url) {
+        url = bdrs.portalContextPath + bdrs.advancedReview.JSON_URL;
+    }
+    var queryParams = bdrs.serializeObject(formSelector, false);
+    bdrs.ajaxPostWith(url, queryParams, callback);
+}
+
 
 /**
  * Get the function used to handle the result of 'get json records'

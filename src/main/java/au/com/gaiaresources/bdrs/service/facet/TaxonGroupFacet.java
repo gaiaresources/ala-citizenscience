@@ -7,14 +7,10 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.facet.option.TaxonGroupFacetOption;
 import au.com.gaiaresources.bdrs.util.Pair;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.log4j.Logger;
 
-import edu.emory.mathcs.backport.java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Represents taxonomic records based on the {@link TaxonGroup} of the associated
@@ -32,7 +28,7 @@ public class TaxonGroupFacet extends AbstractFacet {
     
     private static final String SPECIES_ALIAS = "species_" + QUERY_PARAM_NAME;
     
-    private static final String AV_ALIAS = "av_" + QUERY_PARAM_NAME;
+    private static final String AV_ALIAS = ATTRIBUTE_VALUE_QUERY_ALIAS;
 
     /**
      * Creates a new instance.
@@ -59,7 +55,9 @@ public class TaxonGroupFacet extends AbstractFacet {
         
         // attribute facet predicates create an additional join to the attributes/attribute 
         // tables to accomodate multiple attribute values
-        query.leftJoin("record.attributes", AV_ALIAS);
+        if (!query.hasAlias(AV_ALIAS)) {
+            query.leftJoin("record.attributes", AV_ALIAS);
+        }
         query.leftJoin(AV_ALIAS + ".species", SPECIES_ALIAS);
         query.leftJoin(SPECIES_ALIAS+".taxonGroup", SPECIES_ATTRIBUTE_GROUP_ALIAS);
     }

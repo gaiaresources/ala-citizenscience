@@ -3,6 +3,7 @@ package au.com.gaiaresources.bdrs.service.facet.option;
 
 import au.com.gaiaresources.bdrs.db.impl.Predicate;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
+import au.com.gaiaresources.bdrs.service.facet.MultimediaFacet;
 import edu.emory.mathcs.backport.java.util.Arrays;
 
 /**
@@ -32,7 +33,7 @@ public class MultimediaFacetOption extends FacetOption {
      * query.
      */
     public Predicate getPredicate() {
-        return Predicate.eq("recordAttribute.typeCode", attributeType.getCode()).and(
-               new Predicate("(length(trim(recordAttributeVal.stringValue)) > 0)"));
+        return Predicate.eq(MultimediaFacet.ATTRIBUTE_QUERY_ALIAS+".typeCode", attributeType.getCode()).and(
+               new Predicate("(length(trim("+ MultimediaFacet.ATTRIBUTE_VALUE_QUERY_ALIAS+".stringValue)) > 0)"));
     }
 }

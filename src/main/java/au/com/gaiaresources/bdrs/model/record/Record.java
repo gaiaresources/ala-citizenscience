@@ -9,19 +9,34 @@ import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.model.taxa.*;
+import au.com.gaiaresources.bdrs.model.taxa.Attribute;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValueUtil;
+import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.user.User;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
 import org.apache.log4j.Logger;
-import org.hibernate.annotations.*;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.FilterDefs;
+import org.hibernate.annotations.Filters;
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
+import org.hibernate.annotations.ParamDef;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.OrderBy;
-import javax.persistence.Table;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.TimeZone;
 
 @Entity
 @FilterDefs({
@@ -29,13 +44,21 @@ import java.util.*;
         // The following filters define the visibility of Records based on the users role.
         @FilterDef(name = Record.ANONYMOUS_RECORD_ACCESS_FILTER),
         @FilterDef(name = Record.USER_ACCESS_FILTER, parameters = @ParamDef(name = "userId", type = "integer")),
-        @FilterDef(name = Record.MODERATOR_ACCESS_FILTER, parameters = @ParamDef(name = "userId", type = "integer"))
+        @FilterDef(name = Record.MODERATOR_ACCESS_FILTER, parameters = @ParamDef(name = "userId", type = "integer")),
+        // This filter is to restrict queries to records that have attached images.
+        @FilterDef(name = Record.IMAGE_FILTER)
 })
 @Filters({
         @Filter(name = PortalPersistentImpl.PORTAL_FILTER_NAME, condition = ":portalId = PORTAL_ID"),
         @Filter(name = Record.ANONYMOUS_RECORD_ACCESS_FILTER, condition = "RECORD_VISIBILITY = 'PUBLIC' and not HELD"),
         @Filter(name = Record.USER_ACCESS_FILTER, condition = "(INDICATOR_USER_ID = :userId or (RECORD_VISIBILITY = 'PUBLIC' and not HELD))"),
-        @Filter(name = Record.MODERATOR_ACCESS_FILTER, condition = "(INDICATOR_USER_ID = :userId or RECORD_VISIBILITY = 'PUBLIC')")
+        @Filter(name = Record.MODERATOR_ACCESS_FILTER, condition = "(INDICATOR_USER_ID = :userId or RECORD_VISIBILITY = 'PUBLIC')"),
+        @Filter(name = Record.IMAGE_FILTER, condition = "RECORD_ID in "+
+                "(select r.RECORD_ID from RECORD r " +
+                    "inner join RECORD_ATTRIBUTE_VALUE av on av.RECORD_RECORD_ID=r.RECORD_ID " +
+                    "inner join ATTRIBUTE_VALUE v on av.ATTRIBUTES_ATTRIBUTE_VALUE_ID=v.ATTRIBUTE_VALUE_ID " +
+                    "inner join ATTRIBUTE a on v.ATTRIBUTE_ID=a.ATTRIBUTE_ID " +
+                  "where a.TYPE_CODE='IM' and v.STRING_VALUE is not null)")
 })
 @Table(name = "RECORD")
 @AttributeOverride(name = "id", column = @Column(name = "RECORD_ID"))
@@ -44,6 +67,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     public static final String ANONYMOUS_RECORD_ACCESS_FILTER = "anonymousRecordAccessFilter";
     public static final String USER_ACCESS_FILTER = "userRecordAccessFilter";
     public static final String MODERATOR_ACCESS_FILTER = "moderatorRecordAccessFilter";
+    public static final String IMAGE_FILTER = "imageFilter";
     public static final String FILTER_PARAMETER_USER = "userId";
 
     // no species and number seen
