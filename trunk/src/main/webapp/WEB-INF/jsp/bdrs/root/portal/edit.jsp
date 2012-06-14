@@ -143,17 +143,22 @@
 	
 </form>
 <script>
-
+    <c:choose>
+        <c:when test="empty ${portal.id}">
+            var portalId = 0;
+        </c:when>
+        <c:otherwise>
+            var portalId = ${portal.id}
+        </c:otherwise>
+    </c:choose>
     jQuery.fn.ketchup.validation('portalPrefix', function(element, value) {
         var valid;
         jQuery.ajax({
             url: '${portalContextPath}/bdrs/root/portal/ajaxValidatePortalPrefix.htm',
             dataType: 'json',
-            data: {portalId:${portal.id}, urlPrefix:value},
+            data: {portalId:portalId, urlPrefix:value},
             async: false,
             success: function(result) {
-                console.log(result);
-                console.log(result.valid);
                 valid = result.valid;
             }
         });
