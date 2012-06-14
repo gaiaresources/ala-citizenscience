@@ -16,8 +16,10 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import javassist.scopedpool.SoftValueHashMap;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.log4j.Logger;
+import org.hibernate.FlushMode;
 import org.postgresql.util.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -284,8 +286,9 @@ public class ApplicationService extends AbstractController {
                 // to the new server id.
                 List<Map<String, Object>> syncResponseList = new ArrayList<Map<String, Object>>(); 
                 JSONArray clientData = JSONArray.fromString(jsonData);
+                SoftValueHashMap attrCache = new SoftValueHashMap();
                 for(Object jsonLocationBean : clientData){
-                    syncLocation(syncResponseList, jsonLocationBean, user);
+                    syncLocation(syncResponseList, jsonLocationBean, user, attrCache);
                 }
                 
                 status.put("sync_result", syncResponseList);
@@ -306,6 +309,8 @@ public class ApplicationService extends AbstractController {
             // what happened.
             
             log.error(e.getMessage(), e);
+
+            requestRollback(request);
             
             JSONObject error = new JSONObject();
             error.put("type", jsonStringEscape(e.getClass().getSimpleName().toString()));
@@ -326,7 +331,8 @@ public class ApplicationService extends AbstractController {
         }
     }
     
-    private void syncLocation(List<Map<String, Object>> syncResponseList, Object jsonLocationBean, User user) 
+    private void syncLocation(List<Map<String, Object>> syncResponseList,
+                              Object jsonLocationBean, User user, SoftValueHashMap attrCache)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, IOException {
         
         String clientID = getJSONString(jsonLocationBean, "id", null);
@@ -367,7 +373,7 @@ public class ApplicationService extends AbstractController {
         // Attribute Values
         List<Object> locAttrBeanList = (List<Object>) PropertyUtils.getProperty(jsonLocationBean, "attributes");
         for(Object jsonLocAttrValBean : locAttrBeanList) { 
-            AttributeValue locAttrVal = syncAttributeValue(syncResponseList, jsonLocAttrValBean);
+            AttributeValue locAttrVal = syncAttributeValue(syncResponseList, jsonLocAttrValBean, attrCache);
             loc.getAttributes().add(locAttrVal);
         }
         
@@ -418,6 +424,7 @@ public class ApplicationService extends AbstractController {
          */
 
         JSONObject jsonObj = new JSONObject();
+        getRequestContext().getHibernate().setFlushMode(FlushMode.MANUAL);
         try {
             String ident = request.getParameter("ident");
             if(ident == null) {
@@ -440,9 +447,10 @@ public class ApplicationService extends AbstractController {
                 // to the new server id.
                 List<Map<String, Object>> syncResponseList = new ArrayList<Map<String, Object>>();
                 JSONArray clientData = JSONArray.fromString(jsonData);
-                
-                for(Object jsonRecordBean : clientData){
-                    syncRecord(syncResponseList, jsonRecordBean, user);
+
+                SoftValueHashMap attrCache = new SoftValueHashMap();
+                for(Object jsonRecordBean : clientData) {
+                    syncRecord(syncResponseList, jsonRecordBean, user, attrCache);
                 }
                 
                 status.put("sync_result", syncResponseList);
@@ -455,6 +463,7 @@ public class ApplicationService extends AbstractController {
                 jsonObj.put(CLIENT_SYNC_STATUS_KEY, HttpServletResponse.SC_UNAUTHORIZED);
                 jsonObj.put(HttpServletResponse.SC_UNAUTHORIZED, auth);
             }
+            getRequestContext().getHibernate().flush();
         } catch(Throwable e) {
             // Catching throwable is bad but we do not want to cause an 
             // unhandled anything. Ever.
@@ -463,6 +472,8 @@ public class ApplicationService extends AbstractController {
             // what happened.
             
             log.error(e.getMessage(), e);
+
+            requestRollback(request);
             
             JSONObject error = new JSONObject();
             error.put("type", jsonStringEscape(e.getClass().getSimpleName().toString()));
@@ -492,7 +503,7 @@ public class ApplicationService extends AbstractController {
         }
     }
     
-    private void syncRecord(List<Map<String, Object>> syncResponseList, Object jsonRecordBean, User user) 
+    private void syncRecord(List<Map<String, Object>> syncResponseList, Object jsonRecordBean, User user, SoftValueHashMap attrCache)
         throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, IOException {
 
         String clientID = getJSONString(jsonRecordBean, "id", null);
@@ -510,7 +521,6 @@ public class ApplicationService extends AbstractController {
         } else {
             rec = recordDAO.getRecord(recordPk);
         }
-
 
         String latitudeString = getJSONString(jsonRecordBean, "latitude", "");
         Double latitude = latitudeString.trim().isEmpty() ? null : Double.parseDouble(latitudeString);
@@ -593,8 +603,8 @@ public class ApplicationService extends AbstractController {
         syncResponseList.add(map);
         
         List<Object> recAttrBeanList = (List<Object>) PropertyUtils.getProperty(jsonRecordBean, "attributeValues");
-        for(Object jsonRecAttrBean : recAttrBeanList) { 
-            AttributeValue recAttr = syncAttributeValue(syncResponseList, jsonRecAttrBean);
+        for(Object jsonRecAttrBean : recAttrBeanList) {
+            AttributeValue recAttr = syncAttributeValue(syncResponseList, jsonRecAttrBean, attrCache);
             rec.getAttributes().add(recAttr);
         }
 
@@ -607,7 +617,7 @@ public class ApplicationService extends AbstractController {
         recordDAO.saveRecord(rec);
     }
     
-    private AttributeValue syncAttributeValue(List<Map<String, Object>> syncResponseList, Object jsonRecAttrBean) 
+    private AttributeValue syncAttributeValue(List<Map<String, Object>> syncResponseList, Object jsonRecAttrBean, SoftValueHashMap attrCache)
         throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException {
         String id = getJSONString(jsonRecAttrBean, "id", null);
         if(id == null) {
@@ -617,9 +627,13 @@ public class ApplicationService extends AbstractController {
         Integer attrValPk = getJSONInteger(jsonRecAttrBean, "server_id", 0);
         Integer attrPk = getJSONInteger(jsonRecAttrBean, "attribute_id", null);
         String value = getJSONString(jsonRecAttrBean, "value", "");
-        
-        Attribute attr = taxaDAO.getAttribute(attrPk);
-        
+
+        Attribute attr = (Attribute)attrCache.get(attrPk);
+        if(attr == null) {
+            attr = taxaDAO.getAttribute(attrPk);
+            attrCache.put(attrPk, attr);
+        }
+
         AttributeValue attrVal = attrValPk < 1 ? new AttributeValue() : attributeValueDAO.get(attrValPk);
         attrVal.setAttribute(attr);
         String filename = null;
@@ -628,9 +642,14 @@ public class ApplicationService extends AbstractController {
             case INTEGER:
             case INTEGER_WITH_RANGE:
             case DECIMAL:
-                attrVal.setStringValue(value);
-                if(value != null && !value.isEmpty()) {
-                    attrVal.setNumericValue(new BigDecimal(value));
+                try {
+                    attrVal.setStringValue(value);
+                    if(value != null && !value.isEmpty()) {
+                        attrVal.setNumericValue(new BigDecimal(value));
+                    }
+                }
+                catch(NumberFormatException nfe){
+                    throw new IllegalArgumentException("An invalid decimal value was found: "+value, nfe);
                 }
                 break;
             
