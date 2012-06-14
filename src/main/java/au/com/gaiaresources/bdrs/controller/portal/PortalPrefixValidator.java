@@ -83,13 +83,13 @@ public class PortalPrefixValidator {
      * @param prefix the prefix to check.
      * @return true if the prefix may be used, false otherwise.
      */
-    public boolean isURLPrefixValid(int portalId, String prefix) {
+    public boolean isURLPrefixValid(Integer portalId, String prefix) {
         if (isReservedURLPrefix(prefix)) {
             return false;
         }
 
         Portal portalWithSameAlias = portalDAO.getPortalByUrlPrefix(null, prefix);
-        return (portalWithSameAlias == null || portalWithSameAlias.getId() == portalId);
+        return (portalWithSameAlias == null || portalWithSameAlias.getId().equals(portalId));
     }
 
     /**
