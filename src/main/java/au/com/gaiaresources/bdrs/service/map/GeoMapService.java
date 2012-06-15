@@ -63,8 +63,11 @@ public class GeoMapService {
     	if (map == null) {
     		map = new GeoMap();
     		map.setOwner(MapOwner.REVIEW);
-    		createDefaultBaseLayers(map);
     		geoMapDAO.save(map);
+    		createDefaultBaseLayers(map);
+    		// flush before refresh
+    		geoMapDAO.getSessionFactory().getCurrentSession().flush();
+            // refresh one to many relationships.
     		geoMapDAO.refresh(map);
     	}
     	return map;
@@ -81,6 +84,8 @@ public class GeoMapService {
         geoMap.setSurvey(survey);
         geoMapDAO.save(geoMap);
         createDefaultBaseLayers(geoMap);
+        // flush before refresh
+        geoMapDAO.getSessionFactory().getCurrentSession().flush();
         // refresh one to many relationships.
         geoMapDAO.refresh(geoMap);		
         return geoMap;
