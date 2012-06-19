@@ -10,6 +10,7 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -165,6 +166,7 @@ public class GeoMapLayer extends PortalPersistentImpl implements Comparable<GeoM
     }
     
     @Column(name = "SERVER_URL")
+    @Lob
     public String getServerUrl() {
 		return serverUrl;
 	}
