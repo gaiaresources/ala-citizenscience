@@ -25,7 +25,7 @@ import java.util.*;
 @Table(name = "INDICATOR_SPECIES")
 @AttributeOverride(name = "id", column = @Column(name = "INDICATOR_SPECIES_ID"))
 @Indexed
-public class IndicatorSpecies extends PortalPersistentImpl implements Attributable<IndicatorSpeciesAttribute> {
+public class IndicatorSpecies extends PortalPersistentImpl implements Attributable<AttributeValue> {
     
     public static final String FIELD_SPECIES_NAME = "Field Species";
     
@@ -35,7 +35,7 @@ public class IndicatorSpecies extends PortalPersistentImpl implements Attributab
     private TaxonGroup taxonGroup;
     private Set<Region> regions = new HashSet<Region>();
     private Set<String> regionNames = new HashSet<String>();
-    private Set<IndicatorSpeciesAttribute> attributes = new HashSet<IndicatorSpeciesAttribute>();
+    private Set<AttributeValue> attributes = new HashSet<AttributeValue>();
     private List<SpeciesProfile> infoItems = new ArrayList<SpeciesProfile>();
     private IndicatorSpecies parent;
     private TaxonRank rank;
@@ -66,13 +66,12 @@ public class IndicatorSpecies extends PortalPersistentImpl implements Attributab
 
     @CompactAttribute
     @OneToMany
-//    @JoinColumn(name = "INDICATOR_SPECIES_ID")
     @Override
-    public Set<IndicatorSpeciesAttribute> getAttributes() {
+    public Set<AttributeValue> getAttributes() {
         return attributes;
     }
 
-    public void setAttributes(Set<IndicatorSpeciesAttribute> attributes) {
+    public void setAttributes(Set<AttributeValue> attributes) {
         this.attributes = attributes;
     }
     
@@ -302,8 +301,8 @@ public class IndicatorSpecies extends PortalPersistentImpl implements Attributab
 
     @Override
     @Transient
-    public IndicatorSpeciesAttribute createAttribute() {
-        return new IndicatorSpeciesAttribute();
+    public AttributeValue createAttribute() {
+        return new AttributeValue();
     }
     
     @Column(name = "is_current", nullable = false)

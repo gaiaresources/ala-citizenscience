@@ -719,21 +719,25 @@ public class ApplicationService extends AbstractController {
             	break;
             case SPECIES:
             {
-            	Integer taxonId = getJSONInteger(jsonRecAttrBean, JSON_KEY_TAXON_ID, null);
-            	if (taxonId != null) {
-            		IndicatorSpecies species = taxaDAO.getIndicatorSpecies(taxonId);
-            		attrVal.setSpecies(species);
-            		if (species != null) {
-            			attrVal.setStringValue(value);
-            		} else {
-            			log.error("could not find species with id : " + taxonId);
-            		}
-            	} else {
-            		attrVal.setSpecies(null);
-            		attrVal.setStringValue("");
-            	}
+                Integer taxonId = getJSONInteger(jsonRecAttrBean, JSON_KEY_TAXON_ID, null);
+                if (taxonId != null) {
+                        IndicatorSpecies species = taxaDAO.getIndicatorSpecies(taxonId);
+                        attrVal.setSpecies(species);
+                        if (species != null) {
+                                attrVal.setStringValue(value);
+                        } else {
+                                log.error("could not find species with id : " + taxonId);
+                        }
+                } else {
+                        attrVal.setSpecies(null);
+                        attrVal.setStringValue("");
+                }
             }
-            	break;
+                break;
+            case CENSUS_METHOD_ROW:
+            case CENSUS_METHOD_COL:
+                // census method types should add a record to the attribute value
+                break;
             default:
                 throw new UnsupportedOperationException("Unsupported Attribute Type: "+attr.getType().toString());
         }

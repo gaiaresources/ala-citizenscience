@@ -56,6 +56,11 @@ bdrs.model.taxa.attributeType.AttributeType = function(value, code, name) {
             (bdrs.model.taxa.attributeType.value.HTML_HORIZONTAL_RULE === this);
     };
     
+    this.isCensusMethodType = function() {
+        return (bdrs.model.taxa.attributeType.value.CENSUS_METHOD_ROW === this) ||
+               (bdrs.model.taxa.attributeType.value.CENSUS_METHOD_COL === this);
+    }
+    
     return this;
 };
 
@@ -82,5 +87,7 @@ bdrs.model.taxa.attributeType.IMAGE = new bdrs.model.taxa.attributeType.Attribut
 bdrs.model.taxa.attributeType.FILE = new bdrs.model.taxa.attributeType.AttributeType('FILE', 'FI', 'Data File');
 bdrs.model.taxa.attributeType.AUDIO = new bdrs.model.taxa.attributeType.AttributeType('AUDIO', 'AU', 'Audio File');
 bdrs.model.taxa.attributeType.SPECIES = new bdrs.model.taxa.attributeType.AttributeType('SPECIES', 'SP', 'Species');
+bdrs.model.taxa.attributeType.CENSUS_METHOD_ROW = new bdrs.model.taxa.attributeType.AttributeType('CENSUS_METHOD_ROW', 'CR', 'Census Method Row');
+bdrs.model.taxa.attributeType.CENSUS_METHOD_COL = new bdrs.model.taxa.attributeType.AttributeType('CENSUS_METHOD_COL', 'CC', 'Census Method Column');
 
 

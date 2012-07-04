@@ -8,32 +8,25 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import au.com.gaiaresources.bdrs.model.record.RecordService;
-import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
-import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 
-import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField;
-import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormFieldFactory;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordFormFieldCollection;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
@@ -42,33 +35,26 @@ import au.com.gaiaresources.bdrs.deserialization.record.RecordDeserializer;
 import au.com.gaiaresources.bdrs.deserialization.record.RecordDeserializerResult;
 import au.com.gaiaresources.bdrs.deserialization.record.RecordEntry;
 import au.com.gaiaresources.bdrs.deserialization.record.RecordKeyLookup;
-import au.com.gaiaresources.bdrs.file.FileService;
 import au.com.gaiaresources.bdrs.model.location.Location;
-import au.com.gaiaresources.bdrs.model.location.LocationDAO;
-import au.com.gaiaresources.bdrs.model.location.LocationNameComparator;
 import au.com.gaiaresources.bdrs.model.location.LocationService;
-import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
-import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
+import au.com.gaiaresources.bdrs.model.record.RecordService;
 import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
 import au.com.gaiaresources.bdrs.model.record.impl.AdvancedRecordFilter;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValueUtil;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.content.ContentService;
 import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
-import au.com.gaiaresources.bdrs.util.StringUtils;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -85,7 +71,6 @@ public abstract class SingleSiteController extends RecordController {
     private static final RecordPropertyType[] TAXA_RECORD_PROPERTY_NAMES = new RecordPropertyType[] {
             RecordPropertyType.SPECIES, RecordPropertyType.NUMBER };
 
-    public static final String PREFIX_TEMPLATE = "%d_";
     public static final String PARAM_ROW_PREFIX = "rowPrefix";
 
     public static final String PARAM_ACCURACY = "accuracyInMeters";
@@ -103,8 +88,6 @@ public abstract class SingleSiteController extends RecordController {
     
     public static final String PARAM_SIGHTING_INDEX = "sightingIndex";
     
-    private static final int STARTING_SIGHTING_INDEX = 0;
-    
     public static final String ROW_VIEW = "singleSiteMultiTaxaRow";
     
     public static final String MSG_CODE_SUCCESS_MY_SIGHTINGS = "bdrs.record.singlesitemultitaxa.save.success.mySightings";
@@ -118,17 +101,6 @@ public abstract class SingleSiteController extends RecordController {
     public static final String MODEL_SURVEY_FORM_FIELD_LIST = "formFieldList";
     
     /**
-     * The list of record form field collection objects that may be populated with
-     * attribute value data,.
-     */
-    public static final String MODEL_RECORD_ROW_LIST = "recordFieldCollectionList";
-    
-    /**
-     * The form fields used to create the header of the sightings table
-     */
-    public static final String MODEL_SIGHTING_ROW_LIST = "sightingRowFormFieldList";
-    
-    /**
      * The record object used to populate the form fields.
      */
     public static final String MODEL_RECORD = "record";
@@ -138,23 +110,15 @@ public abstract class SingleSiteController extends RecordController {
 
     @Autowired
     private RecordDAO recordDAO;
-    @Autowired
-    private SurveyDAO surveyDAO;
-    @Autowired
-    private TaxaDAO taxaDAO;
 
-    @Autowired
-    private CensusMethodDAO cmDAO;
     @Autowired
     private MetadataDAO metadataDAO;
     @Autowired
     private RecordService recordService;
     @Autowired
     private GeoMapService geoMapService;
-
     @Autowired
     private LocationService locationService;
-    private FormFieldFactory formFieldFactory = new FormFieldFactory();
 
     private Logger log = Logger.getLogger(getClass());
 
@@ -305,7 +269,8 @@ public abstract class SingleSiteController extends RecordController {
             HttpServletResponse response, int surveyId, int sightingIndex) {
         Survey survey = surveyDAO.getSurvey(surveyId);
         Record record = new Record();
-
+        RecordWebFormContext context = new RecordWebFormContext(request, record, getRequestContext().getUser(), survey, geoMapService);
+        
         // Add survey scope attribute form fields
         String prefix = getSightingPrefix(sightingIndex);
         List<FormField> formFieldList = new ArrayList<FormField>();
@@ -313,7 +278,14 @@ public abstract class SingleSiteController extends RecordController {
             // Only record scoped attributes should be in the sightings table.
             if (AttributeScope.isRecordScope(attribute.getScope()) 
                     && !attribute.isTag()) {
-                formFieldList.add(formFieldFactory.createRecordFormField(survey, record, attribute, null, prefix));
+                if (AttributeType.isCensusMethodType(attribute.getType())) {
+                    FormField ff = createCensusMethodFormField(survey, record, attribute, getRequestContext().getUser(), prefix, context);
+                    if (ff != null) {
+                        formFieldList.add(ff);
+                    }
+                } else {
+                    formFieldList.add(formFieldFactory.createRecordFormField(survey, record, attribute, null, prefix));
+                }
             }
         }
         // Add all property form fields
@@ -324,7 +296,6 @@ public abstract class SingleSiteController extends RecordController {
         }
         Collections.sort(formFieldList);
         
-        RecordWebFormContext context = new RecordWebFormContext(request, record, getRequestContext().getUser(), survey, geoMapService);
         context.addFormFields("formFieldList", formFieldList);
 
         ModelAndView mv = new ModelAndView(ROW_VIEW);
@@ -387,7 +358,6 @@ public abstract class SingleSiteController extends RecordController {
         // save a list of the record scoped attributes for construction of form fields for each
         // record (aka sighting table row) later...
         Map<String, Attribute> recordScopedAttributeList = new TreeMap<String, Attribute>();
-        int sightingIndex = STARTING_SIGHTING_INDEX;
         
         // the final list of populated form field collections that we will use to render the web form.
         List<RecordFormFieldCollection> recFormFieldCollectionList = new ArrayList<RecordFormFieldCollection>();
@@ -396,112 +366,57 @@ public abstract class SingleSiteController extends RecordController {
         // save a list of the record scoped record properties for construction of form fields
         // for each record (aka sighting table row) later...
         Map<String, RecordProperty> recordScopedRecordPropertyList = new TreeMap<String, RecordProperty>();
-        boolean showMap = createAttributeLists(survey, accessor, record, sightingRowFormFieldList, formFieldList, recordScopedAttributeList, recordScopedRecordPropertyList);
+        boolean showMap = createAttributeLists(survey, accessor, record, sightingRowFormFieldList, formFieldList, recordScopedAttributeList, recordScopedRecordPropertyList, context);
 
         Set<Location> locations = locationService.locationsForSurvey(survey, getRequestContext().getUser());
 
         ModelAndView mv = new ModelAndView(viewName);
 
+        @SuppressWarnings("unchecked")
         Map<String, String> valueMap = (Map<String, String>)getRequestContext().getSessionAttribute(BdrsWebConstants.MV_VALUE_MAP);
         // clear the session attributes once they are used here
         getRequestContext().removeSessionAttribute(BdrsWebConstants.MV_VALUE_MAP);
-        // if there is no value map, this is a blank form, use the recordsForFormInstance
-        // otherwise, we only want to load the data from the value map as it is the representation
-        // of the submitted form
-        if (valueMap == null) {
-            // modify the list
-            // note we need to reassign as it is a new list instance...
-            recordsForFormInstance = modifyRecordDisplayList(recordsForFormInstance, survey);
-            for (Record rec : recordsForFormInstance) {
-                boolean highlight = rec.equals(record);
-                String prefix = getSightingPrefix(sightingIndex++);
-                
-                RecordFormFieldCollection rffc = new RecordFormFieldCollection(prefix, 
-                                                                               rec, 
-                                                                               highlight, 
-                                                                               recordScopedRecordPropertyList.values(),
-                                                                               recordScopedAttributeList.values());
-                
-                recFormFieldCollectionList.add(rffc);
-            }
-        } else {
-            // convert the valueMap into a set of records
-            Map<String, Record> recordMap = new HashMap<String, Record>();
-            // keep track of all the values we are creating records from
-            // these values will become record form fields and the form values will
-            // be retrieved from those objects instead of the form field to keep 
-            // the rows intact
-            Set<String> valsToRemove = new HashSet<String>();
-            for (Entry<String,String> valueEntry : valueMap.entrySet()) {
-                // only store indexed values here
-                String key = valueEntry.getKey();
-                int underIndex = key.indexOf("_");
-                if (underIndex > 0) {
-                    // get the prefix of the value (the sighting index)
-                    String index = key.substring(0, underIndex);
-                    if (recordMap.containsKey(index)) {
-                        record = recordMap.get(index);
-                    } else {
-                        record = new Record();
-                        recordMap.put(index, record);
+        recordsForFormInstance = modifyRecordDisplayList(recordsForFormInstance, survey);
+        
+        // mock save the record
+        if (valueMap != null) {
+            RecordKeyLookup lookup = new TrackerFormRecordKeyLookup();
+            SingleSiteFormToRecordEntryTransformer transformer = new SingleSiteFormToRecordEntryTransformer(locationService);
+            SingleSiteFormAttributeDictionaryFactory adf = new SingleSiteFormAttributeDictionaryFactory();
+            AttributeParser parser = new WebFormAttributeParser(taxaDAO);
+    
+            RecordDeserializer rds = new RecordDeserializer(lookup, adf, parser);
+            Map<String, String[]> errorRequestMap = convertMap(valueMap);
+            List<RecordEntry> entries = transformer.httpRequestParamToRecordMap(errorRequestMap, 
+                                                                                Collections.<String,MultipartFile>emptyMap(), 
+                                                                                errorRequestMap.get(SingleSiteController.PARAM_ROW_PREFIX));
+            try {
+                List<RecordDeserializerResult> results = rds.deserialize(getRequestContext().getUser(), entries, false, false);
+                if (results.size() >= 1) {
+                    for (RecordDeserializerResult result : results) {
+                        Record thisRecord = result.getRecord();
+                        if (!recordsForFormInstance.contains(thisRecord)) {
+                            // replace the record in the form instance with the 
+                            // one from the valuemap
+                            recordsForFormInstance.add(thisRecord);
+                        }
                     }
-                    // set the survey for the record for other lookups
-                    record.setSurvey(survey);
-                    
-                    // set the attribute/property value for the record for this value
-                    String attrName = key.substring(underIndex+1);
-                    if (recordScopedAttributeList.containsKey(attrName)) {
-                        AttributeValue value = new AttributeValue();
-                        value.setAttribute(recordScopedAttributeList.get(attrName));
-                        value.setStringValue(valueEntry.getValue());
-                        try {
-                            value.populateFromStringValue();
-                        } catch (Exception e) {
-                            log.warn("Unable to populate attribute value from string value.", e);
-                        }
-                        record.getAttributes().add(value);
-                        // remove the attribute from the value map
-                        valsToRemove.add(key);
-                    } else if (recordScopedRecordPropertyList.containsKey(attrName)) {
-                        RecordProperty prop = recordScopedRecordPropertyList.get(attrName);
-                        // we are going to try to parse the value as an Integer
-                        // so we want to make sure it is not null or empty first
-                        if (!StringUtils.nullOrEmpty(valueEntry.getValue())) {
-                            if (prop.getRecordPropertyType().equals(RecordPropertyType.NUMBER)) {
-                                record.setNumber(Integer.valueOf(valueEntry.getValue()));
-                            } else if (prop.getRecordPropertyType().equals(RecordPropertyType.SPECIES)) {
-                                // get the indicator species from the value
-                                IndicatorSpecies species = taxaDAO.getIndicatorSpecies(Integer.valueOf(valueEntry.getValue()));
-                                record.setSpecies(species);
-                            }
-                        }
-                        // remove the attribute from the value map
-                        valsToRemove.add(key);
-                    } else if (attrName.equals(BdrsWebConstants.PARAM_RECORD_ID)) {
-                        if (!StringUtils.nullOrEmpty(valueEntry.getValue())) {
-                            record.setId(Integer.valueOf(valueEntry.getValue()));
-                        }
-                        // remove the attribute from the value map
-                        valsToRemove.add(key);
-                    }
+                    // reset the valuemap so we don't try to use it again when
+                    // we create form fields
+                    // the valuemap bit should probably just be removed from the
+                    // form field creation now that we are mock saving the 
+                    // record with the valuemap values instead
+                    valueMap = null;
+                } else {
+                    log.error("Error loading record from value map: got "+results.size());
                 }
-            }
-            
-            for (String string : valsToRemove) {
-                valueMap.remove(string);
-            }
-            
-            for (Record record2 : recordMap.values()) {
-                    String prefix = getSightingPrefix(sightingIndex++);
-                    RecordFormFieldCollection rffc = new RecordFormFieldCollection(prefix, 
-                                                                               record2, 
-                                                                               false, 
-                                                                               recordScopedRecordPropertyList.values(),
-                                                                               recordScopedAttributeList.values());
-                    recFormFieldCollectionList.add(rffc);
+            } catch (Exception e) {
+                log.error("Error loading record from value map", e);
             }
         }
-
+        
+        createRecordFormFieldLists(recordsForFormInstance, valueMap, recFormFieldCollectionList, record, accessor, survey, recordScopedRecordPropertyList, recordScopedAttributeList, context);
+        
         User updatedByUser = recordService.getUpdatedByUser(record);
         mv.addObject("updatedBy", updatedByUser);
         // form field list is the survey scoped attributes.
@@ -526,17 +441,15 @@ public abstract class SingleSiteController extends RecordController {
         mv.addObject("preview", request.getParameter("preview") != null);
         mv.addObject("censusMethod", censusMethod);
         mv.addObject(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT, context);
-        if (accessor != null) {
-            mv.addObject("ident", accessor.getRegistrationKey());
-        }
 
+        @SuppressWarnings("unchecked")
         Map<String, String> errorMap = (Map<String, String>)getRequestContext().getSessionAttribute(BdrsWebConstants.MV_ERROR_MAP);
         getRequestContext().removeSessionAttribute(BdrsWebConstants.MV_ERROR_MAP);
         mv.addObject(BdrsWebConstants.MV_ERROR_MAP, errorMap);
         mv.addObject(BdrsWebConstants.MV_VALUE_MAP, valueMap);
         mv.addObject("displayMap", showMap);
         
-        return mv;
+        return super.addRecord(mv, accessor);
     }
 
     /**
@@ -558,16 +471,30 @@ public abstract class SingleSiteController extends RecordController {
             List<FormField> sightingRowFormFieldList,
             List<FormField> formFieldList,
             Map<String, Attribute> recordScopedAttributeList,
-            Map<String, RecordProperty> recordScopedRecordPropertyList) {
+            Map<String, RecordProperty> recordScopedRecordPropertyList, RecordWebFormContext context) {
         for (Attribute attribute : survey.getAttributes()) {
             if (!attribute.isTag()
                     && !AttributeScope.LOCATION.equals(attribute.getScope())) {
                 AttributeValue attrVal = record == null ? null : AttributeValueUtil.getAttributeValue(attribute, record);
                 if (AttributeScope.isSurveyScope(attribute.getScope())) {
-                    formFieldList.add(formFieldFactory.createRecordFormField(survey, record, attribute, attrVal));
+                    if (AttributeType.isCensusMethodType(attribute.getType())) {
+                        FormField ff = createCensusMethodFormField(survey, record, attribute, accessor, AttributeParser.DEFAULT_PREFIX, context);
+                        if (ff != null) {
+                            formFieldList.add(ff);
+                        }
+                    } else {
+                        formFieldList.add(formFieldFactory.createRecordFormField(survey, record, attribute, attrVal));
+                    }
                 } else if (AttributeScope.isRecordScope(attribute.getScope())) {
                     recordScopedAttributeList.put(String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, "", attribute.getId()), attribute);
-                    sightingRowFormFieldList.add(formFieldFactory.createRecordFormField(survey, record, attribute));
+                    if (AttributeType.isCensusMethodType(attribute.getType())) {
+                        FormField ff = createCensusMethodFormField(survey, record, attribute, accessor, AttributeParser.DEFAULT_PREFIX, context);
+                        if (ff != null) {
+                            sightingRowFormFieldList.add(ff);
+                        }
+                    } else {
+                        sightingRowFormFieldList.add(formFieldFactory.createRecordFormField(survey, record, attribute));
+                    }
                 }
             }
         }
@@ -600,7 +527,7 @@ public abstract class SingleSiteController extends RecordController {
         return showMap;
     }
 
-    private List<Record> getRecordsForFormInstance(Record rec, User accessor) {
+    protected List<Record> getRecordsForFormInstance(Record rec, User accessor) {
         
         // early return if the record is a non persisted instance - i.e. this will return
         // an empty form.
@@ -677,11 +604,6 @@ public abstract class SingleSiteController extends RecordController {
         return result;
     }
     
-    
-    private static String getSightingPrefix(int sightingIndex) {
-        return String.format(PREFIX_TEMPLATE, sightingIndex);
-    }
-    
     /**
      * Overridable method that we can use to alter what items are displayed in the form instance.
      * 
@@ -694,5 +616,55 @@ public abstract class SingleSiteController extends RecordController {
      */
     protected List<Record> modifyRecordDisplayList(List<Record> recordsForFormInstance, Survey survey) {
         return recordsForFormInstance;
+    }
+    
+    /**
+     * Creates record form field lists used when an error has occurred on the page.
+     * @param recordsForFormInstance a list of records that will be shown on the form
+     * @param valueMap a map of values for each form field
+     * @param recFormFieldCollectionList the collection of form fields for the page
+     * @param record the record that is being saved
+     * @param accessor the user trying to save the record
+     * @param survey the survey for which the record is being saved
+     * @param recordScopedRecordPropertyList a mapping of record scoped properties
+     * @param recordScopedAttributeList a mapping of record scoped attributes
+     * @param context 
+     */
+    protected void createRecordFormFieldLists(List<Record> recordsForFormInstance, Map<String, String> valueMap,
+            List<RecordFormFieldCollection> recFormFieldCollectionList, Record record, 
+            User accessor, Survey survey, 
+            Map<String, RecordProperty> recordScopedRecordPropertyList, 
+            Map<String, Attribute> recordScopedAttributeList, RecordWebFormContext context) {
+        int sightingIndex = STARTING_SIGHTING_INDEX;
+        // if there is no value map, this is a blank form, use the recordsForFormInstance
+        // otherwise, we only want to load the data from the value map as it is the representation
+        // of the submitted form
+        if (valueMap == null) {
+            // modify the list
+            // note we need to reassign as it is a new list instance...
+            for (Record rec : recordsForFormInstance) {
+                boolean highlight = rec.equals(record);
+                String prefix = getRowIndexPrefix(sightingIndex++);
+                
+                RecordFormFieldCollection rffc = new RecordFormFieldCollection(prefix, 
+                                                                               rec, 
+                                                                               highlight, 
+                                                                               recordScopedRecordPropertyList.values(),
+                                                                               recordScopedAttributeList.values());
+                
+                recFormFieldCollectionList.add(rffc);
+                // create the census method attribute form fields
+                for (Attribute a : survey.getAttributes()) {
+                    if (AttributeScope.isRecordScope(a.getScope()) && 
+                            AttributeType.isCensusMethodType(a.getType())) {
+                        // must do this to ensure the appropriate form fields are 
+                        // added to the form context named collections for building
+                        // the census method attribute forms
+                        createCensusMethodFormField(survey, record, a, accessor, prefix, context);
+                    }
+                }
+                
+            }
+        }
     }
 }

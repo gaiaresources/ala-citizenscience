@@ -375,7 +375,11 @@ bdrs.review.mysightings.table_tab_display_change_handler = function(event, is_se
 
 	            // Preprocessing and Formatting
 	            rec.contextPath = bdrs.portalContextPath;
-	            rec._when = rec._when_formatted.replace(/ /gi, "&nbsp;");
+	            var formatted_date = rec._when_formatted;
+				if (formatted_date === undefined || formatted_date === null) {
+					formatted_date = "";
+				}
+	            rec._when = formatted_date.replace(/ /gi, "&nbsp;");
 	            if(rec.species === null || rec.species === undefined) {
 	                rec.species = bdrs.review.mysightings.NON_TAXONOMIC_SPECIES_PLACEHOLDER;
 	            }

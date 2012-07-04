@@ -36,7 +36,7 @@ public abstract class AbstractImportExportService<T extends PersistentImpl> impl
     /**
      * The logging instance for this class.
      */
-    private Logger log = Logger.getLogger(getClass());
+    protected Logger log = Logger.getLogger(getClass());
 
     /**
      * Provides access to the BDRS file store.

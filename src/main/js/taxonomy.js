@@ -290,6 +290,7 @@ bdrs.taxonomy.displayTaxonProperties = function(taxon,
         if(attrToAttrValMap[groupAttr.id] !== undefined) {
             
             attrVal = attrToAttrValMap[groupAttr.id];
+            var attr_type = bdrs.model.taxa.attributeType.code[groupAttr.typeCode]
             if(groupAttr.type === 'FILE' || groupAttr.type === 'AUDIO') {
                 displayElem = '<a href="'+bdrs.portalContextPath+'/files/download.htm?'+attrVal.fileURL+'">' +
                                 attrVal.stringValue + '</a>';
@@ -298,6 +299,8 @@ bdrs.taxonomy.displayTaxonProperties = function(taxon,
                                 '<img class="max_size_img" src="' +
                                 bdrs.portalContextPath+'/files/download.htm?'+attrVal.fileURL +
                                 '" alt="Missing Image"/></a>';
+            } else if (attr_type.isCensusMethodType()) {
+                displayElem = bdrs.attribute.createCensusMethodTable(attr_type, attrVal, false).html();
             } else {
                 displayElem = attrVal.stringValue;
             }

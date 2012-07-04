@@ -481,7 +481,8 @@ ul.menu ul ul ul ul li a{
 /*************************************************/
 
 /* datatable and jqgrid header */
-.datatable th,
+.datatable tbody tr th,
+.datatable thead th,
 table.ui-jqgrid-htable th.ui-state-default.ui-th-column.ui-th-ltr {
     color: ${style.table.header.text.color};
     background: ${style.table.header.background.color};
@@ -709,4 +710,20 @@ a:link, a:visited, a:visited.neverVisited {
 
 .displayTabSelected {
     color: ${style.content.text.color};
+}
+
+/************************************************/
+/* Style for census method attribute tables     */
+/************************************************/
+
+table.censusMethodAttributeTable tbody tr th.censusMethodAttributeColumnHeader {
+    color: ${style.table.header.text.color};
+    background: ${style.table.header.background.color};
+    border-color: ${style.menu.border.color};
+}
+
+table.censusMethodAttributeTable tbody tr th.censusMethodAttributeRowHeader {
+    color: ${style.content.text.color};
+    background: transparent;
+    border: 1px solid #C0C0C0;
 }

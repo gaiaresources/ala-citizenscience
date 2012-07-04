@@ -3,7 +3,9 @@ package au.com.gaiaresources.bdrs.model.taxa.impl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Repository;
 
 import au.com.gaiaresources.bdrs.db.impl.AbstractDAOImpl;
 import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
+import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
@@ -145,7 +148,7 @@ public class AttributeDAOImpl extends AbstractDAOImpl implements AttributeDAO {
     
     @Override
     public <T extends TypedAttributeValue> void delete(T av) {
-        super.delete(av);
+        deleteByQuery(av);
     }
     
     @Override
@@ -156,7 +159,6 @@ public class AttributeDAOImpl extends AbstractDAOImpl implements AttributeDAO {
     @Override
     public void delete(Session sesh, Attribute attr) {
         super.delete(sesh, attr);
-        
     }
 
     @Override

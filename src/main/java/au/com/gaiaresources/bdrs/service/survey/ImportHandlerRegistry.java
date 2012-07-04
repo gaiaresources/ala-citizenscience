@@ -13,12 +13,14 @@ import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
+import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.service.survey.handler.AttributeValueImportHandler;
 import au.com.gaiaresources.bdrs.service.survey.handler.MetadataImportHandler;
+import au.com.gaiaresources.bdrs.service.survey.handler.RecordImportHandler;
 import au.com.gaiaresources.bdrs.service.survey.handler.SimpleImportHandler;
 import au.com.gaiaresources.bdrs.service.survey.handler.UserImportHandler;
 
@@ -41,6 +43,7 @@ public class ImportHandlerRegistry extends HashMap<String, ImportHandler> {
         new SimpleImportHandler(locationService, AttributeOption.class).register(this);
         new SimpleImportHandler(locationService, CensusMethod.class).register(this);
         new SimpleImportHandler(locationService, Location.class).register(this);
+        new RecordImportHandler(locationService, Record.class).register(this);
         new AttributeValueImportHandler(locationService, fileService).register(this);
         // don't register the user import handler if there is no way to access 
         // the system user accounts

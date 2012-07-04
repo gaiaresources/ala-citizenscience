@@ -412,7 +412,7 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
     }
     
     protected Attribute createAttribute(String name, AttributeType type, boolean required) {
-        return createAttribute(name, type, required, null);
+        return createAttribute(name, type, required, new String[]{});
     }
     
     protected Attribute createAttribute(String name, AttributeType type, boolean required, String[] args) {
@@ -476,6 +476,8 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
         case IMAGE:
         case AUDIO:
         case FILE:
+        case CENSUS_METHOD_ROW:
+        case CENSUS_METHOD_COL:
             // ignored
             break;
         case SPECIES:
@@ -558,6 +560,8 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
         case IMAGE:
         case AUDIO:
         case FILE:
+        case CENSUS_METHOD_ROW:
+        case CENSUS_METHOD_COL:
             Assert.fail("Cannot properly assert this attribute type : " + a.getTypeCode());
             // ignored
             break;
@@ -608,6 +612,8 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
         case IMAGE:
         case AUDIO:
         case FILE:
+        case CENSUS_METHOD_ROW:
+        case CENSUS_METHOD_COL:
             Assert.fail("Cannot properly assert this attribute type : " + a.getTypeCode());
             // ignored
             break;

@@ -95,6 +95,11 @@ public class RecordAttributeHandler implements OperatorHandler {
                     case SPECIES:
                     	match = conditionOperatorHandler.match(condition.getValueOperator(), recAttr.getStringValue(), condition.stringValue());
                     	break;
+                    case CENSUS_METHOD_ROW:
+                    case CENSUS_METHOD_COL:
+                        // census method attributes never match conditions
+                        match = false;
+                        break;
                     default:
                         log.warn(String.format("Unknown attribute type found %s Match is false.", recAttr.getAttribute().getType().toString()));
                         match = false;

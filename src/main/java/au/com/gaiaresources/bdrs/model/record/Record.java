@@ -46,7 +46,8 @@ import java.util.TimeZone;
         @FilterDef(name = Record.USER_ACCESS_FILTER, parameters = @ParamDef(name = "userId", type = "integer")),
         @FilterDef(name = Record.MODERATOR_ACCESS_FILTER, parameters = @ParamDef(name = "userId", type = "integer")),
         // This filter is to restrict queries to records that have attached images.
-        @FilterDef(name = Record.IMAGE_FILTER)
+        @FilterDef(name = Record.IMAGE_FILTER),
+        @FilterDef(name = Record.PARTIAL_RECORD_COUNT_FILTER)
 })
 @Filters({
         @Filter(name = PortalPersistentImpl.PORTAL_FILTER_NAME, condition = ":portalId = PORTAL_ID"),
@@ -58,7 +59,8 @@ import java.util.TimeZone;
                     "inner join RECORD_ATTRIBUTE_VALUE av on av.RECORD_RECORD_ID=r.RECORD_ID " +
                     "inner join ATTRIBUTE_VALUE v on av.ATTRIBUTES_ATTRIBUTE_VALUE_ID=v.ATTRIBUTE_VALUE_ID " +
                     "inner join ATTRIBUTE a on v.ATTRIBUTE_ID=a.ATTRIBUTE_ID " +
-                  "where a.TYPE_CODE='IM' and v.STRING_VALUE is not null)")
+                  "where a.TYPE_CODE='IM' and v.STRING_VALUE is not null)"),
+        @Filter(name = Record.PARTIAL_RECORD_COUNT_FILTER, condition = "PARENT_ATTRIBUTE_VALUE is null")
 })
 @Table(name = "RECORD")
 @AttributeOverride(name = "id", column = @Column(name = "RECORD_ID"))
@@ -68,13 +70,14 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     public static final String USER_ACCESS_FILTER = "userRecordAccessFilter";
     public static final String MODERATOR_ACCESS_FILTER = "moderatorRecordAccessFilter";
     public static final String IMAGE_FILTER = "imageFilter";
+    public static final String PARTIAL_RECORD_COUNT_FILTER = "partialRecordCountFilter";
     public static final String FILTER_PARAMETER_USER = "userId";
 
     // no species and number seen
     public static final List<RecordPropertyType> NON_TAXONOMIC_RECORD_PROPERTY_NAMES;
 
     static {
-        ArrayList list = new ArrayList<RecordPropertyType>(6);
+        ArrayList<RecordPropertyType> list = new ArrayList<RecordPropertyType>(6);
         list.add(RecordPropertyType.LOCATION);
         list.add(RecordPropertyType.POINT);
         list.add(RecordPropertyType.ACCURACY);
@@ -117,6 +120,9 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     private Set<ReviewRequest> reviewRequests = new HashSet<ReviewRequest>();
 
     private Set<Metadata> metadata = new HashSet<Metadata>();
+    
+    /** Reference to an attribute value which holds this record as one of its values */
+    private AttributeValue attributeValue;
     
     /**
      * Contains the Comments that have been made on this Record
@@ -176,7 +182,24 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     public void setChildRecords(Set<Record> value) {
         childRecords = value;
     }
-
+    
+    /**
+     * Gets the attribute value that the record belongs to.
+     * This is for census method attribute types where each attribute value
+     * is a collection of records with attributes.
+     */
+    @CompactAttribute
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "PARENT_ATTRIBUTE_VALUE", nullable = true)
+    @ForeignKey(name = "ATTRIBUTE_VALUE_FK")
+    public AttributeValue getAttributeValue() {
+        return attributeValue;
+    }
+    
+    public void setAttributeValue(AttributeValue recAttr) {
+        this.attributeValue = recAttr;
+    }
+    
     /**
      * Gets the survey that the record belongs to
      * <p/>
@@ -434,6 +457,8 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     @CompactAttribute
     @OneToMany
     @Override
+    @JoinTable(name="record_attribute_value", joinColumns={@JoinColumn(name="record_record_id")}, 
+               inverseJoinColumns={@JoinColumn(name="attributes_attribute_value_id")})
     public Set<AttributeValue> getAttributes() {
         return attributes;
     }
@@ -759,10 +784,14 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
      */
     @Transient
     public boolean isAtLeastOneModerationAttribute() {
-        // check the survey attributes when available
-        for (Attribute att : survey.getAttributes()) {
-            if (AttributeScope.isModerationScope(att.getScope())) {
-                return true;
+        // check if the survey is null first
+        // this can happen for census method attribute types
+        if (survey != null) {
+            // check the survey attributes when available
+            for (Attribute att : survey.getAttributes()) {
+                if (AttributeScope.isModerationScope(att.getScope())) {
+                    return true;
+                }
             }
         }
         return false;

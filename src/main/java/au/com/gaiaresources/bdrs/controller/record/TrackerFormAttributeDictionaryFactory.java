@@ -1,11 +1,8 @@
 package au.com.gaiaresources.bdrs.controller.record;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import edu.emory.mathcs.backport.java.util.Collections;
 
 import au.com.gaiaresources.bdrs.attribute.AbstractAttributeDictionaryFactory;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
@@ -21,13 +18,13 @@ public class TrackerFormAttributeDictionaryFactory extends AbstractAttributeDict
      * this behaviour is required in the future these methods can be implemented. 
      */
     @Override
-    public Map<Attribute, String> createFileKeyDictionary(List<Survey> survey,
+    public Map<Attribute, Object> createFileKeyDictionary(List<Survey> survey,
             TaxonGroup taxonGroup, List<CensusMethod> censusMethod) {
         throw new IllegalStateException("not supported");
     }
 
     @Override
-    public Map<Attribute, String> createNameKeyDictionary(List<Survey> survey,
+    public Map<Attribute, Object> createNameKeyDictionary(List<Survey> survey,
             TaxonGroup taxonGroup, List<CensusMethod> censusMethod) {
         throw new IllegalStateException("not supported");
     }

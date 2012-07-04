@@ -4,19 +4,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.ws.http.HTTPException;
-
-import au.com.gaiaresources.bdrs.json.JSONArray;
-import au.com.gaiaresources.bdrs.json.JSONObject;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,19 +19,19 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import au.com.gaiaresources.bdrs.controller.AbstractController;
+import au.com.gaiaresources.bdrs.json.JSONArray;
+import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeUtil;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import au.com.gaiaresources.bdrs.util.location.LocationUtils;
 
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -80,13 +72,16 @@ public class LocationWebService extends AbstractController {
     public void getLocationById(HttpServletRequest request,
                                 HttpServletResponse response,
                                 @RequestParam(value="id", required=true) int pk,
-                                @RequestParam(value=BdrsWebConstants.PARAM_SURVEY_ID, required=false, defaultValue="-1") int surveyId)
+                                @RequestParam(value=BdrsWebConstants.PARAM_SURVEY_ID, required=false, defaultValue="-1") int surveyId,
+                                @RequestParam(value="displayAttributes", required=false, defaultValue="false") boolean displayAttributes)
         throws IOException {
 
         Location location = locationDAO.getLocation(pk);
-        
-        Map<String,Object> locationObj = location.flatten(2);
-        if (surveyId != -1) {
+        // get the depth from the depth of attributes to display
+        // use 4 if we want to display attributes and 2 otherwise
+        int depth = displayAttributes ? 4 : 2;
+        Map<String,Object> locationObj = location.flatten(depth);
+        if (displayAttributes && surveyId != -1) {
             filterAttributesBySurvey(surveyId, location, locationObj);
         }
         
@@ -205,74 +200,6 @@ public class LocationWebService extends AbstractController {
      */
     private void filterAttributesBySurvey(int surveyId, Location location, Map<String, Object> locationObj) {
         Survey survey = surveyDAO.get(surveyId);
-        // create an Attribute-indexed map of the location attributes
-        // so we can get the attribute value by attribute later
-        Map<Attribute, AttributeValue> typedAttrMap = new HashMap<Attribute, AttributeValue>();
-        for (AttributeValue attr : location.getAttributes()) {
-            typedAttrMap.put(attr.getAttribute(), attr);
-        }
-        
-        // get all of the attributes for the survey and filter - only keep 
-        // attribute values for this location that match the survey attributes
-        Set<Integer> attrIdsToKeep = new HashSet<Integer>();
-        // also keep track of any location-scoped HTML attributes on the survey
-        // as they will need to be added to the form too
-        List<Attribute> attributesToAdd = new ArrayList<Attribute>();
-        for(Attribute attribute : survey.getAttributes()) {
-            if(AttributeScope.LOCATION.equals(attribute.getScope())) {
-                AttributeValue value = typedAttrMap.get(attribute);
-                // if the attribute has a value, it is a keeper
-                if (value != null && value.getValue() != null) {
-                    attrIdsToKeep.add(attribute.getId());
-                } else {
-                    // if it is an HTML attribute, it will need to be added later
-                    if (AttributeUtil.isHTMLType(attribute)) {
-                        attributesToAdd.add(attribute);
-                    }
-                }
-            }
-        }
-        
-        List<Map<String, Object>> attributes = (List<Map<String, Object>>) locationObj.get("orderedAttributes");
-        List<Object> removeAttrs = new ArrayList<Object>();
-        Map<Integer, Attribute> indexedAttributes = new TreeMap<Integer, Attribute>();
-        int index = 0;
-        for (Map<String, Object> attributeMap : attributes) {
-            Map<String, Object> attributeValues = (Map<String, Object>) attributeMap.get("attribute");
-            Integer id = (Integer) attributeValues.get("id");
-            if (!attrIdsToKeep.contains(id)) {
-                // remove attributes not found in the survey
-                removeAttrs.add(attributeMap);
-            }
-            // check the weight of the attribute and insert or append the values from attributesToAdd accordingly
-            Integer weight = (Integer) attributeValues.get("weight");
-            // check the attributesToAdd for any of this weight or less
-            for (Attribute att : attributesToAdd) {
-                if (att.getWeight() < weight) {
-                    indexedAttributes.put(index++, att);
-                }
-            }
-            // remove any added attributes from the attributesToAdd list
-            attributesToAdd.removeAll(indexedAttributes.values());
-            
-            // increment the index for the element
-            index++;
-        }
-        
-        // add any remaining attributes from attributesToAdd
-        for (Attribute att : attributesToAdd) {
-            indexedAttributes.put(index++, att);
-        }
-        
-        // add the indexed attributes to the list
-        for (Entry<Integer, Attribute> entry : indexedAttributes.entrySet()) {
-            // create an empty attribute value to hold the attribute
-            AttributeValue value = new AttributeValue();
-            value.setStringValue("");
-            value.setAttribute(entry.getValue());
-            attributes.add(entry.getKey(), value.flatten(2));
-        }
-        
-        attributes.removeAll(removeAttrs);
+        LocationUtils.filterAttributesBySurvey(survey, location, locationObj);
     }
 }

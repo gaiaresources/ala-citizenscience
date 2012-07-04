@@ -46,6 +46,22 @@ public class FilterManager {
     }
 
     /**
+     * Filters out records that are created as attribute values.
+     * @param session
+     */
+    public static void setPartialRecordCountFilter(Session session) {
+        session.enableFilter(Record.PARTIAL_RECORD_COUNT_FILTER);
+    }
+    
+    /**
+     * Turns off the filtering of records that are created as attribute values.
+     * @param session
+     */
+    public static void disablePartialRecordCountFilter(Session session) {
+        session.disableFilter(Record.PARTIAL_RECORD_COUNT_FILTER);
+    }
+    
+    /**
      * Returns the ID of the Portal that has been supplied to the Portal Filter.  If the Portal Filter is not
      * in effect, null will be returned.
      * @param session the Session to check the Filter on.
@@ -60,7 +76,7 @@ public class FilterManager {
 
         return portalId;
     }
-
+    
     /**
      * Enables the Record filter that only returns Records with attributes of type
      * 'IMAGE'.
@@ -69,5 +85,4 @@ public class FilterManager {
     public static void enableImagesFilter(Session session) {
         session.enableFilter(Record.IMAGE_FILTER);
     }
-    
 }

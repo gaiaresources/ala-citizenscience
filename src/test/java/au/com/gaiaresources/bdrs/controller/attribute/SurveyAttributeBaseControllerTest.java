@@ -275,6 +275,10 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
                         params.put(String.format("add_option_%d", index), attributeOptions);
                     }
 
+                    if (AttributeType.isCensusMethodType(attrType)) {
+                        params.put(String.format("add_attribute_census_method_%d", index), String.valueOf(m1.getId()));
+                    }
+                    
                     index = index + 1;
                     curWeight = curWeight + 100;
                 }
@@ -328,6 +332,9 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
                 }
             }
 
+            if (AttributeType.isCensusMethodType(attribute.getType())) {
+                Assert.assertEquals(params.get(String.format("add_attribute_census_method_%d", index)), String.valueOf(attribute.getCensusMethod().getId()));
+            }
             index = index + 1;
         }
         
@@ -429,6 +436,10 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
             params.put(String.format("scope_%d", attribute.getId()), attribute.getScope().toString());
             params.put(String.format("visibility_%d", attribute.getId()), attribute.getVisibility().toString());
 
+            if (AttributeType.isCensusMethodType(attribute.getType())) {
+                params.put(String.format("attribute_census_method_%d", attribute.getId()), String.valueOf(m1.getId()));
+            }
+            
             request.addParameter("attribute", attribute.getId().toString());
             
             curWeight = curWeight + 100;
@@ -465,6 +476,9 @@ public class SurveyAttributeBaseControllerTest extends AbstractControllerTest {
             Assert.assertEquals(params.get(String.format("typeCode_%d", attribute.getId())), attribute.getTypeCode());
             Assert.assertEquals(AttributeScope.valueOf(params.get(String.format("scope_%d", attribute.getId()))), attribute.getScope());
             Assert.assertEquals(AttributeVisibility.valueOf(params.get(String.format("visibility_%d", attribute.getId()))), attribute.getVisibility());
+            if (AttributeType.isCensusMethodType(attribute.getType())) {
+                Assert.assertEquals(params.get(String.format("attribute_census_method_%d", attribute.getId())), String.valueOf(attribute.getCensusMethod().getId()));
+            }
         }
         
         Metadata md;

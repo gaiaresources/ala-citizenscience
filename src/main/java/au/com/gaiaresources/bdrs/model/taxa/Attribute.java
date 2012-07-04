@@ -10,6 +10,7 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
@@ -21,7 +22,9 @@ import org.hibernate.annotations.IndexColumn;
 import org.hibernate.annotations.ParamDef;
 
 import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
+import au.com.gaiaresources.bdrs.annotation.NoThreshold;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
+import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 
 /**
@@ -44,13 +47,13 @@ public class Attribute extends PortalPersistentImpl {
     private String name;
     private String description;
     private boolean tag = false;
-
     private List<AttributeOption> options = new ArrayList<AttributeOption>();
     private AttributeScope scope;
 
     /** Configures the contexts in which this Attribute is visible */
     private AttributeVisibility visibility = AttributeVisibility.ALWAYS;
-    
+    /** Census method for census method attribute types */
+    private CensusMethod censusMethod;
     /**
      * {@inheritDoc}
      */
@@ -204,5 +207,21 @@ public class Attribute extends PortalPersistentImpl {
     @Transient
     public boolean isVisible(DisplayContext context) {
         return visibility.isVisible(context);
+    }
+    
+    /**
+     * @return the censusMethod
+     */
+    @CompactAttribute
+    @OneToOne
+    @NoThreshold
+    public CensusMethod getCensusMethod() {
+        return censusMethod;
+    }
+    /**
+     * @param censusMethod the censusMethod to set
+     */
+    public void setCensusMethod(CensusMethod censusMethod) {
+        this.censusMethod = censusMethod;
     }
 }

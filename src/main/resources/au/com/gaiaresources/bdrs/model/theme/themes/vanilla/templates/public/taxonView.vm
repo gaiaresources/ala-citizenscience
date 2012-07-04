@@ -49,18 +49,21 @@
                             ${taxonAttr.attribute.description}
                         </th>
                         <td>
-                        #if(${AttributeType.IMAGE} == ${taxonAttr.getAttribute().getType()})
+                        #if('IMAGE' == ${taxonAttr.getAttribute().getType()})
                             <a href="${portalContextPath}/files/download.htm?${taxonAttr.getFileURL()}">
                                 <img class="max_size_img" src="${portalContextPath}/files/download.htm?${taxonAttr.getFileURL()}" alt="${taxonAttr.stringValue}"/>
                             </a>
-                        #elseif(${AttributeType.FILE} == ${taxonAttr.getAttribute().getType()})
+                        #elseif('FILE' == ${taxonAttr.getAttribute().getType()})
                             <a href="${portalContextPath}/files/download.htm?${taxonAttr.getFileURL()}">
                                 ${taxonAttr.stringValue}
                             </a>
-                        #elseif(${AttributeType.AUDIO} == ${taxonAttr.getAttribute().getType()})
+                        #elseif('AUDIO' == ${taxonAttr.getAttribute().getType()})
                             <a href="${portalContextPath}/files/download.htm?${taxonAttr.getFileURL()}">
                                 ${taxonAttr.stringValue}
                             </a>
+                        #elseif('CENSUS_METHOD_ROW' == ${taxonAttr.getAttribute().getType()} || 
+                                'CENSUS_METHOD_COL' == ${taxonAttr.getAttribute().getType()})
+                            <div id="attribute_${taxonAttr.getAttribute().getId()}" />
                         #else
                             ${taxonAttr.stringValue}
                         #end
@@ -153,5 +156,35 @@
         config.plugins.controls.play = true;
         config.plugins.controls.scrubber = true;
         config.plugins.controls.volume = true;
-   }
+   };
+   
+   jQuery(function() {
+       // request the flattened taxon and build the census method attributes tables
+       jQuery.getJSON('${portalContextPath}/webservice/taxon/getTaxonById.htm?id=${taxon.id}&depth=4', function(taxon) {
+            var attrVal;
+            // { Attribute.id : IndicatorSpeciesAttribute }
+            var attrToAttrValMap = {};
+            for(var attrValIndex=0; attrValIndex < taxon.attributes.length; attrValIndex++) {
+                attrVal = taxon.attributes[attrValIndex];
+                attrToAttrValMap[attrVal.attribute.id] = attrVal;
+            }
+            var groupAttr;
+            var displayElem;
+            for(var groupAttrIndex=0; 
+                groupAttrIndex < taxon.taxonGroup.attributes.length; 
+                groupAttrIndex++) {
+                
+                groupAttr = taxon.taxonGroup.attributes[groupAttrIndex];
+                // If there is no data, do not show anything
+                if(attrToAttrValMap[groupAttr.id] !== undefined) {
+                    displayElem = jQuery("#attribute_"+groupAttr.id);
+                    attrVal = attrToAttrValMap[groupAttr.id];
+                    var attr_type = bdrs.model.taxa.attributeType.code[groupAttr.typeCode]
+                    if (attr_type.isCensusMethodType()) {
+                        displayElem.parent().append(bdrs.attribute.createCensusMethodTable(attr_type, attrVal, false));
+                    }
+                }
+            }
+        });
+   });
 </script>

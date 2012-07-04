@@ -19,15 +19,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import au.com.gaiaresources.bdrs.model.taxa.AttributeVisibility;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.log4j.Logger;
 import org.springframework.context.ApplicationContext;
@@ -39,6 +40,7 @@ import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter;
 
 import au.com.gaiaresources.bdrs.controller.taxonomy.TaxonomyManagementController;
 import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
@@ -47,8 +49,13 @@ import au.com.gaiaresources.bdrs.model.file.ManagedFile;
 import au.com.gaiaresources.bdrs.model.file.ManagedFileDAO;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
+import au.com.gaiaresources.bdrs.model.method.CensusMethod;
+import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
+import au.com.gaiaresources.bdrs.model.method.Taxonomic;
 import au.com.gaiaresources.bdrs.model.preference.Preference;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
+import au.com.gaiaresources.bdrs.model.record.Record;
+import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
@@ -56,17 +63,19 @@ import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeVisibility;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpeciesAttribute;
 import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonRank;
 import au.com.gaiaresources.bdrs.model.user.RegistrationService;
+import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.servlet.Interceptor;
 import au.com.gaiaresources.bdrs.servlet.RecaptchaInterceptor;
-import org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter;
+import au.com.gaiaresources.bdrs.servlet.RequestContext;
 
 public class TestDataCreator implements TestDataConstants {
     
@@ -80,15 +89,21 @@ public class TestDataCreator implements TestDataConstants {
     private SurveyDAO surveyDAO;
     private MetadataDAO metadataDAO;
     private FileService fileService;
-
+    private CensusMethodDAO cmDAO;
+    private RecordDAO recDAO;
     private ApplicationContext appContext;
 
     private SimpleDateFormat dateFormat;
     private RegistrationService regService;
     
-    public TestDataCreator(ApplicationContext appContext) {
+    private CensusMethod cmAttr;
+    
+    private User loggedInUser;
+    
+    public TestDataCreator(RequestContext requestContext) {
         
-        this.appContext = appContext;
+        this.appContext = requestContext.getApplicationContext();
+        this.loggedInUser = requestContext.getUser();
         
         random = new Random(System.currentTimeMillis());
         dateFormat = new SimpleDateFormat("dd MMM yyyy");
@@ -100,6 +115,8 @@ public class TestDataCreator implements TestDataConstants {
         metadataDAO = appContext.getBean(MetadataDAO.class);
         fileService = appContext.getBean(FileService.class);
         regService = appContext.getBean(RegistrationService.class);
+        cmDAO = appContext.getBean(CensusMethodDAO.class);
+        recDAO = appContext.getBean(RecordDAO.class);
     }
     
     public void createTestUsers(int count, int rand) {
@@ -134,6 +151,11 @@ public class TestDataCreator implements TestDataConstants {
         String attrName;
         String description;
         List<Attribute> attributeList;
+        
+        // get the census method for census method attributes
+        if (cmAttr == null) {
+            createCensusMethodForAttributes();
+        }
         
         for(int i=0; i<count; i++) {
             
@@ -180,6 +202,8 @@ public class TestDataCreator implements TestDataConstants {
                     	rangeList.add(taxaDAO.save(lower));
                     	rangeList.add(taxaDAO.save(upper));
                     	attr.setOptions(rangeList);
+                    } else if (AttributeType.isCensusMethodType(attrType)) {
+                        attr.setCensusMethod(cmAttr);
                     }
                     
                     attr = taxaDAO.save(attr);
@@ -231,6 +255,32 @@ public class TestDataCreator implements TestDataConstants {
         surveyDAO.save(survey);
     }
     
+    public void createCensusMethodForAttributes() {
+        CensusMethod cm = new CensusMethod();
+        cm.setName("Test Attribute Census Method");
+        cm.setDescription("Test Attribute Census Method");
+        cm.setTaxonomic(Taxonomic.NONTAXONOMIC);
+        
+        cm.setRunThreshold(false);
+        
+        // create at least one attribute for the census method to allow it to 
+        // be added to forms
+        List<Attribute> attributes = new ArrayList<Attribute>(1);
+        AttributeType attrType = AttributeType.STRING;
+        Attribute attr = new Attribute();
+        attr.setRequired(true);
+        String attName = "attribute_" + attrType.toString();
+        attr.setName(attName);
+        attr.setDescription(attName);
+        attr.setTypeCode(attrType.getCode());
+        attr.setScope(null);
+        attr = taxaDAO.save(attr);
+        attributes.add(attr);
+        cm.setAttributes(attributes);
+        
+        cmAttr = cmDAO.save(cm);
+    }
+    
     public void createTaxonGroups(int count, int rand, boolean createAttributes) throws Exception {
         if(rand > 0) {
             count = count + (random.nextBoolean() ? random.nextInt(rand) : -random.nextInt(rand));
@@ -246,6 +296,11 @@ public class TestDataCreator implements TestDataConstants {
         defaultImageMap.put("thumbNail", defaultThumbnail);
         
         Preference testDataDirPref = prefDAO.getPreferenceByKey(TEST_DATA_IMAGE_DIR); 
+        
+        // get the census method for census method attributes
+        if (cmAttr == null) {
+            createCensusMethodForAttributes();
+        }
         
         MockMultipartHttpServletRequest request;
         MockHttpServletResponse response;
@@ -304,6 +359,8 @@ public class TestDataCreator implements TestDataConstants {
                         } else if(AttributeType.INTEGER_WITH_RANGE.equals(attrType)) {
                         	
                         	request.setParameter(String.format("add_option_%d", index), rangeIntOptions);
+                        } else if (AttributeType.isCensusMethodType(attrType)) {
+                            request.setParameter(String.format("add_attribute_census_method_%d", index), String.valueOf(cmAttr.getId()));
                         }
                         request.setParameter(String.format("add_visibility_%d", index), AttributeVisibility.ALWAYS.toString());
                         
@@ -370,7 +427,7 @@ public class TestDataCreator implements TestDataConstants {
             genus.setYear(String.valueOf(1700 + random.nextInt(2011 - 1700)));
             
             genus = taxaDAO.save(genus);
-            genus = createTaxonAttributes(genus);
+            genus = createTaxonAttributes(genus, true);
             genusList.add(genus);
             
             for(IndicatorSpecies species : taxaDAO.getIndicatorSpecies(taxonGroup)) {
@@ -390,7 +447,7 @@ public class TestDataCreator implements TestDataConstants {
             taxon.setAuthor(generateRandomPersonName());
             taxon.setYear(String.valueOf(1700 + random.nextInt(2011 - 1700)));
             taxon = taxaDAO.save(taxon);
-            taxon = createTaxonAttributes(taxon);
+            taxon = createTaxonAttributes(taxon, true);
             previousTaxon = taxon;
         }
         
@@ -404,14 +461,14 @@ public class TestDataCreator implements TestDataConstants {
             TaxonGroup taxonGroup) throws ParseException, IOException {
         
         String name;
-        IndicatorSpeciesAttribute taxonAttr;
+        AttributeValue taxonAttr;
         Preference testDataDirPref = prefDAO.getPreferenceByKey(TEST_DATA_IMAGE_DIR);
         for(Attribute attr : taxonGroup.getAttributes()) {
             if(attr.isTag()) {
                 
                 name = String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, AttributeParser.DEFAULT_PREFIX, attr.getId());
                 
-                taxonAttr = new IndicatorSpeciesAttribute();
+                taxonAttr = new AttributeValue();
                 taxonAttr.setAttribute(attr);
                 
                 if(AttributeType.IMAGE.equals(attr.getType()) || AttributeType.FILE.equals(attr.getType()) || AttributeType.AUDIO.equals(attr.getType())) {
@@ -436,22 +493,29 @@ public class TestDataCreator implements TestDataConstants {
                     taxonAttr.setStringValue(filename);
                     
                 } else {
-                    setValueForTaxonAttribute(taxonAttr);
+                    setValueForAttribute(taxonAttr, false);
                 }
                 request.addParameter(name, taxonAttr.getStringValue());
             }
         }
     }
 
-    private IndicatorSpecies createTaxonAttributes(IndicatorSpecies taxon) throws ParseException, IOException {
+    private IndicatorSpecies createTaxonAttributes(IndicatorSpecies taxon, boolean save) throws ParseException, IOException {
+        createAttributes(taxon.getTaxonGroup().getAttributes(), taxon.getAttributes(), save);
+        taxon = taxaDAO.save(taxon);
+        return taxon;
+    }
+    
+
+    private void createAttributes(List<Attribute> attributes, Set<AttributeValue> attVals, boolean save) throws ParseException, IOException {
         
-        IndicatorSpeciesAttribute taxonAttr;
+        AttributeValue taxonAttr;
         Preference testDataDirPref = prefDAO.getPreferenceByKey(TEST_DATA_IMAGE_DIR);
         
-        for(Attribute attr : taxon.getTaxonGroup().getAttributes()) {
+        for(Attribute attr : attributes) {
             if(attr.isTag()) {
                 
-                taxonAttr = new IndicatorSpeciesAttribute();
+                taxonAttr = new AttributeValue();
                 taxonAttr.setAttribute(attr);
                 
                 byte[] data = null;
@@ -468,12 +532,13 @@ public class TestDataCreator implements TestDataConstants {
                     taxonAttr.setStringValue(filename);
                     
                 } else {
-                    setValueForTaxonAttribute(taxonAttr);
+                    setValueForAttribute(taxonAttr, save);
                 }
                 
-                taxonAttr = taxaDAO.save(taxonAttr);
-                taxon.getAttributes().add(taxonAttr);
-                taxon = taxaDAO.save(taxon);
+                if (save) {
+                    taxonAttr = taxaDAO.save(taxonAttr);
+                }
+                attVals.add(taxonAttr);
                 
                 // Taxon Attribute must be saved before the file can be saved.
                 if(AttributeType.IMAGE.equals(attr.getType()) || AttributeType.FILE.equals(attr.getType()) || AttributeType.AUDIO.equals(attr.getType())) {
@@ -481,65 +546,90 @@ public class TestDataCreator implements TestDataConstants {
                 }
             }
         }
-        return taxon;
     }
     
-    private void setValueForTaxonAttribute(IndicatorSpeciesAttribute taxonAttr) throws ParseException {
-    	List<AttributeOption> optionList = taxonAttr.getAttribute().getOptions();
-        switch(taxonAttr.getAttribute().getType()) {
+    private void setValueForAttribute(AttributeValue attrValue, boolean save) throws ParseException, IOException {
+    	List<AttributeOption> optionList = attrValue.getAttribute().getOptions();
+        switch(attrValue.getAttribute().getType()) {
             case INTEGER:
             case INTEGER_WITH_RANGE:
-                taxonAttr.setNumericValue(new BigDecimal(random.nextInt(50)));
-                taxonAttr.setStringValue(taxonAttr.getNumericValue().toPlainString());
+                attrValue.setNumericValue(new BigDecimal(random.nextInt(50)));
+                attrValue.setStringValue(attrValue.getNumericValue().toPlainString());
                 break;
             case DECIMAL:
-                taxonAttr.setNumericValue(new BigDecimal(random.nextDouble()));
-                taxonAttr.setStringValue(taxonAttr.getNumericValue().toPlainString());
+                attrValue.setNumericValue(new BigDecimal(random.nextDouble()));
+                attrValue.setStringValue(attrValue.getNumericValue().toPlainString());
                 break;
             case DATE:
                 Date d = new Date();
-                taxonAttr.setStringValue(dateFormat.format(d));
-                taxonAttr.setDateValue(dateFormat.parse(taxonAttr.getStringValue()));
+                attrValue.setStringValue(dateFormat.format(d));
+                attrValue.setDateValue(dateFormat.parse(attrValue.getStringValue()));
                 break;
             case TIME:
-                taxonAttr.setStringValue("12:34");
+                attrValue.setStringValue("12:34");
                 break;
             case HTML:
             case HTML_NO_VALIDATION:
             case HTML_COMMENT:
             case HTML_HORIZONTAL_RULE:
-                taxonAttr.setStringValue("<hr/>");
+                attrValue.setStringValue("<hr/>");
                 break;
             case STRING:
             case STRING_AUTOCOMPLETE:
-                taxonAttr.setStringValue(generateLoremIpsum(3, 3));
+                attrValue.setStringValue(generateLoremIpsum(3, 3));
                 break;
             case REGEX:
             case BARCODE:
-                taxonAttr.setStringValue(generateLoremIpsum(1, 1));
+                attrValue.setStringValue(generateLoremIpsum(1, 1));
                 break;
             case TEXT:
-                taxonAttr.setStringValue(generateLoremIpsum(5, 8));
+                attrValue.setStringValue(generateLoremIpsum(5, 8));
                 break;
             case STRING_WITH_VALID_VALUES:
                 String val = optionList.get(random.nextInt(optionList.size())).getValue();
-                taxonAttr.setStringValue(val);
+                attrValue.setStringValue(val);
                 break;
             case MULTI_CHECKBOX:
-            	taxonAttr.setMultiCheckboxValue(new String[]{optionList.get(0).getValue(), optionList.get(1).getValue()});
+            	attrValue.setMultiCheckboxValue(new String[]{optionList.get(0).getValue(), optionList.get(1).getValue()});
             	break;
             case MULTI_SELECT:
-            	taxonAttr.setMultiCheckboxValue(new String[]{optionList.get(0).getValue(), optionList.get(1).getValue()});
+            	attrValue.setMultiCheckboxValue(new String[]{optionList.get(0).getValue(), optionList.get(1).getValue()});
             	break;
             case SINGLE_CHECKBOX:
-            	taxonAttr.setBooleanValue(Boolean.TRUE.toString());
+            	attrValue.setBooleanValue(Boolean.TRUE.toString());
             	break;
+            case CENSUS_METHOD_ROW:
+            case CENSUS_METHOD_COL:
+                // census method types should add a record to the attribute value
+                Set<Record> recs = createRecordList(attrValue, save);
+                attrValue.setRecords(recs);
+                break;
             case SPECIES:
-            	// Leave blank.
-            	break;
+                // Leave blank.
+                break;
             default:
                 throw new RuntimeException();
         }
+    }
+
+    private Set<Record> createRecordList(AttributeValue taxonAttr, boolean save) throws ParseException, IOException {
+        Set<Record> records = new LinkedHashSet<Record>();
+        if (taxonAttr != null) {
+            Attribute att = taxonAttr.getAttribute();
+            // the type of the attribute must be census method type
+            if (AttributeType.isCensusMethodType(att.getType())) {
+                Record rec = new Record();
+                rec.setUser(loggedInUser);
+                rec.setAttributeValue(taxonAttr);
+                CensusMethod cm = att.getCensusMethod();
+                createAttributes(cm.getAttributes(), rec.getAttributes(), save);
+                if (save) {
+                    rec = recDAO.saveRecord(rec);
+                }
+                records.add(rec);
+            }
+        }
+        return records;
     }
 
     public void createTaxonProfile()

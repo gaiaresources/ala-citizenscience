@@ -38,8 +38,6 @@ public abstract class RecordFormTest extends AbstractControllerTest {
     @Autowired
     private LocationDAO locationDAO;
     @Autowired
-    private TaxaDAO taxaDAO;
-    @Autowired
     private MetadataDAO metadataDAO;
     @Autowired
     private SurveyDAO surveyDAO;

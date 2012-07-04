@@ -72,10 +72,10 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
                 delete((IndicatorSpecies)instance);
             }
         });
-        delService.registerDeleteCascadeHandler(IndicatorSpeciesAttribute.class, new DeleteCascadeHandler() {
+        delService.registerDeleteCascadeHandler(AttributeValue.class, new DeleteCascadeHandler() {
             @Override
             public void deleteCascade(PersistentImpl instance) {
-                delete((IndicatorSpeciesAttribute)instance);
+                delete((AttributeValue)instance);
             }
         });
     }
@@ -300,18 +300,6 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
         return super.save(opt);
     }
 
-    @Override
-    public IndicatorSpeciesAttribute save(
-            IndicatorSpeciesAttribute taxonAttribute) {
-        return super.save(taxonAttribute);
-    }
-
-    @Override
-    public IndicatorSpeciesAttribute save(Session sesh,
-            IndicatorSpeciesAttribute taxonAttribute) {
-        return super.save(sesh, taxonAttribute);
-    }
-
     /**
      * {@inheritDoc}
      */
@@ -359,7 +347,7 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
 
     public TypedAttributeValue createIndicatorSpeciesAttribute(
             IndicatorSpecies species, Attribute attr, String value, String desc) {
-        IndicatorSpeciesAttribute impl = new IndicatorSpeciesAttribute();
+        AttributeValue impl = new AttributeValue();
         impl.setDescription(desc);
         impl.setAttribute(attr);
         impl.setStringValue(value);
@@ -455,7 +443,7 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
     public IndicatorSpecies updateIndicatorSpecies(Integer id,
             String scientificName, String commonName, TaxonGroup taxonGroup,
             Collection<Region> regions, List<SpeciesProfile> infoItems,
-            Set<IndicatorSpeciesAttribute> attributes) {
+            Set<AttributeValue> attributes) {
         IndicatorSpecies species = getIndicatorSpecies(id);
         species.setCommonName(commonName);
         species.setScientificName(scientificName);
@@ -553,7 +541,7 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
             } else {
                 q = sesh.createQuery(query);
             }
-
+            
             q.setParameter("sourceId", sourceDataId);
             q.setParameter("source", source);
             return (IndicatorSpecies)q.uniqueResult();
@@ -912,11 +900,6 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
     public List<IndicatorSpecies> getChildTaxa(IndicatorSpecies taxon) {
         return find("from IndicatorSpecies s where s.parent = ?", taxon);
     }
-
-    @Override
-    public void delete(IndicatorSpeciesAttribute attr) {
-        deleteByQuery(attr);
-    }
     
     @Override
     public void delete(IndicatorSpecies taxon) throws StaleStateException {
@@ -930,7 +913,7 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
         delService.deleteRecords(taxon);
         delService.unlinkFromSurvey(taxon);
         
-        Set<IndicatorSpeciesAttribute> taxonAttributes = new HashSet(taxon.getAttributes());
+        Set<AttributeValue> taxonAttributes = new HashSet(taxon.getAttributes());
         taxon.getAttributes().clear();
         
         Set<SpeciesProfile> taxonProfiles = new HashSet(taxon.getInfoItems());
@@ -939,8 +922,8 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
         taxon = save(taxon);
         
         DeleteCascadeHandler taxonAttributeCascadeHandler = 
-            delService.getDeleteCascadeHandlerFor(IndicatorSpeciesAttribute.class);
-        for(IndicatorSpeciesAttribute attr : taxonAttributes) {
+            delService.getDeleteCascadeHandlerFor(AttributeValue.class);
+        for(AttributeValue attr : taxonAttributes) {
             attr = save(attr);
             taxonAttributeCascadeHandler.deleteCascade(attr);
         }
@@ -1089,7 +1072,7 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
     public PagedQueryResult<IndicatorSpecies> searchTaxa(
             Integer groupId, TaxonGroupSearchType searchType,
             String searchInGroups, String searchInResult, PaginationFilter filter) throws org.apache.lucene.queryParser.ParseException {
-        if (StringUtils.nullOrEmpty(searchInGroups) && StringUtils.nullOrEmpty(searchInResult)) {
+        if (groupId != null && StringUtils.nullOrEmpty(searchInGroups) && StringUtils.nullOrEmpty(searchInResult)) {
             // do a normal database search
             // add sorting since none is passed to the query
             // if no sorting, add this one

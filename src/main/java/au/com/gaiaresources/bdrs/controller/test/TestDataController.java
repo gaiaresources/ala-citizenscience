@@ -67,7 +67,7 @@ public class TestDataController extends AbstractController {
                             @RequestParam(value="survey_random", required=true) int surveyRandom,
                             @RequestParam(value="testusercount", required=true) int userCount) throws Exception {
         
-        TestDataCreator testDataCreator = new TestDataCreator(getRequestContext().getApplicationContext());
+        TestDataCreator testDataCreator = new TestDataCreator(getRequestContext());
         testDataCreator.createTestUsers(userCount, 0);
         testDataCreator.createTaxonGroups(taxonGroupCount, taxonGroupRandom, taxonGroupAttributes);
         testDataCreator.createTaxa(taxaCount, taxaRandom);

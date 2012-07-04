@@ -33,46 +33,46 @@ import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
  * that since it works via tracker controller the other webforms _should_ be ok
  */
 public class TrackerControllerSpeciesAttributeValueTest extends
-		AbstractGridControllerTest {
+        AbstractGridControllerTest {
 
-	@Autowired
-	private SurveyDAO surveyDAO;
-	@Autowired
-	private MetadataDAO mdDAO;
-	
-	private Survey survey;
-	private Attribute attr;
-	
-	@Before
-	public void setup() {
-		survey = new Survey();
-		survey.setName("my survey");
-		for (RecordPropertyType type : RecordPropertyType.values()) {
-			RecordProperty p = new RecordProperty(survey, type, mdDAO);
-			p.setRequired(false);
-		}
-		
-		List<Attribute> attrList = new ArrayList<Attribute>();
-		
-		attr = new Attribute();
-		attr.setName("speciesattr");
-		attr.setDescription("species attribute");
-		attr.setTypeCode(AttributeType.SPECIES.getCode());
-		attr.setRequired(true);
-		
-		attrList.add(attr);
-		
-		taxaDAO.save(attr);
-		
-		survey.setAttributes(attrList);
-		
-		surveyDAO.save(survey);
-	}
-	
-	@Test
-	public void testSpeciesAttributeValueByName() throws Exception {
-		
-		login("admin", "password", new String[] { Role.ADMIN });
+    @Autowired
+    private SurveyDAO surveyDAO;
+    @Autowired
+    private MetadataDAO mdDAO;
+    
+    private Survey survey;
+    private Attribute attr;
+    
+    @Before
+    public void setup() {
+        survey = new Survey();
+        survey.setName("my survey");
+        for (RecordPropertyType type : RecordPropertyType.values()) {
+            RecordProperty p = new RecordProperty(survey, type, mdDAO);
+            p.setRequired(false);
+        }
+        
+        List<Attribute> attrList = new ArrayList<Attribute>();
+        
+        attr = new Attribute();
+        attr.setName("speciesattr");
+        attr.setDescription("species attribute");
+        attr.setTypeCode(AttributeType.SPECIES.getCode());
+        attr.setRequired(true);
+        
+        attrList.add(attr);
+        
+        taxaDAO.save(attr);
+        
+        survey.setAttributes(attrList);
+        
+        surveyDAO.save(survey);
+    }
+    
+    @Test
+    public void testSpeciesAttributeValueByName() throws Exception {
+        
+        login("admin", "password", new String[] { Role.ADMIN });
 
         request.setMethod("POST");
         request.setRequestURI(request.getContextPath()+TrackerController.EDIT_URL);
@@ -98,7 +98,7 @@ public class TrackerControllerSpeciesAttributeValueTest extends
         
         Assert.assertEquals("wrong species id", av.getSpecies().getId(), this.dropBear.getId());
     }
-	
+    
 	/**
 	 * Tricky test where there are 2 elements in the post map but the ID field is whitespace
 	 * @throws Exception
@@ -134,10 +134,10 @@ public class TrackerControllerSpeciesAttributeValueTest extends
         Assert.assertEquals("wrong species id", av.getSpecies().getId(), this.dropBear.getId());
     }
 	
-	@Test
-	public void testSpeciesAttributeValueById() throws Exception {
-		
-		login("admin", "password", new String[] { Role.ADMIN });
+    @Test
+    public void testSpeciesAttributeValueById() throws Exception {
+        
+        login("admin", "password", new String[] { Role.ADMIN });
 
         request.setMethod("POST");
         request.setRequestURI(request.getContextPath()+TrackerController.EDIT_URL);
@@ -166,7 +166,7 @@ public class TrackerControllerSpeciesAttributeValueTest extends
         
         Assert.assertEquals("wrong species id", av.getSpecies().getId(), this.dropBear.getId());
     }
-	
+    
     @Override
     protected MockHttpServletRequest createMockHttpServletRequest() {
         return super.createUploadRequest();

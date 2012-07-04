@@ -54,6 +54,7 @@ public abstract class AbstractTransactionalTest extends AbstractSpringContextTes
             Portal portal = new PortalInitialiser().initRootPortal(sesh, null);
             defaultPortal = portal;
             FilterManager.setPortalFilter(sesh, portal);
+            FilterManager.setPartialRecordCountFilter(sesh);
             RequestContext c = RequestContextHolder.getContext();
             c.setPortal(defaultPortal);
         } catch (Exception e) {

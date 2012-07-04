@@ -1,17 +1,21 @@
 package au.com.gaiaresources.bdrs.controller.location;
 
-import au.com.gaiaresources.bdrs.controller.AbstractController;
+import au.com.gaiaresources.bdrs.attribute.AttributeDictionaryFactory;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormFieldFactory;
+import au.com.gaiaresources.bdrs.controller.record.RecordController;
 import au.com.gaiaresources.bdrs.controller.record.RecordWebFormContext;
 import au.com.gaiaresources.bdrs.controller.record.WebFormAttributeParser;
 import au.com.gaiaresources.bdrs.controller.survey.SurveyBaseController;
 import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataBuilder;
 import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataHelper;
 import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataRow;
+import au.com.gaiaresources.bdrs.db.FilterManager;
+import au.com.gaiaresources.bdrs.db.SessionFactory;
 import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
 import au.com.gaiaresources.bdrs.db.impl.PaginationFilter;
-import au.com.gaiaresources.bdrs.file.FileService;
+import au.com.gaiaresources.bdrs.deserialization.attribute.AttributeDeserializer;
+import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
 import au.com.gaiaresources.bdrs.model.location.LocationService;
@@ -20,12 +24,7 @@ import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.*;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.security.Role;
@@ -55,7 +54,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Controller
-public class LocationBaseController extends AbstractController {
+public class LocationBaseController extends RecordController {
     
     public static final String GET_SURVEY_LOCATIONS_FOR_USER = "/bdrs/location/getSurveyLocationsForUser.htm";
     
@@ -66,7 +65,6 @@ public class LocationBaseController extends AbstractController {
 
     @Autowired
     private SurveyDAO surveyDAO;
-
     @Autowired
     private AttributeDAO attributeDAO;
     
@@ -79,10 +77,13 @@ public class LocationBaseController extends AbstractController {
     @Autowired
     private TaxaDAO taxaDAO;
     @Autowired
-    private FileService fileService;
-    @Autowired
     private LocationService locationService;
-
+    @Autowired
+    private SessionFactory sessionFactory;
+    
+    private AttributeDictionaryFactory attrDictFact;
+    private WebFormAttributeParser attributeParser;
+    
     @RolesAllowed( {Role.USER,Role.POWERUSER,Role.SUPERVISOR,Role.ADMIN} )
     @RequestMapping(value = "/bdrs/location/editUserLocations.htm", method = RequestMethod.GET)
     public ModelAndView editUserLocations(HttpServletRequest request,
@@ -324,15 +325,23 @@ public class LocationBaseController extends AbstractController {
         Location location = null;
         List<FormField> surveyFormFieldList = new ArrayList<FormField>();
         List<Attribute> surveyAttributeList = new ArrayList<Attribute>(survey.getAttributes());
-        
+        User loggedInUser = getRequestContext().getUser();
         Set<AttributeValue> locationAttributes = null;
+        RecordWebFormContext context = new RecordWebFormContext(null, loggedInUser);
         if (locationId != null) {
             location = getLocation(locationId);
             locationAttributes = location.getAttributes();
             // add the location attribute form fields
             for (AttributeValue attr : locationAttributes) {
                 if (surveyAttributeList.remove(attr.getAttribute())) {
-                    surveyFormFieldList.add(formFieldFactory.createLocationFormField(attr.getAttribute(), attr, survey));
+                    if (AttributeType.isCensusMethodType(attr.getAttribute().getType())) {
+                        FormField ff = createCensusMethodFormField(survey, null, location, attr.getAttribute(), loggedInUser, AttributeParser.DEFAULT_PREFIX, context);
+                        if (ff != null) {
+                            surveyFormFieldList.add(ff);
+                        }
+                    } else {
+                        surveyFormFieldList.add(formFieldFactory.createLocationFormField(attr.getAttribute(), attr, survey));
+                    }
                 }
             }
         } else {
@@ -341,7 +350,14 @@ public class LocationBaseController extends AbstractController {
         
         for (Attribute surveyAttr : surveyAttributeList) {
             if(AttributeScope.LOCATION.equals(surveyAttr.getScope())) {
-                surveyFormFieldList.add(formFieldFactory.createLocationFormField(surveyAttr, survey));
+                if (AttributeType.isCensusMethodType(surveyAttr.getType())) {
+                    FormField ff = createCensusMethodFormField(survey, null, surveyAttr, loggedInUser, AttributeParser.DEFAULT_PREFIX, context);
+                    if (ff != null) {
+                        surveyFormFieldList.add(ff);
+                    }
+                } else {
+                    surveyFormFieldList.add(formFieldFactory.createLocationFormField(surveyAttr, survey));
+                }
             }
         }
         
@@ -352,6 +368,8 @@ public class LocationBaseController extends AbstractController {
         mv.addObject("locationFormFieldList", surveyFormFieldList);
         mv.addObject("location", location);
         mv.addObject("description", location.getDescription());
+        mv.addObject("ident", loggedInUser.getRegistrationKey());
+        mv.addObject(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT, context);
         // location scoped attributes are always editable on the edit location page...
         mv.addObject(RecordWebFormContext.MODEL_EDIT, true);
         
@@ -375,39 +393,48 @@ public class LocationBaseController extends AbstractController {
         if (survey == null) {
             return SurveyBaseController.nullSurveyRedirect(getRequestContext());
         }
-        if (request.getParameter("goback") == null) {
-            List<Location> locationList = survey.getLocations();
-
-            Location location = null;
-            // Added Locations
-            if(locationId == null) {
-                location = createNewLocation(request);
-            } 
-            else {
-                location = locationDAO.getLocation(locationId);
-                // remove the location before updating and re-adding it
-                locationList.remove(location);
-                location = updateLocation(request, location);
-            }
-            // save the location attributes
-            try {
-                Set locAtts = saveAttributes(request, survey, location);
-                location.setAttributes(locAtts);
-            } catch (Exception e) {
-                log.error("Error setting the location attributes: ", e);
-            }
-            locationDAO.save(location);
-            locationList.add(location);
-            
-            survey.setLocations(locationList);
-            surveyDAO.save(survey);
-    
-            getRequestContext().addMessage("bdrs.survey.locations.success", new Object[]{survey.getName()});
-        }
         
-        ModelAndView mv = new ModelAndView(new PortalRedirectView("/bdrs/admin/survey/locationListing.htm", true));
-        mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
-        return mv;
+        // disable the partial record filter to allow records for attribute values to be retrieved
+        // for census method attribute types
+        FilterManager.disablePartialRecordCountFilter(getRequestContext().getHibernate());
+        try {
+            if (request.getParameter("goback") == null) {
+                List<Location> locationList = survey.getLocations();
+    
+                Location location = null;
+                // Added Locations
+                if(locationId == null) {
+                    location = createNewLocation(request);
+                } 
+                else {
+                    location = locationDAO.getLocation(locationId);
+                    // remove the location before updating and re-adding it
+                    locationList.remove(location);
+                    location = updateLocation(request, location);
+                }
+                // save the location attributes
+                try {
+                    Set locAtts = saveAttributes(request, survey, location);
+                    location.setAttributes(locAtts);
+                } catch (Exception e) {
+                    log.error("Error setting the location attributes: ", e);
+                }
+                locationDAO.save(location);
+                locationList.add(location);
+                
+                survey.setLocations(locationList);
+                surveyDAO.save(survey);
+        
+                getRequestContext().addMessage("bdrs.survey.locations.success", new Object[]{survey.getName()});
+            }
+            
+            ModelAndView mv = new ModelAndView(new PortalRedirectView("/bdrs/admin/survey/locationListing.htm", true));
+            mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
+            return mv;
+        } finally {
+            // enable the partial record filter to prevent records for attribute values to be retrieved
+            FilterManager.setPartialRecordCountFilter(sessionFactory.getCurrentSession());
+        }
     }
     
     @RolesAllowed( {Role.POWERUSER,Role.SUPERVISOR,Role.ADMIN} )
@@ -437,28 +464,41 @@ public class LocationBaseController extends AbstractController {
     @SuppressWarnings("unchecked")
     private Set<TypedAttributeValue> saveAttributes(
             MultipartHttpServletRequest request, Survey survey, Location location) throws ParseException, IOException {
-        TypedAttributeValue recAttr;
-        WebFormAttributeParser attributeParser = new WebFormAttributeParser(taxaDAO);
+        User currentUser = getRequestContext().getUser();
+        // set up the attribute deserializer
+        attributeParser = new WebFormAttributeParser(taxaDAO);
+        attrDictFact = new LocationAttributeDictionaryFactory();
+        // must include all null and LOCATION or any census method attributes sub attributes (Scope null) will not be saved
+        Set<AttributeScope> scope = new HashSet<AttributeScope>(AttributeScope.values().length+1);
+        scope.add(AttributeScope.LOCATION);
+        scope.add(null);
+        Map<Attribute, Object> attrNameMap = attrDictFact.createNameKeyDictionary(null, survey, location, null, null, scope, request.getParameterMap());
+        Map<Attribute, Object> attrFilenameMap = attrDictFact.createFileKeyDictionary(null, survey, location, null, null, scope, request.getParameterMap());
+        AttributeDeserializer attrDeserializer = new AttributeDeserializer(attrDictFact, attributeParser);
+
         Set recAtts = location.getAttributes();
-        for(Attribute attribute : survey.getAttributes()) {
-            if(AttributeScope.LOCATION.equals(attribute.getScope())) {
-                recAttr = attributeParser.parse(attribute, location, request.getParameterMap(), request.getFileMap());
-                if(attributeParser.isAddOrUpdateAttribute()) {
-                    recAttr = attributeDAO.save(recAttr);
-                    if(attributeParser.getAttrFile() != null) {
-                        fileService.createFile(recAttr, attributeParser.getAttrFile());
-                    }
-                    recAtts.add(recAttr);
-                }
-                else {
-                    recAtts.remove(recAttr);
-                    attributeDAO.delete(recAttr);
-                }
+        List<TypedAttributeValue> attrValuesToDelete = new ArrayList<TypedAttributeValue>();
+        // get only the location attributes for deserializing
+        List<Attribute> surveyLocationAtts = new ArrayList<Attribute>();
+        for (Attribute att : survey.getAttributes()) {
+            if (AttributeScope.LOCATION.equals(att.getScope())) {
+                surveyLocationAtts.add(att);
             }
+        }
+        attrDeserializer.deserializeAttributes(surveyLocationAtts,  
+                                               attrValuesToDelete, recAtts, "", 
+                                               attrNameMap, attrFilenameMap, location, 
+                                               request.getParameterMap(), request.getFileMap(), currentUser, false, scope, true);
+        
+        for(TypedAttributeValue ta : attrValuesToDelete) {
+            // Must do a save here to sever the link in the join table.
+            attributeDAO.save(ta);
+            // And then delete.
+            attributeDAO.delete(ta);
         }
         return recAtts;
     }
-
+    
     /**
      * Convenience method for updating a location from an HTTP request.
      * @param request The HTTP request

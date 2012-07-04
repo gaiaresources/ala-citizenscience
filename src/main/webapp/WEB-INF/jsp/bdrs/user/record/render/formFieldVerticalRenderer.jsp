@@ -10,9 +10,9 @@
 <c:choose>
   <c:when test="<%= formField.isDisplayFormField() %>">
      <%-- Fields for display only, such as, comments, horizontal rules, HTML, etc --%>
-             <tiles:insertDefinition name="attributeRenderer">
-                 <tiles:putAttribute name="formField" value="${formField}"/>
-             </tiles:insertDefinition>
+     <tiles:insertDefinition name="attributeRenderer">
+         <tiles:putAttribute name="formField" value="${formField}"/>
+     </tiles:insertDefinition>
   </c:when>
   <c:otherwise>
   <c:choose>

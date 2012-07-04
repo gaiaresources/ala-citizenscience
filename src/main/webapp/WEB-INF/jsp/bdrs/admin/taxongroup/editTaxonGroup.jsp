@@ -293,6 +293,11 @@
     <textarea id="markItUp"></textarea>
 </div>
 
+<div id="censusMethodAttributeDialog" title="Add/Edit Census Method Attribute">
+    <tiles:insertDefinition name="editCensusMethodAttribute">
+    </tiles:insertDefinition>
+</div>
+
 <div>
     <h3>Group members</h3>
     The following table displays the taxa that have this Taxon Group as their primary group.

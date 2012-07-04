@@ -1,8 +1,7 @@
 package au.com.gaiaresources.bdrs.controller;
 
-import java.math.BigDecimal;
+import java.io.IOException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -12,8 +11,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.junit.Assert;
@@ -70,13 +69,7 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
     @Autowired
     protected SurveyDAO surveyDAO;
     @Autowired
-    protected TaxaDAO taxaDAO;
-    @Autowired
     protected RecordDAO recordDAO;
-    @Autowired
-    protected UserDAO userDAO;
-    @Autowired
-    protected CensusMethodDAO cmDAO;
     @Autowired
     protected MetadataDAO metaDAO;
     @Autowired
@@ -88,7 +81,6 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
     /**
      * username = 'admin'
      */
-    protected User currentUser;
     protected User user;
     protected User poweruser;
     
@@ -125,7 +117,7 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
     protected Survey atlasSurvey;
     // unused
     protected Survey yearlySightingSurvey;
-    
+
     protected CensusMethod taxaCm;
     protected CensusMethod nonTaxaCm;
     protected CensusMethod optTaxaCm;
@@ -157,8 +149,6 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
     protected IndicatorSpecies hoopSnake;
     protected IndicatorSpecies surfingBird;
     
-    protected List<IndicatorSpecies> speciesList;
-    
     protected List<Location> locationList;
     
     /**
@@ -175,19 +165,12 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
     
     protected Logger log = Logger.getLogger(getClass());
     
-    protected SimpleDateFormat bdrsDateFormat = new SimpleDateFormat("dd MMM yyyy");
-    
     @Autowired
     protected LSIDService lsidService;
     
-    /**
-     * An arbitrary value. If you require greater/less tolerance in the subclassed tests, just write
-     * over this protected variable!
-     */
-    protected double DEFAULT_TOLERANCE = 0.0001;
-    
     @Before
-    public void abstractGridControllerTestSetup() {
+    public void abstractGridControllerTestSetup() throws ParseException, IOException {
+        createCensusMethodForAttributes();
         recordListMap = new HashMap<Survey, List<Record>>();
         
         taxaCm = createCm("taxa cm", "taxa cm desc", Taxonomic.TAXONOMIC, true);
@@ -272,7 +255,8 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
                                     getDate(1980, 1, 1), getDate(2000, 1, 1), false, emptyCensusMethodList, 
                                     SurveyFormRendererType.SINGLE_SITE_MULTI_TAXA,
                                     new AttributeScope[] { AttributeScope.RECORD, AttributeScope.SURVEY, 
-                                                           AttributeScope.RECORD_MODERATION, AttributeScope.SURVEY_MODERATION});
+                                                           AttributeScope.RECORD_MODERATION, 
+                                                           AttributeScope.SURVEY_MODERATION}, false);
         
         recordScopedSurvey = createScopedSurvey("single site multi taxa survey", "uses the single site multi taxa form", 
                                      getDate(1980, 1, 1), getDate(2000, 1, 1), false, emptyCensusMethodList, 
@@ -301,7 +285,8 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
                                                  getDate(1980, 1, 1), getDate(2000, 1, 1), false, emptyCensusMethodList, 
                                                  SurveyFormRendererType.SINGLE_SITE_ALL_TAXA,
                                                  new AttributeScope[] { AttributeScope.RECORD, AttributeScope.SURVEY, 
-                                                                        AttributeScope.RECORD_MODERATION, AttributeScope.SURVEY_MODERATION });
+                                                                        AttributeScope.RECORD_MODERATION, 
+                                                                        AttributeScope.SURVEY_MODERATION }, false);
         
         atlasSurvey = createSurvey("atlas survey", "uses the atlas form", 
                                     getDate(1980, 1, 1), getDate(2000, 1, 1), false, emptyCensusMethodList, 
@@ -399,8 +384,10 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
      * @param survey - the survey to create the test record set for
      * @param recVis - the record visibility to assign to the created records
      * @return
+     * @throws IOException 
+     * @throws ParseException 
      */
-    private List<Record> createRecordSet(Survey survey, RecordVisibility recVis) {
+    private List<Record> createRecordSet(Survey survey, RecordVisibility recVis) throws ParseException, IOException {
         
         Date date1 = getDate(2010, 8, 8);
         // using a different date to mark these items as from a different single site multi taxa form.
@@ -441,13 +428,6 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
         return taxaDAO.save(species);
     }
     
-    protected Date getDate(int year, int month, int day) {
-        Calendar cal = Calendar.getInstance();
-        cal.clear();
-        cal.set(year, month, day);
-        return cal.getTime();
-    }
-    
     protected Date overlayDate(Date src, Date target, int[] fieldsToCopy) {
         Calendar srcCal = Calendar.getInstance();
         Calendar targetCal = Calendar.getInstance();
@@ -459,19 +439,8 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
         return targetCal.getTime();
     }
     
-    protected Date getDate(int year, int month, int day, int hour, int minute) {
-        Calendar cal = Calendar.getInstance();
-        cal.clear();
-        cal.set(year, month, day, hour, minute);
-        return cal.getTime();
-    }
-    
-    private String getDateAsString(int year, int month, int day) {
-        Date d = getDate(year, month, day);
-        return bdrsDateFormat.format(d);
-    }
-    
-    private Record createRecord(Survey survey, CensusMethod cm, IndicatorSpecies sp, User u, Integer count, Date now, double lon, double lat, RecordVisibility vis, boolean generateAv) {
+    private Record createRecord(Survey survey, CensusMethod cm, IndicatorSpecies sp, 
+            User u, Integer count, Date now, double lon, double lat, RecordVisibility vis, boolean generateAv) throws ParseException, IOException {
         Record r = new Record();
         r.setSurvey(survey);
         r.setCensusMethod(cm);
@@ -504,12 +473,12 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
         
         int seed = 0;
         for (Attribute a : survey.getAttributes()) {
-            avSet.add(generateAttributeValue(a, seed++, generateAv));
+            avSet.add(generateAttributeValue(a, seed++, generateAv, true, null, "", null));
         }
         
         if (cm != null) {
             for (Attribute a : cm.getAttributes()) {
-                avSet.add(generateAttributeValue(a, seed++, generateAv));
+                avSet.add(generateAttributeValue(a, seed++, generateAv, true, null, "", null));
             }
         }
 
@@ -556,6 +525,11 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
      * @return
      */
     private Survey createScopedSurvey(String name, String desc, Date startDate, Date endDate, boolean attrRequired, List<CensusMethod> cmList, SurveyFormRendererType renderType, AttributeScope[] scopeArray) {
+        return createScopedSurvey(name, desc, startDate, endDate, attrRequired, cmList, renderType, scopeArray, true);
+    }
+    
+    private Survey createScopedSurvey(String name, String desc, Date startDate, Date endDate, boolean attrRequired, List<CensusMethod> cmList, SurveyFormRendererType renderType, AttributeScope[] scopeArray, boolean includeCMAtts) {
+        
         Survey surv = new Survey();
         surv.setName(name);
         surv.setDescription(desc);
@@ -568,7 +542,7 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
         int suffix = 1;
         
         for (AttributeScope scope : scopeArray) {
-            attrList.addAll(createAttrList(String.format(scope.toString()+"_attribute_%d", suffix++), attrRequired, scope));
+            attrList.addAll(createAttrList(String.format(scope.toString()+"_attribute_%d", suffix++), attrRequired, scope, includeCMAtts, false));
         }
         
         surv.setAttributes(attrList);
@@ -582,407 +556,11 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
         
         return surveyDAO.save(surv);
     }
-    
-    private List<Attribute> createAttrList(String namePrefix, boolean attrRequired, AttributeScope scope) {
-        List<Attribute> attrList = new LinkedList<Attribute>();
-        attrList.add(createAttribute(namePrefix + "_0", AttributeType.INTEGER, attrRequired, scope));
-        attrList.add(createAttribute(namePrefix + "_1", AttributeType.INTEGER_WITH_RANGE, attrRequired, scope, new String[] { "5", "10" } ));
-        attrList.add(createAttribute(namePrefix + "_2", AttributeType.DECIMAL, attrRequired, scope));
-        attrList.add(createAttribute(namePrefix + "_3", AttributeType.BARCODE, attrRequired, scope));
-        attrList.add(createAttribute(namePrefix + "_4", AttributeType.DATE, attrRequired, scope));
-        attrList.add(createAttribute(namePrefix + "_5", AttributeType.TIME, attrRequired, scope));
-        attrList.add(createAttribute(namePrefix + "_6", AttributeType.STRING, attrRequired, scope));
-        attrList.add(createAttribute(namePrefix + "_7", AttributeType.STRING_AUTOCOMPLETE, attrRequired, scope));
-        attrList.add(createAttribute(namePrefix + "_8", AttributeType.TEXT, attrRequired, scope));
-        attrList.add(createAttribute(namePrefix + "_9", AttributeType.STRING_WITH_VALID_VALUES, attrRequired, scope, new String[] { "hello", "world", "goodbye"} ));
-        attrList.add(createAttribute(namePrefix + "_10", AttributeType.FILE, attrRequired, scope));
-        attrList.add(createAttribute(namePrefix + "_11", AttributeType.IMAGE, attrRequired, scope));
-        attrList.add(createAttribute(namePrefix + "_12", AttributeType.HTML, attrRequired, scope));
-        // HTML comments do not have a name in the database, use an empty string.
-        attrList.add(createAttribute("", AttributeType.HTML_COMMENT, attrRequired, scope));
-        attrList.add(createAttribute(namePrefix + "_14", AttributeType.HTML_HORIZONTAL_RULE, attrRequired, scope));
-        attrList.add(createAttribute(namePrefix + "_15", AttributeType.REGEX, attrRequired, scope));
-        attrList.add(createAttribute(namePrefix + "_16", AttributeType.HTML_NO_VALIDATION, attrRequired, scope));
-        attrList.add(createAttribute(namePrefix + "_17", AttributeType.AUDIO, attrRequired, scope));
-        attrList.add(createAttribute(namePrefix + "_18", AttributeType.SPECIES, attrRequired, scope));
-        return attrList;
-    }
-    
-    private CensusMethod createCm(String name, String desc, Taxonomic tax, boolean attrRequired) {
-        CensusMethod cm = new CensusMethod();
-        cm.setName(name);
-        cm.setDescription(desc);
-        cm.setTaxonomic(tax);
-        
-        List<Attribute> attrList = createAttrList("cattr", attrRequired, AttributeScope.RECORD);
-        cm.setAttributes(attrList);
-        
-        cm.setRunThreshold(false);
-        
-        return cmDAO.save(cm);
-    }
-    
-    protected Attribute createAttribute(String name, AttributeType type, boolean required, AttributeScope scope) {
-        return createAttribute(name, type, required, scope, null);
-    }
-    
-    protected Attribute createAttribute(String name, AttributeType type, boolean required, AttributeScope scope, String[] args) {
-        Attribute a = new Attribute();
-        
-        if (args != null) {
-            List<AttributeOption> options = new ArrayList<AttributeOption>();
-            for (String s : args) {
-                AttributeOption attrOpt = new AttributeOption();
-                attrOpt.setRunThreshold(false);
-                attrOpt.setValue(s);
-                options.add(attrOpt);
-                
-                taxaDAO.save(attrOpt);
-            }
-            a.setOptions(options);
-        }
-        
-        a.setScope(scope);
-        a.setName(name);
-        a.setDescription(name + " desc");
-        a.setRequired(required);
-        a.setTag(false);
-        a.setTypeCode(type.getCode());
-        
-        a.setRunThreshold(false);
-        
-        taxaDAO.save(a);
-        return a;
-    }
-    
-    /**
-     * A method provided to child classes to add test specific attribute values
-     * 
-     * @param a
-     * @param value
-     * @return
-     * @throws ParseException
-     */
-    protected AttributeValue createAttributeValue(Attribute a, String value) throws ParseException {
-        AttributeValue av = new AttributeValue();
-        av.setAttribute(a);
-        switch (a.getType()) {
-        case INTEGER:
-        case INTEGER_WITH_RANGE:
-        case DECIMAL:
-            av.setNumericValue(new BigDecimal(Double.valueOf(value)));
-            break;
-        
-        case DATE:
-            av.setDateValue(bdrsDateFormat.parse(value));
-            break;
-        case REGEX:
-        case BARCODE:
-        case TIME:
-        case STRING:
-        case STRING_AUTOCOMPLETE:
-        case TEXT:
-        case HTML:
-        case HTML_NO_VALIDATION:
-        case HTML_COMMENT:
-        case HTML_HORIZONTAL_RULE:
-        case STRING_WITH_VALID_VALUES:
-        case MULTI_CHECKBOX:
-        case MULTI_SELECT:
-            av.setStringValue(value);
-            break;
-            
-        case SINGLE_CHECKBOX:
-            av.setBooleanValue(value);
-            break;
-            
-        case IMAGE:
-        case AUDIO:
-        case FILE:
-            // the string value becomes the file name
-            av.setStringValue(value);
-            break;
-            
-        case SPECIES:
-        	// we're going to have alot of hoop snakes...
-        	av.setStringValue(hoopSnake.getScientificName());
-        	av.setSpecies(hoopSnake);
-            break;
-        	
-        default:
-            // not handled. fail the test to notify the test writer
-            Assert.fail("Attribute type : " + a.getTypeCode() + " is not handled. Fix it!");
-        }
-        
-        av.setRunThreshold(false);
-        
-        recordDAO.saveAttributeValue(av);
-        
-        return av;
-    }
-    
-    /**
-     * Just a way to make test data without writing lots of code 
-     * 
-     * @param a
-     * @param seed
-     * @return
-     */
-    private AttributeValue generateAttributeValue(Attribute a, int seed, boolean generateAv) {
-        AttributeValue av = new AttributeValue();
-        av.setAttribute(a);
-        if (generateAv) {
-            switch (a.getType()) {
-            case INTEGER:
-            case DECIMAL:
-                av.setNumericValue(new BigDecimal(Double.valueOf(seed)));
-                break;
-                
-            case INTEGER_WITH_RANGE:
-            {
-                Integer lower = Integer.parseInt(a.getOptions().get(0).getValue());
-                Integer upper = Integer.parseInt(a.getOptions().get(1).getValue());
-                Integer value = (seed%(upper-lower)) + lower;
-                av.setNumericValue(new BigDecimal(value));
-            }
-                break;
-            
-            case DATE:
-                av.setDateValue(getDate(2010, 10, seed%30));
-                break;
-            case REGEX:
-            case BARCODE:
-            case TIME:
-            case STRING:
-            case STRING_AUTOCOMPLETE:
-            case TEXT:
-                av.setStringValue(String.format("seed is : %d", seed));
-                break;
-                
-            case HTML:
-            case HTML_NO_VALIDATION:
-            case HTML_COMMENT:
-            case HTML_HORIZONTAL_RULE:
-                av.setStringValue(String.format("<p>seed is : %d</p>", seed));
-                break;
-                
-            case STRING_WITH_VALID_VALUES:
-            case MULTI_CHECKBOX:
-            case MULTI_SELECT:
-            {
-                int listIdx = seed % a.getOptions().size();
-                av.setStringValue(a.getOptions().get(listIdx).getValue());
-            }
-                break;
-                
-            case SINGLE_CHECKBOX:
-                
-                av.setBooleanValue(Boolean.toString((seed % 2) == 0));
-                break;
-                
-            case IMAGE:
-            case AUDIO:
-            case FILE:
-                // the string value becomes the file name
-                // putting a space in here deliberately
-                av.setStringValue("filename " + Integer.toString(seed) + ".bleh");
-                break;
-                
-            case SPECIES:
-            {
-            	IndicatorSpecies s = speciesList.get(seed % speciesList.size());
-            	av.setSpecies(s);
-            	av.setStringValue(s.getScientificName());
-            }
-            	break;
-                
-            default:
-                // not handled. fail the test to notify the test writer
-                Assert.fail("Attribute type : " + a.getTypeCode() + " is not handled. Fix it!");
-            }
-        }
-        
-        av.setRunThreshold(false);
-        
-        recordDAO.saveAttributeValue(av);
-        
-        return av;
-    }
-    
-    /**
-     * Assigns a new generated value to an attribute value and returns a string representation of
-     * the value for later assertion
-     * 
-     * Intended for use with subclasses that need to alter and assert an AttributeValue
-     * 
-     * @param av - AttributeValue
-     * @param seed - seed used to generate random data
-     * @param assign - boolean - if true will assign the value to the attribute value. else will just
-     * return the string value
-     * @return the string representation of the generated value. e.g. boolean true will be returned as 'true'
-     */
-    protected String genRandomAttributeValue(AttributeValue av, int seed, boolean assign) {
-        
-        Attribute a = av.getAttribute();
-        switch (a.getType()) {
-        case INTEGER:
-        case DECIMAL:
-            av.setNumericValue(new BigDecimal(Double.valueOf(seed)));
-            return Integer.toString(seed);
-            
-        case INTEGER_WITH_RANGE:
-        {
-            Integer lower = Integer.parseInt(a.getOptions().get(0).getValue());
-            Integer upper = Integer.parseInt(a.getOptions().get(1).getValue());
-            Integer value = (seed%(upper-lower)) + lower;
-            av.setNumericValue(new BigDecimal(value));
-            return Integer.toString(value);
-        }
-        
-        case DATE:
-        {
-            Date d = getDate(2010, 10, seed%30);
-            av.setDateValue(d);
-            return DateFormatter.format(d, DateFormatter.DAY_MONTH_YEAR);
-        }
-        case TIME:
-        {
-            Date d = getDate(2010, 10, seed%30, seed%24, seed%60);
-            String time = DateFormatter.format(d, DateFormatter.TIME);
-            av.setStringValue(time);
-            return time;
-        }
-        case REGEX:
-        case BARCODE:
-        case STRING:
-        case STRING_AUTOCOMPLETE:
-        case TEXT:
-        {
-            String text = String.format("seed is : %d", seed);
-            av.setStringValue(text);
-            return text;
-            
-        }
-            
-        case HTML:
-        case HTML_NO_VALIDATION:
-        case HTML_COMMENT:
-        case HTML_HORIZONTAL_RULE:
-        {
-            String text = String.format("<p>seed is : %d</p>", seed);
-            av.setStringValue(text);
-            return text;
-        }
-            
-        case STRING_WITH_VALID_VALUES:
-        case MULTI_CHECKBOX:
-        case MULTI_SELECT:
-        {
-            int listIdx = seed % a.getOptions().size();
-            String text = a.getOptions().get(listIdx).getValue();
-            av.setStringValue(text);
-            return text;
-        }
-
-            
-        case SINGLE_CHECKBOX:
-        {
-            String boolText = Boolean.toString((seed % 2) == 0);
-            av.setBooleanValue(boolText);
-            return boolText;
-        }
-            
-        case IMAGE:
-        case AUDIO:
-        case FILE:
-        {
-            // the string value becomes the file name
-            // putting a space in here deliberately
-            String filenameText = "filename " + Integer.toString(seed) + ".bleh"; 
-            av.setStringValue(filenameText);
-            return filenameText;
-        }
-        
-        case SPECIES:
-        {
-        	return this.speciesList.get(seed % speciesList.size()).getScientificName();
-        }
-            
-        default:
-            // not handled. fail the test to notify the test writer
-            Assert.fail("Attribute type : " + a.getTypeCode() + " is not handled. Fix it!");
-            // we will never hit this return null but eclipse doesn't like the non return.
-            return null;
-        }
-    }
-    
-    protected void assertRecordAttributeValue(Record rec, Map<Attribute, String> attributeValueMap) {
-        for (Entry<Attribute, String> entry : attributeValueMap.entrySet()) {
+    protected void assertRecordAttributeValue(Record rec, Map<Attribute, Object> attributeValueMap) {
+        for (Entry<Attribute, Object> entry : attributeValueMap.entrySet()) {
             AttributeValue av = this.getAttributeValueByAttributeId(rec.getAttributes(), entry.getKey().getId());
             Assert.assertNotNull("An attribute value with attribute id = " + entry.getKey().getId() + " should exist in ref item", av);
             this.assertAttributeValue(av, entry.getValue());
-        }
-    }
-    
-    /**
-     * Asserts the attribute value based on the attributes type. The expectedValue
-     * string will be cast appropriately. For best results use in conjunction with assignAttributeValue 
-     * 
-     * Intended for use with classes that need to alter and assert an attribute value
-     * 
-     * Warning: DOES NOT FAIL GRACEFULLY. if you pass in strings that don't parse to the desired type
-     * exceptions will be thrown.
-     * 
-     * @param av - AttributeValue
-     * @param expectedValue - String representation of the expected value.
-     */
-    protected void assertAttributeValue(AttributeValue av, String expectedValue) {
-        Attribute a = av.getAttribute();
-        switch (a.getType()) {
-        case INTEGER:
-        case INTEGER_WITH_RANGE:
-            Assert.assertEquals("integer av should be equal. type = " + a.getTypeCode(), Integer.parseInt(expectedValue), av.getNumericValue().intValue());
-            break;
-        case DECIMAL:
-            Assert.assertEquals("decimal av should be equal = " + a.getTypeCode(), Double.parseDouble(expectedValue), av.getNumericValue().doubleValue(), DEFAULT_TOLERANCE);
-            break;
-        
-        case DATE:
-            Assert.assertEquals("date av should be equal = " + a.getTypeCode(), DateFormatter.parse(expectedValue, DateFormatter.DAY_MONTH_YEAR), av.getDateValue());
-            break;
-            
-        case REGEX:
-        case BARCODE:
-        case TIME:
-        case STRING:
-        case STRING_AUTOCOMPLETE:
-        case TEXT:
-        case HTML:
-        case HTML_NO_VALIDATION:
-        case HTML_COMMENT:
-        case HTML_HORIZONTAL_RULE:
-        case STRING_WITH_VALID_VALUES:
-        case MULTI_CHECKBOX:
-        case MULTI_SELECT:
-        case IMAGE:
-        case AUDIO:
-        case FILE:
-            Assert.assertEquals("string av should be equal = " + a.getTypeCode(), expectedValue, av.getStringValue());
-            break;
-            
-        case SINGLE_CHECKBOX:
-            Assert.assertEquals("bool av should be equal = " + a.getTypeCode(), Boolean.valueOf(expectedValue), av.getBooleanValue());
-            break;
-            
-        case SPECIES:
-        	// taxon type but the string value should be equal to the verbatim name.
-        	Assert.assertEquals("string av should be equal = " + a.getTypeCode(), expectedValue, av.getStringValue());
-        	break;
-
-        default:
-            // not handled. fail the test to notify the test writer
-            Assert.fail("Attribute type : " + a.getTypeCode() + " is not handled. Fix it!");
-            // we will never hit this return null but eclipse doesn't like the non return.
         }
     }
     
@@ -1102,6 +680,20 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
                 Assert.fail("Record property type : " + type + " not handled, fix it!");
                 return null;
         }
+    }
+    
+    private CensusMethod createCm(String name, String desc, Taxonomic tax, boolean attrRequired) {
+        CensusMethod cm = new CensusMethod();
+        cm.setName(name);
+        cm.setDescription(desc);
+        cm.setTaxonomic(tax);
+        
+        List<Attribute> attrList = createAttrList("cattr", attrRequired, AttributeScope.RECORD, false, false);
+        cm.setAttributes(attrList);
+        
+        cm.setRunThreshold(false);
+        
+        return cmDAO.save(cm);
     }
     
     /**
@@ -1260,7 +852,8 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
     protected List<AttributeValue> getAttributeValuesByScope(Record rec, AttributeScope scope) {
         List<AttributeValue> result = new ArrayList<AttributeValue>();
         for (AttributeValue av : rec.getAttributes()) {
-            if (scope.equals(av.getAttribute().getScope())) {
+            if (scope == null && av.getAttribute().getScope() == null || 
+                    (scope != null && scope.equals(av.getAttribute().getScope()))) {
                 result.add(av);
             }
         }
@@ -1269,11 +862,14 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
     
     protected List<RecordProperty> getRecordProperty(Survey survey, AttributeScope scope) {
         List<RecordProperty> result = new ArrayList<RecordProperty>();
-        for (RecordPropertyType type : RecordPropertyType.values()) {
-            RecordProperty recordProperty = new RecordProperty(survey, type,
-                    metaDAO);
-            if (scope == null || scope.equals(recordProperty.getScope())) {
-                result.add(recordProperty);
+        // survey can be null for census method attribute value records
+        if (survey != null) {
+            for (RecordPropertyType type : RecordPropertyType.values()) {
+                RecordProperty recordProperty = new RecordProperty(survey, type,
+                        metaDAO);
+                if (scope == null || scope.equals(recordProperty.getScope())) {
+                    result.add(recordProperty);
+                }
             }
         }
         return result;

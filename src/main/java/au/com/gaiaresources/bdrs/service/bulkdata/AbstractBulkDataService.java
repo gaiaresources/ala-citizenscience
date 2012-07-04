@@ -980,6 +980,10 @@ public abstract class AbstractBulkDataService {
             	}
             }
             	break;
+            case CENSUS_METHOD_ROW:
+            case CENSUS_METHOD_COL:
+                throw new UnsupportedOperationException(
+                        "Spreadsheet upload of matrix data is not supported.");
             case TIME:
             case TEXT:
             case STRING_WITH_VALID_VALUES:

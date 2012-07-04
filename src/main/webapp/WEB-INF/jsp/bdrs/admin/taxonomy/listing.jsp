@@ -53,7 +53,7 @@
 
     });
     <c:if test="${not empty taxonPk}">
-        jQuery.getJSON('${portalContextPath}/webservice/taxon/getTaxonById.htm?id=${taxonPk}&depth=2', function(taxon) {
+        jQuery.getJSON('${portalContextPath}/webservice/taxon/getTaxonById.htm?id=${taxonPk}&depth=4', function(taxon) {
             bdrs.taxonomy.displayTaxonProperties(taxon,
                     '#taxonomySearch',
                     '#selectedTaxonPk',

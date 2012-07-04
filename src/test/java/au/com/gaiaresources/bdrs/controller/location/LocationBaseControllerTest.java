@@ -1,26 +1,18 @@
 package au.com.gaiaresources.bdrs.controller.location;
 
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
-import au.com.gaiaresources.bdrs.controller.attribute.formfield.LocationAttributeFormField;
+import au.com.gaiaresources.bdrs.controller.attribute.formfield.AbstractFormField;
 import au.com.gaiaresources.bdrs.controller.record.RecordWebFormContext;
 import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
+import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
-import au.com.gaiaresources.bdrs.model.taxa.TaxonRank;
-import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.*;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import org.apache.log4j.Logger;
@@ -51,7 +43,7 @@ public class LocationBaseControllerTest extends AbstractControllerTest {
     private MetadataDAO metadataDAO;
     @Autowired
     private TaxaDAO taxaDAO;
-
+    
     private Survey simpleSurvey;
     private Survey locAttSurvey;
     private List<Attribute> locationAttributes = new ArrayList<Attribute>();
@@ -91,8 +83,11 @@ public class LocationBaseControllerTest extends AbstractControllerTest {
         Metadata md3 = locAttSurvey.setFormRendererType(SurveyFormRendererType.DEFAULT);
         metadataDAO.save(md3);
         
+        // create a census method to use for census method attribute types
+        createCensusMethodForAttributes();
+        
         // create location attributes for the survey
-        locAttSurvey.setAttributes(createLocationAttributes());
+        locAttSurvey.setAttributes(createAttrList("", true, AttributeScope.LOCATION, true, false));
         
         locAttSurvey = surveyDAO.save(locAttSurvey);
     }
@@ -174,9 +169,9 @@ public class LocationBaseControllerTest extends AbstractControllerTest {
 
         int curWeight = Integer.MIN_VALUE;
         Assert.assertEquals(locAttSurvey, mv.getModelMap().get("survey"));
-        List<LocationAttributeFormField> formFieldList = (List<LocationAttributeFormField>) mv.getModelMap().get("locationFormFieldList");
+        List<AbstractFormField> formFieldList = (List<AbstractFormField>) mv.getModelMap().get("locationFormFieldList");
         Assert.assertEquals(locAttSurvey.getAttributes().size(), formFieldList.size());
-        for (LocationAttributeFormField formField : formFieldList) {
+        for (AbstractFormField formField : formFieldList) {
             // Test attributes are sorted by weight
             Assert.assertTrue(formField.getWeight() >= curWeight);
             curWeight = formField.getWeight();
@@ -235,112 +230,8 @@ public class LocationBaseControllerTest extends AbstractControllerTest {
                 Assert.assertFalse(true);
                 key = null;
             }
-
-            switch (recAttr.getAttribute().getType()) {
-            case INTEGER:
-            case INTEGER_WITH_RANGE:
-                Assert.assertEquals(Integer.parseInt(params.get(key)), recAttr.getNumericValue().intValue());
-                break;
-            case DECIMAL:
-                Assert.assertEquals(Double.parseDouble(params.get(key)), recAttr.getNumericValue().doubleValue(), 0.01);
-                break;
-            case DATE:
-                Assert.assertEquals(testDate, recAttr.getDateValue());
-                break;
-            case STRING:
-            case STRING_AUTOCOMPLETE:
-            case TEXT:
-            case BARCODE:
-            case REGEX:
-            case TIME:
-            case HTML:
-            case HTML_NO_VALIDATION:
-            case HTML_COMMENT:
-            case HTML_HORIZONTAL_RULE:
-                Assert.assertEquals(params.get(key), recAttr.getStringValue());
-                break;
-            case STRING_WITH_VALID_VALUES:
-                Assert.assertEquals(params.get(key), recAttr.getStringValue());
-                break;
-            case MULTI_CHECKBOX:
-                {
-                    // make sure the correct data got posted to the server correctly
-                    Assert.assertEquals(2, request.getParameterValues(key).length);
-                    Set<String> optionSet = new HashSet<String>();
-                    for(AttributeOption opt : recAttr.getAttribute().getOptions()) {
-                        optionSet.add(opt.getValue());
-                    }
-                    for(String val : recAttr.getMultiCheckboxValue()){
-                        Assert.assertTrue(optionSet.contains(val));
-                    }
-                }
-                break;
-            case MULTI_SELECT:
-                {
-                    // make sure the correct data got posted to the server correctly
-                    Assert.assertEquals(2, request.getParameterValues(key).length);
-                    Set<String> optionSet = new HashSet<String>();
-                    for(AttributeOption opt : recAttr.getAttribute().getOptions()) {
-                        optionSet.add(opt.getValue());
-                    }
-                    for(String val : recAttr.getMultiSelectValue()){
-                        Assert.assertTrue(optionSet.contains(val));
-                    }
-                }
-                break;
-            case SINGLE_CHECKBOX:
-                Assert.assertEquals(recAttr.getStringValue() + " should be 'true'!", 
-                                    Boolean.parseBoolean(params.get(key)), 
-                                    Boolean.parseBoolean(recAttr.getStringValue()));
-                break;  
-            case FILE:
-            case AUDIO:
-            case IMAGE:
-                Assert.assertEquals(params.get(key), recAttr.getStringValue());
-                break;
-            case SPECIES:
-            	Assert.assertNotNull("species should not be null", recAttr.getSpecies());
-            	Assert.assertEquals("wrong species id", species1.getId(), recAttr.getSpecies().getId());
-            	break;
-            default:
-                Assert.assertTrue("Unknown Attribute Type: "
-                        + recAttr.getAttribute().getType().toString(), false);
-                break;
-            }
+            assertAttributes(recAttr, params, key);
         }
-    }
-
-    private List<Attribute> createLocationAttributes() {
-        Attribute attr;
-        for (AttributeType attrType : AttributeType.values()) {
-            for (AttributeScope scope : new AttributeScope[] {
-                    AttributeScope.LOCATION }) {
-
-                attr = new Attribute();
-                attr.setRequired(true);
-                attr.setName(attrType.toString());
-                attr.setTypeCode(attrType.getCode());
-                attr.setScope(scope);
-                attr.setTag(false);
-
-                if (AttributeType.STRING_WITH_VALID_VALUES.equals(attrType)
-                        || AttributeType.MULTI_CHECKBOX.equals(attrType)
-                        || AttributeType.MULTI_SELECT.equals(attrType)) {
-                    List<AttributeOption> optionList = new ArrayList<AttributeOption>();
-                    for (int i = 0; i < 4; i++) {
-                        AttributeOption opt = new AttributeOption();
-                        opt.setValue(String.format("Option %d", i));
-                        opt = attributeDAO.save(opt);
-                        optionList.add(opt);
-                    }
-                    attr.setOptions(optionList);
-                }
-
-                attr = attributeDAO.save(attr);
-                locationAttributes.add(attr);
-            }
-        }
-        return locationAttributes;
     }
     
     private Map<String, String> createAttributes(Survey survey, Date testDate) {
@@ -349,88 +240,10 @@ public class LocationBaseControllerTest extends AbstractControllerTest {
     
     private Map<String, String> createLocationAttributeValues(Survey survey, String intWithRangeValue, DateFormat dateFormat, Date testDate) {
         Map<String, String> params = new HashMap<String,String>();
-        String key;
-        String value;
+        int seed = 0;
         for (Attribute attr : survey.getAttributes()) {
             if(AttributeScope.LOCATION.equals(attr.getScope())) {
-                key = String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, "", attr.getId());
-                value = "";
-                switch (attr.getType()) {
-                case INTEGER:
-                    value = "123";
-                    break;
-                case INTEGER_WITH_RANGE:
-                    value = intWithRangeValue;
-                    break;
-                case DECIMAL:
-                    value = "456.7";
-                    break;
-                case DATE:
-                    value = dateFormat.format(testDate);
-                    break;
-                case STRING_AUTOCOMPLETE:
-                case STRING:
-                    value = "Test Survey Attr String";
-                    break;
-                case REGEX:
-                    value = "";
-                    break;
-                case BARCODE:
-                    value = "#123456";
-                    break;
-                case TIME:
-                    value = "12:34";
-                    break;
-                case TEXT:
-                    value = "Test Survey Attr Text";
-                    break;
-                case STRING_WITH_VALID_VALUES:
-                    value = attr.getOptions().iterator().next().getValue();
-                    break;
-                case MULTI_CHECKBOX:
-                case MULTI_SELECT:
-                    List<AttributeOption> opts = attr.getOptions();
-                    request.addParameter(key, opts.get(0).getValue());
-                    request.addParameter(key, opts.get(1).getValue());
-                    value = null;
-                    break;
-                case SINGLE_CHECKBOX:
-                    value = String.valueOf(true);
-                    break;
-                case FILE:
-                case AUDIO:
-                    String file_filename = String.format("attribute_%d", attr.getId());
-                    MockMultipartFile mockFileFile = new MockMultipartFile(key,
-                            file_filename, "audio/mpeg", file_filename.getBytes());
-                    ((MockMultipartHttpServletRequest) request).addFile(mockFileFile);
-                    value = file_filename;
-                    break;
-                case IMAGE:
-                    String image_filename = String.format("attribute_%d", attr.getId());
-                    MockMultipartFile mockImageFile = new MockMultipartFile(key,
-                            image_filename, "image/png", image_filename.getBytes());
-                    ((MockMultipartHttpServletRequest) request).addFile(mockImageFile);
-                    value = image_filename;
-                    break;
-                case HTML:
-                case HTML_NO_VALIDATION:
-                case HTML_COMMENT:
-                case HTML_HORIZONTAL_RULE:
-                    value = "<hr/>";
-                    break;
-                case SPECIES:
-                	value = species1.getScientificName();
-                	break;
-                default:
-                    Assert.assertTrue("Unknown Attribute Type: "
-                            + attr.getType().toString(), false);
-                    break;
-                }
-                if(value != null) {
-                    params.put(key, value);
-                }
-                // Otherwise value added directly to the request parameters
-                // this is to support adding an "array" of values.
+                genRandomAttributeValue(attr, seed++, null, "", params);
             }
         }
         return params;

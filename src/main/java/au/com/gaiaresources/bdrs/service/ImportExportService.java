@@ -8,6 +8,7 @@ import org.hibernate.Session;
 import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.model.user.User;
 
 /**
  * Interface for creating an import/export service for PersistentImpl.

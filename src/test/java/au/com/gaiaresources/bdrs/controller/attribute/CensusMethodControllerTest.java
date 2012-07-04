@@ -250,6 +250,10 @@ public class CensusMethodControllerTest extends AbstractControllerTest {
             }
             request.setParameter(String.format("add_visibility_%d", index), AttributeVisibility.ALWAYS.toString());
 
+            if (AttributeType.isCensusMethodType(attrType)) {
+                request.setParameter(String.format("add_attribute_census_method_%s", index), String.valueOf(m1.getId()));
+            }
+            
             index = index + 1;
             curWeight = curWeight + 100;
         }
@@ -291,7 +295,11 @@ public class CensusMethodControllerTest extends AbstractControllerTest {
                     Assert.assertEquals(options[i], attribute.getOptions().get(i).getValue());
                 }
             }
-        
+            
+            if (AttributeType.isCensusMethodType(attribute.getType())) {
+                request.setParameter(String.format("add_attribute_census_method_%s", index), String.valueOf(m1.getId()));
+            }
+            
             index = index + 1;
         }
         

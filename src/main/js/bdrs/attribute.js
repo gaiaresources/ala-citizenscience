@@ -91,12 +91,33 @@ bdrs.attribute.rowTypeChanged = function(event) {
     } else { 
         jQuery(descriptionSelector).removeAttr('disabled');
     }
-    if(bdrs.model.taxa.attributeType.HTML.code  === newTypeCode || 
-       bdrs.model.taxa.attributeType.HTML_NO_VALIDATION.code  === newTypeCode) { 
-        jQuery(descriptionSelector).attr('onfocus','bdrs.attribute.showHtmlEditor(jQuery(\'#htmlEditorDialog\'), jQuery(\'#markItUp\')[0], this)');
-    } else { 
-        jQuery(descriptionSelector).removeAttr('onfocus');
-    }
+    
+    // remove the hidden census method required input
+    var attVal = jQuery('[name="'+prefix+'attribute_census_method_'+index+'"]');
+    
+    if(bdrs.model.taxa.attributeType.CENSUS_METHOD_ROW.code === newTypeCode ||
+            bdrs.model.taxa.attributeType.CENSUS_METHOD_COL.code === newTypeCode) { 
+      jQuery(descriptionSelector).attr('onfocus','bdrs.attribute.showCensusMethodAttributeEditor(jQuery(\'#censusMethodAttributeDialog\'), this, \''+newTypeCode+'\', \''+index+'\', \''+bNewRow+'\', \'[name='+prefix+'attribute_census_method_'+index+']\')');
+      if (!attVal || attVal === undefined || attVal.length <= 0) {
+      	  attVal = jQuery('<input type="text" name="'+prefix+'attribute_census_method_'+index+'"/>');
+          jQuery(descriptionSelector).closest("td").find("span").append(attVal);
+      }
+      attVal.removeClass();
+      attVal.addClass("hiddenKetchup validate(required)");
+    } else {
+	    if(bdrs.model.taxa.attributeType.HTML.code  === newTypeCode || 
+	       bdrs.model.taxa.attributeType.HTML_NO_VALIDATION.code  === newTypeCode) { 
+	        jQuery(descriptionSelector).attr('onfocus','bdrs.attribute.showHtmlEditor(jQuery(\'#htmlEditorDialog\'), jQuery(\'#markItUp\')[0], this)');
+	    } else { 
+	        jQuery(descriptionSelector).removeAttr('onfocus');
+	    }
+	    if (attVal && attVal.length > 0) {
+	    	attVal.removeClass();
+	        attVal.closest("tr").ketchup();
+	        attVal.val("").trigger("blur");
+	        attVal.addClass("hiddenKetchup");
+	    } 
+	}
     
     // name in database
     var nameSelector = '[name=' + prefix + 'name_'+index+']';
@@ -106,7 +127,7 @@ bdrs.attribute.rowTypeChanged = function(event) {
     } else {
         bdrs.attribute.enableInput(true, nameSelector, "The name used to store this attribute in the database", "validate(uniqueAndRequired(.uniqueName))");
     }
-}
+};
 
 bdrs.attribute.rowScopeChanged = function(event) {
         var index = event.data.index;
@@ -121,7 +142,7 @@ bdrs.attribute.rowScopeChanged = function(event) {
             jQuery("#moderationSettingsLink").css("display","block");
             var isVisible = jQuery("#moderationSettings").css('display') !== 'none';
             if (!isVisible) {
-            	toggleModerationSettings("#moderationSettings", "#moderationSettingsLink a");
+                toggleModerationSettings("#moderationSettings", "#moderationSettingsLink a");
             }
         } else {
             var isOneModScope = false;
@@ -183,14 +204,16 @@ bdrs.attribute.updateMandatoryFieldState = function(event) {
             bdrs.model.taxa.attributeType.HTML.code  === typeCode ||
             bdrs.model.taxa.attributeType.HTML_NO_VALIDATION.code  === typeCode ||
             bdrs.model.taxa.attributeType.HTML_COMMENT.code  === typeCode ||
-            bdrs.model.taxa.attributeType.HTML_HORIZONTAL_RULE.code  === typeCode) {
+            bdrs.model.taxa.attributeType.HTML_HORIZONTAL_RULE.code  === typeCode ||
+            bdrs.model.taxa.attributeType.CENSUS_METHOD_ROW.code === typeCode ||
+            bdrs.model.taxa.attributeType.CENSUS_METHOD_COL.code === typeCode) {
             jQuery(mandatorySelector).attr('checked',false);
             jQuery(mandatorySelector).attr('disabled','disabled');
         } else {
             jQuery(mandatorySelector).removeAttr('disabled');
         }
     }
-}
+};
 
 /**
  * Builds a jQuery selector based on the naming convention used by the elements in the attribute form.
@@ -206,7 +229,7 @@ bdrs.attribute.buildSelector = function(event, name) {
     var selector = '[name=' + prefix + name + '_' + index +']';
 
     return selector;
-}
+};
 
 /**
  * Returns a function to be attached to the onchanged event of the field type
@@ -351,68 +374,228 @@ bdrs.attribute.createAttributeDisplayDiv = function(attributes, attributeSelecto
         var attr_type = bdrs.model.taxa.attributeType.code[att.attribute.typeCode];
         // If this is a file attribute, create a link.
         if(attr_type.isFileType()) {
-        	if (att.attribute.type === "FILE" || att.attribute.type === "AUDIO" ) {
-	            // make a link to download the file
-	        	attValueElem = jQuery('<div class="attributeValue" >' + 
-	        			'<a href="'+bdrs.portalContextPath+'/files/download.htm?'+att.fileURL+'">' +
-	                    att.value+'</a></div>');
-	        } else if (att.attribute.type === "IMAGE") {
-	            // make a link to download the file
-	        	attValueElem = jQuery('<div class="attributeValue" >' + 
-	        			'<a href="'+bdrs.portalContextPath+'/files/download.htm?'+att.fileURL+'">' +
-	        			'<img width="250"'+
-	                        'src="'+bdrs.portalContextPath+'/files/download.htm?'+att.fileURL+'"' +
-	                        'alt="Missing Image"/></a></div>');
-	        } 
+            if (att.attribute.type === "FILE" || att.attribute.type === "AUDIO" ) {
+                // make a link to download the file
+                attValueElem = jQuery('<div class="attributeValue" >' + 
+                        '<a href="'+bdrs.portalContextPath+'/files/download.htm?'+att.fileURL+'">' +
+                        att.value+'</a></div>');
+            } else if (att.attribute.type === "IMAGE") {
+                // make a link to download the file
+                attValueElem = jQuery('<div class="attributeValue" >' + 
+                        '<a href="'+bdrs.portalContextPath+'/files/download.htm?'+att.fileURL+'">' +
+                        '<img width="250"'+
+                            'src="'+bdrs.portalContextPath+'/files/download.htm?'+att.fileURL+'"' +
+                            'alt="Missing Image"/></a></div>');
+            } 
         } else if (attr_type.isHtmlType()) {
             // display the html in one single div instead of two
-        	attDescElem = null;
-        	var valString = "";
-        	if (bdrs.model.taxa.attributeType.value.HTML_HORIZONTAL_RULE === attr_type) {
-        		valString = "<hr/>";
-        	} else {
-        		valString = att.attribute.description;
-        	}
-        	attValueElem = jQuery('<div class="attributeValue" >' + valString + '</div>');
+            attDescElem = null;
+            var valString = "";
+            if (bdrs.model.taxa.attributeType.value.HTML_HORIZONTAL_RULE === attr_type) {
+                valString = "<hr/>";
+            } else {
+                valString = att.attribute.description;
+            }
+            attValueElem = jQuery('<div class="attributeValue" >' + valString + '</div>');
+        } else if (attr_type.isCensusMethodType()) {
+            // show the census method types as a table
+            attDescElem = bdrs.attribute.createCensusMethodTable(attr_type, att, true);
         } else {
             attValueElem = jQuery('<div class="attributeValue" >' + 
                     att.value + '</div>');
         }
         if (attDescElem) {
-        	attElem.append(attDescElem);
+            attElem.append(attDescElem);
         }
         if (attValueElem) {
-        	attElem.append(attValueElem);
+            attElem.append(attValueElem);
         }
         attDiv.append(attElem);
     }
 };
 
+bdrs.attribute.createCensusMethodTable = function(attr_type, att, showCaption) {
+    if (attr_type === bdrs.model.taxa.attributeType.CENSUS_METHOD_COL) {
+        return bdrs.attribute.createCensusMethodColTable(attr_type, att, showCaption);
+    } else if (attr_type === bdrs.model.taxa.attributeType.CENSUS_METHOD_ROW) {
+        return bdrs.attribute.createCensusMethodRowTable(attr_type, att, showCaption);
+    }
+    
+    var error = jQuery('<div class="attributeValue" >Unable to retrieve locations for attribute</div>');
+    return error;
+}
+
+bdrs.attribute.createCensusMethodColTable = function(attr_type, att, showCaption) {
+    var element = jQuery('<div class="attributeValue" ></div>');
+    var table = jQuery('<table class="censusMethodAttributeTable"></table>');
+    if (showCaption) {
+        table.append(jQuery('<caption>'+att.attribute.description+'</caption>'));
+    }
+    
+    table.addClass("datatable");
+    element.addClass("scrollable");
+    var thead = jQuery("<thead></thead>");
+    for (var i = 0; i < att.attribute.censusMethod.attributes.length; i++) {
+        var cmAtt = att.attribute.censusMethod.attributes[i];
+        thead.append('<th>'+cmAtt.description+'</th>');
+    }
+    table.append(thead);
+
+    var tbody = jQuery('<tbody></tbody>');
+    for (var i = 0; i < att.records.length; i++) {
+        var record = att.records[i];
+        var row = jQuery('<tr></tr>');
+        for (var j = 0; j < att.attribute.censusMethod.attributes.length; j++) {
+            var cmAtt = att.attribute.censusMethod.attributes[j];
+            var cell = jQuery('<td></td>');
+            
+            var cmAttType = bdrs.model.taxa.attributeType.code[cmAtt.typeCode];
+            
+            for (var k = 0; k < record.attributes.length; k++) {
+                var value = record.attributes[k];
+                if (value.attribute.id === cmAtt.id) {
+                    if (cmAttType.isCensusMethodType()) {
+                        // don't create nested attribute tables here because the server cannot flatten the object enough
+                        // to show them due to memory limitations
+                        //cell.append(bdrs.attribute.createCensusMethodTable(cmAttType, value, true));
+                    } else {
+                        cell.text(value.value);
+                    }
+                }
+            }
+            row.append(cell);
+        }
+        tbody.append(row);
+    }
+    table.append(tbody);
+    element.append(table);
+    
+    return element;
+};
+
+bdrs.attribute.createCensusMethodRowTable = function(attr_type, att, showCaption) {
+    var element = jQuery('<div class="attributeValue" ></div>');
+    var table = jQuery('<table class="censusMethodAttributeTable"></table>');
+    if (showCaption) {
+        table.append(jQuery('<caption>'+att.attribute.description+'</caption>'));
+    }
+    
+    var tbody = jQuery('<tbody></tbody>');
+    for (var i = 0; i < att.records.length; i++) {
+        var record = att.records[i];
+        for (var j = 0; j < att.attribute.censusMethod.attributes.length; j++) {
+            var row = jQuery('<tr></tr>');
+            var cmAtt = att.attribute.censusMethod.attributes[j];
+            var cell = jQuery("<td></td>");
+            for (var k = 0; k < record.attributes.length; k++) {
+                var value = record.attributes[k];
+                if (value.attribute.id === cmAtt.id) {
+                    cell.text(value.value);
+                }
+            }
+            row.append('<th>'+cmAtt.description+'</th>');
+            row.append(cell);
+            tbody.append(row);
+        }
+    }
+    table.append(tbody);
+    element.append(table);
+    
+    return element;
+};
+
 bdrs.attribute.getRowOptions = function(row) {
-	return {
-		'description': jQuery(row).find(".attrDesc").val(),
-	    'name': row.find(".attrName").val(),
-	    'typeCode': row.find(".attrTypeSelect option:selected").val(),
-	    'scopeCode': row.find(".attrScopeSelect option:selected").val(),
-	    'options': row.find(".attrOpt").val()
+    return {
+        'description': jQuery(row).find(".attrDesc").val(),
+        'name': row.find(".attrName").val(),
+        'typeCode': row.find(".attrTypeSelect option:selected").val(),
+        'scopeCode': row.find(".attrScopeSelect option:selected").val(),
+        'options': row.find(".attrOpt").val()
     };
 };
 
 bdrs.attribute.checkForThreshold = function(row, surveyId) {
-	var options = bdrs.attribute.getRowOptions(row);
-	jQuery.extend(options, {"surveyId": surveyId});
-	jQuery.get(bdrs.portalContextPath+'/bdrs/admin/attribute/ajaxCheckThresholdForAttribute.htm',
+    var options = bdrs.attribute.getRowOptions(row);
+    jQuery.extend(options, {"surveyId": surveyId});
+    jQuery.get(bdrs.portalContextPath+'/bdrs/admin/attribute/ajaxCheckThresholdForAttribute.htm',
             options, 
             function(data) {
-		        if (data === 'true') {
-		            // highlight the row
-		        	row.addClass("ui-state-highlight");
-		        	row.addClass("ui-widget-content");
-		        } else {
-		            // un-highlight the row if it is highlighted
-		        	row.removeClass("ui-state-highlight");
-		        	row.removeClass("ui-widget-content");
-		        }
-		    }
-	);
+                if (data === 'true') {
+                    // highlight the row
+                    row.addClass("ui-state-highlight");
+                    row.addClass("ui-widget-content");
+                } else {
+                    // un-highlight the row if it is highlighted
+                    row.removeClass("ui-state-highlight");
+                    row.removeClass("ui-widget-content");
+                }
+            }
+    );
+};
+
+/**
+ * Shows a popup dialog with a Census Method attribute editing form.
+ * @param popup the popup dialog on the page that you want to interact with
+ * @param input the input that originated the dialog
+ */
+bdrs.attribute.showCensusMethodAttributeEditor = function(popup, input, typeCode, index, bNewRow, cmSelector) {
+    // todo: need to get attribute cm info and populate dialog if existing attribute
+    popup.data('input', input);
+    popup.data('typeCode', typeCode);
+    popup.data('index', index);
+    popup.data('bNewRow', bNewRow);
+    var selectedCM = jQuery(input).closest("td").find(cmSelector);
+    popup.data('selectedCM', selectedCM != undefined && selectedCM.val() != undefined ? selectedCM.val() : '');
+    popup.dialog('open');
+};
+
+bdrs.attribute.openCMAttributeDialog = function(dialog) {
+    var input = jQuery(dialog).data('input');
+    var typeCode = jQuery(dialog).data('typeCode');
+    var selectedCM = jQuery(dialog).data('selectedCM');
+    
+    // populate the form with the selected census method attribute options
+    jQuery(dialog).find('#attrDesc').val(jQuery(input).val());
+    
+    // populate the census methods
+    var censusMethods = jQuery(dialog).find("#censusMethod");
+    censusMethods.empty();
+    jQuery.getJSON(bdrs.contextPath + '/bdrs/admin/censusMethod/search.htm', {rows: 100}, function(data) {
+        // create the options from the rows
+        var rows = data.rows;
+        for (var i = 0; i < rows.length; i++) {
+            var row = rows[i];
+            var cmOpt = jQuery('<option value="'+row.id+'" '+(row.id === selectedCM ? 'selected' : '')+'>'+row.name+'</option>');
+            censusMethods.append(cmOpt);
+        }
+    });
+};
+
+bdrs.attribute.saveCMAttributeDialog = function(dialog) {
+    // set the form data from the dialog form data
+    var input = jQuery(dialog).data('input');
+    var index = jQuery(dialog).data('index');
+    var bNewRow = jQuery(dialog).data('bNewRow');
+    var prefix = '';
+    if (bNewRow === 'true') {
+        prefix = 'add_';
+    }
+    // get the parent row
+    var parentRow = jQuery(input).parents('tr');
+    // name goes in the Description column
+    jQuery(input).val(jQuery(dialog).find('#attrDesc').val());
+    
+    // add census method to the form as a hidden input
+    var cm = jQuery(dialog).find('#censusMethod').val();
+    var attVal = jQuery('[name="'+prefix+'attribute_census_method_'+index+'"]');
+    if (attVal && attVal.length > 0) {
+    } else {
+        attVal = jQuery('<input type="text" name="'+prefix+'attribute_census_method_'+index+'" value="'+cm+'"/>');
+        jQuery(input).closest("td").append(attVal);
+    }
+    attVal.val(cm);
+    attVal.removeClass();
+    attVal.addClass("hiddenKetchup validate(required)");
+    attVal.closest("tr").ketchup();
+    attVal.trigger("blur");
 };

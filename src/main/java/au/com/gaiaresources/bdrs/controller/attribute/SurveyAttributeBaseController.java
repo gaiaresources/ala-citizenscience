@@ -340,10 +340,9 @@ public class SurveyAttributeBaseController extends AbstractController {
         RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO, null);
         if(request.getParameterValues("attribute") != null) {
             for(String rawAttrPk : request.getParameterValues("attribute")) {
-
                 if(rawAttrPk != null && !rawAttrPk.isEmpty()) {
                     attr = taxaDAO.getAttribute(Integer.parseInt(rawAttrPk));
-                    AttributeFormField formField = formFieldFactory.createAttributeFormField(attributeDAO, attr, request.getParameterMap());
+                    AttributeFormField formField = formFieldFactory.createAttributeFormField(attributeDAO, cmDAO, attr, request.getParameterMap());
                     Attribute newAttr = ((AttributeInstanceFormField)formField).getAttribute();
                     // check that the attribute is valid if it is an HTML type attribute
                     // don't validate HTML_NO_VALIDATION types
@@ -369,10 +368,9 @@ public class SurveyAttributeBaseController extends AbstractController {
         // Create new Attributes
         if(request.getParameter("add_attribute") != null) {
             for(String rawIndex : request.getParameterValues("add_attribute")) {
-
                 if(rawIndex != null && !rawIndex.isEmpty()) {
                     int index = Integer.parseInt(rawIndex);
-                    AttributeFormField formField = formFieldFactory.createAttributeFormField(attributeDAO, index, request.getParameterMap());
+                    AttributeFormField formField = formFieldFactory.createAttributeFormField(attributeDAO, cmDAO, index, request.getParameterMap());
                     Attribute newAttr = ((AttributeInstanceFormField)formField).getAttribute();
                     // check that the attribute is valid if it is an HTML type attribute
                     // don't validate HTML_NO_VALIDATION types

@@ -116,16 +116,6 @@ public class TaxaServiceImpl implements TaxaService {
     	return taxaDAO.createAttributeOption(attribute, value);
     }
     
-    public TypedAttributeValue createIndicatorSpeciesAttribute(IndicatorSpecies species, Attribute attr, String value)
-    {
-    	return taxaDAO.createIndicatorSpeciesAttribute(species, attr, value);
-    }
-
-    public TypedAttributeValue createIndicatorSpeciesAttribute(IndicatorSpecies species, Attribute attr, String value, String desc)
-    {
-    	return taxaDAO.createIndicatorSpeciesAttribute(species, attr, value, desc);
-    }
-    
     /**
      * {@inheritDoc}
      */

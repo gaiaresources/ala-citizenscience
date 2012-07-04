@@ -50,8 +50,6 @@ public class SurveyImportExportTest extends AbstractGridControllerTest {
     @Autowired
     private LocationDAO locationDAO;
     @Autowired
-    private PreferenceDAO prefDAO;
-    @Autowired
     private CensusMethodDAO methodDAO;
     /**
      * Used to change the default view returned by the controller

@@ -10,6 +10,7 @@ import au.com.gaiaresources.bdrs.model.method.Taxonomic;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValueUtil;
 
@@ -29,17 +30,26 @@ public class RecordFormFieldCollection {
     /**
      * 
      * @param prefix - the prefix to use for the form fields.
-     * @param record - a PERSISTED record. if it's not a persisted record, you may get null pointer exceptions.
+     * @param record - the record the form field collection belongs to
      * @param highlight - should the webform render this collection of form fields as highlighted
      * @param recPropList - the RecordProperty fields to render...
      * @param attrList - the Attributes to render
      */
     public RecordFormFieldCollection(String prefix, Record record, boolean highlight, Collection<RecordProperty> recPropList,
             Collection<Attribute> attrList) {
-        
+        this(prefix, record, highlight, recPropList, attrList, Collections. <Integer> emptySet());
+    }
+    
+    public RecordFormFieldCollection(String prefix, Record record, boolean highlight, Collection<RecordProperty> recPropList,
+            Collection<Attribute> attrList, Set<Integer> existingCmIds) {
         this.prefix = prefix;
         this.highlight = highlight;
         this.recordId = record.getId();
+        // check if the record is persisted, if it is not, use 0 for the 
+        // record id to prevent null pointer exceptions
+        if (this.recordId == null) {
+            this.recordId = 0;
+        }
         
         Set<AttributeValue> avSet = record.getAttributes();
         
@@ -53,10 +63,17 @@ public class RecordFormFieldCollection {
         // the form field is empty.
         for (Attribute a : attrList) {
             AttributeValue av = AttributeValueUtil.getByAttribute(avSet, a);
-            if (av != null) {
-                formFields.add(formFieldFactory.createRecordFormField(survey, record, av.getAttribute(), av, prefix));
+            if (AttributeType.isCensusMethodType(a.getType())) {
+                if (a.getCensusMethod() != null) {
+                    if (!existingCmIds.contains(a.getCensusMethod().getId())) {
+                        FormField ff = formFieldFactory.createCensusMethodAttributeFormField(survey, record, a, av, prefix);
+                        if (ff != null) {
+                            formFields.add(ff);
+                        }
+                    }
+                }
             } else {
-                formFields.add(formFieldFactory.createRecordFormField(survey, record, a, null, prefix));
+                formFields.add(formFieldFactory.createRecordFormField(survey, record, a, av, prefix));
             }
         }
         

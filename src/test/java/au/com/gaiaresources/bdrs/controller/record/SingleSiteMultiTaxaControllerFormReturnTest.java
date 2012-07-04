@@ -1,6 +1,7 @@
 package au.com.gaiaresources.bdrs.controller.record;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,8 @@ import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyFormField;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.TypedAttributeValueFormField;
+import au.com.gaiaresources.bdrs.db.FilterManager;
+import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.impl.AdvancedCountRecordFilter;
@@ -33,7 +36,6 @@ import au.com.gaiaresources.bdrs.security.Role;
 public class SingleSiteMultiTaxaControllerFormReturnTest extends
         AbstractGridControllerTest {
     
-    @SuppressWarnings("unchecked")
     @Test
     public void openFormWithExistingRecordsTest() throws Exception {
         login("admin", "password", new String[] { Role.ADMIN });
@@ -89,14 +91,13 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
         assertFormFieldList(tableHeaderList, refRecord1, false, RECORD_SCOPES);
     }
     
-    @SuppressWarnings("unchecked")
     @Test
     public void openFormWithNewRecordScopedAttributesAddedSinceRecCreation() throws Exception {
         login("admin", "password", new String[] { Role.ADMIN });
         
         Survey survey = this.singleSiteMultiTaxaSurvey;
         
-        Attribute newRecordScopedAttr = this.createAttribute("rec scoped attr", AttributeType.INTEGER, false, AttributeScope.RECORD);
+        Attribute newRecordScopedAttr = this.createAttribute("rec scoped attr", AttributeType.INTEGER, false, AttributeScope.RECORD, false);
         List<Attribute> newSurveyAttrList = new ArrayList<Attribute>();
         newSurveyAttrList.addAll(survey.getAttributes());
         newSurveyAttrList.add(newRecordScopedAttr);
@@ -152,7 +153,6 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
         assertFormFieldList(tableHeaderList, refRecord1, false, RECORD_SCOPES);
     }
     
-    @SuppressWarnings("unchecked")
     @Test
     public void openFormWithNoRecord() throws Exception {
         login("admin", "password", new String[] { Role.ADMIN });
@@ -218,24 +218,26 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
         request.setMethod("POST");
         request.setParameter(SingleSiteMultiTaxaController.PARAM_SURVEY_ID, refRecord1.getSurvey().getId().toString());
         
+        FilterManager.disablePartialRecordCountFilter(sesh);
         int seed = 2;
-        Map<Attribute, String> newSurveyScopedAttributeValues = new HashMap<Attribute, String>();
+        Map<Attribute, Object> newSurveyScopedAttributeValues = new HashMap<Attribute, Object>();
         Map<RecordPropertyType, String> newSurveyScopedRecPropValues = new HashMap<RecordPropertyType, String>();
         this.addSurveyScopedItemsToPostMap(refRecord1, request, seed++, newSurveyScopedAttributeValues, newSurveyScopedRecPropValues, setLocation);
         
         int index = 0;
-        Map<Attribute, String> newRecordScopedAttributeValues = new HashMap<Attribute, String>();
+        Map<Attribute, Object> newRecordScopedAttributeValues = new HashMap<Attribute, Object>();
         Map<RecordPropertyType, String> newRecordScopedRecPropValues = new HashMap<RecordPropertyType, String>();
         List<AttributeScope> RECORD_SCOPES = new ArrayList<AttributeScope>();
         RECORD_SCOPES.add(AttributeScope.RECORD);
         RECORD_SCOPES.add(AttributeScope.RECORD_MODERATION);
         this.addRecordScopedItemsToPostMap(refRecord1, request, index++, seed++, newRecordScopedAttributeValues, newRecordScopedRecPropValues, setLocation, RECORD_SCOPES);
         
-        Map<Attribute, String> newRecordScopedAttributeValues2 = new HashMap<Attribute, String>();
+        Map<Attribute, Object> newRecordScopedAttributeValues2 = new HashMap<Attribute, Object>();
         Map<RecordPropertyType, String> newRecordScopedRecPropValues2 = new HashMap<RecordPropertyType, String>();
         this.addRecordScopedItemsToPostMap(refRecord2, request, index++, seed++, newRecordScopedAttributeValues2, newRecordScopedRecPropValues2, setLocation, RECORD_SCOPES);
         
         request.addParameter(SingleSiteMultiTaxaController.PARAM_SIGHTING_INDEX, Integer.toString(index));
+        FilterManager.setPartialRecordCountFilter(sesh);
         
         ModelAndView mv = this.handle(request, response);
         
@@ -263,7 +265,6 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
     }
     
     // more so just to make sure there are no null pointer exceptions
-    @SuppressWarnings("unchecked")
     @Test
     public void testNullSurveyFormReturn() throws Exception {
         login("admin", "password", new String[] { Role.ADMIN });
@@ -284,7 +285,6 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
         Assert.assertEquals("expect our one and only record in the return list", 1, rffcList.size());
     }
     
-    @SuppressWarnings("unchecked")
     @Test
     public void testSurveyScopedFormReturn() throws Exception {
         login("admin", "password", new String[] { Role.ADMIN });
@@ -318,7 +318,6 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
         Assert.assertFalse("item 2 should not be highlighted", rf2.isHighlight());
     }
     
-    @SuppressWarnings("unchecked")
     @Test
     public void testRecordScopedFormReturn() throws Exception {
         login("admin", "password", new String[] { Role.ADMIN });
@@ -394,7 +393,10 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
                         Assert.assertEquals("attribute value refs should equal", origAv, targetAv);    
                     }
                 } else {
-                    Assert.assertNull("the target TypedAttributeValue should be null", targetAv);    
+                    // census methods can have an attribute value but yet not be filled in
+                    if (!AttributeType.isCensusMethodType(tavff.getAttribute().getType())) {
+                        Assert.assertNull("the target TypedAttributeValue should be null", targetAv);
+                    }
                 }
                 
                 // mark of the item as existing...
@@ -429,15 +431,15 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
     }
     
     private void addSurveyScopedItemsToPostMap(Record rec, MockHttpServletRequest req, int seed,
-            Map<Attribute, String> avMap, Map<RecordPropertyType, String> recPropMap, boolean useLocation) {
+            Map<Attribute, Object> newSurveyScopedAttributeValues, Map<RecordPropertyType, String> recPropMap, boolean useLocation) {
         List<AttributeScope> scopeList = new ArrayList<AttributeScope>();
         scopeList.add(AttributeScope.SURVEY);
         scopeList.add(AttributeScope.SURVEY_MODERATION);
-        addItemsToPostMap(rec, req, scopeList, "", seed, avMap, recPropMap, useLocation);
+        addItemsToPostMap(rec, req, scopeList, "", seed, newSurveyScopedAttributeValues, recPropMap, useLocation);
     }
     
     private void addRecordScopedItemsToPostMap(Record rec, MockHttpServletRequest req, int index, int seed,
-                                                                 Map<Attribute, String> avMap, 
+                                                                 Map<Attribute, Object> avMap, 
                                                                  Map<RecordPropertyType, String> recPropMap, 
                                                                  boolean useLocation, List<AttributeScope> scopeList) {
         String prefix = String.format("%d_", index);
@@ -448,7 +450,7 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
     }
     
     private void addItemsToPostMap(Record rec, MockHttpServletRequest req, List<AttributeScope> scopeList, String prefix, int seed,
-                              Map<Attribute, String> avMap, Map<RecordPropertyType, String> recPropMap, boolean useLocation) {
+                              Map<Attribute, Object> avMap, Map<RecordPropertyType, String> recPropMap, boolean useLocation) {
         
         List<AttributeValue> scopedAttributeValues = new ArrayList<AttributeValue>();
         List<RecordProperty> scopedRecordProperties = new ArrayList<RecordProperty>();
@@ -456,12 +458,13 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
             scopedAttributeValues.addAll(this.getAttributeValuesByScope(rec, scope));
             scopedRecordProperties.addAll(this.getRecordProperty(rec.getSurvey(), scope));
         }
+        Map<String,String> params = new HashMap<String,String>();
         for (AttributeValue av : scopedAttributeValues) {
             // increment the seed for each iteration
-            String newValue = this.genRandomAttributeValue(av, seed++, false);
+            Object newValue = genRandomAttributeValue(av, seed++, true, true, avMap, prefix, params);
             avMap.put(av.getAttribute(), newValue);
-            addAttributeValuesToPostMap(av.getAttribute(), newValue, req, prefix);
         }
+        req.addParameters(params);
         for (RecordProperty rp : scopedRecordProperties) {
             
             // don't add certain items to the post map depending on input args...
@@ -479,11 +482,6 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
             recPropMap.put(rp.getRecordPropertyType(), newValue);
             addRecordPropertiesToPostMap(rec, rp, newValue, req, prefix);
         }
-    }
-    
-    private void addAttributeValuesToPostMap(Attribute a, String value, MockHttpServletRequest req, String prefix) {
-        
-        req.addParameter(prefix + "attribute_" + a.getId(), value);
     }
     
     private void addRecordPropertiesToPostMap(Record rec, RecordProperty prop, String value, MockHttpServletRequest req, String prefix) {

@@ -1,31 +1,18 @@
 package au.com.gaiaresources.bdrs.controller.record;
 
-import au.com.gaiaresources.bdrs.controller.RenderController;
-import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField;
-import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormFieldFactory;
-import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
-import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
-import au.com.gaiaresources.bdrs.deserialization.record.*;
-import au.com.gaiaresources.bdrs.message.Message;
-import au.com.gaiaresources.bdrs.model.location.Location;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
-import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
-import au.com.gaiaresources.bdrs.model.method.CensusMethod;
-import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
-import au.com.gaiaresources.bdrs.model.method.Taxonomic;
-import au.com.gaiaresources.bdrs.model.record.Record;
-import au.com.gaiaresources.bdrs.model.record.RecordDAO;
-import au.com.gaiaresources.bdrs.model.record.RecordService;
-import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
-import au.com.gaiaresources.bdrs.model.taxa.*;
-import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.service.content.ContentService;
-import au.com.gaiaresources.bdrs.service.map.GeoMapService;
-import au.com.gaiaresources.bdrs.service.web.RedirectionService;
-import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
-import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.security.RolesAllowed;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -37,12 +24,41 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.annotation.security.RolesAllowed;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.text.ParseException;
-import java.util.*;
+import au.com.gaiaresources.bdrs.controller.RenderController;
+import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField;
+import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
+import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
+import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
+import au.com.gaiaresources.bdrs.deserialization.record.RecordDeserializer;
+import au.com.gaiaresources.bdrs.deserialization.record.RecordDeserializerResult;
+import au.com.gaiaresources.bdrs.deserialization.record.RecordEntry;
+import au.com.gaiaresources.bdrs.deserialization.record.RecordKeyLookup;
+import au.com.gaiaresources.bdrs.message.Message;
+import au.com.gaiaresources.bdrs.model.location.Location;
+import au.com.gaiaresources.bdrs.model.location.LocationService;
+import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
+import au.com.gaiaresources.bdrs.model.method.CensusMethod;
+import au.com.gaiaresources.bdrs.model.method.Taxonomic;
+import au.com.gaiaresources.bdrs.model.record.Record;
+import au.com.gaiaresources.bdrs.model.record.RecordDAO;
+import au.com.gaiaresources.bdrs.model.record.RecordService;
+import au.com.gaiaresources.bdrs.model.survey.Survey;
+import au.com.gaiaresources.bdrs.model.taxa.Attribute;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeUtil;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValueUtil;
+import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
+import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.content.ContentService;
+import au.com.gaiaresources.bdrs.service.map.GeoMapService;
+import au.com.gaiaresources.bdrs.service.web.RedirectionService;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 
 /**
  * Controller for the default 'tracker' form.
@@ -234,13 +250,8 @@ public class TrackerController extends RecordController {
     @Autowired
     private RecordDAO recordDAO;
     @Autowired
-    private SurveyDAO surveyDAO;
-    @Autowired
     private TaxaDAO taxaDAO;
 
-    @Autowired
-    private CensusMethodDAO cmDAO;
-    
     @Autowired
     private LocationService locationService;
     
@@ -255,8 +266,6 @@ public class TrackerController extends RecordController {
     private RecordService recordService;
     @Autowired
     private GeoMapService geoMapService;
-
-    private FormFieldFactory formFieldFactory = new FormFieldFactory();
 
     /**
      * Handler to get the tracker form. Will populate the form with values if an existing
@@ -305,8 +314,31 @@ public class TrackerController extends RecordController {
         }
 
         IndicatorSpecies species = determineSpecies(surveyId, taxonSearch, guid, speciesId, record);
+        Map<String, String> valueMap = (Map<String, String>)getRequestContext().getSessionAttribute("valueMap");
+        getRequestContext().removeSessionAttribute("valueMap");
         
-
+        if (valueMap != null) {
+            // mock save record with value map results to populate form on server error
+            RecordKeyLookup lookup = new TrackerFormRecordKeyLookup();
+            TrackerFormToRecordEntryTransformer transformer = new TrackerFormToRecordEntryTransformer(locationService);
+            TrackerFormAttributeDictionaryFactory adf = new TrackerFormAttributeDictionaryFactory();
+            AttributeParser parser = new WebFormAttributeParser(taxaDAO);
+            
+            RecordDeserializer rds = new RecordDeserializer(lookup, adf, parser);
+            List<RecordEntry> entries = transformer.httpRequestParamToRecordMap(convertMap(valueMap), Collections.EMPTY_MAP);
+            List<RecordDeserializerResult> results;
+            try {
+                results = rds.deserialize(getRequestContext().getUser(), entries, false, false);
+                if (results.size() == 1) {
+                    record = results.get(0).getRecord();
+                } else {
+                    log.error("Error loading record from value map: Too many records returned: got "+results.size()+" but expected 1");
+                }
+            } catch (Exception e) {
+                log.error("Error loading record from value map", e);
+            }
+        }
+        
         // Add all attribute form fields
         FormField formField;
         Attribute attr;
@@ -337,17 +369,36 @@ public class TrackerController extends RecordController {
                 if (AttributeUtil.isVisibleByScopeAndUser(attr, loggedInUser, recAttr) ||
                         (loggedInUser != null && loggedInUser.equals(record.getUser())) ||
                         !AttributeScope.isModerationScope(attr.getScope())) {
-                    formField = formFieldFactory.createRecordFormField(survey, record, attr, recAttr);
-                    surveyFormFieldList.add(formField);
+                    if (AttributeType.isCensusMethodType(attr.getType())) {
+                        formField = createCensusMethodFormField(survey, record, attr, loggedInUser, AttributeParser.DEFAULT_PREFIX, context);
+                    } else {
+                        formField = formFieldFactory.createRecordFormField(survey, record, attr, recAttr);
+                    }
+                    if (formField != null) {
+                        surveyFormFieldList.add(formField);
+                    }
                 }
             } else if(taxonGroupAttributeList.remove(attr)) {
-                formField = formFieldFactory.createRecordFormField(survey, record, attr, recAttr, TAXON_GROUP_ATTRIBUTE_PREFIX);
-                taxonGroupFormFieldList.add(formField);
+                if (AttributeType.isCensusMethodType(attr.getType())) {
+                    formField = createCensusMethodFormField(survey, record, attr, loggedInUser, TAXON_GROUP_ATTRIBUTE_PREFIX, context);
+                } else {
+                    formField = formFieldFactory.createRecordFormField(survey, record, attr, recAttr, TAXON_GROUP_ATTRIBUTE_PREFIX);
+                }
+                if (formField != null) {
+                    taxonGroupFormFieldList.add(formField);
+                }
             } else if (censusMethodAttributeList.remove(attr)) {
-                formField = formFieldFactory.createRecordFormField(survey, record, attr, recAttr, CENSUS_METHOD_ATTRIBUTE_PREFIX);
-                censusMethodFormFieldList.add(formField);
+                if (AttributeType.isCensusMethodType(attr.getType())) {
+                    formField = createCensusMethodFormField(survey, record, attr, loggedInUser, CENSUS_METHOD_ATTRIBUTE_PREFIX, context);
+                } else {
+                    formField = formFieldFactory.createRecordFormField(survey, record, attr, recAttr, CENSUS_METHOD_ATTRIBUTE_PREFIX);
+                }
+                if (formField != null) {
+                    censusMethodFormFieldList.add(formField);
+                }
             }
         }
+        
         // If there were no pre-existing values for the attributes, add 
         // the blank fields now.
         for (Attribute surveyAttr : surveyAttributeList) {
@@ -357,16 +408,37 @@ public class TrackerController extends RecordController {
                 if (AttributeUtil.isVisibleByScopeAndUser(surveyAttr, loggedInUser, attrVal) ||
                         (loggedInUser != null && loggedInUser.equals(record.getUser())) ||
                         !AttributeScope.isModerationScope(surveyAttr.getScope())) {
-                    surveyFormFieldList.add(formFieldFactory.createRecordFormField(survey, record, surveyAttr));
+                    if (AttributeType.isCensusMethodType(surveyAttr.getType())) {
+                        FormField ff = createCensusMethodFormField(survey, record, surveyAttr, loggedInUser, AttributeParser.DEFAULT_PREFIX, context);
+                        if (ff != null) {
+                            surveyFormFieldList.add(ff);
+                        }
+                    } else {
+                        surveyFormFieldList.add(formFieldFactory.createRecordFormField(survey, record, surveyAttr));
+                    }
                 }
             }
         }
         for (Attribute taxonGroupAttr : taxonGroupAttributeList) {
-            taxonGroupFormFieldList.add(formFieldFactory.createRecordFormField(survey, record, taxonGroupAttr, TAXON_GROUP_ATTRIBUTE_PREFIX));
+            if (AttributeType.isCensusMethodType(taxonGroupAttr.getType())) {
+                FormField ff = createCensusMethodFormField(survey, record, species, taxonGroupAttr, loggedInUser, TAXON_GROUP_ATTRIBUTE_PREFIX, context);
+                if (ff != null) {
+                    taxonGroupFormFieldList.add(ff);
+                }
+            } else {
+                taxonGroupFormFieldList.add(formFieldFactory.createRecordFormField(survey, record, taxonGroupAttr, TAXON_GROUP_ATTRIBUTE_PREFIX));
+            }
         }
         // Add census method form fields
         for (Attribute cmAttr : censusMethodAttributeList) {
-            censusMethodFormFieldList.add(formFieldFactory.createRecordFormField(survey, record, cmAttr, CENSUS_METHOD_ATTRIBUTE_PREFIX));
+            if (AttributeType.isCensusMethodType(cmAttr.getType())) {
+                FormField ff = createCensusMethodFormField(survey, record, cmAttr, loggedInUser, CENSUS_METHOD_ATTRIBUTE_PREFIX, context);
+                if (ff != null) {
+                    censusMethodFormFieldList.add(ff);
+                }
+            } else {
+                censusMethodFormFieldList.add(formFieldFactory.createRecordFormField(survey, record, cmAttr, CENSUS_METHOD_ATTRIBUTE_PREFIX));
+            }
         }
 
     	Taxonomic taxonomic;
@@ -402,8 +474,6 @@ public class TrackerController extends RecordController {
         
         Map<String, String> errorMap = (Map<String, String>)getRequestContext().getSessionAttribute(MV_ERROR_MAP);
         getRequestContext().removeSessionAttribute(MV_ERROR_MAP);
-        Map<String, String> valueMap = (Map<String, String>)getRequestContext().getSessionAttribute("valueMap");
-        getRequestContext().removeSessionAttribute("valueMap");
         String wktString = (String)getRequestContext().getSessionAttribute(MV_WKT);
         getRequestContext().removeSessionAttribute(MV_WKT);
 
@@ -415,7 +485,7 @@ public class TrackerController extends RecordController {
         context.addFormFields("surveyFormFieldList", surveyFormFieldList);
         context.addFormFields("taxonGroupFormFieldList", taxonGroupFormFieldList);
         context.addFormFields("censusMethodFormFieldList", censusMethodFormFieldList);
-
+        
         ModelAndView mv = new ModelAndView(TRACKER_VIEW_NAME);
         mv.addObject("censusMethod", censusMethod);
         mv.addObject("record", record);
@@ -450,9 +520,8 @@ public class TrackerController extends RecordController {
         mv.addObject("valueMap", valueMap);
         mv.addObject("displayMap", showMap);
         
-        return mv;
+        return super.addRecord(mv, loggedInUser);
     }
-
     /**
      * Determines the IndicatorSpecies to use when displaying the form.
      * @param surveyId the id of the survey to be displayed.
@@ -683,29 +752,44 @@ public class TrackerController extends RecordController {
                 taxonGroupAttributeList.add(taxonGroupAttribute);
             }
         }
-        
         // For those attribute that have a record attribute, create
         // the form field with that value pre-populated
         Attribute attr;
+        FormField formField = null;
         for(AttributeValue recAttr : record.getAttributes()) {
             attr = recAttr.getAttribute();
             if(taxonGroupAttributeList.remove(attr)) {
                 // its a taxon group attribute
-                formFieldList.add(formFieldFactory.createRecordFormField(survey, record, attr, recAttr, TAXON_GROUP_ATTRIBUTE_PREFIX));
+                if (AttributeType.isCensusMethodType(attr.getType())) {
+                    formField = createCensusMethodFormField(survey, record, attr, loggedInUser, TAXON_GROUP_ATTRIBUTE_PREFIX, context);
+                } else {
+                    formField = formFieldFactory.createRecordFormField(survey, record, attr, recAttr, TAXON_GROUP_ATTRIBUTE_PREFIX);
+                }
+                if (formField != null) {
+                    formFieldList.add(formField);
+                }
             }
         }
 
         // Add the remaining taxon group attributes.
         for (Attribute taxonGroupAttr : taxonGroupAttributeList) {
             if(!taxonGroupAttr.isTag()) {
-                formFieldList.add(formFieldFactory.createRecordFormField(survey, record, taxonGroupAttr, TAXON_GROUP_ATTRIBUTE_PREFIX));
+                if (AttributeType.isCensusMethodType(taxonGroupAttr.getType())) {
+                    formField = createCensusMethodFormField(survey, record, taxonGroupAttr, loggedInUser, TAXON_GROUP_ATTRIBUTE_PREFIX, context);
+                } else {
+                    formField = formFieldFactory.createRecordFormField(survey, record, taxonGroupAttr, TAXON_GROUP_ATTRIBUTE_PREFIX);
+                }
+                if (formField != null) {
+                    formFieldList.add(formField);
+                }
             }
         }
-        
+
         Collections.sort(formFieldList);
         
         ModelAndView mv = new ModelAndView("formFieldListRenderer");
         mv.addObject("formFieldList", formFieldList);
+        mv.addObject(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT, context);
         // this isn't an entire web form so it doesn't need the complete web form context
         mv.addObject(RecordWebFormContext.MODEL_EDIT, context.isEditable());
         return mv;
@@ -718,5 +802,26 @@ public class TrackerController extends RecordController {
     private ModelAndView nullSurveyError() {
         getRequestContext().addMessage(NO_SURVEY_ERROR_KEY, new Object[]{defaultTab()});
         return new ModelAndView(new PortalRedirectView(redirectionService.getMySightingsUrl(null), true));
+    }
+    
+    /**
+     * Provides a single row representing a group of census method attributes. 
+     * This view is typically invoked by an AJAX request.
+     * 
+     * @param request the browser request
+     * @param response the server response
+     * @param surveyId the primary key of the survey where the record shall be added.
+     * @param rowIndex the row index where 0 is the first row.
+     * @return 
+     */
+    @RequestMapping(value = "/bdrs/user/contribute/attributeRecordRow.htm", method = RequestMethod.GET)
+    public ModelAndView ajaxAddAttributeRecordRow(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    @RequestParam(value=BdrsWebConstants.PARAM_SURVEY_ID, required=false) Integer surveyId,
+                                    @RequestParam(value="rowIndex", defaultValue="0") int rowIndex,
+                                    @RequestParam(value="attributeId", required=true) int attributeId,
+                                    @RequestParam(value="speciesId", required=false) Integer speciesId) {
+        
+        return ajaxGetAttributeTable(request, response, surveyId, speciesId, rowIndex, "attributeRecordRow", attributeId);
     }
 }

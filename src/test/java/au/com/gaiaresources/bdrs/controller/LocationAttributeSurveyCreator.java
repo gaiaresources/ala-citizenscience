@@ -53,6 +53,7 @@ public class LocationAttributeSurveyCreator {
     private CensusMethod methodA;
     private CensusMethod methodC;
     private CensusMethod methodB;
+    private CensusMethod attrCM;
     private User user;
     private User admin;
     private Date dateA;
@@ -135,6 +136,7 @@ public class LocationAttributeSurveyCreator {
      * @throws Exception thrown if there has been an error creating the test data.
      */
     public void create(boolean createRecords) throws Exception {
+        attrCM = createCensusMethodForAttributes();
         dateA = dateFormat.parse("27 Jun 2004");
         dateB = dateFormat.parse("02 Oct 2005");
 
@@ -287,6 +289,8 @@ public class LocationAttributeSurveyCreator {
                         rangeList.add(taxaDAO.save(lower));
                         rangeList.add(taxaDAO.save(upper));
                         attr.setOptions(rangeList);
+                    } else if (AttributeType.isCensusMethodType(attrType)) {
+                        attr.setCensusMethod(attrCM);
                     }
 
                     attr = taxaDAO.save(attr);
@@ -455,9 +459,13 @@ public class LocationAttributeSurveyCreator {
                         fileData = createImage(-1, -1, attrVal.getStringValue());
                         break;
                     case SPECIES:
-                    	attrVal.setSpecies(speciesA);
-                    	attrVal.setStringValue(speciesA.getScientificName());
-                    	break;
+                        attrVal.setSpecies(speciesA);
+                        attrVal.setStringValue(speciesA.getScientificName());
+                        break;
+                    case CENSUS_METHOD_ROW:
+                    case CENSUS_METHOD_COL:
+                        // census method types should add a record to the attribute value
+                        break;
                     default:
                         Assert.assertTrue("Unknown Attribute Type: "
                                 + attr.getType().toString(), false);
@@ -607,11 +615,15 @@ public class LocationAttributeSurveyCreator {
                         fileData = createImage(-1, -1, recAttr.getStringValue());
                         break;
                     case SPECIES:
-                    	if (cm == null || !Taxonomic.NONTAXONOMIC.equals(cm.getTaxonomic())) {
-                    		recAttr.setStringValue(species != null ? species.getScientificName() : "");
-                        	recAttr.setSpecies(species);	
-                    	}
-                    	break;
+                        if (cm == null || !Taxonomic.NONTAXONOMIC.equals(cm.getTaxonomic())) {
+                            recAttr.setStringValue(species != null ? species.getScientificName() : "");
+                            recAttr.setSpecies(species);
+                        }
+                        break;
+                    case CENSUS_METHOD_ROW:
+                    case CENSUS_METHOD_COL:
+                        // census method types should add a record to the attribute value
+                        break;
                     default:
                         Assert.assertTrue("Unknown Attribute Type: "
                                 + attr.getType().toString(), false);
@@ -703,11 +715,15 @@ public class LocationAttributeSurveyCreator {
                             fileData = createImage(-1, -1, recAttr.getStringValue());
                             break;
                         case SPECIES:
-                        	if (cm == null || !Taxonomic.NONTAXONOMIC.equals(cm.getTaxonomic())) {
-                        		recAttr.setStringValue(species != null ? species.getScientificName() : "");
-                            	recAttr.setSpecies(species);	
-                        	}
-                        	break;
+                            if (cm == null || !Taxonomic.NONTAXONOMIC.equals(cm.getTaxonomic())) {
+                                recAttr.setStringValue(species != null ? species.getScientificName() : "");
+                                recAttr.setSpecies(species);
+                            }
+                            break;
+                        case CENSUS_METHOD_ROW:
+                        case CENSUS_METHOD_COL:
+                            // census method types should add a record to the attribute value
+                            break;
                         default:
                             Assert.assertTrue("Unknown Attribute Type: "
                                     + attr.getType().toString(), false);
@@ -849,5 +865,31 @@ public class LocationAttributeSurveyCreator {
     
     public int getLocationCount() {
         return locationCount;
+    }
+    
+    public CensusMethod createCensusMethodForAttributes() {
+        CensusMethod cm = new CensusMethod();
+        cm.setName("Test Attribute Census Method");
+        cm.setDescription("Test Attribute Census Method");
+        cm.setTaxonomic(Taxonomic.NONTAXONOMIC);
+        
+        cm.setRunThreshold(false);
+        
+        // create at least one attribute for the census method to allow it to 
+        // be added to forms
+        List<Attribute> attributes = new ArrayList<Attribute>(1);
+        AttributeType attrType = AttributeType.STRING;
+        Attribute attr = new Attribute();
+        attr.setRequired(true);
+        String attName = "attribute_" + attrType.toString();
+        attr.setName(attName);
+        attr.setDescription(attName);
+        attr.setTypeCode(attrType.getCode());
+        attr.setScope(null);
+        attr = taxaDAO.save(attr);
+        attributes.add(attr);
+        cm.setAttributes(attributes);
+        
+        return methodDAO.save(cm);
     }
 }

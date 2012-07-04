@@ -38,10 +38,13 @@ public enum AttributeType implements E, JSONEnum {
     MULTI_SELECT("MS", "Multi Select"),
 
     IMAGE("IM", "Image File"),
+    AUDIO("AU", "Audio File"),
+    FILE("FI", "Data File"),
 
     SPECIES("SP", "Species"),
-    AUDIO("AU", "Audio File"),
-    FILE("FI", "Data File");
+    
+    CENSUS_METHOD_ROW("CR", "Data Matrix Rows"),
+    CENSUS_METHOD_COL("CC", "Data Matrix Columns");
 
     private String code;
     private String name;
@@ -90,5 +93,9 @@ public enum AttributeType implements E, JSONEnum {
     @Override
     public String toJSONString() {
         return JSONEnumUtil.toJSONString(this);
+    }
+
+    public static boolean isCensusMethodType(AttributeType type) {
+        return CENSUS_METHOD_COL.equals(type) || CENSUS_METHOD_ROW.equals(type);
     }
 }

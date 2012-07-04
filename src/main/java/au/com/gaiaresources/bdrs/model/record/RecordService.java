@@ -18,41 +18,7 @@ import com.vividsolutions.jts.geom.Point;
  * @author Tim Carpenter
  */
 public interface RecordService {
-    /**
-     * Create a new record.
-     * @param userLocation {@link Location}
-     * @param speices {@link IndicatorSpecies}
-     * @param when {@link Date}
-     * @param time {@link Long}
-     * @param notes {@link String}
-     * @param attributes {@link Map} of {@link Attribute} to {@link Object}, it is expected that the
-     * object value of the attribute is already in the correct data type for the attribute.
-     * @return {@link Record}
-     */
-    Record createRecord(Location userLocation, IndicatorSpecies speices, Date when, Long time,
-                        String notes, Boolean firstAppearance, Boolean lastAppearance,
-                        String behaviour, String habitat, Integer number,
-                        Map<Attribute, Object> attributes);
-
     void deleteRecord(Integer id);
-
-
-    /**
-     * Create a new record.
-     * @param point {@link Point}
-     * @param user {@link User}
-     * @param speices {@link IndicatorSpecies}
-     * @param when {@link Date}
-     * @param time {@link Long}
-     * @param notes {@link String}
-     * @param attributes {@link Map} of {@link Attribute} to {@link Object}, it is expected that the
-     * object value of the attribute is already in the correct data type for the attribute.
-     * @return {@link Record}
-     */
-    Record createRecord(Point point, User user, IndicatorSpecies species, Date when, Long time,
-                        String notes, Boolean firstAppearance, Boolean lastAppearance,
-                        String behaviour, String habitat, Integer number,
-                        Map<Attribute, Object> attributes);
 
     /**
      * Get all records that have been created by the given user.
@@ -96,8 +62,6 @@ public interface RecordService {
     void saveRecord(Record r);
 
     void updateRecord(Record r);
-
-    TypedAttributeValue updateAttribute(Integer id, BigDecimal numeric, String value, Date date);
 
     /**
      * Returns the User that last updated the supplied Record, or null if the updatedBy property is null.

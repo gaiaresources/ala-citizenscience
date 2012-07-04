@@ -4,16 +4,23 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.util.Date;
+import java.util.Set;
 
+import javax.persistence.CascadeType;
+import javax.persistence.FetchType;
 import javax.persistence.MappedSuperclass;
+import javax.persistence.OneToMany;
 import javax.persistence.Transient;
 
 import org.apache.commons.lang.StringEscapeUtils;
+import org.hibernate.annotations.CollectionOfElements;
 import org.springframework.util.StringUtils;
 
 import au.com.bytecode.opencsv.CSVWriter;
+import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
 import au.com.gaiaresources.bdrs.file.FileService;
+import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.util.CSVUtils;
 import au.com.gaiaresources.bdrs.util.DateFormatter;
 
@@ -30,6 +37,7 @@ public abstract class AbstractTypedAttributeValue extends PortalPersistentImpl i
     protected BigDecimal numericValue;
     protected String stringValue = "Not recorded";
     protected Date dateValue;
+    protected Set<Record> records;
     
     @Override
     public String toString() {
@@ -70,9 +78,12 @@ public abstract class AbstractTypedAttributeValue extends PortalPersistentImpl i
         case FILE:
             return this.getStringValue();
         case SPECIES:
-        	return this.getSpecies() != null ? this.getSpecies().getScientificName() : "";
-            default:
-                throw new IllegalStateException("attribute type not handled : " + a.getTypeCode());
+            return this.getSpecies() != null ? this.getSpecies().getScientificName() : "";
+        case CENSUS_METHOD_ROW:
+        case CENSUS_METHOD_COL:
+            return "";
+        default:
+            throw new IllegalStateException("attribute type not handled : " + a.getTypeCode());
         }
     }
         
@@ -173,18 +184,36 @@ public abstract class AbstractTypedAttributeValue extends PortalPersistentImpl i
         case MULTI_CHECKBOX:
         case MULTI_SELECT:
             return StringUtils.hasLength(stringValue);
-            
         case IMAGE:
         case AUDIO:
         case FILE:
             // don't want to return an empty file name or a 'not recorded' file name
             return StringUtils.hasLength(stringValue) && !NOT_RECORDED.equals(stringValue);
-        
         case SPECIES:
-        	return this.getSpecies() != null;
-            
-            default:
-                throw new IllegalStateException("Unhandled type : " + type);
+            return this.getSpecies() != null;
+        case CENSUS_METHOD_ROW:
+        case CENSUS_METHOD_COL:
+            return getRecords() != null && !getRecords().isEmpty();
+        default:
+            throw new IllegalStateException("Unhandled type : " + type);
         }
+    }
+
+    /**
+     * @return the records
+     */
+    @Override
+    @OneToMany(mappedBy="attributeValue", cascade=CascadeType.ALL)
+    @CompactAttribute
+    @CollectionOfElements(fetch = FetchType.LAZY)
+    public Set<Record> getRecords() {
+        return records;
+    }
+
+    /**
+     * @param records the records to set
+     */
+    public void setRecords(Set<Record> records) {
+        this.records = records;
     }
 }

@@ -254,8 +254,12 @@ public class ThresholdServiceTest extends AbstractGridControllerTest {
                 attributeTypeValueLookup.put(at, dateFormat.parse("08 Dec 2010"));
                 break;
             case SPECIES:
-            	attributeTypeValueLookup.put(at, dropBear.getScientificName());
-            	break;
+                attributeTypeValueLookup.put(at, dropBear.getScientificName());
+                break;
+            case CENSUS_METHOD_ROW:
+            case CENSUS_METHOD_COL:
+                // census method types should add a record to the attribute value
+                break;
             default:
                 break;
             }
@@ -280,6 +284,7 @@ public class ThresholdServiceTest extends AbstractGridControllerTest {
         List<AttributeValue> recAttrList = new ArrayList<AttributeValue>();
         List<Attribute> attributeList = new ArrayList<Attribute>();
         Attribute attr;
+        int seed = 0;
         for (AttributeType attrType : AttributeType.values()) {
             for (AttributeScope scope : new AttributeScope[] {
                     AttributeScope.RECORD, AttributeScope.SURVEY,
@@ -324,6 +329,8 @@ public class ThresholdServiceTest extends AbstractGridControllerTest {
                     regExp.setValue("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$");
                     regExpList.add(taxaDAO.save(regExp));
                     attr.setOptions(regExpList);
+                } else if (AttributeType.isCensusMethodType(attrType)) {
+                    attr.setCensusMethod(attrCm);
                 }
 
                 //attr = taxaDAO.save(attr);
@@ -369,9 +376,13 @@ public class ThresholdServiceTest extends AbstractGridControllerTest {
                     break;
                 case SPECIES:
                 {
-                	recAttr.setStringValue((String)attributeTypeValueLookup.get(attrType));
+                    recAttr.setStringValue((String)attributeTypeValueLookup.get(attrType));
                 }
-                	break;
+                    break;
+                case CENSUS_METHOD_ROW:
+                case CENSUS_METHOD_COL:
+                    genRandomAttributeValue(recAttr, seed++, true, false, null, "", null);
+                    break;
                 default:
                     Assert.assertTrue("Attribute type is not handled, " + attrType.getCode(), false);
                     break;
@@ -389,7 +400,7 @@ public class ThresholdServiceTest extends AbstractGridControllerTest {
         survey.setActive(true);
         survey.setStartDate(new Date());
         survey.setDescription("Single Site Multi Taxa Survey Description");
-        Metadata md = survey.setFormRendererType(SurveyFormRendererType.DEFAULT);
+        survey.setFormRendererType(SurveyFormRendererType.DEFAULT);
         //metadataDAO.save(md);
         survey.setAttributes(attributeList);
         survey.setSpecies(speciesSet);
@@ -486,10 +497,15 @@ public class ThresholdServiceTest extends AbstractGridControllerTest {
                             // ignore this case
                             continue;
                         case SPECIES:
-                        	// use the verbatim name for the species condition...
-                        	condition.setValue((String)attributeTypeValueLookup.get(attrType));
+                            // use the verbatim name for the species condition...
+                            condition.setValue((String)attributeTypeValueLookup.get(attrType));
                             falseValue = "012t6589#";
-                        	break;
+                            break;
+                        case CENSUS_METHOD_ROW:
+                        case CENSUS_METHOD_COL:
+                            // census method attributes have no attribute value value, therefore the conditions can never match
+                            // TODO test for matches in the children
+                            continue;
                         default:
                             Assert.assertTrue("Attribute type is not handled, " + attrType.getCode(), false);
                             break;

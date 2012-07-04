@@ -35,7 +35,7 @@ public class ContainsHandler implements SimpleOperatorHandler {
         for (Object property : properties) {
             Object actualValue = property;
             Object expectedValue = null;
-            if (property.getClass().isEnum()) {
+            if (property != null && property.getClass().isEnum()) {
                 actualValue = property.toString();
                 expectedValue = Arrays.asList(condition.stringArrayValue());
             } else {

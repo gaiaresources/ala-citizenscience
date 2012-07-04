@@ -1,8 +1,11 @@
 package au.com.gaiaresources.bdrs.model.location;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.AttributeOverride;
@@ -46,10 +49,10 @@ import au.com.gaiaresources.bdrs.model.index.IndexingConstants;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.region.Region;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
+import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValueUtil;
 import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
@@ -195,6 +198,28 @@ public class Location extends PortalPersistentImpl implements Attributable<Attri
     @Override
     public void setAttributes(Set<AttributeValue> attributes) {
         this.attributes = attributes;
+    }
+    
+    /**
+     * Get the set of attributes that were recorded for the location for the survey given.
+     * Note that modifying this set will have no effect on persisted data
+     * @return {@link Set} of {@link RecordAttribute}
+     */
+    @Transient
+    public Set<AttributeValue> getAttributes(Survey survey) {
+        Set<AttributeValue> surveyValues = new LinkedHashSet<AttributeValue>();
+        // create an Attribute-indexed map of the location attributes
+        // so we can get the attribute value by attribute later
+        Map<Attribute, AttributeValue> typedAttrMap = new HashMap<Attribute, AttributeValue>();
+        for (AttributeValue attr : getAttributes()) {
+            typedAttrMap.put(attr.getAttribute(), attr);
+        }
+        for (Attribute attribute : survey.getAttributes()) {
+            if (typedAttrMap.containsKey(attribute)) {
+                surveyValues.add(typedAttrMap.get(attribute));
+            }
+        }
+        return surveyValues;
     }
     
     @Transient

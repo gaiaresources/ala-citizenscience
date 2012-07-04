@@ -12,13 +12,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -28,18 +26,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 
-import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormFieldFactory;
 import au.com.gaiaresources.bdrs.file.FileService;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
-import au.com.gaiaresources.bdrs.model.location.LocationNameComparator;
+import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
@@ -107,8 +103,6 @@ public class YearlySightingsController extends RecordController {
     
     private Logger log = Logger.getLogger(getClass());
 
-    @Autowired
-    private SurveyDAO surveyDAO;
     @Autowired
     private LocationDAO locationDAO;
     @Autowired
@@ -193,7 +187,7 @@ public class YearlySightingsController extends RecordController {
         }
         
         // location may be null
-        Location location = record.getLocation();       
+        Location location = record.getLocation();
         
         // Add survey scope attribute form fields
         List<FormField> formFieldList = new ArrayList<FormField>();
@@ -226,7 +220,7 @@ public class YearlySightingsController extends RecordController {
         mv.addObject("record", record);
         mv.addObject(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT, context);
 
-        return mv;
+        return super.addRecord(mv, loggedInUser);
     }
 
     /**
@@ -273,7 +267,7 @@ public class YearlySightingsController extends RecordController {
         Record rec;
         String key;
         String value;
-        Enumeration postKeys = request.getParameterNames();
+        Enumeration<?> postKeys = request.getParameterNames();
         while(postKeys.hasMoreElements()) {
             key = postKeys.nextElement().toString();
             value = request.getParameter(key);
@@ -362,7 +356,7 @@ public class YearlySightingsController extends RecordController {
 
     @SuppressWarnings("unused")
     private void logRequestParameters(HttpServletRequest request) {
-        Enumeration e = request.getParameterNames();
+        Enumeration<?> e = request.getParameterNames();
         while(e.hasMoreElements()) {
             String key = e.nextElement().toString();
             log.debug("Key:"+key);

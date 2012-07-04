@@ -37,9 +37,6 @@ public abstract class SightingsController extends RecordController {
     private static final String XLS_ZIP_ENTRY_FORMAT = "xls/Survey%d_%s.xls";
     
     public static final String SIGHTINGS_DOWNLOAD_CONTENT_TYPE = "application/zip";
-
-    @Autowired
-    protected SurveyDAO surveyDAO;
     
     @Autowired
     protected BulkDataService bulkDataService;
