@@ -674,3 +674,54 @@ drop table survey_geo_map_layer;
 rollback;
 
 </code>
+
+= r346 =
+<code language="sql">
+
+begin;
+-- add a census method to attributes for data matrix attribute types
+alter table attribute add column censusmethod_census_method_id integer;
+alter table attribute add CONSTRAINT fka6dfba7cfaedbcfd FOREIGN KEY (censusmethod_census_method_id) REFERENCES census_method (census_method_id);
+
+-- add an attribute_value reference to record to allow for storage
+-- of data matrix attribute sub attributes in records linked to attribute values
+alter table record add column parent_attribute_value integer;
+alter table record add CONSTRAINT attribute_value_fk FOREIGN KEY (parent_attribute_value) REFERENCES attribute_value (attribute_value_id);
+
+-- merge indicator_species_attribute into attribute_value
+
+-- set up the table
+alter table attribute_value add column description character varying(255);
+alter table attribute_value add column indicator_species_attribute_id integer;
+-- copy the values
+insert into attribute_value (weight, created_at, updated_at, created_by, 
+                             updated_by, numeric_value, description, date_value, 
+                             string_value, attribute_id, portal_id, 
+                             indicator_species_attribute_id) 
+(select weight, created_at, updated_at, created_by, 
+        updated_by, numeric_value, description, date_value, string_value,
+        attribute_id, portal_id, indicator_species_attribute_id 
+ from indicator_species_attribute);
+alter table indicator_species_indicator_species_attribute drop constraint fk47c73dd6dd53c9de;
+
+-- update the join table
+update indicator_species_indicator_species_attribute set attributes_indicator_species_attribute_id = 
+attribute_value_id from attribute_value 
+where indicator_species_attribute_id = attributes_indicator_species_attribute_id;
+
+-- create a new join table
+create table INDICATOR_SPECIES_ATTRIBUTE_VALUE (INDICATOR_SPECIES_INDICATOR_SPECIES_ID int4 not null, attributes_ATTRIBUTE_VALUE_ID int4 not null, primary key (INDICATOR_SPECIES_INDICATOR_SPECIES_ID, attributes_ATTRIBUTE_VALUE_ID), unique (attributes_ATTRIBUTE_VALUE_ID));
+alter table INDICATOR_SPECIES_ATTRIBUTE_VALUE add constraint FK3CB50A5B544A68D8 foreign key (INDICATOR_SPECIES_INDICATOR_SPECIES_ID) references INDICATOR_SPECIES;
+alter table INDICATOR_SPECIES_ATTRIBUTE_VALUE add constraint FK3CB50A5B7C59E1B3 foreign key (attributes_ATTRIBUTE_VALUE_ID) references ATTRIBUTE_VALUE;
+insert into indicator_species_attribute_value (INDICATOR_SPECIES_INDICATOR_SPECIES_ID, attributes_ATTRIBUTE_VALUE_ID)
+select INDICATOR_SPECIES_INDICATOR_SPECIES_ID, attributes_indicator_species_attribute_id from indicator_species_indicator_species_attribute;
+
+-- drop the unused column used for copying
+alter table attribute_value drop column indicator_species_attribute_id;
+-- drop the old tables
+drop table indicator_species_attribute;
+drop table indicator_species_indicator_species_attribute;
+
+rollback;
+
+</code>
