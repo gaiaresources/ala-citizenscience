@@ -95,7 +95,7 @@ If you want to use taxon lib functionality (currently limited to certain reports
 Note that you want to make your test database and your production database different as the test database is dropped after every test run!
 
 The taxon lib external repository isn't set up yet so here is the taxonlib.sql file contents:
-{{{
+<code language="sql">
 CREATE TABLE taxon_concept
 (
     taxon_concept_id serial NOT NULL, 
@@ -159,7 +159,7 @@ alter table taxon_concept_junction add constraint TAXON_CONCEPT_JUNCTION_OLD_TAX
 alter table taxon_concept_junction add constraint TAXON_CONCEPT_JUNCTION_NEW_TAXON_CONCEPT_FK foreign key (taxon_concept_new_id) references taxon_concept;
 
 create index taxon_concept_source_id_index on taxon_concept(source, source_id);
-}}}
+</code>
 
 = Source Code =
 
