@@ -98,7 +98,8 @@ public class XlsLocationRow extends StyledRowImpl {
                 if (!AttributeType.FILE.equals(attrType)
                     && !AttributeType.IMAGE.equals(attrType)
                     && !AttributeType.AUDIO.equals(attrType)
-                    && !AttributeType.isHTMLType(attrType)) {
+                    && !AttributeType.isHTMLType(attrType)
+                    && !AttributeType.isCensusMethodType(attrType)) {
                 
                     AttributeValue attrVal = locAttrValMap.get(attr);
                     bulkDataReadWriteService.writeTypedAttributeValueCell(this,
@@ -179,7 +180,8 @@ public class XlsLocationRow extends StyledRowImpl {
             if (!AttributeType.FILE.equals(attrType)
                 && !AttributeType.IMAGE.equals(attrType)
                 && !AttributeType.AUDIO.equals(attrType)
-                && !AttributeType.isHTMLType(attrType)) {
+                && !AttributeType.isHTMLType(attrType)
+                && !AttributeType.isCensusMethodType(attrType)) {
                 
                 cell = row.createCell(colIndex++);
                 cell.setCellValue(attr.getDescription());
@@ -274,6 +276,10 @@ public class XlsLocationRow extends StyledRowImpl {
                     case FILE:
                         throw new UnsupportedOperationException(
                                 "Spreadsheet upload of file data is not supported.");
+                    case CENSUS_METHOD_ROW:
+                    case CENSUS_METHOD_COL:
+                        throw new UnsupportedOperationException(
+                                "Spreadsheet upload of census method attribute data is not supported.");
                     case TEXT:
                     case STRING_WITH_VALID_VALUES:
                     case STRING:

@@ -3,14 +3,12 @@ package au.com.gaiaresources.bdrs.controller.record;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -21,7 +19,6 @@ import org.springframework.web.servlet.ModelAndView;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
@@ -35,9 +32,6 @@ import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 @Controller
 public class SingleSiteAllTaxaController extends SingleSiteController {
-    
-    @Autowired
-    private TaxaDAO taxaDAO;
     
     public static final String SINGLE_SITE_ALL_TAXA_URL = "/bdrs/user/singleSiteAllTaxa.htm";
     public static final String SINGLE_SITE_ALL_TAXA_VIEW_NAME = "singleSiteAllTaxa";

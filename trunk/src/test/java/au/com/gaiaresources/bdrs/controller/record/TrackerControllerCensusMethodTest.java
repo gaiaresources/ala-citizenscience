@@ -386,58 +386,10 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         
         DateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy");
         dateFormat.setLenient(false);
-        
+        int seed = 0;
         Map<String, String> params = new HashMap<String, String>();
         for (Attribute attr : attrList) {
-            String key = String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, attributePrefix, attr.getId());
-            String value = "";
-            switch (attr.getType()) {
-                case INTEGER:
-                    value = "987";
-                    break;
-                case DECIMAL:
-                    value = "654.3";
-                    break;
-                case DATE:
-                    value = dateFormat.format(today);
-                    break;
-                case STRING_AUTOCOMPLETE:
-                case STRING:
-                    value = "Test Group Attr String";
-                    break;
-                case TEXT:
-                    value = "Test Group Attr Text";
-                    break;
-                case HTML:
-                case HTML_NO_VALIDATION:
-                case HTML_COMMENT:
-                case HTML_HORIZONTAL_RULE:
-                    value = "<hr/>";
-                    break;
-                case STRING_WITH_VALID_VALUES:
-                    value = attr.getOptions().iterator().next().getValue();
-                    break;
-                case AUDIO:
-                case FILE:
-                    String file_filename = String.format("group_attribute_%d", attr.getId());
-                    MockMultipartFile mockFileFile = new MockMultipartFile(key, file_filename, "audio/mpeg", file_filename.getBytes());
-                    ((MockMultipartHttpServletRequest)request).addFile(mockFileFile);
-                    value = file_filename;
-                    break;
-                case IMAGE:
-                    String image_filename = String.format("group_attribute_%d", attr.getId());
-                    MockMultipartFile mockImageFile = new MockMultipartFile(key, image_filename, "image/png", image_filename.getBytes());
-                    ((MockMultipartHttpServletRequest)request).addFile(mockImageFile);
-                    value = image_filename;
-                    break;
-                case SPECIES:
-                	value = speciesA.getScientificName();
-                	break;
-                default:
-                    Assert.assertTrue("Unknown Attribute Type: "+attr.getType().toString(), false);
-                    break;
-            }
-            params.put(key, value);
+            genRandomAttributeValue(attr, seed++, null, attributePrefix, params);
         }
         return params;
     }
@@ -459,38 +411,7 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
                 Assert.assertFalse(true);
                 key = null;
             }
-            
-            switch (recAttr.getAttribute().getType()) {
-                case INTEGER:
-                    Assert.assertEquals(Integer.parseInt(params.get(key)), recAttr.getNumericValue().intValue());
-                    break;
-                case DECIMAL:
-                    Assert.assertEquals(Double.parseDouble(params.get(key)), recAttr.getNumericValue().doubleValue());
-                    break;
-                case DATE:
-                    Assert.assertEquals(today, recAttr.getDateValue());
-                    break;
-                case STRING:
-                case STRING_AUTOCOMPLETE:
-                case TEXT:
-                case HTML:
-                case HTML_NO_VALIDATION:
-                case HTML_COMMENT:
-                case HTML_HORIZONTAL_RULE:
-                    Assert.assertEquals(params.get(key), recAttr.getStringValue());
-                    break;
-                case STRING_WITH_VALID_VALUES:
-                    Assert.assertEquals(params.get(key), recAttr.getStringValue());
-                    break;
-                case AUDIO:
-                case FILE:
-                case IMAGE:
-                    Assert.assertEquals(params.get(key), recAttr.getStringValue());
-                    break;
-                default:
-                    Assert.assertTrue("Unknown Attribute Type: "+recAttr.getAttribute().getType().toString(), false);
-                    break;
-            }
+            assertAttributes(recAttr, params, key);
         }
     }
 }

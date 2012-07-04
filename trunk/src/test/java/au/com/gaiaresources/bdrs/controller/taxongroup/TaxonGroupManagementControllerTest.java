@@ -6,6 +6,8 @@ import au.com.gaiaresources.bdrs.controller.insecure.taxa.ComparePersistentImplB
 import au.com.gaiaresources.bdrs.model.taxa.*;
 import au.com.gaiaresources.bdrs.security.Role;
 import junit.framework.Assert;
+
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -24,6 +26,12 @@ public class TaxonGroupManagementControllerTest extends AbstractControllerTest {
     private TaxaDAO taxaDAO;
     @Autowired
     private AttributeDAO attributeDAO;
+    
+    @Before
+    public void setUp() throws Exception {
+        // create census method for use with census method attribute types
+        createCensusMethodForAttributes();
+    }
     
     @Test
     public void testListing() throws Exception {
@@ -96,7 +104,10 @@ public class TaxonGroupManagementControllerTest extends AbstractControllerTest {
                     request.setParameter(String.format("add_option_%d", index), attributeOptions);
                 }
                 request.addParameter(String.format("add_visibility_%d", index), AttributeVisibility.ALWAYS.toString());
-    
+
+                if (AttributeType.isCensusMethodType(attrType)) {
+                    request.setParameter(String.format("add_attribute_census_method_%s", index), String.valueOf(attrCm.getId()));
+                }
                 index = index + 1;
                 curWeight = curWeight + 100;
             }
@@ -141,7 +152,10 @@ public class TaxonGroupManagementControllerTest extends AbstractControllerTest {
                     Assert.assertEquals(options[i], attribute.getOptions().get(i).getValue());
                 }
             }
-        
+
+            if (AttributeType.isCensusMethodType(attribute.getType())) {
+                request.setParameter(String.format("add_attribute_census_method_%s", index), String.valueOf(attrCm.getId()));
+            }
             index = index + 1;
         }
     }
@@ -241,6 +255,10 @@ public class TaxonGroupManagementControllerTest extends AbstractControllerTest {
                     attr.setOptions(optionList);
                 }
     
+                if (AttributeType.isCensusMethodType(attrType)) {
+                    attr.setCensusMethod(attrCm);
+                }
+                
                 attr = attributeDAO.save(attr);
                 attributeList.add(attr);
             }
@@ -285,6 +303,9 @@ public class TaxonGroupManagementControllerTest extends AbstractControllerTest {
             }
             request.addParameter(String.format("visibility_%d", attribute.getId()), AttributeVisibility.ALWAYS.toString());
 
+            if (AttributeType.isCensusMethodType(attribute.getType())) {
+                request.addParameter(String.format("attribute_census_method_%d", attribute.getId()), String.valueOf(attrCm.getId()));
+            }
             curWeight = curWeight + 100;
         }
         

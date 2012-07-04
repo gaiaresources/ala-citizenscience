@@ -202,6 +202,7 @@ public class Session extends AbstractSessionImpl implements org.hibernate.classi
 
         if (portal != null) {
             FilterManager.setPortalFilter(this.session, portal);
+            FilterManager.setPartialRecordCountFilter(this.session);
         } else {
         	//log.warn("Portal is not set. Not enabling hibernate portal filter.");
         }

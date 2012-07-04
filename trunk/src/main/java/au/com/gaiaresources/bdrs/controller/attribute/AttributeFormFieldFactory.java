@@ -3,6 +3,7 @@ package au.com.gaiaresources.bdrs.controller.attribute;
 import java.util.Map;
 
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
+import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
 
@@ -82,9 +83,9 @@ public class AttributeFormFieldFactory {
      * @return an <code>AttributeFormField</code>.
      * @see AttributeInstanceFormField
      */
-    public AttributeFormField createAttributeFormField(AttributeDAO dao,
+    public AttributeFormField createAttributeFormField(AttributeDAO dao, CensusMethodDAO cmDAO,
             int index, Map<String, String[]> parameterMap) {
-        return new AttributeInstanceFormField(dao, index, parameterMap);
+        return new AttributeInstanceFormField(dao, cmDAO, index, parameterMap);
     }
 
     /**
@@ -93,6 +94,8 @@ public class AttributeFormFieldFactory {
      * 
      * @param dao
      *            the database object to use when saving the attribute.
+     * @param cmDAO
+     *            the dao to use for looking up census methods for CM attribute types
      * @param attribute
      *            the <code>Attribute</code> that shall be updated.
      * @param parameterMap
@@ -101,11 +104,11 @@ public class AttributeFormFieldFactory {
      * @return an <code>AttributeFormField</code>.
      * @see AttributeInstanceFormField
      */
-    public AttributeFormField createAttributeFormField(AttributeDAO dao,
+    public AttributeFormField createAttributeFormField(AttributeDAO dao, CensusMethodDAO cmDAO, 
             Attribute attribute, Map<String, String[]> parameterMap) {
-        return new AttributeInstanceFormField(dao, attribute, parameterMap);
+        return new AttributeInstanceFormField(dao, cmDAO, attribute, parameterMap);
     }
-
+    
     /**
      * Creates a new form field representing a <code>Record</code> property.
      * This will create and save a new Metadata instance if an instance for the

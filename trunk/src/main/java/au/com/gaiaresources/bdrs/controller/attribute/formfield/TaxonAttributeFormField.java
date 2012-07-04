@@ -4,25 +4,20 @@ import java.util.Collection;
 import java.util.Collections;
 
 import au.com.gaiaresources.bdrs.controller.attribute.DisplayContext;
-import org.apache.log4j.Logger;
-
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpeciesAttribute;
 
 /**
  * The <code>TaxonAttributeFormField</code> is a representation of a
- * configurable field on the taxon editing form that stores its value in a
- * {@link IndicatorSpeciesAttribute}.
+ * configurable field on the taxon editing form that stores its value in an
+ * {@link AttributeValue}.
  */
 public class TaxonAttributeFormField extends AbstractFormField implements TypedAttributeValueFormField {
-
-    private Logger log = Logger.getLogger(getClass());
-
-    private IndicatorSpeciesAttribute taxonAttribute;
+    private AttributeValue taxonAttribute;
     private Attribute attribute;
 
     /**
@@ -37,7 +32,7 @@ public class TaxonAttributeFormField extends AbstractFormField implements TypedA
      *            the prefix to be prepended to input names.
      */
     TaxonAttributeFormField(Attribute attribute, 
-            IndicatorSpeciesAttribute taxonAttribute, String prefix) {
+                            AttributeValue taxonAttribute, String prefix) {
 
         super(prefix);
 
@@ -61,7 +56,7 @@ public class TaxonAttributeFormField extends AbstractFormField implements TypedA
         return true;
     }
 
-    public IndicatorSpeciesAttribute getTaxonAttribute() {
+    public AttributeValue getTaxonAttribute() {
         return taxonAttribute;
     }
 
@@ -107,7 +102,9 @@ public class TaxonAttributeFormField extends AbstractFormField implements TypedA
     
     @Override
     public int hashCode() {
-        return getTaxonAttribute().hashCode() + getAttribute().hashCode() + super.hashCode();
+        int prime = 31;
+        return (getTaxonAttribute() != null ? getTaxonAttribute().hashCode() : 1)*prime + 
+                getAttribute().hashCode()*prime + super.hashCode()*prime;
     }
 
     /**
@@ -120,25 +117,25 @@ public class TaxonAttributeFormField extends AbstractFormField implements TypedA
         return attribute.isVisible(context);
     }
 
-	@Override
-	public Collection<IndicatorSpecies> getAllowableSpecies() {
-		// all species are allowed for this form field type.
-		return Collections.EMPTY_LIST;
-	}
+    @Override
+    public Collection<IndicatorSpecies> getAllowableSpecies() {
+        // all species are allowed for this form field type.
+        return Collections.<IndicatorSpecies> emptyList();
+    }
 
-	@Override
-	public IndicatorSpecies getSpecies() {
-		return taxonAttribute != null ? taxonAttribute.getSpecies() : null;
-	}
+    @Override
+    public IndicatorSpecies getSpecies() {
+        return taxonAttribute != null ? taxonAttribute.getSpecies() : null;
+    }
 
-	@Override
-	public boolean isRequired() {
-		return this.attribute.isRequired();
-	}
+    @Override
+    public boolean isRequired() {
+        return this.attribute.isRequired();
+    }
 
-	@Override
-	public Survey getSurvey() {
-		// taxon attributes will never have a survey.
-		return null;
-	}
+    @Override
+    public Survey getSurvey() {
+        // taxon attributes will never have a survey.
+        return null;
+    }
 }

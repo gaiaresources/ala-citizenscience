@@ -216,6 +216,11 @@
         <put-attribute name="isTag"/>
     </definition>
     
+    <!-- Census Method Attribute -->
+    <definition name="editCensusMethodAttribute" template="/WEB-INF/jsp/bdrs/admin/attribute/editCensusMethodAttribute.jsp">
+        <put-attribute name="censusMethods"/>
+    </definition>
+    
     <!-- Preference -->
     <definition name="preference" extends="admin-template">
         <put-attribute name="title" value="Edit Preferences"/>

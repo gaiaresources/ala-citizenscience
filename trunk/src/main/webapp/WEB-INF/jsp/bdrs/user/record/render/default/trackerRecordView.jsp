@@ -129,7 +129,7 @@
             surveyId: jQuery("[name=surveyId]").val(),
             recordId: (recordIdElem.length > 0 && recordIdElem.val().length > 0) ? recordIdElem.val() : undefined,
             editable: "${recordWebFormContext.editable}",
-            attributeTbodySelector: ".form_table tbody", 
+            attributeTbodySelector: ".tracker_form_table tbody", 
             showScientificName: ${showScientificName}
         };
         bdrs.contribute.initSpeciesAutocomplete(speciesAutocompleteArgs);

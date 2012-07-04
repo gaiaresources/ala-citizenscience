@@ -4,8 +4,11 @@ import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.location.LocationService;
+import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.service.survey.ImportHandler;
 import au.com.gaiaresources.bdrs.service.survey.ImportHandlerRegistry;
+import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
+
 import com.vividsolutions.jts.geom.Geometry;
 import org.apache.commons.beanutils.ConstructorUtils;
 import org.apache.log4j.Logger;
@@ -171,7 +174,15 @@ public abstract class AbstractImportHandler implements ImportHandler {
     protected boolean isOneToMany(PropertyDescriptor pd) {
         return hasAnnotation(pd, OneToMany.class);
     }
-
+    /**
+     * True if the <code>PropertyDescriptor</code> describes a one to one relationship.
+     *
+     * @param pd the description of the property in question.
+     * @return true if the property is a one to one relationship.
+     */
+    protected boolean isOneToOne(PropertyDescriptor pd) {
+        return hasAnnotation(pd, OneToOne.class);
+    }
     /**
      * True if the <code>PropertyDescriptor</code> describes a join column (foreign key).
      *
@@ -224,7 +235,7 @@ public abstract class AbstractImportHandler implements ImportHandler {
         // Remove the representation from the registry of instances to be imported
         removeJSONPersistent(importData, jsonPersistent);
         Object bean = createBean(sesh, importData, persistentLookup, jsonPersistent);
-
+        
         // Notify all listeners that we are about to save the instance.
         firePreSaveEvent(sesh, importData, persistentLookup, jsonPersistent, bean);
 
@@ -259,7 +270,10 @@ public abstract class AbstractImportHandler implements ImportHandler {
                     throws InvocationTargetException, NoSuchMethodException, 
                            InstantiationException, IllegalAccessException {
         Object bean = createNewInstance();
-
+        // have to add the bean to the persistent lookup so it is available for recursive
+        // references
+        addToPersistentLookup(persistentLookup, jsonPersistent, (PersistentImpl)bean);
+        
         // Import each of the keys in the representation
         for (Object keyObj : jsonPersistent.keySet()) {
             String key = keyObj.toString();
@@ -272,7 +286,6 @@ public abstract class AbstractImportHandler implements ImportHandler {
                 if (writeMethod != null && !isPrimaryKey(pd)) {
                     if (isColumn(pd)) {
                         // Import the value and invoke the mutator
-                        // do this check last because @JoinColumn takes precedence over @Column
                         Object value = getByDataType(sesh, importData, persistentLookup, jsonPersistent, pd);
                         writeMethod.invoke(bean, value);
                     } else if (isManyToMany(pd) || isOneToMany(pd) || (isJoinColumn(pd) && isCollectionOfElements(pd))) {
@@ -298,7 +311,7 @@ public abstract class AbstractImportHandler implements ImportHandler {
                             // Invoke the mutator
                             pd.getWriteMethod().invoke(bean, collection);
                         }
-                    } else if (isManyToOne(pd) && !jsonPersistent.isNull(key)) {
+                    } else if ((isManyToOne(pd) || isOneToOne(pd)) && !jsonPersistent.isNull(key)) {
                         // Import the related instance
                         int relatedPK = jsonPersistent.getInt(key);
                         Class<?> type = pd.getReadMethod().getReturnType();

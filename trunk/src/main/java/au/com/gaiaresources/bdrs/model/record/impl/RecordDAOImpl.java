@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -45,11 +46,11 @@ import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
 import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValueDAO;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
@@ -72,6 +73,9 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
     @Autowired
     private DeletionService delService;
     
+    @Autowired
+    private AttributeDAO attributeDAO;
+    
     @PostConstruct
     public void init() throws Exception {
         delService.registerDeleteCascadeHandler(Record.class, new DeleteCascadeHandler() {
@@ -83,75 +87,11 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         delService.registerDeleteCascadeHandler(AttributeValue.class, new DeleteCascadeHandler() {
             @Override
             public void deleteCascade(PersistentImpl instance) {
-                delete((AttributeValue)instance);
+                attributeDAO.delete((AttributeValue)instance);
             }
         });
     }
 
-    @Override
-    public Record createRecord(Location userLocation,
-            IndicatorSpecies species, Date when, Long time, String notes,
-            Boolean firstAppearance, Boolean lastAppearance, String behaviour,
-            String habitat, Integer number,
-            Map<Attribute, Object> attributes) {
-        Date lastDate = when;
-        Long lastTime = time;
-        return this.createRecord(null, userLocation, species, when, time, lastDate, lastTime, notes,
-                firstAppearance, lastAppearance, behaviour,
-                habitat, number, attributes);
-
-    }
-    @Override
-    public Record createRecord(Location userLocation, IndicatorSpecies species,
-            Date when, Long time, Date lastDate, Long lastTime, String notes,
-            Boolean firstAppearance, Boolean lastAppearance, String behaviour,
-            String habitat, Integer number, Map<Attribute, Object> attributes) {
-        return this.createRecord(null, userLocation, species, when, time, lastDate, lastTime, notes,
-                firstAppearance, lastAppearance, behaviour,
-                habitat, number, attributes);
-    }
-
-    @Override
-    public Record createRecord(Survey survey, Location userLocation,
-            IndicatorSpecies species, Date when, Long time, String notes,
-            Boolean firstAppearance, Boolean lastAppearance, String behaviour,
-            String habitat, Integer number,
-            Map<Attribute, Object> attributes) {
-        Date lastDate = when;
-        Long lastTime = time;
-        return this.createRecord(survey, userLocation, species, when, time, lastDate, lastTime, notes,
-                firstAppearance, lastAppearance, behaviour,
-                habitat, number, attributes);
-
-    }
-    @Override
-    public Record createRecord(Survey survey, Location userLocation,
-            IndicatorSpecies species, Date when, Long time, Date lastDate,
-            Long lastTime, String notes, Boolean firstAppearance,
-            Boolean lastAppearance, String behaviour, String habitat,
-            Integer number, Map<Attribute, Object> attributes) {
-        Record r = new Record();
-        r.setSurvey(survey);
-        r.setLocation(userLocation);
-        r.setUser(userLocation.getUser());
-        r.setSpecies(species);
-        r.setWhen(when);
-        r.setTime(time);
-        r.setLastDate(lastDate);
-        r.setLastTime(lastTime);
-        r.setNotes(notes);
-        r.setFirstAppearance(firstAppearance);
-        r.setLastAppearance(lastAppearance);
-        r.setBehaviour(behaviour);
-        r.setHabitat(habitat);
-        r.setNumber(number);
-
-        r = save(r);
-
-        r.setAttributes(this.saveAttributeValues(r, attributes));
-
-        return update(r);
-    }
     @Override
     @SuppressWarnings("unchecked")
     public List<Record> getRecords(Survey survey, Set<User> users) {
@@ -168,7 +108,6 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
     @SuppressWarnings("unchecked")
     @Override
     public List<Record> getLatestRecords(User user, String scientificNameSearch, int limit) {
-
         Map<String,Object> paramMap = new HashMap<String, Object>();
         StringBuilder builder = new StringBuilder();
         builder.append("select r from Record r where r.id > 0");
@@ -326,117 +265,13 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         Session sesh = getSession();
         Object ob = sesh.get(Record.class, id);
         if (ob != null)
-            sesh.delete(ob);
+            // explicitly call the Record delete so we can be sure 
+            // related entries are also deleted
+            delete((Record)ob);
         else {
             Record record = getRecord(id);
             sesh.delete(record);
         }
-    }
-
-    @Override
-    public Record createRecord(Survey survey, Point location, User user,
-            IndicatorSpecies species, Date when, Long time, Date lastDate,
-            Long lastTime, String notes, Boolean firstAppearance,
-            Boolean lastAppearance, String behaviour, String habitat,
-            Integer number, Map<Attribute, Object> attributes) {
-        Record r = new Record();
-        r.setSurvey(survey);
-        r.setPoint(location);
-        r.setUser(user);
-        r.setSpecies(species);
-        r.setWhen(when);
-        r.setTime(time);
-        r.setLastDate(lastDate);
-        r.setLastTime(lastTime);
-        r.setNotes(notes);
-        r.setFirstAppearance(firstAppearance);
-        r.setLastAppearance(lastAppearance);
-        r.setBehaviour(behaviour);
-        r.setHabitat(habitat);
-        r.setNumber(number);
-        Set<AttributeValue> atts = this.saveAttributeValues(r, attributes);
-        r.setAttributes(atts);
-        save(r);
-        return r;
-    }
-    @Override
-    public  Set<AttributeValue> saveAttributeValues(Record r, Map<Attribute, Object> attributeMap){
-        Set<AttributeValue> atts = new HashSet<AttributeValue>();
-        for (Map.Entry<Attribute, Object> attValue : attributeMap
-                .entrySet()) {
-            if (attValue != null) {
-                AttributeValue attribute = new AttributeValue();
-                attribute.setAttribute(attValue
-                        .getKey());
-                // attribute.setRecord(r);
-                switch (attValue.getKey().getType()) {
-                case IMAGE:
-                case AUDIO:
-                case FILE:
-//                    attrFile = fileAttributeMap.get(attValue.getKey());
-//                    // attrFile will always have size zero unless the file
-//                    // is changed. If there is already a file, but the
-//                    // record is updated, without changing the file input,
-//                    // addAttribute will be true but attrFile will
-//                    // have size zero.
-//                    boolean addAttribute;
-//                    addAttribute =  attValue.getValue() != null;
-//                    if(addAttribute && attrFile != null && attrFile.getSize() > 0) {
-//                        attribute.setStringValue(attrFile.getOriginalFilename());
-//                        
-//                    }
-                case HTML:
-                case HTML_NO_VALIDATION:
-                case HTML_COMMENT:
-                case HTML_HORIZONTAL_RULE:
-                case STRING:
-                case STRING_WITH_VALID_VALUES:
-                case BARCODE:
-                case REGEX:
-                case TEXT:
-                    attribute.setStringValue((String) attValue.getValue());
-                    break;
-                case DATE:
-                    attribute.setDateValue((Date) attValue.getValue());
-                    break;
-                case DECIMAL:
-                    attribute.setNumericValue((BigDecimal) attValue.getValue());
-                    break;
-                case INTEGER:
-                case INTEGER_WITH_RANGE:
-                    attribute.setNumericValue(new BigDecimal((Integer) attValue
-                            .getValue()));
-                    break;
-                case SPECIES:
-                {
-                	IndicatorSpecies species = (IndicatorSpecies)attValue.getValue();
-                	attribute.setSpecies(species);
-                	attribute.setStringValue(species != null ? species.getScientificName() : "");
-                }
-                	break;
-                default:
-                    throw new IllegalArgumentException(
-                            "Invalid data type for attribute "
-                                    + attValue.getKey());
-                }
-                save(attribute);
-                atts.add(attribute);
-            }
-        }
-        return atts;
-        
-    }
-    @Override
-    public Record createRecord(Survey survey, Point location, User user,
-            IndicatorSpecies species, Date when, Long time, String notes,
-            Boolean firstAppearance, Boolean lastAppearance, String behaviour,
-            String habitat, Integer number,
-            Map<Attribute, Object> attributes) {
-        Date lastDate = when;
-        Long lastTime = time;
-        return this.createRecord(survey, location, user, species, when, time, lastDate, lastTime,
-                notes, firstAppearance, lastAppearance, behaviour, habitat, number, attributes);
-
     }
 
     @Override
@@ -734,9 +569,14 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
     
     @Override
     public void delete(Record record) {
+        // have to delete child records first
+        Set<Record> children = record.getChildRecords();
+        for (Record record2 : children) {
+            delete(record2);
+        }
+        // remove the attribute values
         Set<AttributeValue> attributeList = new HashSet<AttributeValue>(record.getAttributes());
         record.getAttributes().clear();
-        record = save(record);
         
         DeleteCascadeHandler cascadeHandler = 
             delService.getDeleteCascadeHandlerFor(AttributeValue.class);
@@ -744,9 +584,11 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
             recAttr = saveAttributeValue(recAttr);
             cascadeHandler.deleteCascade(recAttr);
         }
+        
         // Removing the comments in this way triggers the cascade delete setting on the association to delete
         // the comments associated with the Record.
         record.getComments().clear();
+        
         // Force the deletion of the comments before we delete the Record using a query.
         RequestContextHolder.getContext().getHibernate().flush();
 
@@ -754,8 +596,8 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
     }
     
     @Override
-    public void delete(AttributeValue recordAttribute) {
-        deleteByQuery(recordAttribute);
+    public void delete(AttributeValue av) {
+        attributeDAO.delete(av);
     }
     
     @Override

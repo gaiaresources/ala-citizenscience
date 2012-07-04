@@ -1,6 +1,3 @@
-/**
- *
- */
 package au.com.gaiaresources.bdrs.controller.insecure.taxa;
 
 import au.com.gaiaresources.bdrs.controller.AbstractController;
@@ -118,7 +115,7 @@ public class FieldGuideController extends AbstractController {
                 ((ArrayList<SpeciesProfile>) model.get(s.getType())).add(s);
             }
         }
-        for (IndicatorSpeciesAttribute indicatorSpeciesAttribute : selectedSpecies.getAttributes()) {
+        for (AttributeValue indicatorSpeciesAttribute : selectedSpecies.getAttributes()) {
             Attribute attribute = indicatorSpeciesAttribute.getAttribute();
             if (tags.get(attribute) == null) {
                 tags.put(attribute, new HashSet<String>());
@@ -199,7 +196,6 @@ public class FieldGuideController extends AbstractController {
         return mav;
     }
 
-    @SuppressWarnings("unchecked")
     @RequestMapping(value = "/fieldGuide.htm", method = RequestMethod.GET)
     public ModelAndView showTaxonList(ModelMap model, HttpServletRequest request) {
         List<? extends TaxonGroup> taxonGroups = taxaDAO.getTaxonGroups();

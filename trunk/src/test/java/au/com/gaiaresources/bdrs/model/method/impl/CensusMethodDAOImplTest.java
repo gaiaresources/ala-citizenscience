@@ -127,7 +127,7 @@ public class CensusMethodDAOImplTest extends AbstractControllerTest {
     @Test
     public void testSearchNoSurvey() {
         PaginationFilter filter = new PaginationFilter(0, 1);
-        filter.addSortingCriteria("name", SortOrder.DESCENDING);       
+        filter.addSortingCriteria("name", SortOrder.DESCENDING);
         PagedQueryResult<CensusMethod> result = cmDAO.search(filter, null, null);
         Assert.assertEquals(3, result.getCount());
         Assert.assertEquals(1, result.getList().size());

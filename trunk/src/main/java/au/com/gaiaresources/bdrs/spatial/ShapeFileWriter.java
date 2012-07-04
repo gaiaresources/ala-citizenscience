@@ -189,7 +189,7 @@ public class ShapeFileWriter {
         
         AttributeDictionaryFactory attrDictFact = new ShapefileAttributeDictionaryFactory();
         RecordKeyLookup klu = new ShapefileRecordKeyLookup();
-        Map<Attribute, String> attrNameMap = attrDictFact.createNameKeyDictionary(surveyList, null, cmList);
+        Map<Attribute, Object> attrNameMap = attrDictFact.createNameKeyDictionary(surveyList, null, cmList);
         
         Map<ShapefileType, ShapeFileWriterContext> contextMap = new HashMap<ShapefileType, ShapeFileWriterContext>();
         Map<ShapefileType, ShapefileDataStore> datastoreMap = new HashMap<ShapefileType, ShapefileDataStore>();
@@ -587,13 +587,12 @@ public class ShapeFileWriter {
         return filenameBuilder.toString();
     }
     
-    private void writeAttributeValues(Set<AttributeValue> avSet, Map<Attribute, String> attrNameMap, Map<String, Object> targetMap) {
-        
+    private void writeAttributeValues(Set<AttributeValue> avSet, Map<Attribute, Object> attrNameMap, Map<String, Object> targetMap) {
         for (AttributeValue av : avSet) {
-            
             Attribute a = av.getAttribute();
-            String name = attrNameMap.get(a);
-            if (name == null) {
+            // shape file attributes should always be strings
+            Object attrName = attrNameMap.get(a);
+            if (attrName == null) {
                 log.error(String.format("cannot find name in attrNameMap for attribute id : %s and description : %s", a.getId(), a.getDescription()));
                 // this can be caused by removing an attribute from a survey/census method but the record
                 // still may have an AttributeValue associated with the Attribute. Log the error but continue
@@ -601,140 +600,148 @@ public class ShapeFileWriter {
                 
                 // You may also see this message if the attribute value has an attribute that is part of the taxon group.
                 // This cost 2 developers > 1 hour to find.
-                
-                continue;
-            }
-            if (targetMap.containsKey(name)) {
-            	// This can happen if the database contains more than one attribute value for an attribute
-            	// within a single record. Previously we threw an exception but instead we will write out
-            	// the first value and ignore the rest. Print a lo
-                log.error("key already exists in target map, we should have no collisions : " 
-                		+ name + " for attribute name = " + a.getName() + ", attribute id = " + a.getId() + "\n"
-                		+ "Database should only have one attribute value per each attribute per record");
-                // Skip to next attribute value.
                 continue;
             }
             
-            switch (a.getType()) {
-            // integer
-            case INTEGER:
-            case INTEGER_WITH_RANGE:
-                if (av.getNumericValue() != null) {
-                    targetMap.put(name, av.getNumericValue().toBigInteger().intValue());
-                }
-                break;
+            if (attrName instanceof String) {
+                String name = (String) attrName;
                 
-            // float
-            case DECIMAL:
-                if (av.getNumericValue() != null) {
-                    targetMap.put(name, av.getNumericValue().doubleValue());
+                if (targetMap.containsKey(name)) {
+                    // This can happen if the database contains more than one attribute value for an attribute
+                    // within a single record. Previously we threw an exception but instead we will write out
+                    // the first value and ignore the rest. Print a lo
+                    log.error("key already exists in target map, we should have no collisions : " 
+                              + name + " for attribute name = " + a.getName() + ", attribute id = " + a.getId() + "\n"
+                              + "Database should only have one attribute value per each attribute per record");
+                    // Skip to next attribute value.
+                    continue;
                 }
-                break;
                 
-            case DATE: // dates are written as strings...
-                if (av.getDateValue() != null) {
-                    targetMap.put(name, shpDateFormat.format(av.getDateValue()));    
+                switch (a.getType()) {
+                    // integer
+                    case INTEGER:
+                    case INTEGER_WITH_RANGE:
+                        if (av.getNumericValue() != null) {
+                            targetMap.put(name, av.getNumericValue().toBigInteger().intValue());
+                        }
+                        break;
+                        
+                    // float
+                    case DECIMAL:
+                        if (av.getNumericValue() != null) {
+                            targetMap.put(name, av.getNumericValue().doubleValue());
+                        }
+                        break;
+                        
+                    case DATE: // dates are written as strings...
+                        if (av.getDateValue() != null) {
+                            targetMap.put(name, shpDateFormat.format(av.getDateValue()));    
+                        }
+                        break;
+                        
+                    // string
+                    case TIME:
+                    case REGEX:
+                    case BARCODE:
+                    case STRING:
+                    case STRING_AUTOCOMPLETE:
+                    case TEXT:
+                    case STRING_WITH_VALID_VALUES:
+                    case MULTI_CHECKBOX:
+                    case SINGLE_CHECKBOX:
+                    case MULTI_SELECT:
+                        if (av.getStringValue() != null) {
+                            targetMap.put(name, av.getStringValue());
+                        }
+                        break;
+                    case SPECIES:
+                        if (av.getSpecies() != null && StringUtils.isNotEmpty(av.getSpecies().getScientificName())) {
+                            targetMap.put(name, av.getSpecies().getScientificName());
+                        }
+                        break;
+                    // not supported
+                    case IMAGE:
+                    case AUDIO:
+                    case FILE:
+                    case CENSUS_METHOD_ROW:
+                    case CENSUS_METHOD_COL:
+                        // don't add
+                        break;
+                    case HTML:
+                    case HTML_NO_VALIDATION:
+                    case HTML_COMMENT:
+                    case HTML_HORIZONTAL_RULE:
+                        // display only fields, don't add
+                        break;
+                    // error, not expected
+                    default:
+                        // intended to cause regression failure when a new attribute type is not handled
+                        throw new IllegalStateException("An attribute type is not handled properly: " + a.getType());
                 }
-                break;
-                
-            // string
-            case TIME:
-            case REGEX:
-            case BARCODE:
-            case STRING:
-            case STRING_AUTOCOMPLETE:
-            case TEXT:
-            case STRING_WITH_VALID_VALUES:
-            case MULTI_CHECKBOX:
-            case SINGLE_CHECKBOX:
-            case MULTI_SELECT:
-                if (av.getStringValue() != null) {
-                    targetMap.put(name, av.getStringValue());
-                }
-                break;
-            case SPECIES:
-            	if (av.getSpecies() != null && StringUtils.isNotEmpty(av.getSpecies().getScientificName())) {
-            		targetMap.put(name, av.getSpecies().getScientificName());
-            	}
-            	break;
-            
-            // not supported
-            case IMAGE:
-            case AUDIO:
-            case FILE:
-                // don't add
-                break;
-            case HTML:
-            case HTML_NO_VALIDATION:
-            case HTML_COMMENT:
-            case HTML_HORIZONTAL_RULE:
-                // display only fields, don't add
-                break;
-            // error, not expected
-            default:
-                // intended to cause regression failure when a new attribute type is not handled
-                throw new IllegalStateException("An attribute type is not handled properly: " + a.getType());
             }
         }
     }
        
-    private void writeAttributes(ShapeFileWriterContext context, Map<Attribute, String> attrNameMap) throws SchemaException {
-        for (Entry<Attribute, String> entry : attrNameMap.entrySet()) {
+    private void writeAttributes(ShapeFileWriterContext context, Map<Attribute, Object> attrNameMap) throws SchemaException {
+        for (Entry<Attribute, Object> entry : attrNameMap.entrySet()) {
             
             Attribute a = entry.getKey();
-            String name = entry.getValue();
-            
-            if (a != null && a.getType() != null) {
-                switch (a.getType()) {
-            // integer
-            case INTEGER:
-            case INTEGER_WITH_RANGE:
-                context.addInt(name, a, a.getDescription());
-                break;
+            // don't add census method types
+            String name = (String) entry.getValue();
                 
-            // float
-            case DECIMAL:
-                context.addDouble(name, a, a.getDescription());
-                break;
-                
-            // date
-            case DATE:
-                context.addDate(name, a, a.getDescription());
-                break;
-                
-            // string
-            case TIME:
-            case REGEX:
-            case BARCODE:
-            case STRING:
-            case STRING_AUTOCOMPLETE:
-            case TEXT:
-            case STRING_WITH_VALID_VALUES:
-            case MULTI_CHECKBOX:
-            case SINGLE_CHECKBOX:
-            case MULTI_SELECT:
+                if (a != null && a.getType() != null) {
+                    switch (a.getType()) {
+                        // integer
+                        case INTEGER:
+                        case INTEGER_WITH_RANGE:
+                            context.addInt(name, a, a.getDescription());
+                            break;
+                            
+                        // float
+                        case DECIMAL:
+                            context.addDouble(name, a, a.getDescription());
+                            break;
+                            
+                        // date
+                        case DATE:
+                            context.addDate(name, a, a.getDescription());
+                            break;
+                            
+                        // string
+                        case TIME:
+                        case REGEX:
+                        case BARCODE:
+                        case STRING:
+                        case STRING_AUTOCOMPLETE:
+                        case TEXT:
+                        case STRING_WITH_VALID_VALUES:
+                        case MULTI_CHECKBOX:
+                        case SINGLE_CHECKBOX:
+                        case MULTI_SELECT:
             case SPECIES:
-                context.addString(name, a, a.getDescription());
-                break;
-            
-            // not supported
-            case IMAGE:
-            case AUDIO:
-            case FILE:
-                // don't add
-                break;
-            case HTML:
-            case HTML_NO_VALIDATION:
-            case HTML_COMMENT:
-            case HTML_HORIZONTAL_RULE:
-                // display only fields, don't add
-                break;
-            // error, not expected
-            default:
-                // intended to cause regression failure when a new attribute type is not handled
-                throw new IllegalStateException("An attribute type is not handled properly: " + a.getType());
-            }
-            }
+                            context.addString(name, a, a.getDescription());
+                            break;
+                        
+                        // not supported
+                        case IMAGE:
+                        case AUDIO:
+                        case FILE:
+                        case CENSUS_METHOD_ROW:
+                        case CENSUS_METHOD_COL:
+                            // don't add
+                            break;
+                        case HTML:
+                        case HTML_NO_VALIDATION:
+                        case HTML_COMMENT:
+                        case HTML_HORIZONTAL_RULE:
+                            // display only fields, don't add
+                            break;
+                        // error, not expected
+                        default:
+                            // intended to cause regression failure when a new attribute type is not handled
+                            throw new IllegalStateException("An attribute type is not handled properly: " + a.getType());
+                    }
+                }
         }
     }
     

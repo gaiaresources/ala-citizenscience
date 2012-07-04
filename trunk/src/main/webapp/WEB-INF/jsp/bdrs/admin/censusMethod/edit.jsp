@@ -152,6 +152,11 @@
     <textarea id="markItUp"></textarea>
 </div>
 
+<div id="censusMethodAttributeDialog" title="Add/Edit Data Matrix Attribute">
+    <tiles:insertDefinition name="editCensusMethodAttribute">
+    </tiles:insertDefinition>
+</div>
+
 <script type="text/javascript">
     jQuery(function() {
         bdrs.dnd.attachTableDnD('#attribute_input_table');

@@ -35,6 +35,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 
 import au.com.gaiaresources.bdrs.controller.map.AbstractEditMapController;
+import au.com.gaiaresources.bdrs.db.FilterManager;
 import au.com.gaiaresources.bdrs.file.FileService;
 import au.com.gaiaresources.bdrs.json.JSONException;
 import au.com.gaiaresources.bdrs.json.JSONObject;
@@ -608,20 +609,26 @@ public class SurveyBaseController extends AbstractEditMapController {
     public void exportSurvey(HttpServletRequest request,
                              HttpServletResponse response,
                              @RequestParam(required = true, value = QUERY_PARAM_SURVEY_ID) int surveyId) throws IOException {
-        Survey survey = surveyDAO.get(surveyId);
-        JSONObject jsonSurvey = surveyImportExportService.exportObject(survey);
+        // turn off the partial record filter to allow census method attributes to be exported
+        FilterManager.disablePartialRecordCountFilter(sessionFactory.getCurrentSession());
+        try {
+            Survey survey = surveyDAO.get(surveyId);
+            JSONObject jsonSurvey = surveyImportExportService.exportObject(survey);
 
-        response.setContentType(ZipUtils.ZIP_CONTENT_TYPE);
-        response.setHeader("Content-Disposition", "attachment;filename=survey_export_"
-                + survey.getId() + ".zip");
+            response.setContentType(ZipUtils.ZIP_CONTENT_TYPE);
+            response.setHeader("Content-Disposition", "attachment;filename=survey_export_"
+                    + survey.getId() + ".zip");
 
-        ZipEntry entry = new ZipEntry(SURVEY_JSON_IMPORT_EXPORT_FILENAME);
-        ZipOutputStream out = new ZipOutputStream(response.getOutputStream());
-        out.putNextEntry(entry);
-        out.write(jsonSurvey.toJSONString().getBytes(Charset.defaultCharset()));
+            ZipEntry entry = new ZipEntry(SURVEY_JSON_IMPORT_EXPORT_FILENAME);
+            ZipOutputStream out = new ZipOutputStream(response.getOutputStream());
+            out.putNextEntry(entry);
+            out.write(jsonSurvey.toJSONString().getBytes(Charset.defaultCharset()));
 
-        out.flush();
-        out.close();
+            out.flush();
+            out.close();
+        } finally {
+            FilterManager.setPartialRecordCountFilter(sessionFactory.getCurrentSession());
+        }
     }
 
     /**

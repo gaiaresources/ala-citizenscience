@@ -22,9 +22,9 @@ import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpeciesAttribute;
 import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
@@ -185,7 +185,7 @@ public class BdrsCoreOfflineController extends AbstractController {
             HttpServletRequest request) {
         Set<String> urlSet = new HashSet<String>();
         Set<String> urls = new HashSet<String>();
-        Set<IndicatorSpeciesAttribute> speciesAtts;
+        Set<AttributeValue> speciesAtts;
         List<? extends SpeciesProfile> infoItems;
         for (IndicatorSpecies s : species) {
         	boolean hasThumb = false;

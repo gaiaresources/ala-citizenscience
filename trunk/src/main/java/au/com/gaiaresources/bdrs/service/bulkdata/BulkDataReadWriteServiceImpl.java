@@ -64,6 +64,10 @@ public class BulkDataReadWriteServiceImpl implements BulkDataReadWriteService {
             case FILE:
                 throw new UnsupportedOperationException(
                         "Spreadsheet download of file data is not supported.");
+            case CENSUS_METHOD_ROW:
+            case CENSUS_METHOD_COL:
+                throw new UnsupportedOperationException(
+                        "Spreadsheet download of census method attribute data is not supported.");
             case TEXT:
             case STRING_WITH_VALID_VALUES:
             case STRING:

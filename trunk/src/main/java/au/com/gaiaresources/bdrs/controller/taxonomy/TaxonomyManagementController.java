@@ -1,35 +1,24 @@
 package au.com.gaiaresources.bdrs.controller.taxonomy;
 
-import au.com.gaiaresources.bdrs.controller.AbstractController;
-import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField;
-import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormFieldFactory;
-import au.com.gaiaresources.bdrs.controller.insecure.taxa.ComparePersistentImplByWeight;
-import au.com.gaiaresources.bdrs.controller.record.WebFormAttributeParser;
-import au.com.gaiaresources.bdrs.file.FileService;
-import au.com.gaiaresources.bdrs.json.JSON;
-import au.com.gaiaresources.bdrs.json.JSONArray;
-import au.com.gaiaresources.bdrs.json.JSONException;
-import au.com.gaiaresources.bdrs.json.JSONObject;
-import au.com.gaiaresources.bdrs.json.JSONSerializer;
-import au.com.gaiaresources.bdrs.model.file.ManagedFile;
-import au.com.gaiaresources.bdrs.model.file.ManagedFileDAO;
-import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
-import au.com.gaiaresources.bdrs.model.preference.Preference;
-import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpeciesAttribute;
-import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile;
-import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfileDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
-import au.com.gaiaresources.bdrs.model.taxa.TaxonRank;
-import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
-import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.service.property.PropertyService;
-import au.com.gaiaresources.bdrs.service.web.AtlasService;
-import au.com.gaiaresources.bdrs.util.StringUtils;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.security.RolesAllowed;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -38,23 +27,45 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
-import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 
-import javax.annotation.security.RolesAllowed;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import au.com.gaiaresources.bdrs.controller.attribute.AttributeFormController;
+import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField;
+import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormFieldFactory;
+import au.com.gaiaresources.bdrs.controller.insecure.taxa.ComparePersistentImplByWeight;
+import au.com.gaiaresources.bdrs.controller.record.RecordWebFormContext;
+import au.com.gaiaresources.bdrs.controller.record.WebFormAttributeParser;
+import au.com.gaiaresources.bdrs.db.FilterManager;
+import au.com.gaiaresources.bdrs.db.SessionFactory;
+import au.com.gaiaresources.bdrs.deserialization.attribute.AttributeDeserializer;
+import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
+import au.com.gaiaresources.bdrs.file.FileService;
+import au.com.gaiaresources.bdrs.json.JSON;
+import au.com.gaiaresources.bdrs.json.JSONArray;
+import au.com.gaiaresources.bdrs.json.JSONException;
+import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.json.JSONSerializer;
+import au.com.gaiaresources.bdrs.model.file.ManagedFile;
+import au.com.gaiaresources.bdrs.model.file.ManagedFileDAO;
+import au.com.gaiaresources.bdrs.model.preference.Preference;
+import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
+import au.com.gaiaresources.bdrs.model.taxa.Attribute;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
+import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile;
+import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfileDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
+import au.com.gaiaresources.bdrs.model.taxa.TaxonRank;
+import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
+import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.property.PropertyService;
+import au.com.gaiaresources.bdrs.service.web.AtlasService;
+import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
+import au.com.gaiaresources.bdrs.util.StringUtils;
 
 /**
  * The <code>TaxonomyManagementControllers</code> handles all view requests 
@@ -62,7 +73,7 @@ import java.util.Set;
  * and taxonomy related objects.
  */
 @Controller
-public class TaxonomyManagementController extends AbstractController {
+public class TaxonomyManagementController extends AttributeFormController {
     
     public static final String DEFAULT_SPECIES_PROFILE = "taxonProfileTemplate.json";
 
@@ -101,10 +112,9 @@ public class TaxonomyManagementController extends AbstractController {
     @Autowired
     private ManagedFileDAO managedFileDAO;
     @Autowired
-    private MetadataDAO metadataDAO;
-    @Autowired
     private FileService fileService;
-
+    @Autowired
+    private SessionFactory sessionFactory;
     @Autowired
     private PropertyService propertyService;
 
@@ -142,6 +152,11 @@ public class TaxonomyManagementController extends AbstractController {
         
         IndicatorSpecies taxon;
         List<FormField> formFieldList;
+        // user and form context are needed for building census method form
+        // attributes
+        User loggedInUser = getRequestContext().getUser();
+        RecordWebFormContext context = new RecordWebFormContext(null, loggedInUser);
+        
         if(taxonPk == 0) {
             taxon = new IndicatorSpecies();
             formFieldList = new ArrayList<FormField>();
@@ -150,9 +165,9 @@ public class TaxonomyManagementController extends AbstractController {
            
             // Need to be careful that a taxon may have attribute values
             // that are no longer applicable for the currently assigned taxon group.
-            Map<Attribute, IndicatorSpeciesAttribute> attributeValueMapping = 
-                new HashMap<Attribute, IndicatorSpeciesAttribute>();
-            for(IndicatorSpeciesAttribute val : taxon.getAttributes()) {
+            Map<Attribute, AttributeValue> attributeValueMapping = 
+                new HashMap<Attribute, AttributeValue>();
+            for(AttributeValue val : taxon.getAttributes()) {
                 attributeValueMapping.put(val.getAttribute(), val);
             }
             
@@ -161,12 +176,17 @@ public class TaxonomyManagementController extends AbstractController {
             formFieldList = new ArrayList<FormField>();
             for(Attribute attr : taxon.getTaxonGroup().getAttributes()) {
                 if(attr.isTag()) {
-                    IndicatorSpeciesAttribute val = attributeValueMapping.get(attr);
-                    formFieldList.add(formFieldFactory.createTaxonFormField(attr, val));
+                    AttributeValue val = attributeValueMapping.get(attr);
+                    if (AttributeType.isCensusMethodType(attr.getType())) {
+                        FormField ff = createCensusMethodFormField(null, null, taxon, attr, loggedInUser,
+                                                                   AttributeParser.DEFAULT_PREFIX, context);
+                        formFieldList.add(ff);
+                    } else {
+                        formFieldList.add(formFieldFactory.createTaxonFormField(attr, val));
+                    }
                 }
             }
         }
-        
         Collections.sort(formFieldList);
         
         // Species Profile Template
@@ -179,6 +199,9 @@ public class TaxonomyManagementController extends AbstractController {
         mv.addObject("formFieldList", formFieldList);
         mv.addObject("taxonProfileList", speciesProfileTemplate);
         mv.addObject("newProfileIndex", Integer.valueOf(0));
+        mv.addObject(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT, context);
+        // have to include ident for ajax deleting census method attributes
+        mv.addObject("ident", loggedInUser.getRegistrationKey());
         return mv;
     }
 
@@ -340,7 +363,8 @@ public class TaxonomyManagementController extends AbstractController {
         }
         taxon.setParent(parent);
         
-        taxon.setTaxonGroup(taxaDAO.getTaxonGroup(taxonGroupPk));
+        TaxonGroup taxonGroup = taxaDAO.getTaxonGroup(taxonGroupPk);
+        taxon.setTaxonGroup(taxonGroup);
         
         // Species Profiles
         SpeciesProfile profile;
@@ -382,7 +406,7 @@ public class TaxonomyManagementController extends AbstractController {
         }
         taxon.setInfoItems(profileList);
         
-        // Must save the taxon before saving the IndicatorSpeciesAttributes
+        // Must save the taxon before saving the AttributeValues
         taxaDAO.save(taxon);
         
         Map<String, String[]> parameterMap = this.getModifiableParameterMap(request);
@@ -390,48 +414,53 @@ public class TaxonomyManagementController extends AbstractController {
         // Taxon Attributes
         List<TypedAttributeValue> taxonAttrsToDelete = new ArrayList<TypedAttributeValue>();
         WebFormAttributeParser attributeParser = new WebFormAttributeParser(taxaDAO);
-        TypedAttributeValue taxonAttribute;
-        Set taxonAttrs = taxon.getAttributes();
-        for (Attribute attribute : taxon.getTaxonGroup().getAttributes()) {
-            if (attribute.isTag()) {
-                taxonAttribute = attributeParser.parse(attribute, taxon, parameterMap, request.getFileMap());
-
-                if (attributeParser.isAddOrUpdateAttribute()) {
-                    taxonAttribute = attributeDAO.save(taxonAttribute);
-                    if (attributeParser.getAttrFile() != null) {
-                        fileService.createFile(taxonAttribute, attributeParser.getAttrFile());
-                    }
-                    taxonAttrs.add(taxonAttribute);
-                } else {
-                    taxonAttrs.remove(taxonAttribute);
-                    taxonAttrsToDelete.add(taxonAttribute);
+        // set up attribute deserializer
+        TaxonomyAttributeDictionaryFactory attrDictFact = new TaxonomyAttributeDictionaryFactory();
+        Set<AttributeScope> scope = new HashSet<AttributeScope>(AttributeScope.values().length+1);
+        scope.addAll(Arrays.asList(AttributeScope.values()));
+        scope.add(null);
+        Map<Attribute, Object> attrNameMap = attrDictFact.createNameKeyDictionary(taxon, scope, parameterMap);
+        Map<Attribute, Object> attrFilenameMap = attrDictFact.createFileKeyDictionary(taxon, scope, parameterMap);
+        AttributeDeserializer attributeDeserializer = new AttributeDeserializer(attrDictFact, attributeParser);
+        
+        Set<AttributeValue> taxonAttrs = taxon.getAttributes();
+        
+        // disable the partial record filter to allow records for attribute values to be retrieved
+        // for census method attribute types
+        FilterManager.disablePartialRecordCountFilter(getRequestContext().getHibernate());
+        try {
+            attributeDeserializer.deserializeAttributes(taxonGroup.getAttributes(), taxonAttrsToDelete, taxonAttrs, 
+                                                        "", attrNameMap, 
+                                                        attrFilenameMap, taxon, parameterMap, 
+                                                        request.getFileMap(), getRequestContext().getUser(), false, scope, true, true);
+    
+            taxon.getSecondaryGroups().clear();
+            if (secondaryTaxonGroups != null)  {
+                for (int i : secondaryTaxonGroups) {
+                    taxon.addSecondaryGroup(taxaDAO.getTaxonGroup(i));
                 }
             }
-        }
-
-        taxon.getSecondaryGroups().clear();
-        if (secondaryTaxonGroups != null)  {
-            for (int i : secondaryTaxonGroups) {
-                taxon.addSecondaryGroup(taxaDAO.getTaxonGroup(i));
+    
+            taxaDAO.save(taxon);
+            for(TypedAttributeValue ta : taxonAttrsToDelete) {
+                // Must do a save here to sever the link in the join table.
+                attributeDAO.save(ta);
+                // And then delete.
+                attributeDAO.delete(ta);
             }
+            
+            // Any profiles left in the map at this stage have been deleted.
+            for (SpeciesProfile delProf : profileMap.values()) {
+                profileDAO.delete(delProf);
+            }
+    
+            
+            getRequestContext().addMessage("taxonomy.save.success", new Object[]{ taxon.getScientificName() });
+            return new ModelAndView(new PortalRedirectView("/bdrs/admin/taxonomy/listing.htm?taxonPk="+taxon.getId(), true));
+        } finally {
+            // enable the partial record filter to prevent records for attribute values to be retrieved
+            FilterManager.setPartialRecordCountFilter(sessionFactory.getCurrentSession());
         }
-
-        taxaDAO.save(taxon);
-        for(TypedAttributeValue ta : taxonAttrsToDelete) {
-            // Must do a save here to sever the link in the join table.
-            attributeDAO.save(ta);
-            // And then delete.
-            attributeDAO.delete(ta);
-        }
-        
-        // Any profiles left in the map at this stage have been deleted.
-        for (SpeciesProfile delProf : profileMap.values()) {
-            profileDAO.delete(delProf);
-        }
-
-        
-        getRequestContext().addMessage("taxonomy.save.success", new Object[]{ taxon.getScientificName() });
-        return new ModelAndView(new PortalRedirectView("/bdrs/admin/taxonomy/listing.htm?taxonPk="+taxon.getId(), true));
     }
     
     @RolesAllowed( { Role.ADMIN })
@@ -476,9 +505,9 @@ public class TaxonomyManagementController extends AbstractController {
             taxon = importTaxon;
             // Need to be careful that a taxon may have attribute values
             // that are no longer applicable for the currently assigned taxon group.
-            Map<Attribute, IndicatorSpeciesAttribute> attributeValueMapping = 
-                new HashMap<Attribute, IndicatorSpeciesAttribute>();
-            for(IndicatorSpeciesAttribute val : taxon.getAttributes()) {
+            Map<Attribute, AttributeValue> attributeValueMapping = 
+                new HashMap<Attribute, AttributeValue>();
+            for(AttributeValue val : taxon.getAttributes()) {
                 attributeValueMapping.put(val.getAttribute(), val);
             }
             
@@ -486,7 +515,7 @@ public class TaxonomyManagementController extends AbstractController {
             // assigned group.
             for(Attribute attr : taxon.getTaxonGroup().getAttributes()) {
                 if(attr.isTag()) {
-                    IndicatorSpeciesAttribute val = attributeValueMapping.get(attr);
+                    AttributeValue val = attributeValueMapping.get(attr);
                     formFieldList.add(formFieldFactory.createTaxonFormField(attr, val));
                 }
             }
@@ -519,24 +548,34 @@ public class TaxonomyManagementController extends AbstractController {
         
         // Need to be careful that a taxon may have attribute values
         // that are no longer applicable for the currently assigned taxon group.
-        Map<Attribute, IndicatorSpeciesAttribute> attributeValueMapping = 
-            new HashMap<Attribute, IndicatorSpeciesAttribute>();
-        for(IndicatorSpeciesAttribute val : taxon.getAttributes()) {
+        Map<Attribute, AttributeValue> attributeValueMapping = 
+            new HashMap<Attribute, AttributeValue>();
+        for(AttributeValue val : taxon.getAttributes()) {
             attributeValueMapping.put(val.getAttribute(), val);
         }
         
+        User loggedInUser = getRequestContext().getUser();
+        // context is used for storing census method attribute form fields
+        RecordWebFormContext context = new RecordWebFormContext(null, loggedInUser);
         // We are only interested in the attributes from the currently
         // assigned group.
         ArrayList<FormField> formFieldList = new ArrayList<FormField>();
         for(Attribute attr : group.getAttributes()) {
             if(attr.isTag()) {
-                IndicatorSpeciesAttribute val = attributeValueMapping.get(attr);
-                formFieldList.add(formFieldFactory.createTaxonFormField(attr, val)); 
+                AttributeValue val = attributeValueMapping.get(attr);
+                if (AttributeType.isCensusMethodType(attr.getType())) {
+                    FormField ff = createCensusMethodFormField(null, null, taxon, attr, loggedInUser,
+                                                               AttributeParser.DEFAULT_PREFIX, context);
+                    formFieldList.add(ff);
+                } else {
+                    formFieldList.add(formFieldFactory.createTaxonFormField(attr, val));
+                }
             }
         }
         
         ModelAndView mv = new ModelAndView("taxonAttributeTable");
         mv.addObject("formFieldList", formFieldList);
+        mv.addObject(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT, context);
         return mv;
     }
     

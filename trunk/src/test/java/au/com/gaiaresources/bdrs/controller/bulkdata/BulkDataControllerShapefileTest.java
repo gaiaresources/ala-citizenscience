@@ -362,7 +362,7 @@ public class BulkDataControllerShapefileTest extends AbstractControllerTest {
     }
     
     private Attribute createAttribute(String name, AttributeType type, boolean required) {
-        return createAttribute(name, type, required, null);
+        return createAttribute(name, type, required, new String[]{});
     }
     
     private Attribute createAttribute(String name, AttributeType type, boolean required, String[] args) {

@@ -278,10 +278,14 @@ public class CustomFormTestUtil {
                         value = image_filename;
                         break;
                     case SPECIES:
-                    	if (taxon != null) {
-                    		value = taxon.getScientificName();
-                    	}
-                    	break;
+                        if (taxon != null) {
+                                value = taxon.getScientificName();
+                        }
+                        break;
+                    case CENSUS_METHOD_ROW:
+                    case CENSUS_METHOD_COL:
+                        // census method types should add a record to the attribute value
+                        break;
                     default:
                         Assert.assertTrue("Unknown Attribute Type: "
                                 + attr.getType().toString(), false);
@@ -367,6 +371,10 @@ public class CustomFormTestUtil {
                     case AUDIO:
                     case IMAGE:
                         Assert.assertTrue("File and Image validation not implemented", false);
+                        break;
+                    case CENSUS_METHOD_ROW:
+                    case CENSUS_METHOD_COL:
+                        // census method types should add a record to the attribute value
                         break;
                     default:
                         Assert.assertTrue("Unknown Attribute Type: "

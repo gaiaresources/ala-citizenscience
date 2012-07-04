@@ -1,6 +1,5 @@
 package au.com.gaiaresources.bdrs.controller.record;
 
-import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -10,6 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import junit.framework.Assert;
@@ -23,6 +23,7 @@ import org.springframework.security.authentication.encoding.PasswordEncoder;
 import org.springframework.web.servlet.ModelAndView;
 
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
+import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
 import au.com.gaiaresources.bdrs.model.location.LocationService;
@@ -104,6 +105,7 @@ public class RecordDeletionControllerTest extends AbstractControllerTest {
 
     @Before
     public void setUp() throws Exception {
+        super.doSetup();
         dateA = dateFormat.parse("27 Jun 2004");
         dateB = dateFormat.parse("02 Oct 2005");
 
@@ -153,6 +155,8 @@ public class RecordDeletionControllerTest extends AbstractControllerTest {
                         rangeList.add(taxaDAO.save(lower));
                         rangeList.add(taxaDAO.save(upper));
                         groupAttr.setOptions(rangeList);
+                    } else if (AttributeType.isCensusMethodType(attrType)) {
+                        groupAttr.setCensusMethod(attrCm);
                     }
 
                     groupAttr = taxaDAO.save(groupAttr);
@@ -270,6 +274,8 @@ public class RecordDeletionControllerTest extends AbstractControllerTest {
                         rangeList.add(taxaDAO.save(lower));
                         rangeList.add(taxaDAO.save(upper));
                         attr.setOptions(rangeList);
+                    } else if (AttributeType.isCensusMethodType(attrType)) {
+                        attr.setCensusMethod(attrCm);
                     }
 
                     attr = taxaDAO.save(attr);
@@ -348,179 +354,28 @@ public class RecordDeletionControllerTest extends AbstractControllerTest {
         dateFormat.setLenient(false);
         Set<AttributeValue> attributeList = new HashSet<AttributeValue>();
         Map<Attribute, AttributeValue> expectedRecordAttrMap = new HashMap<Attribute, AttributeValue>();
+        int seed = 0;
+        Map<Attribute, Object> attParamMap = new HashMap<Attribute, Object>();
         for (Attribute attr : survey.getAttributes()) {
             if (!AttributeScope.LOCATION.equals(attr.getScope())) {
                 List<AttributeOption> opts = attr.getOptions();
                 AttributeValue recAttr = new AttributeValue();
                 recAttr.setAttribute(attr);
-                switch (attr.getType()) {
-                case INTEGER:
-                    Integer i = Integer.valueOf(123);
-                    recAttr.setNumericValue(new BigDecimal(i));
-                    recAttr.setStringValue(i.toString());
-                    break;
-                case INTEGER_WITH_RANGE:
-                    String intStr = attr.getOptions().iterator().next().getValue();
-                    recAttr.setNumericValue(new BigDecimal(Integer
-                           .parseInt(intStr)));
-                    recAttr.setStringValue(intStr);
-                case DECIMAL:
-                    Double d = new Double(123);
-                    recAttr.setNumericValue(new BigDecimal(d));
-                    recAttr.setStringValue(d.toString());
-                    break;
-                case DATE:
-                    Date date = new Date(System.currentTimeMillis());
-                    recAttr.setDateValue(date);
-                    recAttr.setStringValue(dateFormat.format(date));
-                    break;
-                case STRING_AUTOCOMPLETE:
-                case STRING:
-                    recAttr.setStringValue("This is a test string record attribute");
-                    break;
-                case TEXT:
-                    recAttr.setStringValue("This is a test text record attribute");
-                    break;
-                case MULTI_CHECKBOX:
-                    recAttr.setMultiCheckboxValue(new String[]{opts.get(0).getValue(), opts.get(1).getValue()});
-                    break;
-                case MULTI_SELECT:
-                    recAttr.setMultiCheckboxValue(new String[]{opts.get(0).getValue(), opts.get(1).getValue()});
-                    break;
-                case SINGLE_CHECKBOX:
-                    recAttr.setBooleanValue(Boolean.TRUE.toString());
-                    break;
-                case STRING_WITH_VALID_VALUES:
-                    recAttr.setStringValue(attr.getOptions().iterator().next()
-                            .getValue());
-                    break;
-                case REGEX:
-                case BARCODE:
-                    recAttr.setStringValue("#232323");
-                    break;
-                case TIME:
-                    recAttr.setStringValue("12:34");
-                    break;
-                case HTML:
-                case HTML_NO_VALIDATION:
-                case HTML_COMMENT:
-                case HTML_HORIZONTAL_RULE:
-                    recAttr.setStringValue("<hr/>");
-                    break;
-                case FILE:
-                case AUDIO:
-                    recAttr.setStringValue("testDataFile.dat");
-                    break;
-                case IMAGE:
-                    recAttr.setStringValue("testImgFile.png");
-                    break;
-                case SPECIES:
-                	recAttr.setStringValue(speciesA.getScientificName());
-                	recAttr.setSpecies(speciesA);
-                	break;
-                default:
-                    Assert.assertTrue("Unknown Attribute Type: "
-                            + attr.getType().toString(), false);
-                    break;
-                }
-                recAttr = recordDAO.saveAttributeValue(recAttr);
+                genRandomAttributeValue(recAttr, seed++, true, true, attParamMap, AttributeParser.DEFAULT_PREFIX, null);
+                recAttr = attributeDAO.save(recAttr);
                 attributeList.add(recAttr);
                 expectedRecordAttrMap.put(attr, recAttr);
             }
         }
-
+        
         if (record.getSpecies() != null) {
             for (Attribute attr : record.getSpecies().getTaxonGroup()
                     .getAttributes()) {
                 if (!attr.isTag()) {
                     AttributeValue recAttr = new AttributeValue();
                     recAttr.setAttribute(attr);
-                    switch (attr.getType()) {
-                    case INTEGER:
-                        Integer i = Integer.valueOf(987);
-                        recAttr.setNumericValue(new BigDecimal(i));
-                        recAttr.setStringValue(i.toString());
-                        break;
-                    case INTEGER_WITH_RANGE:
-                        String intStr = attr.getOptions().iterator().next()
-                                .getValue();
-                        recAttr.setNumericValue(new BigDecimal(Integer
-                                .parseInt(intStr)));
-                        recAttr.setStringValue(intStr);
-                        break;
-                    case DECIMAL:
-                        Double d = Double.valueOf(987);
-                        recAttr.setNumericValue(new BigDecimal(d));
-                        recAttr.setStringValue(d.toString());
-                        break;
-                    case DATE:
-                        Date date = new Date(System.currentTimeMillis());
-                        recAttr.setDateValue(date);
-                        recAttr.setStringValue(dateFormat.format(date));
-                        break;
-                    case STRING_AUTOCOMPLETE:
-                    case STRING:
-                        recAttr.setStringValue("This is a test string record attribute for groups");
-                        break;
-                    case REGEX:
-                    case BARCODE:
-                        recAttr.setStringValue("#232323");
-                        break;
-                    case TIME:
-                        recAttr.setStringValue("12:34");
-                        break;
-                    case HTML:
-                    case HTML_NO_VALIDATION:
-                    case HTML_COMMENT:
-                    case HTML_HORIZONTAL_RULE:
-                        recAttr.setStringValue("<hr/>");
-                        break;
-                    case TEXT:
-                        recAttr
-                                .setStringValue("This is a test text record attribute for groups");
-                        break;
-                    case STRING_WITH_VALID_VALUES:
-                        recAttr.setStringValue(attr.getOptions().iterator()
-                                .next().getValue());
-                        break;
-                    case MULTI_CHECKBOX:
-	                    {
-	                    	List<AttributeOption> opts = attr.getOptions(); 
-	                    	recAttr.setMultiCheckboxValue(new String[]{
-	                    			opts.get(0).getValue(),
-	                    			opts.get(1).getValue()
-	                    	});
-	                	}
-	                    break;
-	                case MULTI_SELECT:
-	                	{
-	                    	List<AttributeOption> opts = attr.getOptions(); 
-	                    	recAttr.setMultiSelectValue(new String[]{
-	                    			opts.get(0).getValue(),
-	                    			opts.get(1).getValue()
-	                    	});
-	                	}
-	                	break;
-	                case SINGLE_CHECKBOX:
-	                	recAttr.setStringValue(Boolean.FALSE.toString());
-	                	break;
-	                case AUDIO:
-                    case FILE:
-                        recAttr.setStringValue("testGroupDataFile.dat");
-                        break;
-                    case IMAGE:
-                        recAttr.setStringValue("testGroupImgFile.png");
-                        break;
-                    case SPECIES:
-                    	recAttr.setStringValue(speciesA.getScientificName());
-                    	recAttr.setSpecies(speciesA);
-                    	break;
-                    default:
-                        Assert.assertTrue("Unknown Attribute Type: "
-                                + attr.getType().toString(), false);
-                        break;
-                    }
-                    recAttr = recordDAO.saveAttributeValue(recAttr);
+                    genRandomAttributeValue(recAttr, seed++, true, true, attParamMap, AttributeParser.DEFAULT_PREFIX, null);
+                    recAttr = attributeDAO.save(recAttr);
                     attributeList.add(recAttr);
                     expectedRecordAttrMap.put(attr, recAttr);
                 }

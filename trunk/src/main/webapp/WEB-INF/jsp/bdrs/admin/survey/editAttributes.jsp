@@ -178,6 +178,11 @@
     <input id="saveTemplateName" style="width:53%;"></input>
 </div>
 
+<div id="censusMethodAttributeDialog" title="Add/Edit Census Method Attribute">
+    <tiles:insertDefinition name="editCensusMethodAttribute">
+    </tiles:insertDefinition>
+</div>
+
 <script type="text/javascript">
     var openEmailDialog = function(selector) {
         jQuery( "#emailEditorDialog" ).data('selector',selector).dialog("open");
@@ -204,7 +209,6 @@
             }
         });
     };
-
 
     var toggleModerationSettings = function(modSettingsSelector, modSettingsLinkSelector) {
         var canSee = jQuery(modSettingsSelector).css('display') === 'none';

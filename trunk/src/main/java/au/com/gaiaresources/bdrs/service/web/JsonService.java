@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.json.JSONArray;
@@ -20,6 +21,7 @@ import au.com.gaiaresources.bdrs.model.map.GeoMapFeature;
 import au.com.gaiaresources.bdrs.model.preference.Preference;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
 import au.com.gaiaresources.bdrs.model.record.AccessControlledRecordAdapter;
+import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
@@ -97,7 +99,7 @@ public class JsonService {
         }
         
         if (record.getNotes() != null) {
-        	addToAttributeMap(attrMap, RECORD_KEY_NOTES, record.getNotes());
+            addToAttributeMap(attrMap, RECORD_KEY_NOTES, record.getNotes());
         }
         
         addToAttributeMap(attrMap, RECORD_KEY_HABITAT, record.getHabitat());
@@ -105,7 +107,7 @@ public class JsonService {
         addToAttributeMap(attrMap, RECORD_KEY_BEHAVIOUR, record.getBehaviour());   
         
         if(record.getWhen() != null) {
-        	addToAttributeMap(attrMap, RECORD_KEY_WHEN, record.getWhen().getTime());
+            addToAttributeMap(attrMap, RECORD_KEY_WHEN, record.getWhen().getTime());
 
             String k = String.format(PersistentImpl.FLATTENED_FORMATTED_DATE_TMPL, RECORD_KEY_WHEN);
             SimpleDateFormat formatter = new SimpleDateFormat(PersistentImpl.DATE_FORMAT_PATTERN);
@@ -154,56 +156,71 @@ public class JsonService {
     }
     
     private JSONObject toJson(AttributeValue av, String contextPath) {
-    	Preference sciNamePref = prefDAO.getPreferenceByKey(Preference.SHOW_SCIENTIFIC_NAME_KEY);
-    	// default to true.
-    	Boolean showSciName = sciNamePref != null ? Boolean.valueOf(sciNamePref.getValue()) : true;
-    	
+        Preference sciNamePref = prefDAO.getPreferenceByKey(Preference.SHOW_SCIENTIFIC_NAME_KEY);
+        // default to true.
+        Boolean showSciName = sciNamePref != null ? Boolean.valueOf(sciNamePref.getValue()) : true;
+        
         Attribute attr = av.getAttribute();
         JSONObject obj = new JSONObject();
         String key = StringUtils.hasLength(attr.getDescription()) ? attr.getDescription() : attr.getName();
         obj.accumulate(JSON_KEY_ATTR_TYPE, attr.getTypeCode());
         obj.accumulate(JSON_KEY_ATTR_NAME, key);
         switch (attr.getType()) {
-		    case INTEGER:
-		    case INTEGER_WITH_RANGE:
-		    case DECIMAL:
-		        obj.accumulate(JSON_KEY_ATTR_VALUE, av.getNumericValue());
-		        break;
-		    case DATE:
-		    	Date d = av.getDateValue();
-		    	String format = d == null ? null : dateFormat.format(av.getDateValue()); 
-		        obj.accumulate(JSON_KEY_ATTR_VALUE, format);
-		        break;
-                    case HTML:
-                    case HTML_NO_VALIDATION:
-                    case HTML_COMMENT:
-                    case HTML_HORIZONTAL_RULE:
-                        // ignore html attributes because they do not have attribute values
-                        break;
-		    case STRING:
-		    case STRING_AUTOCOMPLETE:
-		    case TEXT:
-		    case STRING_WITH_VALID_VALUES:
-		        obj.accumulate(JSON_KEY_ATTR_VALUE, av.getStringValue());
-		        break;
-		    // allow download of files and image attribute types
-		    case IMAGE:
-		    case AUDIO:
-		    case FILE:
-		        obj.accumulate(JSON_KEY_ATTR_VALUE, getAttributeValueFileDownloadLink(av, contextPath));
-		        break;
-		    case SPECIES:
-		    {
-		    	IndicatorSpecies species = av.getSpecies();
-		    	obj.accumulate(JSON_KEY_IS_SCINAME, showSciName);
-		    	if (species != null) {
-		    		obj.accumulate(JSON_KEY_ATTR_VALUE, showSciName.equals(Boolean.TRUE) ? 
-		    				species.getScientificName() : species.getCommonName());	
-		    	}
-		    }
-		    	break;
-		    default:
-		        // ignore
+            case INTEGER:
+            case INTEGER_WITH_RANGE:
+            case DECIMAL:
+                obj.accumulate(JSON_KEY_ATTR_VALUE, av.getNumericValue());
+                break;
+            case DATE:
+                Date d = av.getDateValue();
+                String format = d == null ? null : dateFormat.format(av.getDateValue()); 
+                obj.accumulate(JSON_KEY_ATTR_VALUE, format);
+                break;
+            case HTML:
+            case HTML_NO_VALIDATION:
+            case HTML_COMMENT:
+            case HTML_HORIZONTAL_RULE:
+                // ignore html attributes because they do not have attribute values
+                break;
+            case STRING:
+            case STRING_AUTOCOMPLETE:
+            case TEXT:
+            case STRING_WITH_VALID_VALUES:
+                obj.accumulate(JSON_KEY_ATTR_VALUE, av.getStringValue());
+                break;
+            // allow download of files and image attribute types
+            case IMAGE:
+            case AUDIO:
+            case FILE:
+                obj.accumulate(JSON_KEY_ATTR_VALUE, getAttributeValueFileDownloadLink(av, contextPath));
+                break;
+            case SPECIES:
+            {
+                IndicatorSpecies species = av.getSpecies();
+                obj.accumulate(JSON_KEY_IS_SCINAME, showSciName);
+                if (species != null) {
+                    obj.accumulate(JSON_KEY_ATTR_VALUE, showSciName.equals(Boolean.TRUE) ? 
+                            species.getScientificName() : species.getCommonName());    
+                }
+            }
+                break;
+            case CENSUS_METHOD_ROW:
+            case CENSUS_METHOD_COL:
+                Set<Record> records = av.getRecords();
+                if (records != null) {
+                    JSONObject recObj = new JSONObject();
+                    for (Record record : records) {
+                        JSONObject attObj = new JSONObject();
+                        for (AttributeValue recordValue : record.getAttributes()) {
+                            attObj.accumulate(JSON_KEY_ATTR_VALUE, toJson(recordValue, contextPath));
+                        }
+                        recObj.accumulate(JSON_ITEM_TYPE_RECORD, attObj);
+                    }
+                    obj.accumulate(JSON_KEY_ATTR_VALUE, recObj);
+                }
+                break;
+            default:
+                // ignore
         }
         return obj;
     }

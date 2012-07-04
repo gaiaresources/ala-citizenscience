@@ -50,6 +50,7 @@ public class AttributeValue extends AbstractTypedAttributeValue implements Typed
     
     private IndicatorSpecies species = null;
 
+    private String description = "";
     /**
      * Populates the <code>numericValue</code> or <code>dateValue</code> from
      * the contents of the <code>stringValue</code>
@@ -185,4 +186,18 @@ public class AttributeValue extends AbstractTypedAttributeValue implements Typed
         
         return null;
     }
+
+    @CompactAttribute
+    @Column(name = "DESCRIPTION")
+    /**
+     * An optional attribute which is the description of the attribute for text images.
+     * @return {@link String}
+     */
+    public String getDescription() {
+        return description;
+    }
+    public void setDescription(String desc) {
+        this.description = desc;
+    }
+    
 }

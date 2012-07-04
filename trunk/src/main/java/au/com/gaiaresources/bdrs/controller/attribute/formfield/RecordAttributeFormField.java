@@ -3,9 +3,6 @@ package au.com.gaiaresources.bdrs.controller.attribute.formfield;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.apache.log4j.Logger;
-
-
 import au.com.gaiaresources.bdrs.controller.attribute.DisplayContext;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
@@ -25,8 +22,6 @@ public class RecordAttributeFormField extends AbstractRecordFormField implements
     private TypedAttributeValue attributeValue;
     private Attribute attribute;
     
-    private Logger log = Logger.getLogger(getClass());
-
     /**
      * Creates a new <code>RecordAttributeFormField</code> for the specified
      * survey attribute.
@@ -72,14 +67,15 @@ public class RecordAttributeFormField extends AbstractRecordFormField implements
         return attribute;
     }
 
-	@Override
-	public TypedAttributeValue getAttributeValue() {
-		return this.attributeValue;
-	}
-	
+    @Override
+    public TypedAttributeValue getAttributeValue() {
+        return this.attributeValue;
+    }
+    
     @Override
     public boolean isDisplayFormField() {
-        return attribute != null && AttributeType.isHTMLType(attribute.getType());
+        return attribute != null && (AttributeType.isHTMLType(attribute.getType()) || 
+                AttributeType.isCensusMethodType(attribute.getType()));
     }
     
     @Override
@@ -106,23 +102,23 @@ public class RecordAttributeFormField extends AbstractRecordFormField implements
         return attribute.isRequired();
     }
 
-	@Override
-	public String getName() {
-		return attribute.getName();
-	}
+    @Override
+    public String getName() {
+        return attribute.getName();
+    }
 
-	@Override
-	public String getDescription() {
-		return attribute.getDescription();
-	}
+    @Override
+    public String getDescription() {
+        return attribute.getDescription();
+    }
 
-	@Override
-	public IndicatorSpecies getSpecies() {
-		return attributeValue != null ? attributeValue.getSpecies() : null;
-	}
+    @Override
+    public IndicatorSpecies getSpecies() {
+        return attributeValue != null ? attributeValue.getSpecies() : null;
+    }
 
-	@Override
-	public Collection<IndicatorSpecies> getAllowableSpecies() {
-		return survey != null ? survey.getSpecies() : Collections.EMPTY_LIST;
-	}
+    @Override
+    public Collection<IndicatorSpecies> getAllowableSpecies() {
+        return survey != null ? survey.getSpecies() : Collections.<IndicatorSpecies>emptyList();
+    }
 }

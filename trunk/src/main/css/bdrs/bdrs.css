@@ -62,8 +62,8 @@
 }
 
 .review_map_fullscreen {
-	height: 100%;
-	width: 100%;
+    height: 100%;
+    width: 100%;
 }
 
 .kmlDescriptionTable {
@@ -82,14 +82,14 @@
 }
 
 .trackerRelatedRecordsSection {
-	padding-left: 0.5em;
+    padding-left: 0.5em;
 }
 
 /*****************************************/
 /* Styling for the popups in viewMap.jsp */
 /*****************************************/
 #content .olFramedCloudPopupContent h1 {
-	color: #333333;
+    color: #333333;
     font-size: 135%;
     font-weight: bold;
     padding: 10px 0;
@@ -113,11 +113,11 @@
 }
 
 .shiftContentLeftContainer {
-	margin-top: -1.5em;
+    margin-top: -1.5em;
 }
 
 .shiftContentRightContainer {
-	margin-top: -1.8em;
+    margin-top: -1.8em;
 }
 
 /***********************************************/
@@ -168,7 +168,7 @@ div.locationList table tbody tr td {
 }
 
 div.locationList table tbody tr td input[type=text] {
-	width: 210px;
+    width: 210px;
 }
 
 .locations_map {
@@ -262,7 +262,7 @@ label.multiCheckboxLabel {
 }
 
 #attribute_input_table td {
-	white-space: nowrap;
+    white-space: nowrap;
 }
 
 /*********************************************************/
@@ -309,7 +309,7 @@ label.multiCheckboxLabel {
     padding-bottom: 2em;
 }
 .facetOptions div {
-	padding-left: 5px;
+    padding-left: 5px;
 }
 
 .facetOptions .showMore,
@@ -395,21 +395,21 @@ table.form_table {
 
 table.form_table tbody tr th {
     min-width: 150px;
-	white-space: nowrap;
+    white-space: nowrap;
 }
 
 table.form_table tbody tr td {
-	max-width: 300px;
+    max-width: 300px;
 }
 /* style that allows a form table to have a wider column */
 table.wide tbody tr td {
-	max-width: 500px;
+    max-width: 500px;
 }
 /* set the min with for the tracker form table to keep the hidden species input to 
    the right of the species input for the ketchup popups */
 table.tracker_form_table tbody tr td,
 table.taxon_edit_form_table tbody tr td {
-	/*min-width: 155px;*/
+    /*min-width: 155px;*/
 }
 
 .form_table textarea {
@@ -458,8 +458,8 @@ table.taxon_edit_form_table tbody tr td {
 /************************************/
 
 legend {
-	margin: 5px;
-	padding: 5px;
+    margin: 5px;
+    padding: 5px;
 }
 
 /************************************/
@@ -488,12 +488,12 @@ legend {
 /* Generic Styling                  */
 /************************************/
 .hidden {
-	display: none;
-	visibility: hidden;
+    display: none;
+    visibility: hidden;
 }
 
 .invisible {
-	visibility: hidden;
+    visibility: hidden;
 }
 
 .left {
@@ -521,7 +521,7 @@ legend {
 }
 
 .textjustify {
-	text-align: justify;
+    text-align: justify;
 }
 
 .verttop {
@@ -565,15 +565,15 @@ legend {
 
 .scientificName {
     font-style: italic;
-	white-space: nowrap;
+    white-space: nowrap;
 }
 
 .error{
-	color: red;
+    color: red;
 }
 
 .success {
-	color: green;
+    color: green;
 }
 
 .nohighlight:focus { 
@@ -648,18 +648,18 @@ legend {
 /* used when you want the buttons to appear to the right of a form.
  */
 .buttonPanelRight{
-	/* Using negative margin here because having a float:right element inside a 
-	 * jquery-ui dialog will cause the dialog to blow up to 100% screen width
-	 * in IE7. Using a negative margin like this allows us to bump up the 
-	 * button panel without taking it out of normal document flow.
-	 * 
-	 * Yes, i know it's a hack.
-	 */
-	margin-top:-47px;
+    /* Using negative margin here because having a float:right element inside a 
+     * jquery-ui dialog will cause the dialog to blow up to 100% screen width
+     * in IE7. Using a negative margin like this allows us to bump up the 
+     * button panel without taking it out of normal document flow.
+     * 
+     * Yes, i know it's a hack.
+     */
+    margin-top:-47px;
 }
 
 .widgetSearchForm {
-	padding: 0 0 1em 0;
+    padding: 0 0 1em 0;
 }
 
 .max_size_img {
@@ -689,7 +689,7 @@ h1 {
     font-weight: bold;
     line-height: 100%;
     padding: 10px 0;
-	margin: 0.25em; 
+    margin: 0.25em; 
 }
 
 h2 {
@@ -698,7 +698,7 @@ h2 {
     font-weight: bold;
     line-height: 100%;
     padding: 10px 0;
-	margin: 0.25em;
+    margin: 0.25em;
 }
 
 h3 {
@@ -706,12 +706,12 @@ h3 {
     font-size: 135%;
     font-weight: bold;
     padding: 10px 0;
-	margin: 0.25em;
+    margin: 0.25em;
 }
 
 /* overriding the YUI defaults */
 table {
-	margin-bottom: 0;
+    margin-bottom: 0;
 }
 
 .sep {
@@ -741,8 +741,8 @@ table {
 /**************************/
 .dashboardContainer {
     width: 100%;
-	background-color: #FFFFFF;
-	-webkit-border-bottom-right-radius: 20px;
+    background-color: #FFFFFF;
+    -webkit-border-bottom-right-radius: 20px;
     -webkit-border-bottom-left-radius: 20px;
     -moz-border-radius-bottomright: 20px;
     -moz-border-radius-bottomleft: 20px;
@@ -751,7 +751,7 @@ table {
 }
 
 .dashboardFooter {
-	clear: both;
+    clear: both;
 }
 
 .dashboard {
@@ -821,8 +821,8 @@ input[disabled] {
 
 .map_wrapper {
     color: #484848;
-	/* IE7 fix for slideToggling the map wrapper */
-	zoom:1;
+    /* IE7 fix for slideToggling the map wrapper */
+    zoom:1;
 }
 
 /* Make the lat and lon coordinates on the bottom right, white */
@@ -831,30 +831,30 @@ input[disabled] {
 }
 
 .mapLogoMax {
-	position: fixed;
-	bottom: 100px;
-	left: 2px;
-	z-index: 1600;
+    position: fixed;
+    bottom: 100px;
+    left: 2px;
+    z-index: 1600;
 }
 
 .mapLogoMin {
-	display:none;
+    display:none;
 }
 
 .shrinkMapLink {
-	border-radius: 0.5em;
-	 -webkit-border-radius: 0.5em;
+    border-radius: 0.5em;
+     -webkit-border-radius: 0.5em;
     -khtml-border-radius: 0.5em;
     -moz-border-radius: 0.5em;
 
-	background: white;
+    background: white;
    
-	padding: 0.2em 1em 0.2em 1em;
-	
-	position: fixed;
-	top: 3px;
-	right: 3px;
-	z-index: 3100;
+    padding: 0.2em 1em 0.2em 1em;
+    
+    position: fixed;
+    top: 3px;
+    right: 3px;
+    z-index: 3100;
 }
 
 .align_radio input[type=radio]{
@@ -909,7 +909,7 @@ table.surveyOptionTable th {
 }
 
 table.surveyOptionTable td {
-	width:55%;
+    width:55%;
 }
 
 #userSelectionTypeFieldSet,
@@ -959,7 +959,7 @@ ul.ui-menu li.ui-menu-item {
 }
 
 table.yearlysightings {
-	width: 100%;
+    width: 100%;
 }
 
 .yearlysightings th {
@@ -1011,7 +1011,7 @@ table.yearlysightings {
     margin: 0;
     padding: 3px 5px 3px 3px;
     white-space: normal;
-	max-width: 300px;
+    max-width: 300px;
 }
 
 /* Making the text boxes consistent with others on the survey page */
@@ -1095,12 +1095,12 @@ input[type=text].speciesIdInput {
 }
 
 .atlasSighting .leftCol h3 {
-	width: 74%;
+    width: 74%;
 }
 
 .atlasSighting .leftCol h3 img {
-	position: absolute;
-	right: 8px;
+    position: absolute;
+    right: 8px;
 }
 
 .atlasSighting .rightCol {
@@ -1132,7 +1132,7 @@ input[type=text].speciesIdInput {
 }
 
 .atlasSighting .atlasSightingRecordLocations {
-	padding-bottom: 8px;
+    padding-bottom: 8px;
 }
 
 .atlasSighting p.mapHints {
@@ -1218,7 +1218,7 @@ input[type=text].speciesIdInput {
 }
 
 .preference_category {
-	padding: 0 0 2em 0;
+    padding: 0 0 2em 0;
 }
 
 /************************************/
@@ -1284,7 +1284,7 @@ h3.field_guide_header {
 }
 
 .imageGalleryInput {
-	width:252px;
+    width:252px;
 }
 
 /************************************/
@@ -1375,16 +1375,16 @@ h3.field_guide_header {
 }
 
 #alaSightingsTableHeader {
-	font-size: 1em;
-	font-weight: bolder;
+    font-size: 1em;
+    font-weight: bolder;
 }
 
 div.alaSightingsTableHeader {
-	margin-top: 8px;
+    margin-top: 8px;
 }
 
 div.alaSightingsTableHeaderDoubleLine {
-	margin-top: 5px;
+    margin-top: 5px;
 }
 
 div.alaSightingsTableHeaderDoubleLineArrows {
@@ -1393,12 +1393,12 @@ div.alaSightingsTableHeaderDoubleLineArrows {
 
 /* for single line header items */
 .sortArrows {
-	margin-top: 5px;
+    margin-top: 5px;
 }
 
 /* for double line header items */
 .alaSightingsTableHeaderDoubleLine .sortArrows {
-	margin-top: 10px;
+    margin-top: 10px;
 }
 
 .alaSightingsTable tr {
@@ -1424,41 +1424,41 @@ div.alaSightingsTableHeaderDoubleLineArrows {
 }
 
 .alaSightingsTableViewContent .bulkActionContainer {
-	padding-top: 1em;
-	padding-bottom: 2em;
+    padding-top: 1em;
+    padding-bottom: 2em;
 }
 
 .alaSightingsTableViewContent .bulkActionContainer a {
     padding-left: 1em;
-	padding-right: 1em;
+    padding-right: 1em;
 }
 
 .alaSightingsTable .typeColumn {
-	width: 10%;
+    width: 10%;
 }
 
 .alaSightingsTable .dateColumn {
-	width: 10%;
+    width: 10%;
 }
 
 .alaSightingsTable .sciNameColumn {
-	width: 20%;
+    width: 20%;
 }
 
 .alaSightingsTable .commonNameColumn {
-	width: 20%
+    width: 20%
 }
 
 .alaSightingsTable .locationColumn {
-	width: 20%
+    width: 20%
 }
 
 .alaSightingsTable .userColumn {
-	width: 15%
+    width: 15%
 }
 
 .alaSightingsTable .altRow {
-	background-color: #E0E8F0;
+    background-color: #E0E8F0;
 }
 
 /**********************/
@@ -1498,14 +1498,14 @@ div.alaSightingsTableHeaderDoubleLineArrows {
 /**********************/
 
 #sightings_criteria {
-	width: 85%;
-	margin: 0 0 0 0;
+    width: 85%;
+    margin: 0 0 0 0;
 }
 
 #sightings_criteria .interrogative {
     font-size: 1.2em;
     text-align: left;
-	padding-left: 3em;
+    padding-left: 3em;
 }
 
 #sightings_criteria th {
@@ -1557,13 +1557,13 @@ div.alaSightingsTableHeaderDoubleLineArrows {
 }
 
 .searchCriteriaSpacer {
-	height: 9px;
+    height: 9px;
 }
 
 .searchButtonContainer {
-	float:right;
-	position:relative;
-	top:-38px;
+    float:right;
+    position:relative;
+    top:-38px;
 }
 
 /***********************/
@@ -1580,20 +1580,20 @@ div.alaSightingsTableHeaderDoubleLineArrows {
 /* User sending msg to another user */
 /************************************/
 .messageUserContainer {
-	width:387px;
+    width:387px;
 }
 
 .messageUserContainer input[type=text], textarea {
-	width:280px;
+    width:280px;
 }
 
 .messageUserContainer textarea {
-	height:100px;
+    height:100px;
 }
 
 .messageUserMiniMap {
     width:400px;
-	height:300px;
+    height:300px;
 }
 
 /**************************************/
@@ -1601,18 +1601,18 @@ div.alaSightingsTableHeaderDoubleLineArrows {
 /*   upload records                   */
 /**************************************/
 table.bulkDataTableForm tbody tr th {
-	width: 30%
+    width: 30%
 }
 
 /****************************************/
 /* Edit Taxonomic Groups 2 column layout */
 /****************************************/
 .editTaxonGroupLeftColumn {
-	padding: 10px;
+    padding: 10px;
 }
 
 .editTaxonGroupRightColumn {
-	padding: 10px 0 0 50px;
+    padding: 10px 0 0 50px;
 }
 
 #secondaryGroups,
@@ -1660,7 +1660,7 @@ table.bulkDataTableForm tbody tr th {
 /* Search taxonomy */
 /*******************/
 .searchTaxonomyHeader {
-	width: 80px;
+    width: 80px;
 }
 
 /************************/
@@ -1668,15 +1668,15 @@ table.bulkDataTableForm tbody tr th {
 /************************/
 
 table.preference_table_header {
-	width: 100%
+    width: 100%
 }
 
 table.preference_table_header td.right_cell {
-	width: 350px;
+    width: 350px;
 }
 
 table.preference_table {
-	padding: 0 0 1em 0;
+    padding: 0 0 1em 0;
 }
 
 .preference_table td.description_col {
@@ -1696,13 +1696,13 @@ table.preference_table {
 }
 
 .preference_table td.description_col textarea {
-	/* IE7 hack */
+    /* IE7 hack */
     width: 99%;
 }
 
 .preference_table td.key_col {
-	width: 200px;
-	padding: 6px;
+    width: 200px;
+    padding: 6px;
 }
 
 .preference_table td.key_col input[type=text] {
@@ -1710,7 +1710,7 @@ table.preference_table {
 }
 
 .preference_table td.value_col {
-	width: 200px;
+    width: 200px;
     padding: 6px;
 }
 
@@ -1850,14 +1850,14 @@ ul.menu ul ul ul ul li a{
 /* breadcrumbs             */
 /***************************/
 .breadcrumbSeparator {
-	font-weight:bold;
+    font-weight:bold;
 }
 
 /***************************/
 /* General cursor style    */
 /***************************/
 .cursorPointer {
-	cursor:pointer;
+    cursor:pointer;
 }
 
 /***************************/
@@ -1870,8 +1870,8 @@ ul.menu ul ul ul ul li a{
  * line up vertically.
  */
 .ui-upArrowAdjust {
-	margin-left: 1px;
-	margin-bottom: -9px;
+    margin-left: 1px;
+    margin-bottom: -9px;
 }
 
 .ui-downArrowAdjust {
@@ -2036,19 +2036,148 @@ div.blockUI.blockMsg.blockPage h1 {
     color: red;
 }
 
+/************************************************/
+/* Style for census method attribute tables     */
+/************************************************/
+
+/* makes the tracker form table and group attributes on taxon edit page 
+   span the width of the page, necessary for displaying census method 
+   attributes properly */
+table.tracker_form_table,
+#taxonAttributeTable .form_table {
+    width: 100%;
+}
+
+/* keeps the tracker form and group attributes editing form centered on the page */
+table.tracker_form_table tbody tr th,
+#taxonAttributeTable .form_table tbody tr th {
+    width: 45%;
+}
+
+div#censusMethodAttributeRowTable table tbody tr th {
+    background-color: transparent !important;
+    white-space: normal;
+    width: auto;
+}
+
+table.censusMethodAttributeTable tbody tr th,
+table.datatable tbody table.censusMethodAttributeTable tbody tr th {
+    white-space: normal;
+    width: auto;
+}
+
+.form_table table.censusMethodAttributeTable tbody td,
+.form_table table.censusMethodAttributeTable thead td,
+.form_table table.censusMethodAttributeTable tbody th,
+.form_table table.censusMethodAttributeTable thead th {
+    border: collapse;
+    border: 1px solid #C0C0C0;
+    margin: 0;
+    padding: 3px 5px 3px 3px;
+    white-space: normal;
+    width: auto;
+}
+
+table.form_table table.censusMethodAttributeTable tbody tr th {
+    min-width: 150px;
+}
+
+table.censusMethodAttributeTable tbody td,
+table.censusMethodAttributeTable thead th {
+    text-align: center;
+}
+
+table table table caption {
+    display: none;
+}
+
+table.censusMethodAttributeTable caption {
+    font-weight: bold;
+}
+
+.scrollable {
+    width: 100%;
+    height: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+/* Making the text boxes consistent with others on the survey page */
+/* Set width to 99% so that hidden input field with ketchup on it will not
+   cause the height to increase */
+table.censusMethodAttributeTable input[type=text], 
+table.censusMethodAttributeTable input[type=password],
+table.censusMethodAttributeTable textarea {
+    border-width: 1;
+    width: 91%;
+    resize: none;
+    margin: 0;
+    padding: 0;
+}
+
+table.censusMethodAttributeTable input[type=text], 
+table.censusMethodAttributeTable input[type=password] {
+    text-align: center;
+}
+
+table.censusMethodAttributeTable textarea {
+    text-align: left;
+}
+
+/* Special cases where the size is partially known */
+/* Set width to 99% so that hidden input field with ketchup on it will not
+   cause the height to increase */
+table.censusMethodAttributeTable input[type=text].ui-autocomplete-input {
+    width: 91%;
+}
+
+/* Set width to 99% so that hidden input field with ketchup on it will not
+   cause the height to increase */
+table.censusMethodAttributeTable input[type=text].datepicker {
+    width: 91%;
+}
+
+table.censusMethodAttributeTable input[type=file] {
+    /* Styling of file input is not really that well supported
+    test carefully on all browsers if you style this element. */
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    background-color: transparent;
+    width: 20em;
+}
+
+table.censusMethodAttributeTable textarea {
+    height: 7em;
+    width: 20em;
+}
+/* For lining up the ketchup popup to the input */
+.attribute_input_table tbody td input[type="text"].hiddenKetchup,
+.hiddenKetchup {
+    visibility: hidden;
+    width:0px;
+    padding:0px 0 0 0;
+    margin:0 0 0 -9px;
+    border-width:0;
+}
+
+th.deleteColumn {
+    width: auto;
+}
+
 /***********************************************/
 /* map layer editing                           */
 /***********************************************/
 #mapLayerForm table {
-	width: 100%;
+    width: 100%;
 }
 
 #mapLayerForm th {
-	width: 25%;
-	text-align: left;
+    width: 25%;
+    text-align: left;
 }
 
 #mapLayerForm .long_input {
-	width: 40em;
+    width: 40em;
 }
 

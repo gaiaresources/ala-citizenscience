@@ -192,6 +192,15 @@
     <definition name="trackerSubRecordView" template="/WEB-INF/jsp/bdrs/user/record/render/default/trackerSubRecordView.jsp">
     </definition>
     
+    <!-- Census Method Attribute Row -->
+    <definition name="attributeRecordRow" template="/WEB-INF/jsp/bdrs/user/record/render/default/attributesRecordRow.jsp">
+        <put-attribute name="rowIndex"/>
+        <put-attribute name="record"/>
+        <put-attribute name="survey"/>
+        <put-attribute name="recAttrMap"/>
+        <put-attribute name="recAttrFileURLMapping"/>
+    </definition>
+    
     <!-- Atlas -->
     <definition name="atlas" extends="user-template">
         <put-attribute name="title" value="Record a Sighting"/>

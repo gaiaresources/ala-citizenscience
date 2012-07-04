@@ -11,7 +11,6 @@ import junit.framework.Assert;
 
 import org.apache.log4j.Logger;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -23,16 +22,13 @@ import org.springframework.web.servlet.ModelAndView;
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.geometry.GeometryBuilder;
 import au.com.gaiaresources.bdrs.model.record.Record;
-import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.security.Role;
 import edu.emory.mathcs.backport.java.util.Collections;
 
@@ -43,13 +39,7 @@ public abstract class AbstractRecordFormAccessTest extends AbstractControllerTes
     @Autowired
     protected SurveyDAO surveyDAO;
     @Autowired
-    protected RecordDAO recDAO;
-    @Autowired
     protected AttributeDAO attrDAO;
-    @Autowired
-    protected UserDAO userDAO;
-    @Autowired
-    protected TaxaDAO taxaDAO;
 
     protected IndicatorSpecies species;
     

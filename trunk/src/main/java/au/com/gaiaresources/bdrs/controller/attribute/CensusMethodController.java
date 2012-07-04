@@ -155,7 +155,7 @@ public class CensusMethodController extends AbstractController {
                 String attrName = request.getParameter(String.format("name_"+attributePk));
                 if(attrName != null && !attrName.isEmpty()) {
                     attr = attributeDAO.get(attributePk);
-                    AttributeFormField formField = formFieldFactory.createAttributeFormField(attributeDAO, attr, request.getParameterMap());
+                    AttributeFormField formField = formFieldFactory.createAttributeFormField(attributeDAO, cmDAO, attr, request.getParameterMap());
                     attr = (Attribute) formField.save();
                     attributeList.add(attr);
                 }
@@ -167,7 +167,7 @@ public class CensusMethodController extends AbstractController {
             for(int index : attributeIndexArray) {
                 String attrName = request.getParameter(String.format("add_name_"+index));
                 if(attrName != null && !attrName.isEmpty()) {
-                    AttributeFormField formField = formFieldFactory.createAttributeFormField(attributeDAO, index, request.getParameterMap());
+                    AttributeFormField formField = formFieldFactory.createAttributeFormField(attributeDAO, cmDAO, index, request.getParameterMap());
                     attributeList.add((Attribute)formField.save());
                 }
             }

@@ -12,7 +12,7 @@ public class SimpleImportHandler extends AbstractImportHandler {
     /**
      * The data type that gets decoded by this handler.
      */
-    private Class<?> klazz;
+    protected Class<?> klazz;
 
     /**
      * Creates a new instance of this handler.

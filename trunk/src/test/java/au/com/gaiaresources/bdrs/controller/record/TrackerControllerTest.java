@@ -1,6 +1,33 @@
 package au.com.gaiaresources.bdrs.controller.record;
 
-import au.com.gaiaresources.bdrs.controller.attribute.formfield.*;
+import java.math.BigDecimal;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import junit.framework.Assert;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.mock.web.MockMultipartHttpServletRequest;
+import org.springframework.test.web.ModelAndViewAssert;
+import org.springframework.web.servlet.ModelAndView;
+
+import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField;
+import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordAttributeFormField;
+import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
+import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyFormField;
+import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
 import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
@@ -13,24 +40,18 @@ import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
-import au.com.gaiaresources.bdrs.model.taxa.*;
+import au.com.gaiaresources.bdrs.model.taxa.Attribute;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
+import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
+import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
-import junit.framework.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.mock.web.MockMultipartHttpServletRequest;
-import org.springframework.test.web.ModelAndViewAssert;
-import org.springframework.web.servlet.ModelAndView;
-
-import java.math.BigDecimal;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
 
 /**
  * Tests all aspects of the <code>TrackerController</code>.
@@ -39,8 +60,6 @@ public class TrackerControllerTest extends RecordFormTest {
 
     @Autowired
     private SurveyDAO surveyDAO;
-    @Autowired
-    private TaxaDAO taxaDAO;
     @Autowired
     private RecordDAO recordDAO;
     @Autowired
@@ -73,62 +92,15 @@ public class TrackerControllerTest extends RecordFormTest {
         taxonGroupFrogs.setName("Frogs");
         taxonGroupFrogs = taxaDAO.save(taxonGroupBirds);
 
+        createCensusMethodForAttributes();
+        
         List<Attribute> taxonGroupAttributeList;
         Attribute groupAttr;
         for (TaxonGroup group : new TaxonGroup[] { taxonGroupBirds,
                 taxonGroupFrogs }) {
             taxonGroupAttributeList = new ArrayList<Attribute>();
             for (boolean isTag : new boolean[] { true, false }) {
-                for (AttributeType attrType : AttributeType.values()) {
-                    groupAttr = new Attribute();
-                    groupAttr.setRequired(true);
-                    groupAttr.setName(group.getName() + "_"
-                            + attrType.toString() + "_isTag" + isTag);
-                    groupAttr.setDescription(group.getName() + "_"
-                            + attrType.toString() + "_isTag" + isTag);
-                    groupAttr.setTypeCode(attrType.getCode());
-                    groupAttr.setScope(null);
-                    groupAttr.setTag(isTag);
-    
-                    if (AttributeType.STRING_WITH_VALID_VALUES.equals(attrType) ||
-                            AttributeType.MULTI_CHECKBOX.equals(attrType) ||
-                            AttributeType.MULTI_SELECT.equals(attrType)) {
-
-                        List<AttributeOption> optionList = new ArrayList<AttributeOption>();
-                        for (int i = 0; i < 4; i++) {
-                            AttributeOption opt = new AttributeOption();
-                            opt.setValue(String.format("Option %d", i));
-                            opt = taxaDAO.save(opt);
-                            optionList.add(opt);
-                        }
-                        groupAttr.setOptions(optionList);
-                    } else if (AttributeType.INTEGER_WITH_RANGE.equals(attrType)) {
-                        List<AttributeOption> rangeList = new ArrayList<AttributeOption>();
-                        AttributeOption upper = new AttributeOption();
-                        AttributeOption lower = new AttributeOption();
-                        lower.setValue("100");
-                        upper.setValue("200");
-                        rangeList.add(taxaDAO.save(lower));
-                        rangeList.add(taxaDAO.save(upper));
-                        groupAttr.setOptions(rangeList);
-                    } else if (AttributeType.BARCODE.equals(attrType)) {
-                        List<AttributeOption> regExpList = new ArrayList<AttributeOption>();
-                        AttributeOption regExp = new AttributeOption();
-                        regExp.setValue("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"); // regexp for hex color codes
-                        regExpList.add(taxaDAO.save(regExp));
-                        groupAttr.setOptions(regExpList);
-                    } else if (AttributeType.REGEX.equals(attrType)) {
-                        List<AttributeOption> regExpList = new ArrayList<AttributeOption>();
-                        AttributeOption regExp = new AttributeOption();
-                        String re1="\\d+(\\.?\\d+)?\\s+\\w+\\s+\\d+";
-                        regExp.setValue(re1); // regexp for '1.5 of 3'
-                        regExpList.add(taxaDAO.save(regExp));
-                        groupAttr.setOptions(regExpList);
-                    }
-
-                    groupAttr = taxaDAO.save(groupAttr);
-                    taxonGroupAttributeList.add(groupAttr);
-                }
+                taxonGroupAttributeList.addAll(createAttrList(group.getName(), true, new AttributeScope[]{null}, isTag));
             }
             group.setAttributes(taxonGroupAttributeList);
             taxaDAO.save(group);
@@ -146,61 +118,10 @@ public class TrackerControllerTest extends RecordFormTest {
         speciesB.setTaxonGroup(taxonGroupBirds);
         speciesB = taxaDAO.save(speciesB);
 
-        List<Attribute> attributeList = new ArrayList<Attribute>();
-        Attribute attr;
-        for (AttributeType attrType : AttributeType.values()) {
-            for (AttributeScope scope : new AttributeScope[] {
-                    AttributeScope.RECORD, AttributeScope.SURVEY, 
-                    AttributeScope.RECORD_MODERATION, AttributeScope.SURVEY_MODERATION, 
-                    null }) {
-
-                attr = new Attribute();
-                attr.setRequired(true);
-                attr.setName(attrType.toString());
-                attr.setTypeCode(attrType.getCode());
-                attr.setScope(scope);
-                attr.setTag(false);
-
-                if(AttributeType.STRING_WITH_VALID_VALUES.equals(attrType) ||
-                        AttributeType.MULTI_CHECKBOX.equals(attrType) ||
-                        AttributeType.MULTI_SELECT.equals(attrType)) {
-                    
-                    List<AttributeOption> optionList = new ArrayList<AttributeOption>();
-                    for (int i = 0; i < 4; i++) {
-                        AttributeOption opt = new AttributeOption();
-                        opt.setValue(String.format("Option %d", i));
-                        opt = taxaDAO.save(opt);
-                        optionList.add(opt);
-                    }
-                    attr.setOptions(optionList);
-                } else if (AttributeType.INTEGER_WITH_RANGE.equals(attrType)) {
-                    List<AttributeOption> rangeList = new ArrayList<AttributeOption>();
-                    AttributeOption upper = new AttributeOption();
-                    AttributeOption lower = new AttributeOption();
-                    lower.setValue("100");
-                    upper.setValue("200");
-                    rangeList.add(taxaDAO.save(lower));
-                    rangeList.add(taxaDAO.save(upper));
-                    attr.setOptions(rangeList);
-                } else if (AttributeType.BARCODE.equals(attrType)) {
-                    List<AttributeOption> regExpList = new ArrayList<AttributeOption>();
-                    AttributeOption regExp = new AttributeOption();
-                    regExp.setValue("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$");
-                    regExpList.add(taxaDAO.save(regExp));
-                    attr.setOptions(regExpList);
-                } else if (AttributeType.REGEX.equals(attrType)) {
-                    List<AttributeOption> regExpList = new ArrayList<AttributeOption>();
-                    AttributeOption regExp = new AttributeOption();
-                    String re1="\\d+(\\.?\\d+)?\\s+\\w+\\s+\\d+";
-                    regExp.setValue(re1); // regexp for '1.5 of 3'
-                    regExpList.add(taxaDAO.save(regExp));
-                    attr.setOptions(regExpList);
-                }
-
-                attr = taxaDAO.save(attr);
-                attributeList.add(attr);
-            }
-        }
+        List<Attribute> attributeList = createAttrList("", true, new AttributeScope[] {
+                AttributeScope.RECORD, AttributeScope.SURVEY, 
+                AttributeScope.RECORD_MODERATION, AttributeScope.SURVEY_MODERATION, 
+                null });
 
         HashSet<IndicatorSpecies> speciesSet = new HashSet<IndicatorSpecies>();
         speciesSet.add(speciesA);
@@ -276,7 +197,6 @@ public class TrackerControllerTest extends RecordFormTest {
 
     @Test
     public void testAddRecord() throws Exception {
-    	
         login("admin", "password", new String[] { Role.ADMIN });
 
         request.setMethod("GET");
@@ -294,7 +214,9 @@ public class TrackerControllerTest extends RecordFormTest {
         Assert.assertNotNull(formContext.getNamedFormFields().get("taxonGroupFormFieldList"));
 
         Assert.assertFalse((Boolean) mv.getModelMap().get("preview"));
-        Assert.assertEquals(
+        Assert.assertEquals("Survey has "+survey.getAttributes().size()+" attributes and "+
+                            (RecordPropertyType.values().length - 2)+" properties, but form field count is "+
+                            formContext.getNamedFormFields().get("surveyFormFieldList").size(), 
                 survey.getAttributes().size()
                 + RecordPropertyType.values().length - 2 , // The - 2 is because CREATED and UPDATED are only visible in read mode by deafult.
                 formContext.getNamedFormFields().get("surveyFormFieldList").size());
@@ -330,11 +252,12 @@ public class TrackerControllerTest extends RecordFormTest {
         Assert.assertNotNull(formContext.getNamedFormFields().get("taxonGroupFormFieldList"));
 
         Assert.assertFalse((Boolean) mv.getModelMap().get("preview"));
+
         Assert.assertEquals(survey.getAttributes().size()
                 + RecordPropertyType.values().length -2, // UPDATED and CREATED are visible in read mode only by default.
                 formContext.getNamedFormFields().get("surveyFormFieldList").size());
         // Half of the taxon group attributes are tags.
-        Assert.assertEquals(speciesA.getTaxonGroup().getAttributes().size() / 2, formContext.getNamedFormFields().get("taxonGroupFormFieldList").size());
+        Assert.assertEquals((speciesA.getTaxonGroup().getAttributes().size() + attrCm.getAttributes().size()) / 2, formContext.getNamedFormFields().get("taxonGroupFormFieldList").size());
         for (FormField formField : formContext.getNamedFormFields().get("surveyFormFieldList")) {
             if (formField.isPropertyFormField()) {
             	RecordPropertyFormField recordPropertyFormField = (RecordPropertyFormField) formField;
@@ -354,8 +277,6 @@ public class TrackerControllerTest extends RecordFormTest {
                default:
             	   Assert.assertEquals(recordProperty.getRecordPropertyType().getDefaultDescription(), recordProperty.getDescription());
                 }
-                
-                
             }
         }
     }
@@ -471,82 +392,15 @@ public class TrackerControllerTest extends RecordFormTest {
         dateFormat.setLenient(false);
         Set<AttributeValue> attributeList = new HashSet<AttributeValue>();
         Map<Attribute, AttributeValue> expectedRecordAttrMap = new HashMap<Attribute, AttributeValue>();
+        int seed = 0;
         for(Attribute attr : survey.getAttributes()) {
             if(!AttributeScope.LOCATION.equals(attr.getScope())) {
                 List<AttributeOption> opts = attr.getOptions();
                 AttributeValue recAttr = new AttributeValue();
                 recAttr.setAttribute(attr);
-                switch (attr.getType()) {
-                case INTEGER:
-                    Integer i = Integer.valueOf(123);
-                    recAttr.setNumericValue(new BigDecimal(i));
-                    recAttr.setStringValue(i.toString());
-                    break;
-                case INTEGER_WITH_RANGE:
-                    Integer j = new Integer(intWithRangeValue);
-                    recAttr.setNumericValue(new BigDecimal(j));
-                    recAttr.setStringValue(intWithRangeValue);
-                case DECIMAL:
-                    Double d = new Double(123);
-                    recAttr.setNumericValue(new BigDecimal(d));
-                    recAttr.setStringValue(d.toString());
-                    break;
-                case DATE:
-                    Date date = new Date(System.currentTimeMillis());
-                    recAttr.setDateValue(date);
-                    recAttr.setStringValue(dateFormat.format(date));
-                    break;
-                case STRING_AUTOCOMPLETE:
-                case STRING:
-                    recAttr.setStringValue("This is a test string record attribute");
-                    break;
-                case REGEX:
-                    recAttr.setStringValue("1.5 of 3");
-                    break;
-                case BARCODE:
-                    recAttr.setStringValue("#123456");
-                    break;
-                case TIME:
-                    recAttr.setStringValue("12:34");
-                    break;
-                case HTML:
-                case HTML_NO_VALIDATION:
-                case HTML_COMMENT:
-                case HTML_HORIZONTAL_RULE:
-                    recAttr.setStringValue("<hr/>");
-                    break;
-                case TEXT:
-                    recAttr.setStringValue("This is a test text record attribute");
-                    break;
-                case STRING_WITH_VALID_VALUES:
-                    recAttr.setStringValue(attr.getOptions().iterator().next().getValue());
-                    break;
-                case MULTI_CHECKBOX:
-                    recAttr.setMultiCheckboxValue(new String[]{opts.get(0).getValue(), opts.get(1).getValue()});
-                    break;
-                case MULTI_SELECT:
-                    recAttr.setMultiCheckboxValue(new String[]{opts.get(0).getValue(), opts.get(1).getValue()});
-                    break;
-                case SINGLE_CHECKBOX:
-                    recAttr.setBooleanValue(Boolean.TRUE.toString());
-                    break;
-                case FILE:
-                case AUDIO:
-                    recAttr.setStringValue("testDataFile.dat");
-                    break;
-                case IMAGE:
-                    recAttr.setStringValue("testImgFile.png");
-                    break;
-                case SPECIES:
-                	recAttr.setSpecies(speciesA);
-                	recAttr.setStringValue(speciesA.getScientificName());
-                	break;
-                default:
-                    Assert.assertTrue("Unknown Attribute Type: "
-                            + attr.getType().toString(), false);
-                    break;
-                }
-                recAttr = recordDAO.saveAttributeValue(recAttr);
+                genRandomAttributeValue(recAttr, seed++, true, true, null, "", null);
+                
+                recAttr = attributeDAO.save(recAttr);
                 attributeList.add(recAttr);
                 expectedRecordAttrMap.put(attr, recAttr);
             }
@@ -556,90 +410,9 @@ public class TrackerControllerTest extends RecordFormTest {
             if (!attr.isTag()) {
                 AttributeValue recAttr = new AttributeValue();
                 recAttr.setAttribute(attr);
-                switch (attr.getType()) {
-                case INTEGER:
-                    Integer i = new Integer(987);
-                    recAttr.setNumericValue(new BigDecimal(i));
-                    recAttr.setStringValue(i.toString());
-                    break;
-                case INTEGER_WITH_RANGE:
-                    Integer j = new Integer(intWithRangeValue);
-                    recAttr.setNumericValue(new BigDecimal(j));
-                    recAttr.setStringValue(intWithRangeValue);
-                    break;
-                case DECIMAL:
-                    Double d = new Double(987);
-                    recAttr.setNumericValue(new BigDecimal(d));
-                    recAttr.setStringValue(d.toString());
-                    break;
-                case DATE:
-                    Date date = new Date(System.currentTimeMillis());
-                    recAttr.setDateValue(date);
-                    recAttr.setStringValue(dateFormat.format(date));
-                    break;
-                case STRING_AUTOCOMPLETE:
-                case STRING:
-                    recAttr.setStringValue("This is a test string record attribute for groups");
-                    break;
-                case REGEX:
-                    recAttr.setStringValue("6 afraidof 7");
-                    break;
-                case BARCODE:
-                    recAttr.setStringValue("#123456");
-                    break;
-                case TIME:
-                    recAttr.setStringValue("12:34");
-                    break;
-                case HTML:
-                case HTML_NO_VALIDATION:
-                case HTML_COMMENT:
-                case HTML_HORIZONTAL_RULE:
-                    recAttr.setStringValue("<hr/>");
-                    break;
-                case TEXT:
-                    recAttr.setStringValue("This is a test text record attribute for groups");
-                    break;
-                case STRING_WITH_VALID_VALUES:
-                    recAttr.setStringValue(attr.getOptions().iterator().next().getValue());
-                    break;
-                case MULTI_CHECKBOX:
-                    {
-                        List<AttributeOption> opts = attr.getOptions(); 
-                        recAttr.setMultiCheckboxValue(new String[]{
-                                opts.get(0).getValue(),
-                                opts.get(1).getValue()
-                        });
-                    }
-                    break;
-                case MULTI_SELECT:
-                    {
-                        List<AttributeOption> opts = attr.getOptions(); 
-                        recAttr.setMultiSelectValue(new String[]{
-                                opts.get(0).getValue(),
-                                opts.get(1).getValue()
-                        });
-                    }
-                    break;
-                case SINGLE_CHECKBOX:
-                    recAttr.setStringValue(Boolean.FALSE.toString());
-                    break;
-                case FILE:
-                case AUDIO:
-                	recAttr.setStringValue("testGroupDataFile.dat");
-                    break;
-                case IMAGE:
-                    recAttr.setStringValue("testGroupImgFile.png");
-                    break;
-                case SPECIES:
-                	recAttr.setSpecies(speciesB);
-                	recAttr.setStringValue(speciesB.getScientificName());
-                	break;
-                default:
-                    Assert.assertTrue("Unknown Attribute Type: "
-                            + attr.getType().toString(), false);
-                    break;
-                }
-                recAttr = recordDAO.saveAttributeValue(recAttr);
+                genRandomAttributeValue(recAttr, seed++, true, true, null, "", null);
+                
+                recAttr = attributeDAO.save(recAttr);
                 attributeList.add(recAttr);
                 expectedRecordAttrMap.put(attr, recAttr);
             }
@@ -688,27 +461,27 @@ public class TrackerControllerTest extends RecordFormTest {
 
     @Test
     public void testSaveRecordLowerLimitOutside() throws Exception {
-        testSaveRecord("99", false);
+        testSaveRecord(String.valueOf(INTEGER_WITH_RANGE_LOWER_LIMIT-1), false);
     }
 
     @Test
     public void testSaveRecordLowerLimitEdge() throws Exception {
-        testSaveRecord("100", true);
+        testSaveRecord(String.valueOf(INTEGER_WITH_RANGE_LOWER_LIMIT), true);
     }
 
     @Test
     public void testSaveRecordInRange() throws Exception {
-        testSaveRecord("101", true);
+        testSaveRecord(String.valueOf(INTEGER_WITH_RANGE_LOWER_LIMIT+1), true);
     }
 
     @Test
     public void testSaveRecordUpperLimitEdge() throws Exception {
-        testSaveRecord("200", true);
+        testSaveRecord(String.valueOf(INTEGER_WITH_RANGE_UPPER_LIMIT), true);
     }
 
     @Test
     public void testSaveRecordUpperLimitOutside() throws Exception {
-        testSaveRecord("201", false);
+        testSaveRecord(String.valueOf(INTEGER_WITH_RANGE_UPPER_LIMIT+1), false);
     }
 
     public void testSaveRecord(String intWithRangeValue, boolean passExpected)
@@ -772,82 +545,11 @@ public class TrackerControllerTest extends RecordFormTest {
                     key = null;
                 }
 
-                switch (recAttr.getAttribute().getType()) {
-                case INTEGER:
-                case INTEGER_WITH_RANGE:
-                    Assert.assertEquals(Integer.parseInt(params.get(key)), recAttr.getNumericValue().intValue());
-                    break;
-                case DECIMAL:
-                    Assert.assertEquals(Double.parseDouble(params.get(key)), recAttr.getNumericValue().doubleValue());
-                    break;
-                case DATE:
-                    Assert.assertEquals(today, recAttr.getDateValue());
-                    break;
-                case STRING:
-                case STRING_AUTOCOMPLETE:
-                case TEXT:
-                case REGEX:
-                case BARCODE:
-                case TIME:
-                case HTML:
-                case HTML_NO_VALIDATION:
-                case HTML_COMMENT:
-                case HTML_HORIZONTAL_RULE:
-                    Assert.assertEquals(params.get(key), recAttr.getStringValue());
-                    break;
-                case STRING_WITH_VALID_VALUES:
-                    Assert.assertEquals(params.get(key), recAttr.getStringValue());
-                    break;
-                case MULTI_CHECKBOX:
-                    {
-                        // make sure the correct data got posted to the server correctly
-                        Assert.assertEquals(2, request.getParameterValues(key).length);
-                        Set<String> optionSet = new HashSet<String>();
-                        for(AttributeOption opt : recAttr.getAttribute().getOptions()) {
-                            optionSet.add(opt.getValue());
-                        }
-                        for(String val : recAttr.getMultiCheckboxValue()){
-                            Assert.assertTrue(optionSet.contains(val));
-                        }
-                    }
-                    break;
-                case MULTI_SELECT:
-                    {
-                        // make sure the correct data got posted to the server correctly
-                        Assert.assertEquals(2, request.getParameterValues(key).length);
-                        Set<String> optionSet = new HashSet<String>();
-                        for(AttributeOption opt : recAttr.getAttribute().getOptions()) {
-                            optionSet.add(opt.getValue());
-                        }
-                        for(String val : recAttr.getMultiSelectValue()){
-                            Assert.assertTrue(optionSet.contains(val));
-                        }
-                    }
-                    break;
-                case SINGLE_CHECKBOX:
-                    Assert.assertEquals(recAttr.getStringValue() + " should be 'true'!", 
-                                        Boolean.parseBoolean(params.get(key)), 
-                                        Boolean.parseBoolean(recAttr.getStringValue()));
-                    break;  
-                case FILE:
-                case AUDIO:
-                case IMAGE:
-                    Assert.assertEquals(params.get(key), recAttr.getStringValue());
-                    break;
-                case SPECIES:
-                	Assert.assertNotNull("species should not be null", recAttr.getSpecies());
-                	Assert.assertEquals("wrong species id", speciesA.getId(), recAttr.getSpecies().getId());
-                	break;
-                default:
-                    Assert.assertTrue("Unknown Attribute Type: "
-                            + recAttr.getAttribute().getType().toString(), false);
-                    break;
-                }
+                assertAttributes(recAttr, params, key);
             }
         } else {
             assertRedirect(mv, "/bdrs/user/tracker.htm");
             Assert.assertEquals(0, recordDAO.countRecords(getRequestContext().getUser()).intValue());
-            
         }
     }
 
@@ -857,171 +559,25 @@ public class TrackerControllerTest extends RecordFormTest {
     
     private Map<? extends String, ? extends String> createAttributes(String intWithRangeValue, DateFormat dateFormat, Date today) {
         Map<String, String> params = new HashMap<String,String>();
-        String key;
-        String value;
+        int seed = 0;
         for (Attribute attr : survey.getAttributes()) {
             if(!AttributeScope.LOCATION.equals(attr.getScope())) {
-                key = String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, "", attr.getId());
-                value = "";
-                switch (attr.getType()) {
-                case INTEGER:
-                    value = "123";
-                    break;
-                case INTEGER_WITH_RANGE:
-                    value = intWithRangeValue;
-                    break;
-                case DECIMAL:
-                    value = "456.7";
-                    break;
-                case DATE:
-                    value = dateFormat.format(today);
-                    break;
-                case STRING_AUTOCOMPLETE:
-                case STRING:
-                    value = "Test Survey Attr String";
-                    break;
-                case REGEX:
-                    value = "7 ate 9";
-                    break;
-                case BARCODE:
-                    value = "#123456";
-                    break;
-                case TIME:
-                    value = "12:34";
-                    break;
-                case TEXT:
-                    value = "Test Survey Attr Text";
-                    break;
-                case STRING_WITH_VALID_VALUES:
-                    value = attr.getOptions().iterator().next().getValue();
-                    break;
-                case MULTI_CHECKBOX:
-                case MULTI_SELECT:
-                    List<AttributeOption> opts = attr.getOptions();
-                    request.addParameter(key, opts.get(0).getValue());
-                    request.addParameter(key, opts.get(1).getValue());
-                    value = null;
-                    break;
-                case SINGLE_CHECKBOX:
-                    value = String.valueOf(true);
-                    break;
-                case FILE:
-                case AUDIO:
-                    String file_filename = String.format("attribute_%d", attr.getId());
-                    MockMultipartFile mockFileFile = new MockMultipartFile(key,
-                            file_filename, "audio/mpeg", file_filename.getBytes());
-                    ((MockMultipartHttpServletRequest) request).addFile(mockFileFile);
-                    value = file_filename;
-                    break;
-                case IMAGE:
-                    String image_filename = String.format("attribute_%d", attr.getId());
-                    MockMultipartFile mockImageFile = new MockMultipartFile(key,
-                            image_filename, "image/png", image_filename.getBytes());
-                    ((MockMultipartHttpServletRequest) request).addFile(mockImageFile);
-                    value = image_filename;
-                    break;
-                case HTML:
-                case HTML_NO_VALIDATION:
-                case HTML_COMMENT:
-                case HTML_HORIZONTAL_RULE:
-                    value = "<hr/>";
-                    break;
-                case SPECIES:
-                	value = speciesA.getScientificName();
-                	break;
-                default:
-                    Assert.assertTrue("Unknown Attribute Type: "
-                            + attr.getType().toString(), false);
-                    break;
+                if (AttributeType.INTEGER_WITH_RANGE.equals(attr.getType())) {
+                    // set the value to this value otherwise generate a random value
+                    setSpecificAttributeValue(attr, intWithRangeValue, null, "", params);
+                } else {
+                    genRandomAttributeValue(attr, seed++, null, "", params);
                 }
-                if(value != null) {
-                    params.put(key, value);
-                }
-                // Otherwise value added directly to the request parameters
-                // this is to support adding an "array" of values.
             }
         }
 
         for (Attribute attr : speciesA.getTaxonGroup().getAttributes()) {
-            key = String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, TrackerController.TAXON_GROUP_ATTRIBUTE_PREFIX, attr.getId());
-            value = "";
-            switch (attr.getType()) {
-            case INTEGER:
-                value = "987";
-                break;
-            case INTEGER_WITH_RANGE:
-                value = intWithRangeValue;
-                break;
-            case DECIMAL:
-                value = "654.3";
-                break;
-            case DATE:
-                value = dateFormat.format(today);
-                break;
-            case STRING_AUTOCOMPLETE:
-            case STRING:
-                value = "Test Group Attr String";
-                break;
-            case HTML:
-            case HTML_NO_VALIDATION:
-            case HTML_COMMENT:
-            case HTML_HORIZONTAL_RULE:
-                value = "<hr/>";
-                break;
-            case REGEX:
-                value = "12.9 plus 30";
-                break;
-            case BARCODE:
-                value = "#123456";
-                break;
-            case TIME:
-                value = "12:34";
-                break;
-            case TEXT:
-                value = "Test Group Attr Text";
-                break;
-            case STRING_WITH_VALID_VALUES:
-                value = attr.getOptions().iterator().next().getValue();
-                break;
-            case MULTI_CHECKBOX:
-            case MULTI_SELECT:
-                List<AttributeOption> opts = attr.getOptions(); 
-                request.addParameter(key, opts.get(0).getValue());
-                request.addParameter(key, opts.get(1).getValue());
-                value = null;
-                break;
-            case SINGLE_CHECKBOX:
-                // Should evaluate to false
-                value = "wibble";
-                break;
-            case FILE:
-            case AUDIO:
-                String file_filename = String.format("group_attribute_%d", attr.getId());
-                MockMultipartFile mockFileFile = new MockMultipartFile(key,
-                        file_filename, "audio/mpeg", file_filename.getBytes());
-                ((MockMultipartHttpServletRequest) request).addFile(mockFileFile);
-                value = file_filename;
-                break;
-            case IMAGE:
-                String image_filename = String.format("group_attribute_%d", attr.getId());
-                MockMultipartFile mockImageFile = new MockMultipartFile(key,
-                        image_filename, "image/png", image_filename.getBytes());
-                ((MockMultipartHttpServletRequest) request).addFile(mockImageFile);
-                value = image_filename;
-                break;
-            case SPECIES:
-            	value = speciesA.getScientificName();
-            	break;
-            default:
-                Assert.assertTrue("Unknown Attribute Type: "
-                        + attr.getType().toString(), false);
-                break;
+            if (AttributeType.INTEGER_WITH_RANGE.equals(attr.getType())) {
+                // set the value to this value otherwise generate a random value
+                setSpecificAttributeValue(attr, intWithRangeValue, null, TrackerController.TAXON_GROUP_ATTRIBUTE_PREFIX, params);
+            } else {
+                genRandomAttributeValue(attr, seed++, null, TrackerController.TAXON_GROUP_ATTRIBUTE_PREFIX, params);
             }
-            if(value != null) {
-                params.put(key, value);
-            } 
-            // Otherwise value added directly to the request parameters
-            // this is to support adding an "array" of values. 
         }
         return params;
     }

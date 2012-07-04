@@ -14,15 +14,6 @@ import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import au.com.gaiaresources.bdrs.json.JSONArray;
-import au.com.gaiaresources.bdrs.json.JSONObject;
-
-import au.com.gaiaresources.bdrs.model.map.GeoMap;
-import au.com.gaiaresources.bdrs.model.map.GeoMapDAO;
-import au.com.gaiaresources.bdrs.model.map.MapOwner;
-import au.com.gaiaresources.bdrs.model.preference.Preference;
-import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
-import au.com.gaiaresources.bdrs.model.preference.PreferenceUtil;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +32,11 @@ import au.com.gaiaresources.bdrs.controller.map.WebMap;
 import au.com.gaiaresources.bdrs.db.ScrollableResults;
 import au.com.gaiaresources.bdrs.db.impl.SortOrder;
 import au.com.gaiaresources.bdrs.db.impl.SortingCriteria;
+import au.com.gaiaresources.bdrs.json.JSONArray;
+import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.model.map.GeoMap;
+import au.com.gaiaresources.bdrs.model.map.GeoMapDAO;
+import au.com.gaiaresources.bdrs.model.map.MapOwner;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
@@ -48,7 +44,6 @@ import au.com.gaiaresources.bdrs.model.record.impl.AdvancedCountRecordFilter;
 import au.com.gaiaresources.bdrs.model.record.impl.AdvancedRecordFilter;
 import au.com.gaiaresources.bdrs.model.record.impl.RecordFilter;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.CompareAttributeValueByAttributeWeight;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
@@ -103,17 +98,11 @@ public class MySightingsController extends SightingsController {
     public static final String QUERY_PARAM_SORT_BY = "sort_by";
     public static final String QUERY_PARAM_SORT_ORDER = "sort_order";
     public static final String QUERY_PARAM_PAGE_NUMBER = "page_number";
-
-    private Logger log = Logger.getLogger(getClass());
     
     @Autowired
     private RecordDAO recordDAO;
     @Autowired
-    private SurveyDAO surveyDAO;
-    @Autowired
     private TaxaDAO taxaDAO;
-    @Autowired
-    private PreferenceDAO preferenceDAO;
     @Autowired
     private GeoMapDAO geoMapDAO;
 

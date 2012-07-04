@@ -319,7 +319,9 @@ public class Condition extends PortalPersistentImpl {
                     // Potential options
                     orderedMap.put(pathDescriptor, childPathDescriptors);
                     Method readMethod = keyPD.getReadMethod();
-                    if (readMethod != null) {
+                    if (readMethod != null &&
+                            readMethod.getAnnotation(Sensitive.class) == null &&
+                            readMethod.getAnnotation(NoThreshold.class) == null) {
                         target = readMethod.getReturnType();
                         if (Iterable.class.isAssignableFrom(target)) {
                             target = extractIterableType(readMethod);
@@ -687,8 +689,10 @@ public class Condition extends PortalPersistentImpl {
     public List<Object> getPropertiesForPath(Object instance)
             throws IllegalArgumentException, IllegalAccessException,
             InvocationTargetException {
-        List<Object> instances = new ArrayList<Object>();
-        instances.add(instance);
+        List<Object> instances = new ArrayList<Object>(1);
+        if (instance != null) {
+            instances.add(instance);
+        }
         if (this.propertyPath != null) {
             for (String propName : this.propertyPath.split("\\.")) {
                 if (instances.isEmpty()) {
@@ -700,7 +704,7 @@ public class Condition extends PortalPersistentImpl {
                 List<Object> tempInstances = new ArrayList<Object>(instances);
                 instances.clear();
                 for (Object currentInstance : tempInstances) {
-                    if (Iterable.class.isAssignableFrom(currentInstance.getClass())) {
+                    if (currentInstance != null && Iterable.class.isAssignableFrom(currentInstance.getClass())) {
                         for (Object object : (Iterable) currentInstance) {
                             PropertyDescriptor pd = BeanUtils.getPropertyDescriptor(object.getClass(), propName);
                             Method readMethod = pd.getReadMethod();

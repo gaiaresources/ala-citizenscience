@@ -45,7 +45,7 @@ public class ShapefileAttributeDictionaryFactoryTest {
         survey.setAttributes(surveyAttrList);
         cm.setAttributes(cmAttrList);
         
-        Map<Attribute, String> nameMap = fact.createNameKeyDictionary(survey, null, cm);
+        Map<Attribute, Object> nameMap = fact.createNameKeyDictionary(survey, null, cm);
         
         Assert.assertEquals("attributen", nameMap.get(a1));
         Assert.assertEquals("attribute1", nameMap.get(a2));
@@ -77,7 +77,7 @@ public class ShapefileAttributeDictionaryFactoryTest {
         
         survey.setAttributes(surveyAttrList);
         
-        Map<Attribute, String> nameMap = fact.createNameKeyDictionary(survey, null, null);
+        Map<Attribute, Object> nameMap = fact.createNameKeyDictionary(survey, null, null);
         
         Assert.assertEquals("a", nameMap.get(a1));
         Assert.assertEquals("a1", nameMap.get(a2));
@@ -111,7 +111,7 @@ public class ShapefileAttributeDictionaryFactoryTest {
         
         survey.setAttributes(surveyAttrList);
         
-        Map<Attribute, String> nameMap = fact.createNameKeyDictionary(survey, null, null);
+        Map<Attribute, Object> nameMap = fact.createNameKeyDictionary(survey, null, null);
         
         Assert.assertEquals("species_i1", nameMap.get(a1));
         Assert.assertEquals("species_n1", nameMap.get(a2));

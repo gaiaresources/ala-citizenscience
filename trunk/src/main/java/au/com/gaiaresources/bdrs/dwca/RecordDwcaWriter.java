@@ -274,7 +274,8 @@ public class RecordDwcaWriter {
 
                 for (AttributeValue av : rec.getAttributes()) {
                     // only have an entry if the AV value has a meaningful value
-                    if (av.isPopulated()) {
+                    // and if it is not a census method attribute type
+                    if (av.isPopulated() && !AttributeType.isCensusMethodType(av.getAttribute().getType())) {
                         writeMeasurementOrFactValues(mofWriter, rec, av);
                     }
                 }
@@ -353,7 +354,7 @@ public class RecordDwcaWriter {
         
         // certain attribute value types should never be written
         Attribute a = av.getAttribute();
-        if (AttributeType.isHTMLType(a.getType())) {
+        if (AttributeType.isHTMLType(a.getType()) || AttributeType.isCensusMethodType(a.getType())) {
             // don't write
             return;
         }
@@ -711,6 +712,8 @@ public class RecordDwcaWriter {
             case HTML_NO_VALIDATION:
             case HTML_COMMENT:
             case HTML_HORIZONTAL_RULE:
+            case CENSUS_METHOD_ROW:
+            case CENSUS_METHOD_COL:
             default:
                 throw new IllegalStateException("Type not handled : " + a.getTypeCode());
             }

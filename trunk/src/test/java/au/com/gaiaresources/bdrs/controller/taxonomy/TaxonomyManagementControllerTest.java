@@ -1,5 +1,23 @@
 package au.com.gaiaresources.bdrs.controller.taxonomy;
 
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import junit.framework.Assert;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.test.web.ModelAndViewAssert;
+import org.springframework.web.servlet.ModelAndView;
+
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.json.JSONArray;
@@ -7,25 +25,19 @@ import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.preference.Preference;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceCategory;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
-import au.com.gaiaresources.bdrs.model.taxa.*;
+import au.com.gaiaresources.bdrs.model.taxa.Attribute;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
+import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
+import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile;
+import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfileDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
+import au.com.gaiaresources.bdrs.model.taxa.TaxonRank;
+import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.property.PropertyService;
 import au.com.gaiaresources.bdrs.service.web.AtlasService;
-import junit.framework.Assert;
-import org.apache.log4j.Logger;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.mock.web.MockMultipartHttpServletRequest;
-import org.springframework.test.web.ModelAndViewAssert;
-import org.springframework.web.servlet.ModelAndView;
-
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
 
 public class TaxonomyManagementControllerTest extends AbstractControllerTest {
 
@@ -56,7 +68,6 @@ public class TaxonomyManagementControllerTest extends AbstractControllerTest {
     private IndicatorSpecies speciesB;
 
     private IndicatorSpecies importSpecies;
-    private Logger log = Logger.getLogger(getClass());
 
     @Autowired
     AtlasService atlasService;
@@ -82,6 +93,9 @@ public class TaxonomyManagementControllerTest extends AbstractControllerTest {
         taxonGroupFrogs.setName("Frogs");
         taxonGroupFrogs = taxaDAO.save(taxonGroupFrogs);
 
+        // create census method for census method attributes
+        createCensusMethodForAttributes();
+        
         List<Attribute> attributeList;
         Attribute attr;
         for (TaxonGroup group : new TaxonGroup[] { taxonGroupBirds,
@@ -123,6 +137,8 @@ public class TaxonomyManagementControllerTest extends AbstractControllerTest {
                     rangeList.add(taxaDAO.save(lower));
                     rangeList.add(taxaDAO.save(upper));
                     attr.setOptions(rangeList);
+                } else if (AttributeType.isCensusMethodType(attrType)) {
+                    attr.setCensusMethod(attrCm);
                 }
 
                 attr = taxaDAO.save(attr);
@@ -418,81 +434,12 @@ public class TaxonomyManagementControllerTest extends AbstractControllerTest {
         request.setParameter("profile_header_"+profileId, "Edited Test Header "+profileId);
         request.setParameter("profile_weight_"+profileId, "1400");
         
-        String key;
-        String value;
+        int seed = 0;
+        Map<String, String> params = new HashMap<String, String>(taxonGroupFrogs.getAttributes().size());
         for (Attribute attr : taxonGroupFrogs.getAttributes()) {
-            key = String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, "", attr.getId());
-            value = "";
-            switch (attr.getType()) {
-                case INTEGER:
-                    value = "123";
-                    break;
-                case INTEGER_WITH_RANGE:
-                        value = intWithRangeValue;
-                        break;
-                case DECIMAL:
-                    value = "456.7";
-                    break;
-                case DATE:
-                    value = dateFormat.format(today);
-                    break;
-                case STRING_AUTOCOMPLETE:
-                case STRING:
-                    value = "Test Species Attr String";
-                    break;
-                case REGEX:
-                case BARCODE:
-                    value = "#121212";
-                    break;
-                case TIME:
-                    value = "12:34";
-                    break;
-                case HTML:
-                case HTML_NO_VALIDATION:
-                case HTML_COMMENT:
-                case HTML_HORIZONTAL_RULE:
-                    value = "<hr/>";
-                    break;
-                case TEXT:
-                    value = "Test Species Attr Text";
-                    break;
-                case STRING_WITH_VALID_VALUES:
-                    value = attr.getOptions().iterator().next().getValue();
-                    break;
-                case MULTI_CHECKBOX:
-                case MULTI_SELECT:
-                    List<AttributeOption> opts = attr.getOptions(); 
-                    request.addParameter(key, opts.get(0).getValue());
-                    request.addParameter(key, opts.get(1).getValue());
-                    value = null;
-                    break;
-                case SINGLE_CHECKBOX:
-                    value = Boolean.TRUE.toString();
-                    break;
-                case FILE:
-                case AUDIO:
-                    String file_filename = String.format("attribute_%d", attr.getId());
-                    MockMultipartFile mockFileFile = new MockMultipartFile(key, file_filename, "audio/mpeg", file_filename.getBytes());
-                    ((MockMultipartHttpServletRequest)request).addFile(mockFileFile);
-                    value = file_filename;
-                    break;
-                case IMAGE:
-                    String image_filename = String.format("attribute_%d", attr.getId());
-                    MockMultipartFile mockImageFile = new MockMultipartFile(key, image_filename, "image/png", image_filename.getBytes());
-                    ((MockMultipartHttpServletRequest)request).addFile(mockImageFile);
-                    value = image_filename;
-                    break;
-                case SPECIES:
-                	value = speciesA.getScientificName();
-                	break;
-                default:
-                    Assert.assertTrue("Unknown Attribute Type: "+attr.getType().toString(), false);
-                    break;
-            }
-            if(value != null) {
-                request.addParameter(key, value);
-            }
+            genRandomAttributeValue(attr, seed++, null, "", params);
         }
+        request.addParameters(params);
         
         ModelAndView mv = handle(request, response);
 
@@ -534,82 +481,8 @@ public class TaxonomyManagementControllerTest extends AbstractControllerTest {
         }
         
         for(TypedAttributeValue taxonAttr: taxon.getAttributes()) {
-            key = String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, "", taxonAttr.getAttribute().getId());
-            switch (taxonAttr.getAttribute().getType()) {
-                case INTEGER:
-                case INTEGER_WITH_RANGE:
-                    Assert.assertEquals(Integer.parseInt(request.getParameter(key)), taxonAttr.getNumericValue().intValue());
-                    break;
-                case DECIMAL:
-                    Assert.assertEquals(Double.parseDouble(request.getParameter(key)), taxonAttr.getNumericValue().doubleValue());
-                    break;
-                case DATE:
-                    Assert.assertEquals(today, taxonAttr.getDateValue());
-                    break;
-                case STRING:
-                case STRING_AUTOCOMPLETE:
-                case TEXT:
-                case REGEX:
-                case BARCODE:
-                    Assert.assertEquals(request.getParameter(key), taxonAttr.getStringValue());
-                    break;
-                case TIME:
-                    value = "12:34";
-                    break;
-                case HTML:
-                case HTML_NO_VALIDATION:
-                case HTML_COMMENT:
-                case HTML_HORIZONTAL_RULE:
-                    value = "<hr/>";
-                    break;
-                case STRING_WITH_VALID_VALUES:
-                    Assert.assertEquals(request.getParameter(key), taxonAttr.getStringValue());
-                    break;
-                case MULTI_CHECKBOX:
-                    {
-                        // make sure the correct data got posted to the server correctly
-                        Assert.assertEquals(2, request.getParameterValues(key).length);
-                        Set<String> optionSet = new HashSet<String>();
-                        for(AttributeOption opt : taxonAttr.getAttribute().getOptions()) {
-                            optionSet.add(opt.getValue());
-                        }
-                        for(String val : taxonAttr.getMultiCheckboxValue()){
-                            Assert.assertTrue(optionSet.contains(val));
-                        }
-                        
-                    }
-                    break;
-                case MULTI_SELECT:
-                    {
-                        // make sure the correct data got posted to the server correctly
-                        Assert.assertEquals(2, request.getParameterValues(key).length);
-                        Set<String> optionSet = new HashSet<String>();
-                        for(AttributeOption opt : taxonAttr.getAttribute().getOptions()) {
-                            optionSet.add(opt.getValue());
-                        }
-                        log.debug("taxonAttr " + taxonAttr);
-                        log.debug("multi select val " + taxonAttr.getMultiSelectValue());
-                        for(String val : taxonAttr.getMultiSelectValue()){
-                            Assert.assertTrue(optionSet.contains(val));
-                        }
-                        
-                    }
-                    break;
-                case SINGLE_CHECKBOX:
-                    Assert.assertEquals(Boolean.parseBoolean(request.getParameter(key)), Boolean.parseBoolean(taxonAttr.getStringValue()));
-                    break; 
-                case FILE:
-                case AUDIO:
-                case IMAGE:
-                    Assert.assertEquals(request.getParameter(key), taxonAttr.getStringValue());
-                    break;
-                case SPECIES:
-                	Assert.assertEquals(request.getParameter(key), taxonAttr.getStringValue());
-                	break;
-                default:
-                    Assert.assertTrue("Unknown Attribute Type: "+taxonAttr.getAttribute().getType().toString(), false);
-                    break;
-            }
+            String key = String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, "", taxonAttr.getAttribute().getId());
+            assertAttributes(taxonAttr, params, key);
         }
     }
     
@@ -618,8 +491,7 @@ public class TaxonomyManagementControllerTest extends AbstractControllerTest {
         
         DateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy");
         dateFormat.setLenient(false);
-        Date today = dateFormat.parse(dateFormat.format(new Date(System.currentTimeMillis())));
-
+        
         request.setMethod("POST");
         request.setRequestURI("/bdrs/admin/taxonomy/edit.htm");
         
@@ -649,86 +521,12 @@ public class TaxonomyManagementControllerTest extends AbstractControllerTest {
         request.setParameter("new_profile_header_3", "Test Header 3");
         request.setParameter("new_profile_weight_3", "300");
         
-        String key;
-        String value;
-        
+        int seed = 0;
+        Map<String,String> params = new HashMap<String, String>(taxonGroupButterflies.getAttributes().size());
         for (Attribute attr : taxonGroupButterflies.getAttributes()) {
-            key = String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, "", attr.getId());
-            value = "";
-            switch (attr.getType()) {
-                case INTEGER:
-                    value = "123";
-                    break;
-                case INTEGER_WITH_RANGE:
-                    value = intWithRangeValue;                    
-                    break;
-                case DECIMAL:
-                    value = "456.7";
-                    break;
-                case DATE:
-                    value = dateFormat.format(today);
-                    break;
-                case STRING_AUTOCOMPLETE:
-                case STRING:
-                    value = "Test Species Attr String";
-                    break;
-                case REGEX:
-                case BARCODE:
-                    value="#121212";
-                    break;
-                case TEXT:
-                    value = "Test Species Attr Text";
-                    break;
-                case STRING_WITH_VALID_VALUES:
-                    value = attr.getOptions().iterator().next().getValue();
-                    break;
-                case MULTI_CHECKBOX:
-                case MULTI_SELECT:
-                    List<AttributeOption> opts = attr.getOptions(); 
-                    request.addParameter(key, opts.get(0).getValue());
-                    request.addParameter(key, opts.get(1).getValue());
-                    value = null;
-                    break;
-                case SINGLE_CHECKBOX:
-                    value = Boolean.FALSE.toString();
-                    break;
-                case FILE:
-                case AUDIO:
-                    String file_filename = String.format("attribute_%d", attr.getId());
-                    MockMultipartFile mockFileFile = new MockMultipartFile(key, file_filename, "audio/mpeg", file_filename.getBytes());
-                    ((MockMultipartHttpServletRequest)request).addFile(mockFileFile);
-                    value = file_filename;
-                    break;
-                case IMAGE:
-                    String image_filename = String.format("attribute_%d", attr.getId());
-                    MockMultipartFile mockImageFile = new MockMultipartFile(key, image_filename, "image/png", image_filename.getBytes());
-                    ((MockMultipartHttpServletRequest)request).addFile(mockImageFile);
-                    value = image_filename;
-                    break;
-                case TIME:
-                    value = "12:34";
-                    break;
-                case HTML:
-                case HTML_NO_VALIDATION:
-                    value = "<html><body></body></html>";
-                    break;
-                case HTML_COMMENT:
-                    value = "This is a comment.";
-                    break;
-                case HTML_HORIZONTAL_RULE:
-                    value = "<hr/>";
-                    break;
-                case SPECIES:
-                	value = speciesA.getScientificName();
-                	break;
-                default:
-                    Assert.assertTrue("Unknown Attribute Type: "+attr.getType().toString(), false);
-                    break;
-            }
-            if(value != null) {
-                request.addParameter(key, value);
-            }
+            genRandomAttributeValue(attr, seed++, null, "", params);
         }
+        request.addParameters(params);
         
         ModelAndView mv = handle(request, response);
 
@@ -760,74 +558,8 @@ public class TaxonomyManagementControllerTest extends AbstractControllerTest {
         }
         
         for(TypedAttributeValue taxonAttr: taxon.getAttributes()) {
-            key = String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, "", taxonAttr.getAttribute().getId());
-            switch (taxonAttr.getAttribute().getType()) {
-                case INTEGER:
-                case INTEGER_WITH_RANGE:
-                    Assert.assertEquals(Integer.parseInt(request.getParameter(key)), taxonAttr.getNumericValue().intValue());
-                    break;
-                case DECIMAL:
-                    Assert.assertEquals(Double.parseDouble(request.getParameter(key)), taxonAttr.getNumericValue().doubleValue());
-                    break;
-                case DATE:
-                    Assert.assertEquals(today, taxonAttr.getDateValue());
-                    break;
-                case STRING:
-                case STRING_AUTOCOMPLETE:
-                case TEXT:
-                case REGEX:
-                case BARCODE:
-                case TIME:
-                case HTML:
-                case HTML_NO_VALIDATION:
-                case HTML_COMMENT:
-                case HTML_HORIZONTAL_RULE:
-                    Assert.assertEquals(request.getParameter(key), taxonAttr.getStringValue());
-                    break;
-                case STRING_WITH_VALID_VALUES:
-                    Assert.assertEquals(request.getParameter(key), taxonAttr.getStringValue());
-                    break;
-                case MULTI_CHECKBOX:
-                    {
-                        // make sure the correct data got posted to the server correctly
-                        Assert.assertEquals(2, request.getParameterValues(key).length);
-                        Set<String> optionSet = new HashSet<String>();
-                        for(AttributeOption opt : taxonAttr.getAttribute().getOptions()) {
-                            optionSet.add(opt.getValue());
-                        }
-                        for(String val : taxonAttr.getMultiCheckboxValue()){
-                            Assert.assertTrue(optionSet.contains(val));
-                        }
-                    }
-                    break;
-                case MULTI_SELECT:
-                    {
-                        // make sure the correct data got posted to the server correctly
-                        Assert.assertEquals(2, request.getParameterValues(key).length);
-                        Set<String> optionSet = new HashSet<String>();
-                        for(AttributeOption opt : taxonAttr.getAttribute().getOptions()) {
-                            optionSet.add(opt.getValue());
-                        }
-                        for(String val : taxonAttr.getMultiSelectValue()){
-                            Assert.assertTrue(optionSet.contains(val));
-                        }
-                    }
-                    break;
-                case SINGLE_CHECKBOX:
-                    Assert.assertEquals(Boolean.parseBoolean(request.getParameter(key)), Boolean.parseBoolean(taxonAttr.getStringValue()));
-                    break; 
-                case FILE:
-                case AUDIO:
-                case IMAGE:
-                    Assert.assertEquals(request.getParameter(key), taxonAttr.getStringValue());
-                    break;
-                case SPECIES:
-                	Assert.assertEquals(request.getParameter(key), taxonAttr.getStringValue());
-                	break;
-                default:
-                    Assert.assertTrue("Unknown Attribute Type: "+taxonAttr.getAttribute().getType().toString(), false);
-                    break;
-            }
+            String key = String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, "", taxonAttr.getAttribute().getId());
+            assertAttributes(taxonAttr, params, key);
         }
     }
     

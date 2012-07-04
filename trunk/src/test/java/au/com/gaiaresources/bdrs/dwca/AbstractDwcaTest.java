@@ -140,18 +140,18 @@ public abstract class AbstractDwcaTest extends AbstractGridControllerTest {
         case SINGLE_CHECKBOX:
         case SPECIES:
             return av.getStringValue() != null ? av.getStringValue() : "";
-            
         case HTML:
         case HTML_NO_VALIDATION:
         case HTML_COMMENT:
         case HTML_HORIZONTAL_RULE:
             Assert.fail("HTML elements should not be exported in DwC-A");
-            
+        case CENSUS_METHOD_ROW:
+        case CENSUS_METHOD_COL:
+            Assert.fail("Census method elements should not be exported in DwC-A");
         case IMAGE:
         case AUDIO:
         case FILE:
             return APPLICATION_URL + defaultPortal.getPortalContextPath()+"/files/download.htm?" + av.getFileURL();
-            
         default:
             throw new IllegalStateException("Type not handled : " + a.getTypeCode());
         }

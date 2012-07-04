@@ -240,7 +240,7 @@ public class RecordWebFormContext {
      * @param user the user we are trying to write as
      */
     private static void surveyAccessSecurityCheck(Survey survey, User user) {
-        if (!survey.canWriteSurvey(user)) {
+        if (survey != null && !survey.canWriteSurvey(user)) {
             throw new AccessDeniedException(MSG_SURVEY_AUTHFAIL);
         }
     }

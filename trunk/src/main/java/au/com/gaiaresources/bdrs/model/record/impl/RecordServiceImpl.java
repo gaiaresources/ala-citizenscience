@@ -1,11 +1,8 @@
 package au.com.gaiaresources.bdrs.model.record.impl;
 
-import java.math.BigDecimal;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,16 +10,12 @@ import au.com.gaiaresources.bdrs.event.EventPublisher;
 import au.com.gaiaresources.bdrs.geometry.GeometryBuilder;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
-import au.com.gaiaresources.bdrs.model.record.NewRecordEvent;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordService;
-import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.user.User;
-
-import com.vividsolutions.jts.geom.Point;
+import au.com.gaiaresources.bdrs.model.user.UserDAO;
 
 @Service
 public class RecordServiceImpl implements RecordService {
@@ -38,20 +31,8 @@ public class RecordServiceImpl implements RecordService {
     private UserDAO userDAO;
 
     @Override
-    public Record createRecord(Location userLocation, IndicatorSpecies species, Date when, Long time,
-                               String notes, Boolean firstAppearance, Boolean lastAppearance,
-                               String behaviour, String habitat, Integer number,
-                               Map<Attribute, Object> attributes)
-    {
-        Record r = recordDAO.createRecord(userLocation, species, when, time, notes, firstAppearance, lastAppearance,
-                                          behaviour, habitat, number, attributes);
-        eventPublisher.publish(new NewRecordEvent(r));
-        return r;
-    }
-
-    @Override
     public void deleteRecord(Integer id) {
-    	recordDAO.deleteById(id);
+        recordDAO.deleteById(id);
     }
 
     @Override
@@ -91,33 +72,17 @@ public class RecordServiceImpl implements RecordService {
         return recordDAO.getRecord(id);
     }
 
-	@Override
-	public Record createRecord(Point point, User user,IndicatorSpecies species,
-			Date when, Long time, String notes, Boolean firstAppearance,
-			Boolean lastAppearance, String behaviour, String habitat,
-			Integer number, Map<Attribute, Object> attributes) {
-		Record r = recordDAO.createRecord(null, point, user, species, when, time, notes, firstAppearance, lastAppearance,
-        behaviour, habitat, number, attributes);
-		eventPublisher.publish(new NewRecordEvent(r));
-		return r;
-	}
+    @Override
+    public void saveRecord(Record r)
+    {
+        recordDAO.saveRecord(r);
+    }
 
-	@Override
-	public void saveRecord(Record r)
-	{
-		recordDAO.saveRecord(r);
-	}
-
-	@Override
-	public void updateRecord(Record r)
-	{
-		recordDAO.updateRecord(r);
-	}
-
-	@Override
-	public TypedAttributeValue updateAttribute(Integer id, BigDecimal numeric, String value, Date date) {
-		return recordDAO.updateAttribute(id, numeric, value, date);
-	}
+    @Override
+    public void updateRecord(Record r)
+    {
+        recordDAO.updateRecord(r);
+    }
 
     /** {@inheritDoc} */
     @Override

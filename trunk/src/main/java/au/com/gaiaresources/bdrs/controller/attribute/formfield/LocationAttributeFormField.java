@@ -88,7 +88,8 @@ public class LocationAttributeFormField extends AbstractFormField implements Typ
     
     @Override
     public boolean isDisplayFormField() {
-        return attribute != null && AttributeType.isHTMLType(attribute.getType());
+        return attribute != null && (AttributeType.isHTMLType(attribute.getType()) || 
+                AttributeType.isCensusMethodType(attribute.getType()));
     }
     
     @Override
@@ -121,23 +122,23 @@ public class LocationAttributeFormField extends AbstractFormField implements Typ
         return attribute.isVisible(context);
     }
 
-	@Override
-	public Collection<IndicatorSpecies> getAllowableSpecies() {
-		return survey != null ? survey.getSpecies() : Collections.EMPTY_LIST;
-	}
+    @Override
+    public Collection<IndicatorSpecies> getAllowableSpecies() {
+        return survey != null ? survey.getSpecies() : Collections.<IndicatorSpecies>emptyList();
+    }
 
-	@Override
-	public IndicatorSpecies getSpecies() {
-		return this.locationAttribute != null ? locationAttribute.getSpecies() : null;
-	}
+    @Override
+    public IndicatorSpecies getSpecies() {
+        return this.locationAttribute != null ? locationAttribute.getSpecies() : null;
+    }
 
-	@Override
-	public boolean isRequired() {
-		return attribute.isRequired();
-	}
+    @Override
+    public boolean isRequired() {
+        return attribute.isRequired();
+    }
 
-	@Override
-	public Survey getSurvey() {
-		return this.survey;
-	}
+    @Override
+    public Survey getSurvey() {
+        return this.survey;
+    }
 }

@@ -98,12 +98,6 @@ public interface TaxaDAO extends TransactionDAO {
     AttributeOption getOption(Integer id);
 
     /**
-     * Delete a <code>IndicatorSpeciesAttribute</code>.
-     * @param id The id if the attribute to delete.
-     */
-    void delete(IndicatorSpeciesAttribute attr);
-    
-    /**
      * Get a taxon group attribute by id.
      * @param id <code>Integer</code>.
      * @return <code>TaxonGroupAttribute</code>.
@@ -128,7 +122,7 @@ public interface TaxaDAO extends TransactionDAO {
     
     IndicatorSpecies updateIndicatorSpecies(Integer id,
             String scientificName, String commonName, TaxonGroup taxonGroup,
-            Collection<Region> regions, List<SpeciesProfile> infoItems, Set<IndicatorSpeciesAttribute> attributes);
+            Collection<Region> regions, List<SpeciesProfile> infoItems, Set<AttributeValue> attributes);
 
     /**
      * Returns all of the species in the database
@@ -400,21 +394,6 @@ public interface TaxaDAO extends TransactionDAO {
      * @return Saved TaxonGroup.
      */
     TaxonGroup save(Session sesh, TaxonGroup taxongroup);
-    
-    /**
-     * Save IndicatorSpeciesAttribute.
-     * @param taxonAttribute IndicatorSpeciesAttribute to save.
-     * @return Saved IndicatorSpeciesAttribute
-     */
-    IndicatorSpeciesAttribute save(IndicatorSpeciesAttribute taxonAttribute);
-    
-    /**
-     * Save IndicatorSpeciesAttribute.
-     * @param sesh Hibernate Session.
-     * @param taxonAttribute IndicatorSpeciesAttribute to save.
-     * @return Saved IndicatorSpeciesAttribute
-     */
-    IndicatorSpeciesAttribute save(Session sesh, IndicatorSpeciesAttribute taxonAttribute);
 
     /**
      * Gets a list of IndicatorSpecies by source data id.

@@ -26,41 +26,8 @@ import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
 
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
 
 public interface RecordDAO extends FacetDAO {
-	Record createRecord(Location userLocation, IndicatorSpecies species,
-			Date when, Long time, String notes, Boolean firstAppearance,
-			Boolean lastAppearance, String behaviour, String habitat,
-			Integer number, Map<Attribute, Object> attributes);
-
-	Record createRecord(Survey survey, Location userLocation,
-			IndicatorSpecies species, Date when, Long time, String notes,
-			Boolean firstAppearance, Boolean lastAppearance, String behaviour,
-			String habitat, Integer number, Map<Attribute, Object> attributes);
-
-	Record createRecord(Survey survey, Point point, User user,
-			IndicatorSpecies species, Date when, Long time, String notes,
-			Boolean firstAppearance, Boolean lastAppearance, String behaviour,
-			String habitat, Integer number, Map<Attribute, Object> attributes);
-
-	Record createRecord(Location userLocation, IndicatorSpecies species,
-			Date when, Long time, Date lastDate, Long lastTime, String notes,
-			Boolean firstAppearance, Boolean lastAppearance, String behaviour,
-			String habitat, Integer number, Map<Attribute, Object> attributes);
-
-	Record createRecord(Survey survey, Location userLocation,
-			IndicatorSpecies species, Date when, Long time, Date lastDate,
-			Long lastTime, String notes, Boolean firstAppearance,
-			Boolean lastAppearance, String behaviour, String habitat,
-			Integer number, Map<Attribute, Object> attributes);
-
-	Record createRecord(Survey survey, Point point, User user,
-			IndicatorSpecies species, Date when, Long time, Date lastDate,
-			Long lastTime, String notes, Boolean firstAppearance,
-			Boolean lastAppearance, String behaviour, String habitat,
-			Integer number, Map<Attribute, Object> attributes);
-
 	List<Record> getRecords(Survey survey, Set<User> users);
 
 	List<Record> getRecords(User user);
@@ -221,23 +188,6 @@ public interface RecordDAO extends FacetDAO {
 
 	List<Record> getRecords(String userRegistrationKey, int surveyPk,
 			int locationPk);
-
-	/**
-	 * Converts form values into AttributeValues
-	 * 
-	 * @param r
-	 *            Record that you want to attach the attributes to
-	 * @param attributeMap
-	 *            a Map of <Attribute, Object> containing the Attributes that
-	 *            you want to store values for and the Object which is produced
-	 *            by beanUtils getting the AttributeValue values from the
-	 *            RecordForm
-	 * @return a List of Records which then need to be attached to the record
-	 *         (record.setAttributes()) and saved using the RecordDAO
-	 */
-	@Deprecated
-	Set<AttributeValue> saveAttributeValues(Record r,
-			Map<Attribute, Object> attributeMap);
 
 	/**
 	 * Finds potential duplicates for records based on configurable distance,

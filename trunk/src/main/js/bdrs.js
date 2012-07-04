@@ -2030,19 +2030,22 @@ bdrs.map.createContentState = function(itemArray, popup, mapServerQueryManager){
         var item = itemArray[itemIndex];
         
         var tbody = jQuery("<tbody></tbody>");
-        
+
+        var linkValue = jQuery("<div></div>");
         if (item.type == "record") {
             // record specific stuff
             var recordAttrKeys = ["owner", "census_method", "species", "common_name", "number", "notes", "habitat", "when", "behaviour"];
             var recordId = item["recordId"];
             var ownerId = item["ownerId"];
             var recordVisibility = item["recordVisibility"];
+            
             // if the record is public or if you are the owner or admin, add the view link
             if (recordVisibility == 'PUBLIC' || (bdrs.authenticated && (bdrs.authenticatedUserId === ownerId || bdrs.isAdmin))) {
                 var viewRecordRow = jQuery("<tr><td></td></tr>");
                 viewRecordRow.attr('colspan', '2');
                 var surveyId = item["surveyId"];
                 var recordUrl = bdrs.portalContextPath + "/bdrs/user/surveyRenderRedirect.htm?surveyId=" + surveyId + "&recordId=" + recordId;
+                jQuery("<a>View&nbsp;Full&nbsp;Record</a>").attr('href', recordUrl).appendTo(linkValue);
                 jQuery("<a>View&nbsp;Record</a>").attr('href', recordUrl).appendTo(viewRecordRow.find("td"));
                 tbody.append(viewRecordRow);
             }
@@ -2053,7 +2056,6 @@ bdrs.map.createContentState = function(itemArray, popup, mapServerQueryManager){
                 jQuery("<a>Contact&nbsp;Owner</a>").attr('href', requestRecordInfoUrl).appendTo(requestRecordInfoRow.find("td"));
                 tbody.append(requestRecordInfoRow);
             }
-            
             for (var i = 0; i < recordAttrKeys.length; i++) {
                 var key = recordAttrKeys[i];
                 var value;
@@ -2075,6 +2077,7 @@ bdrs.map.createContentState = function(itemArray, popup, mapServerQueryManager){
 					if (value.toString) {
 						value = value.toString();	
 					}
+				
 				} else {
 					value = item[key];
 				}
@@ -2083,7 +2086,7 @@ bdrs.map.createContentState = function(itemArray, popup, mapServerQueryManager){
                     row.append(jQuery("<th></th>").css('whiteSpace', 'nowrap').append(titleCaps(key.replace("_", " ")) + ":"));
                     row.append(jQuery("<td></td>").css('whiteSpace', 'nowrap').append(value));
                     tbody.append(row);
-            	}		
+            	} 
             }
         }
         else if (item.type === "geoMapFeature") {
@@ -2105,7 +2108,10 @@ bdrs.map.createContentState = function(itemArray, popup, mapServerQueryManager){
 				v = tuple["value"];
 				type = tuple["type"];
 				attrType = bdrs.model.taxa.attributeType.code[type];
-				
+				// if it is a census method attribute, the value is a link the the full record
+				if (attrType.isCensusMethodType()) {
+					v = linkValue.html();
+				}
 				// if v is a number, change it to a string..
                 if (v && v.toString) {
                     v = v.toString();
@@ -2730,7 +2736,7 @@ bdrs.survey = {};
  * @param recordSelector [optional] - The id of the element that needs to be removed from the DOM.
  * @param msgSelector [optional] - The id of the domElement that will receive a statusMessage in regards to the delete action.
  */
-bdrs.survey.deleteAjaxRecord = function(userIdent, recordId, recordSelector, msgSelector) {
+bdrs.survey.deleteAjaxRecord = function(userIdent, recordId, recordSelector, msgSelector, rowIndexElem) {
     if(recordId !== undefined && recordId !== ""){
         if(confirm('Are you sure you want to delete this record?')) {
             var statusMsg;
@@ -2746,6 +2752,8 @@ bdrs.survey.deleteAjaxRecord = function(userIdent, recordId, recordSelector, msg
                         if(recordSelector !== undefined){
                             jQuery(recordSelector).remove();
                         }
+                        // have to unbind the disable handler so the form can be submitted
+                        bdrs.unbindDisableHandler();
                     } else {
                         bdrs.message.set("The record is not deleted.");
                     }
@@ -2757,6 +2765,8 @@ bdrs.survey.deleteAjaxRecord = function(userIdent, recordId, recordSelector, msg
         }
     } else {
         jQuery(recordSelector).remove();
+        // have to unbind the disable handler so the form can be submitted
+        bdrs.unbindDisableHandler();
     }
 };
 
@@ -2767,7 +2777,8 @@ bdrs.survey.location.LOCATION_LAYER_NAME = 'Location Layer';
 
 bdrs.survey.location.updateLocation = function(pk, surveyId, options) {
     if(pk > 0) {
-        jQuery.get(bdrs.portalContextPath+"/webservice/location/getLocationById.htm", {id: pk, surveyId: surveyId}, function(data) {
+        var params = {id: pk, surveyId: surveyId, displayAttributes: true};
+        jQuery.get(bdrs.portalContextPath+"/webservice/location/getLocationById.htm", params, function(data) {
             var wkt = new OpenLayers.Format.WKT(bdrs.map.wkt_options);
             var feature = wkt.read(data.location);
             var point = feature.geometry.getCentroid().transform(

@@ -8,20 +8,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import org.apache.log4j.Logger;
 import org.springframework.util.StringUtils;
 
 import au.com.gaiaresources.bdrs.attribute.AbstractAttributeDictionaryFactory;
-import au.com.gaiaresources.bdrs.attribute.AttributeDictionaryFactory;
-import au.com.gaiaresources.bdrs.model.attribute.Attributable;
+import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
+import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
-import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 
 public class ShapefileAttributeDictionaryFactory extends AbstractAttributeDictionaryFactory {
+
+    public ShapefileAttributeDictionaryFactory() {
+        super();
+    }
 
     private Logger log = Logger.getLogger(getClass()); 
     
@@ -32,19 +35,20 @@ public class ShapefileAttributeDictionaryFactory extends AbstractAttributeDictio
     
     private ShapefileRecordKeyLookup klu = new ShapefileRecordKeyLookup();
 
+    
     /**
      * Shape files cannot upload files
      * 
      */
     @Override
-    public Map<Attribute, String> createFileKeyDictionary(Survey survey,
-            TaxonGroup taxonGroup, CensusMethod censusMethod, Set<AttributeScope> scope) {
+    public Map<Attribute, Object> createFileKeyDictionary(Record record, Survey survey, Location location, 
+            TaxonGroup taxonGroup, CensusMethod censusMethod, Set<AttributeScope> scope, Map<String, String[]> dataMap) {
         return Collections.emptyMap();
     }
 
     @Override
-    public Map<Attribute, String> createNameKeyDictionary(Survey survey,
-            TaxonGroup taxonGroup, CensusMethod censusMethod, Set<AttributeScope> scope) {
+    public Map<Attribute, Object> createNameKeyDictionary(Record record, Survey survey, Location location, 
+            TaxonGroup taxonGroup, CensusMethod censusMethod, Set<AttributeScope> scope, Map<String, String[]> dataMap) {
         
         // surveys are mandatory, census methods are not.
         if (survey == null) {
@@ -62,7 +66,7 @@ public class ShapefileAttributeDictionaryFactory extends AbstractAttributeDictio
         return createNameKeyDictionary(surveyList, taxonGroup, cmList);
     }
 
-    protected void addKey(Map<Attribute, String> map, Set<String> existingKeys, String baseKey, Attribute attribute, String attributeSource) {
+    protected void addKey(Map<Attribute, Object> map, Set<String> existingKeys, String baseKey, Attribute attribute, String attributeSource) {
         if (!StringUtils.hasLength(baseKey)) {
             // Ignore the attribute if it does not have a meaningful baseKey
             return;
@@ -95,14 +99,14 @@ public class ShapefileAttributeDictionaryFactory extends AbstractAttributeDictio
     }
 
     @Override
-    public Map<Attribute, String> createFileKeyDictionary(List<Survey> surveyList,
+    public Map<Attribute, Object> createFileKeyDictionary(List<Survey> surveyList,
             TaxonGroup taxonGroup, List<CensusMethod> censusMethodList) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public Map<Attribute, String> createNameKeyDictionary(List<Survey> surveyList,
+    public Map<Attribute, Object> createNameKeyDictionary(List<Survey> surveyList,
             TaxonGroup taxonGroup, List<CensusMethod> censusMethodList) {
         if (surveyList == null) {
             throw new IllegalArgumentException("survey cannot be null");
@@ -112,7 +116,7 @@ public class ShapefileAttributeDictionaryFactory extends AbstractAttributeDictio
         }
         
         // Use linked hash map to preserve order
-        Map<Attribute, String> result = new LinkedHashMap<Attribute, String>();
+        Map<Attribute, Object> result = new LinkedHashMap<Attribute, Object>();
         Set<String> check = new HashSet<String>();
         check.add(klu.getSpeciesIdKey());
         check.add(klu.getSpeciesNameKey());
@@ -146,12 +150,12 @@ public class ShapefileAttributeDictionaryFactory extends AbstractAttributeDictio
         return result;
     }
 
-    public Map<Attribute, String> createNameKeyDictionary(Survey survey,
+    public Map<Attribute, Object> createNameKeyDictionary(Survey survey,
             TaxonGroup taxon, CensusMethod cm) {
         Set<AttributeScope> scope = new HashSet<AttributeScope>();
         scope.add(AttributeScope.SURVEY);
         scope.add(AttributeScope.RECORD);
-        return createNameKeyDictionary(survey, taxon, cm, scope);
+        return createNameKeyDictionary(null, survey, null, taxon, cm, scope, Collections.EMPTY_MAP);
     }
 
     @Override

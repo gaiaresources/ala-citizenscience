@@ -28,9 +28,12 @@ public abstract class AbstractRecordFormField extends AbstractFormField {
 
     /**
      * {@inheritDoc}
-     */
+     */ 
     @Override
     public int compareTo(FormField other) {
+        if (other == null) {
+            return 1;
+        }
         return Integer.valueOf(this.getWeight()).compareTo(other.getWeight());
     }
 

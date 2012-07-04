@@ -26,6 +26,8 @@
 
     <c:if test="${ taxon.id != null }">
        <input id="taxonPk" type="hidden" name="taxonPk" value="${ taxon.id }"/>
+       <!-- hidden field used for adding census method attribute rows -->
+       <input id="id_species_id" type="hidden" name="speciesId" value="${ taxon.id }"/>
    </c:if>
    <div class="input_container" style="float:left; width: 45%">
         <table class="form_table taxon_edit_form_table">

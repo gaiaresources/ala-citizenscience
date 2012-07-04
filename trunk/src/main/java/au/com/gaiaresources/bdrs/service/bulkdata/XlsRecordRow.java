@@ -219,7 +219,8 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
             if (!AttributeType.FILE.equals(attrib.getType())
                     && !AttributeType.IMAGE.equals(attrib.getType())
                     && !AttributeType.AUDIO.equals(attrib.getType())
-                    && !AttributeType.isHTMLType(attrib.getType())) {
+                    && !AttributeType.isHTMLType(attrib.getType())
+                    && !AttributeType.isCensusMethodType(attrib.getType())) {
                 
                 if (superHeaderRow.getCell(colIndex) == null) {
                     Cell superRowCell = superHeaderRow.createCell(colIndex);
@@ -502,7 +503,8 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
                 if (!AttributeType.FILE.equals(attrib.getType())
                         && !AttributeType.IMAGE.equals(attrib.getType())
                         && !AttributeType.AUDIO.equals(attrib.getType())
-                        && !AttributeType.isHTMLType(attrib.getType())) {
+                        && !AttributeType.isHTMLType(attrib.getType())
+                        && !AttributeType.isCensusMethodType(attrib.getType())) {
 
                     Cell namespaceCell = superHeaderRow.getCell(colIndex);
                     if (namespaceCell != null) {
@@ -531,7 +533,8 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
                     if (!AttributeType.FILE.equals(attrib.getType())
                             && !AttributeType.IMAGE.equals(attrib.getType())
                             && !AttributeType.AUDIO.equals(attrib.getType())
-                            && !AttributeType.isHTMLType(attrib.getType())) {
+                            && !AttributeType.isHTMLType(attrib.getType())
+                            && !AttributeType.isCensusMethodType(attrib.getType())) {
                         
                         Cell namespaceCell = superHeaderRow.getCell(colIndex);
                         if (namespaceCell != null) {
@@ -733,6 +736,10 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
                     case FILE:
                         throw new UnsupportedOperationException(
                                 "Spreadsheet upload of file data is not supported.");
+                    case CENSUS_METHOD_ROW:
+                    case CENSUS_METHOD_COL:
+                        throw new UnsupportedOperationException(
+                                "Spreadsheet upload of census method attribute data is not supported.");
                     case SPECIES:
                     case TEXT:
                     case STRING_WITH_VALID_VALUES:

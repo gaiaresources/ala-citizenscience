@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.record.Record;
 
 public class AttributeValueUtil {
@@ -36,7 +37,38 @@ public class AttributeValueUtil {
      * @return AttributeValue if found, otherwise null
      */
     public static AttributeValue getAttributeValue(Attribute a, Record r) {
+        if (r == null) {
+            return null;
+        }
         return getByAttribute(r.getAttributes(), a);
+    }
+    
+    /**
+     * Returns the AttributeValue with the corresponding Attribute from the 
+     * attribute values contained inside the location parameter.
+     * @param a - attribute to look for
+     * @param l - location to look for the attribute value set
+     * @return AttributeValue if found, otherwise null
+     */
+    public static AttributeValue getAttributeValue(Attribute a, Location l) {
+        if (l == null) {
+            return null;
+        }
+        return getByAttribute(l.getAttributes(), a);
+    }
+    
+    /**
+     * Returns the AttributeValue with the corresponding Attribute from the 
+     * attribute values contained inside the species parameter.
+     * @param a - attribute to look for
+     * @param species - species to look for the attribute value set
+     * @return AttributeValue if found, otherwise null
+     */
+    public static AttributeValue getAttributeValue(Attribute a, IndicatorSpecies species) {
+        if (species == null) {
+            return null;
+        }
+        return getByAttribute(species.getAttributes(), a);
     }
     
     /**

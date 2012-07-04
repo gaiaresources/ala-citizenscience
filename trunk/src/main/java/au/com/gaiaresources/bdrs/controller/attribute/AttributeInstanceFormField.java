@@ -7,10 +7,13 @@ import java.util.List;
 import java.util.Map;
 
 import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
+import au.com.gaiaresources.bdrs.model.method.CensusMethod;
+import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeVisibility;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 
@@ -40,8 +43,8 @@ public class AttributeInstanceFormField extends AbstractAttributeFormField {
      *            the map of POST parameters that the form field will utilise to
      *            populate the <code>Attribute</code> that is created.
      */
-    AttributeInstanceFormField(AttributeDAO attributeDAO, int index,
-            Map<String, String[]> parameterMap) {
+    AttributeInstanceFormField(AttributeDAO attributeDAO, CensusMethodDAO cmDAO, int index,
+            Map<String, String[]> parameterMap) throws NullPointerException, NumberFormatException {
         this(index);
         this.attributeDAO = attributeDAO;
 
@@ -61,6 +64,25 @@ public class AttributeInstanceFormField extends AbstractAttributeFormField {
         this.attribute.setVisibility(AttributeVisibility.valueOf(
                 getParameter(index, parameterMap, "add_visibility_%d", AttributeVisibility.ALWAYS.toString())));
 
+        // if the attribute is a Census method type, save the census method
+        if (AttributeType.isCensusMethodType(this.attribute.getType())) {
+            String cmParam = getParameter(index, parameterMap, "add_attribute_census_method_%s");
+            if (cmParam == null) {
+                throw new NullPointerException("Parameter "+String.format("add_attribute_census_method_%s", index)+" cannot be null.");
+            }
+            int cmId = 0;
+            try {
+                cmId = Integer.valueOf(cmParam);
+            } catch (NumberFormatException e) {
+                throw new NumberFormatException("Parameter "+String.format("add_attribute_census_method_%s", index)+" must be a number.");
+            }
+            CensusMethod cm = cmDAO.get(cmId);
+            if (cm == null) {
+                throw new NullPointerException("Census method cannot be null.");
+            }
+            this.attribute.setCensusMethod(cm);
+        }
+        
         // Options
         AttributeOption opt;
         List<AttributeOption> optList = new ArrayList<AttributeOption>();
@@ -90,8 +112,8 @@ public class AttributeInstanceFormField extends AbstractAttributeFormField {
      *            the map of POST parameters that the form field will utilise to
      *            populate the <code>Attribute</code> that is created.
      */
-    AttributeInstanceFormField(AttributeDAO attributeDAO, Attribute attribute,
-            Map<String, String[]> parameterMap) {
+    AttributeInstanceFormField(AttributeDAO attributeDAO, CensusMethodDAO cmDAO, Attribute attribute,
+            Map<String, String[]> parameterMap) throws NullPointerException, NumberFormatException {
         this(attributeDAO, attribute);
 
         int attributePk = attribute.getId();
@@ -109,7 +131,26 @@ public class AttributeInstanceFormField extends AbstractAttributeFormField {
         this.attribute.setWeight(Integer.parseInt(getParameter(parameterMap, this.weightName)));
         this.attribute.setVisibility(AttributeVisibility.valueOf(
                 getParameter(attributePk, parameterMap, "visibility_%d", AttributeVisibility.ALWAYS.toString())));
-
+        
+        // if the attribute is a Census method type, save the census method
+        if (AttributeType.isCensusMethodType(this.attribute.getType())) {
+            String cmParam = getParameter(attributePk, parameterMap, "attribute_census_method_%s");
+            if (cmParam == null) {
+                throw new NullPointerException("Parameter "+String.format("attribute_census_method_%s", attributePk)+" cannot be null.");
+            }
+            int cmId = 0;
+            try {
+                cmId = Integer.valueOf(cmParam);
+            } catch (NumberFormatException e) {
+                throw new NumberFormatException("Parameter "+String.format("attribute_census_method_%s", attributePk)+" must be a number.");
+            }
+            CensusMethod cm = cmDAO.get(cmId);
+            if (cm == null) {
+                throw new NullPointerException("Census method cannot be null.");
+            }
+            this.attribute.setCensusMethod(cm);
+        }
+        
         // Options
         List<AttributeOption> optList = new ArrayList<AttributeOption>();
         if (getParameter(parameterMap, "option_" + attributePk) != null) {

@@ -23,13 +23,13 @@ public class SingleSiteFormAttributeDictionaryFactory extends
      * this behaviour is required in the future these methods can be implemented. 
      */
     @Override
-    public Map<Attribute, String> createFileKeyDictionary(List<Survey> survey,
+    public Map<Attribute, Object> createFileKeyDictionary(List<Survey> survey,
             TaxonGroup taxonGroup, List<CensusMethod> censusMethod) {
         throw new IllegalStateException("not supported");
     }
 
     @Override
-    public Map<Attribute, String> createNameKeyDictionary(List<Survey> survey,
+    public Map<Attribute, Object> createNameKeyDictionary(List<Survey> survey,
             TaxonGroup taxonGroup, List<CensusMethod> censusMethod) {
         throw new IllegalStateException("not supported");
     }

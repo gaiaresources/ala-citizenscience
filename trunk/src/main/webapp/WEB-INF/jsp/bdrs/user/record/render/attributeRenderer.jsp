@@ -4,7 +4,6 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="/WEB-INF/cw.tld" prefix="cw" %>
 
-
 <%@page import="au.com.gaiaresources.bdrs.model.taxa.AttributeScope"%>
 <%@page import="au.com.gaiaresources.bdrs.servlet.RequestContextHolder"%>
 <tiles:useAttribute name="formField" classname="au.com.gaiaresources.bdrs.controller.attribute.formfield.TypedAttributeValueFormField"/>
@@ -32,19 +31,19 @@
 
 <!-- the taxon attribute type handles adding the error element in speciesFormField.jsp -->
 <c:if test="${not (formField.attribute.type == 'SPECIES')}">
-	<c:if test="<%= errorMap != null && errorMap.containsKey(inputName) %>">
-    	<p class="error">
-        	<c:out value="<%= errorMap.get(inputName) %>"/>
-    	</p>
-	</c:if>
-	<c:choose>
-	    <c:when test="<%= valueMap != null && valueMap.containsKey(inputName) %>">
-	        <c:set var="fieldValue" value="<%= valueMap.get(inputName) %>"></c:set>
-	    </c:when>
-	    <c:when test="${ formField.attributeValue != null}">
-	        <c:set var="fieldValue" value="<%= formField.getAttributeValue().toString() %>"></c:set>
-	    </c:when>
-	</c:choose>
+    <c:if test="<%= errorMap != null && errorMap.containsKey(inputName) %>">
+        <p class="error">
+            <c:out value="<%= errorMap.get(inputName) %>"/>
+        </p>
+    </c:if>
+    <c:choose>
+        <c:when test="<%= valueMap != null && valueMap.containsKey(inputName) %>">
+            <c:set var="fieldValue" value="<%= valueMap.get(inputName) %>"></c:set>
+        </c:when>
+        <c:when test="${ formField.attributeValue != null}">
+            <c:set var="fieldValue" value="<%= formField.getAttributeValue().toString() %>"></c:set>
+        </c:when>
+    </c:choose>
 </c:if>
 
 <%-- put the global 'edit form' bool into a local variable... --%>
@@ -610,13 +609,110 @@
             </c:otherwise>
         </c:choose>
     </c:when>
-	<c:when test="${ formField.attribute.type == 'SPECIES' }">
-		<tiles:insertDefinition name="speciesFormField">
-        	<tiles:putAttribute name="formField" value="${formField}"/>
+    <c:when test="${ formField.attribute.type == 'SPECIES' }">
+        <tiles:insertDefinition name="speciesFormField">
+            <tiles:putAttribute name="formField" value="${formField}"/>
             <tiles:putAttribute name="editEnabled" value="${ editEnabled }"/>
-			<tiles:putAttribute name="errorMap" value="${ errorMap }"/>
-			<tiles:putAttribute name="valueMap" value="${ valueMap }"/>
-			<tiles:putAttribute name="isProperty" value="false" />
+            <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
+            <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
+            <tiles:putAttribute name="isProperty" value="false" />
         </tiles:insertDefinition>
-	</c:when>
+    </c:when>
+    <c:when test="${ formField.attribute.type == 'CENSUS_METHOD_ROW'}">
+        <c:set var="id" value="${formPrefix}attribute_${formField.attribute.id}"></c:set>
+        <c:if test="${recordWebFormContext.namedFormFields[id] != null && fn:length(recordWebFormContext.namedFormFields[id]) > 0}">
+             <div name="${ formPrefix }">
+                <div class="scrollable" align="center">
+                <!-- hidden field for preventing the same census method from being added more than once 
+                     (resulting in infinite recursion)-->
+                    <input type="hidden" name="censusMethodTableId" value="${formField.attribute.censusMethod.id}"/>
+                    <c:set var="recordFormFieldCollection" value="${recordWebFormContext.namedCollections[id]}"></c:set>
+                    <c:choose>
+                        <c:when test="${recordFormFieldCollection != null}">
+                            <c:set var="rowRecordId" value="${recordFormFieldCollection[0].recordId}"></c:set>
+                        </c:when>
+                        <c:otherwise>
+                            <c:set var="rowRecordId" value="0"></c:set>
+                        </c:otherwise>
+                    </c:choose>
+                    <!-- hidden field to keep the record id associated with this set of parameters -->
+                    <input name="${formPrefix}attribute_${ formField.attribute.id }_recordId" type="hidden" value="${rowRecordId}" />
+                    <table id="${formPrefix}attribute_${ formField.attribute.id }_table" class="censusMethodAttributeTable">
+                        <caption><c:out value="<%= formField.getAttribute().getDescription() %>"/></caption>
+                        <tbody>
+                            <c:forEach items="${recordWebFormContext.namedFormFields[id]}" var="subField">
+                                <tr>
+                                <th class="censusMethodAttributeRowHeader"><c:out value="${ subField.attribute.description }"/></th>
+                                <td>
+                                <tiles:insertDefinition name="attributeRenderer">
+                                   <tiles:putAttribute name="formField" value="${ subField }"/>
+                                   <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
+                                   <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
+                                   <tiles:putAttribute name="editEnabled" value="${ fieldEditable }" />
+                                   <tiles:putAttribute name="isModerationOnly" value="${ isModerationOnly }" />
+                                   <tiles:putAttribute name="recordId" value="${rowRecordId}" />
+                               </tiles:insertDefinition>
+                                </td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+        </div>
+        </c:if>
+   </c:when>
+   <c:when test="${ formField.attribute.type == 'CENSUS_METHOD_COL'}">
+        <c:set var="id" value="${formPrefix}attribute_${formField.attribute.id}"></c:set>
+        <c:if test="${recordWebFormContext.namedFormFields[id] != null && fn:length(recordWebFormContext.namedFormFields[id]) > 0}">
+            <div name="${ formPrefix }">
+                <div class="scrollable" align="center">
+                    <input type="hidden" name="censusMethodTableId" value="${formField.attribute.censusMethod.id}"/>
+                    <table id="${formPrefix}attribute_${ formField.attribute.id }_table" class="datatable censusMethodAttributeTable">
+                        <caption><c:out value="<%= formField.getAttribute().getDescription() %>"/></caption>
+                        <thead>
+                            <tr>
+                            <c:forEach items="${recordWebFormContext.namedFormFields[id]}" var="subField">
+                                <th class="censusMethodAttributeColumnHeader"><c:out value="${ subField.attribute.description }"/></th>
+                            </c:forEach>
+                            <c:if test="${ not preview and recordWebFormContext.editable and not recordWebFormContext.moderateOnly }">
+                                <th class="censusMethodAttributeColumnHeader deleteColumn">Delete</th>
+                            </c:if>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        
+                        <%-- Insert existing records here. --%>
+                        <c:forEach items="${recordWebFormContext.namedCollections[id]}" var="recordFormFieldCollection">
+                            <tiles:insertDefinition name="attributeRecordRow">
+                                <tiles:putAttribute name="recordFormFieldCollection" value="${recordFormFieldCollection}"/>
+                                <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
+                                <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
+                                <tiles:putAttribute name="editEnabled" value="${ recordWebFormContext.editable }" />
+                                <tiles:putAttribute name="isModerationOnly" value="${ recordWebFormContext.moderateOnly }" />
+                                   <tiles:putAttribute name="attributeId" value="${formField.attribute.id}" />
+                                   <tiles:putAttribute name="formPrefix" value="${ formPrefix }" />
+                            </tiles:insertDefinition>
+                        </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+                <c:if test="${fieldEditable}">
+                    <div id="add_attribute_row_panel" class="buttonpanel textright">
+                        <input type="hidden" id="${ formPrefix }attribute_${ formField.attribute.id }_record_index" name="attributeRecordIndex" value="${fn:length(recordWebFormContext.namedCollections[id])}"/>
+                        <input class="form_action" type="button" value="Add Row" onclick="bdrs.contribute.addAttributeRecordRow('#${formPrefix}attribute_${ formField.attribute.id }_record_index', '[name=surveyId]', '#${formPrefix}attribute_${ formField.attribute.id }_table tbody', ${ formField.attribute.id }, '[name=censusMethodTableId]', '#id_species_id', false, false, '${showScientificName}');"/>
+                    </div>
+                </c:if>
+                <script type="text/javascript">
+                    jQuery(window).load(function() {
+                        <c:if test="${fieldEditable}">
+                        var rowCount = jQuery('#${formPrefix}attribute_${ formField.attribute.id }_table tbody tr').length;
+                        if (rowCount < 1) {
+                            bdrs.contribute.addAttributeRecordRow('#${formPrefix}attribute_${ formField.attribute.id }_record_index', '[name=surveyId]', '#${formPrefix}attribute_${ formField.attribute.id }_table tbody', ${ formField.attribute.id }, '[name=censusMethodTableId]', '#id_species_id', false, false, '${showScientificName}');
+                        }
+                        </c:if>
+                    });
+                </script>
+            </div>
+     </c:if>
+    </c:when>
 </c:choose>

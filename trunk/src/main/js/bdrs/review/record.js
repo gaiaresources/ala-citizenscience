@@ -17,6 +17,8 @@ bdrs.review.record.RECORD_INFO_DIALOG = '\
 </div>\
 ';
 
+bdrs.review.record.VIEW_FULL_RECORD_LINK = '<div><a href="${ contextPath }/bdrs/user/surveyRenderRedirect.htm?surveyId=${ survey }&recordId=${ id }">View Full Record</a></div>';
+
 bdrs.review.record.RECORD_INFO_DIALOG_CONTENT_ROW = '<tr><th>${ header }</th><td class="record_dialog_content_cell">${ _stringValue }{{html _htmlValue}}</td></tr>';
 bdrs.review.record.DOWNLOAD_LINK = '<a href="${ url }">${ text }</a>';
 
@@ -30,6 +32,7 @@ bdrs.review.record.displayRecordInfo = function(record) {
     record.contextPath = bdrs.portalContextPath;
     
     var dialog_elem = jQuery.tmpl(bdrs.review.record.RECORD_INFO_DIALOG, record);
+    var full_record_link = jQuery.tmpl(bdrs.review.record.VIEW_FULL_RECORD_LINK, record);
     var body = dialog_elem.find("tbody");
     var compiled_content_row = jQuery.template(bdrs.review.record.RECORD_INFO_DIALOG_CONTENT_ROW);
     var tmpl_params;
@@ -98,7 +101,6 @@ bdrs.review.record.displayRecordInfo = function(record) {
 		
 		attr = attr_val.attribute;
 		attr_type = bdrs.model.taxa.attributeType.code[attr.typeCode];
-
         // Not displaying empty attribute values. Is that desired?
 		if (attr_type === bdrs.model.taxa.attributeType.SPECIES) {
 			if (attr_val.species) {
@@ -134,6 +136,9 @@ bdrs.review.record.displayRecordInfo = function(record) {
 		            body.append(jQuery.tmpl(compiled_content_row, tmpl_params));
 				}
 			}
+		} else if(attr_type.isCensusMethodType()) {
+			tmpl_params._htmlValue = full_record_link.html();
+			body.append(jQuery.tmpl(compiled_content_row, tmpl_params));
 		} else if(attr_val.stringValue && attr_val.stringValue.trim().length > 0) {
             // If this is a file attribute, create a link.
             if(attr_type.isFileType()) {

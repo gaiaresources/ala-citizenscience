@@ -116,7 +116,17 @@
                                 <c:if test="<%= ((AttributeInstanceFormField)formField).getAttribute() != null && (AttributeType.HTML.getCode().equals(((AttributeInstanceFormField)formField).getAttribute().getTypeCode()) || AttributeType.HTML_NO_VALIDATION.getCode().equals(((AttributeInstanceFormField)formField).getAttribute().getTypeCode())) %>">
                                     onfocus="bdrs.attribute.showHtmlEditor($('#htmlEditorDialog'), $('#markItUp')[0], this)"
                                 </c:if>
-                            />
+                                <c:if test="<%= ((AttributeInstanceFormField)formField).getAttribute() != null && AttributeType.isCensusMethodType(((AttributeInstanceFormField)formField).getAttribute().getType()) %>">
+                                    onfocus="bdrs.attribute.showCensusMethodAttributeEditor(jQuery('#censusMethodAttributeDialog'), this, '${formField.attribute.typeCode}', '${formField.attribute.id}', false, '#attribute_census_method_${formField.attribute.id}')"
+                                </c:if>
+                            ></input>
+                            <c:if test="<%= ((AttributeInstanceFormField)formField).getAttribute() != null && AttributeType.isCensusMethodType(((AttributeInstanceFormField)formField).getAttribute().getType()) && ((AttributeInstanceFormField)formField).getAttribute().getCensusMethod() != null %>">
+                                <input type="text" 
+                                       name="attribute_census_method_${formField.attribute.id}" 
+                                       id="attribute_census_method_${formField.attribute.id}" 
+                                       value="<%= ((AttributeInstanceFormField)formField).getAttribute().getCensusMethod().getId() %>"
+                                       class="hiddenKetchup validate(required)"/>
+                            </c:if>
                         </span>
                     </td>
                     <td>
@@ -192,7 +202,8 @@
                                     || AttributeType.MULTI_SELECT.getCode().equals(((AttributeInstanceFormField)formField).getAttribute().getTypeCode())
                                     || AttributeType.HTML.getCode().equals(((AttributeInstanceFormField)formField).getAttribute().getTypeCode())
                                     || AttributeType.HTML_COMMENT.getCode().equals(((AttributeInstanceFormField)formField).getAttribute().getTypeCode())
-                                    )%>">
+                                    || AttributeType.isCensusMethodType(((AttributeInstanceFormField)formField).getAttribute().getType()))
+                                    %>">
                                     disabled="disabled"
                                 </c:if>
                             />

@@ -5,9 +5,9 @@ import au.com.gaiaresources.bdrs.model.method.Taxonomic;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpeciesAttribute;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 
 /**
  * The <code>RecordFormFieldFactory</code> is the one-stop-shop for the creation
@@ -125,7 +125,7 @@ public class FormFieldFactory {
      * @param value the current value for this attribute
      * @return a <code>TaxonAttributeFormField</code>
      */
-    public FormField createTaxonFormField(Attribute attribute, IndicatorSpeciesAttribute value) {
+    public FormField createTaxonFormField(Attribute attribute, AttributeValue value) {
     	return new TaxonAttributeFormField(attribute, value, AttributeParser.DEFAULT_PREFIX);
     }
     
@@ -136,6 +136,17 @@ public class FormFieldFactory {
      */
     public FormField createTaxonFormField(Attribute attribute) {
         return new TaxonAttributeFormField(attribute, null, AttributeParser.DEFAULT_PREFIX);
+    }
+    
+    /**
+     * Create a new form field for the taxon.
+     * @param attribute the attribute (tag) from the taxon group.
+     * @param value the current value for this attribute
+     * @param prefix the prefix for the form field
+     * @return the <code>TaxonAttributeFormField</code>
+     */
+    public FormField createTaxonFormField(Attribute attribute, AttributeValue value, String prefix) {
+        return new TaxonAttributeFormField(attribute, value, prefix);
     }
     
     /**
@@ -157,5 +168,20 @@ public class FormFieldFactory {
      */
     public FormField createLocationFormField(Attribute attribute, Survey survey) {
     	return createLocationFormField(attribute, null, survey);
+    }
+    
+    /**
+     * Creates a new census method attribute form field.  These are attributes 
+     * that are displayed as a table of census method attributes
+     * @param survey the {@link Survey} that owns the attribute
+     * @param record the {@link Record} for which the attribute value will be saved
+     * @param attribute the {@link Attribute} being represented
+     * @param recordAttribute the {@link AttributeValue} of the {@link Attribute
+     * @param prefix a String to prepend to the name of the field
+     * @return a {@link FormField} object which represents the attribute on the page
+     */
+    public FormField createCensusMethodAttributeFormField(Survey survey, Record record,
+            Attribute attribute, TypedAttributeValue recordAttribute, String prefix) {
+        return new CensusMethodAttributeFormField(survey, record, attribute, recordAttribute, prefix);
     }
 }

@@ -35,6 +35,8 @@ public abstract class AttributeParser {
     public static final String ATTRIBUTE_FILE_NAME_TEMPLATE = "%sattribute_file_%d";
     public static final String ATTRIBUTE_TIME_HOUR_TEMPLATE = "%sattribute_time_hour_%d";
     public static final String ATTRIBUTE_TIME_MINUTE_TEMPLATE = "%sattribute_time_minute_%d";
+
+    public static final String ATTRIBUTE_RECORD_NAME_FORMAT = "_record_%s";
     
     private Logger log = Logger.getLogger(getClass());
 
@@ -138,22 +140,30 @@ public abstract class AttributeParser {
             // there is no validation, so it always returns true
             return true;
         case SPECIES:
-        	validationType = attribute.isRequired() ? ValidationType.REQUIRED_TAXON : ValidationType.TAXON;
-        	return validator.validate(parameterMap, validationType, paramKey, attribute);
-        	
+            validationType = attribute.isRequired() ? ValidationType.REQUIRED_TAXON : ValidationType.TAXON;
+            return validator.validate(parameterMap, validationType, paramKey, attribute);
+        case CENSUS_METHOD_ROW:
+        case CENSUS_METHOD_COL:
+            // census method attributes are collections of attributes, need to
+            // validate the collection of attributes for the record, however, 
+            // this cannot be done without more information that is given to this method
+            return true;
         default:
-            log.warn("Unknown Attribute Type: " + attribute.getType());
+            log.error("Unknown Attribute Type: " + attribute.getType());
             throw new IllegalArgumentException("Unknown Attribute Type: " + attribute.getType());
         }
     }
     
-    public TypedAttributeValue parse(String paramKey, String fileKey, Attribute attribute, Attributable<? extends TypedAttributeValue> attributable,
+    public TypedAttributeValue parse(String paramKey, String fileKey, Attribute attribute, 
+            Attributable<? extends TypedAttributeValue> attributable,
             Map<String, String[]> parameterMap,
             Map<String, MultipartFile> fileMap) throws ParseException {
         
         Map<Attribute, TypedAttributeValue> recAttrMap = new HashMap<Attribute, TypedAttributeValue>();
-        for (TypedAttributeValue recAttr : attributable.getAttributes()) {
-            recAttrMap.put(recAttr.getAttribute(), recAttr);
+        if (attributable != null) {
+            for (TypedAttributeValue recAttr : attributable.getAttributes()) {
+                recAttrMap.put(recAttr.getAttribute(), recAttr);
+            }
         }
 
         TypedAttributeValue recAttr;
@@ -261,7 +271,8 @@ public abstract class AttributeParser {
                     // record is updated, without changing the file input,
                     // addAttribute will be true but attrFile will
                     // have size zero.
-                    addOrUpdateAttribute = !attrValue.isEmpty() || (attrFile != null && attrFile.getSize() > 0);
+                    addOrUpdateAttribute = (attrValue != null && !attrValue.isEmpty()) || 
+                                           (attrFile != null && attrFile.getSize() > 0);
                     if (addOrUpdateAttribute && attrFile != null && attrFile.getSize() > 0) {
                         attributeValue.setStringValue(attrFile.getOriginalFilename());
                     } else {
@@ -271,40 +282,51 @@ public abstract class AttributeParser {
                     }
                     break;
                 case SPECIES:
-                	addOrUpdateAttribute = !attrValue.isEmpty();
-                	if (addOrUpdateAttribute) {
-                		// Regardless, attrValue should contain the verbatim name.
-                		String[] values = parameterMap.get(paramKey);
-                		if (values.length > 1 && values[1] != null && StringUtils.hasLength(values[1].trim())) {
-                			// use the id to retrieve a species.
-                			attributeValue.setStringValue(attrValue);
-                			IndicatorSpecies species = null;
-                			try {
-                				Integer speciesId = Integer.valueOf(values[1]);
-                    			species = taxaDAO.getIndicatorSpecies(speciesId);	
-                			} catch (NumberFormatException e) {
-                				log.warn("Could not parse string to int for species id", e);
-                			}
-                			attributeValue.setSpecies(species);	
-                		} else {
-                			// use the name string to search.
-                			List<IndicatorSpecies> taxaList = taxaDAO.getIndicatorSpeciesByNameSearchExact(attrValue);
-                        	// validation has already been done by now so we can just grab the 0th index if it exists.
-                        	IndicatorSpecies species = null;
-            	            if (!taxaList.isEmpty()) {
-            	            	species = taxaList.get(0);
-            	            }
-            	            attributeValue.setStringValue(attrValue);
-            	            attributeValue.setSpecies(species);	
-                		}
-                	}
-                	break;
+                    addOrUpdateAttribute = !attrValue.isEmpty();
+                    if (addOrUpdateAttribute) {
+                        // Regardless, attrValue should contain the verbatim name.
+                        String[] values = parameterMap.get(paramKey);
+                        if (values.length > 1 && values[1] != null && StringUtils.hasLength(values[1].trim())) {
+                            // use the id to retrieve a species.
+                            attributeValue.setStringValue(attrValue);
+                            IndicatorSpecies species = null;
+                            try {
+                                    Integer speciesId = Integer.valueOf(values[1]);
+                            species = taxaDAO.getIndicatorSpecies(speciesId);       
+                            } catch (NumberFormatException e) {
+                                    log.warn("Could not parse string to int for species id", e);
+                            }
+                            attributeValue.setSpecies(species);     
+                        } else {
+                            // use the name string to search.
+                            List<IndicatorSpecies> taxaList = taxaDAO.getIndicatorSpeciesByNameSearchExact(attrValue);
+                            // validation has already been done by now so we can just grab the 0th index if it exists.
+                            IndicatorSpecies species = null;
+                            if (!taxaList.isEmpty()) {
+                                species = taxaList.get(0);
+                            }
+                            attributeValue.setStringValue(attrValue);
+                            attributeValue.setSpecies(species); 
+                        }
+                    }
+                    break;
+                case CENSUS_METHOD_ROW:
+                case CENSUS_METHOD_COL:
+                    // census method types do not have a string value, but should be added or updated
+                    addOrUpdateAttribute = true;
+                    break;
                 default:
                     log.warn("Unknown Attribute Type: " + attribute.getType());
                     break;
             }
+        } else if (AttributeType.isCensusMethodType(attribute.getType())) {
+            // census method types do not have a string value, but should be added or updated
+            addOrUpdateAttribute = true;
         } else {
             addOrUpdateAttribute = false;
+            if (attrValue == null) {
+                log.warn("Could not find expected pararameter in map: "+paramKey);
+            }
         }
     }
     

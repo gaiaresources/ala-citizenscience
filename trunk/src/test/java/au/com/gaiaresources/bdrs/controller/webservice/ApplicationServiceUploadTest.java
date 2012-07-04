@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,17 +22,13 @@ import java.util.UUID;
 
 import javax.imageio.ImageIO;
 
-import au.com.gaiaresources.bdrs.model.taxa.*;
 import junit.framework.Assert;
-import au.com.gaiaresources.bdrs.json.JSONArray;
-import au.com.gaiaresources.bdrs.json.JSONObject;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.junit.Before;
 import org.junit.Test;
 import org.postgresql.util.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.ModelAndViewAssert;
@@ -44,6 +39,8 @@ import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
 import au.com.gaiaresources.bdrs.controller.test.TestDataCreator;
 import au.com.gaiaresources.bdrs.file.FileService;
+import au.com.gaiaresources.bdrs.json.JSONArray;
+import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
@@ -52,6 +49,15 @@ import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
+import au.com.gaiaresources.bdrs.model.taxa.Attribute;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
+import au.com.gaiaresources.bdrs.model.taxa.TaxonRank;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.util.CSVUtils;
@@ -395,13 +401,6 @@ public class ApplicationServiceUploadTest extends AbstractControllerTest {
         Assert.assertEquals("wrong num of attr values", 2, rec.getAttributes().size());
     }
     
-    private Date getDate(int year, int month, int day) {
-    	Calendar cal = Calendar.getInstance();
-		cal.clear();
-		cal.set(year, month, day);
-		return cal.getTime();
-    }
-    
     private void validate(JSONArray syncData, JSONArray syncResult) throws IOException {
         // Preprocess the syncData to map records against their client id
         Map<String, JSONObject> syncDataMap = new HashMap<String, JSONObject>(syncData.size());
@@ -567,12 +566,16 @@ public class ApplicationServiceUploadTest extends AbstractControllerTest {
                         }
                         break;
                     case SPECIES:
-                    	if (!jsonRecAttr.get("value").toString().isEmpty()) {
-                    		Assert.assertNotNull("species should not be null", recAttr.getSpecies());
-                        	Assert.assertEquals("wrong species id", species1.getId(), recAttr.getSpecies().getId());
-                        	Assert.assertEquals("wrong attr string value", species1.getScientificName(), recAttr.getStringValue());	
-                    	}
-                    	break;
+                        if (!jsonRecAttr.get("value").toString().isEmpty()) {
+                                Assert.assertNotNull("species should not be null", recAttr.getSpecies());
+                                Assert.assertEquals("wrong species id", species1.getId(), recAttr.getSpecies().getId());
+                                Assert.assertEquals("wrong attr string value", species1.getScientificName(), recAttr.getStringValue()); 
+                        }
+                        break;
+                    case CENSUS_METHOD_ROW:
+                    case CENSUS_METHOD_COL:
+                        // census method types should add a record to the attribute value
+                        break;
                     default:
                         throw new IllegalArgumentException();
                 }
@@ -747,9 +750,13 @@ public class ApplicationServiceUploadTest extends AbstractControllerTest {
                     recAttr.put("value", encodedBase64);
                     break;
                 case SPECIES:
-                	recAttr.put("value", species1.getScientificName());
-                	recAttr.put(ApplicationService.JSON_KEY_TAXON_ID, species1.getId());
-                	break;
+                    recAttr.put("value", species1.getScientificName());
+                    recAttr.put(ApplicationService.JSON_KEY_TAXON_ID, species1.getId());
+                    break;
+                case CENSUS_METHOD_ROW:
+                case CENSUS_METHOD_COL:
+                    // census method types should add a record to the attribute value
+                    break;
                 default:
                     throw new IllegalArgumentException("Cannot handle attribute with type: "+attr.getType());
             }
@@ -758,8 +765,7 @@ public class ApplicationServiceUploadTest extends AbstractControllerTest {
     }
 
     private void createTestData() throws Exception {
-        ApplicationContext appContext = getRequestContext().getApplicationContext();
-        TestDataCreator testDataCreator = new TestDataCreator(appContext);
+        TestDataCreator testDataCreator = new TestDataCreator(getRequestContext());
         
         testDataCreator.createTaxonGroups(2, 0, true);
         testDataCreator.createTaxa(3, 0);
