@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -227,7 +228,6 @@ public abstract class AbstractAttributeDictionaryFactory implements
                 // create the mapping from the parameters
                 if (rows != null) {
                     // only CENSUS_METHOD_COL types have the _rowPrefix parameter
-                    maxRowCount = rows.length;
                     for (String rowPrefix : rows) {
                         // get the record id input parameter
                         if (StringUtils.hasLength(rowPrefix)) {
@@ -275,10 +275,8 @@ public abstract class AbstractAttributeDictionaryFactory implements
                         prefixRecs.remove(preRemove);
                         // create a new attribute-value mapping
                         Map<Attribute, AttributeValue> recAttrValMap = new HashMap<Attribute, AttributeValue>();
-                        if (rec != null) {
-                            for (AttributeValue value : rec.getAttributes()) {
-                                recAttrValMap.put(value.getAttribute(), value);
-                            }
+                        for (AttributeValue value : rec.getAttributes()) {
+                            recAttrValMap.put(value.getAttribute(), value);
                         }
                         if (preRemove != null) {
                             // if we have stored a prefix for the record, use that one
@@ -298,8 +296,9 @@ public abstract class AbstractAttributeDictionaryFactory implements
                     }
                 } 
                 // add the remaining rows
-                for (String rowPrefix : prefixRecs.keySet()) {
-                    Integer recId = prefixRecs.get(rowPrefix);
+                for (Entry<String,Integer> entry : prefixRecs.entrySet()) {
+                    String rowPrefix = entry.getKey();
+                    Integer recId = entry.getValue();
                     if (rowPrefix.startsWith(prefix)) {
                         paramKey = rowPrefix;
                     } else {

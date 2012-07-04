@@ -513,7 +513,7 @@ public class TrackerController extends RecordController {
         if (StringUtils.hasLength(wktString)) {
             mv.addObject(MV_WKT, wktString);
         } else {
-            mv.addObject(MV_WKT, (record != null && record.getGeometry() != null) ? record.getGeometry().toText() : "");   
+            mv.addObject(MV_WKT, (record.getGeometry() != null) ? record.getGeometry().toText() : "");
         }
         
         mv.addObject(MV_ERROR_MAP, errorMap);

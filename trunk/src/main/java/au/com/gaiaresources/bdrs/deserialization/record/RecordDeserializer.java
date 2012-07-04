@@ -336,7 +336,7 @@ public class RecordDeserializer {
                 taxonGroup = species != null ? species.getTaxonGroup() : null;
                 Map<Attribute, Object> attrNameMap = attrDictFact.createNameKeyDictionary(record, survey, null, taxonGroup, censusMethod, entry.getDataMap());
                 Map<Attribute, Object> attrFilenameMap = attrDictFact.createFileKeyDictionary(record, survey, null, taxonGroup, censusMethod, entry.getDataMap());
-                AttributeDeserializer attrDeserializer = new AttributeDeserializer(attrDictFact, attributeParser);
+                AttributeDeserializer attrDeserializer = new AttributeDeserializer(attributeParser);
 
                 if (validate) {
                     isValid = validateSpeciesInformation(survey, taxonomic, species, isTaxonomicRecord, speciesSearch, numberString, validator, isValid, params);

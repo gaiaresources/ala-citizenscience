@@ -421,7 +421,7 @@ public class TaxonomyManagementController extends AttributeFormController {
         scope.add(null);
         Map<Attribute, Object> attrNameMap = attrDictFact.createNameKeyDictionary(taxon, scope, parameterMap);
         Map<Attribute, Object> attrFilenameMap = attrDictFact.createFileKeyDictionary(taxon, scope, parameterMap);
-        AttributeDeserializer attributeDeserializer = new AttributeDeserializer(attrDictFact, attributeParser);
+        AttributeDeserializer attributeDeserializer = new AttributeDeserializer(attributeParser);
         
         Set<AttributeValue> taxonAttrs = taxon.getAttributes();
         

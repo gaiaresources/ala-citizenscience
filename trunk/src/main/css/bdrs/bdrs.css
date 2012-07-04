@@ -2115,6 +2115,15 @@ table.censusMethodAttributeTable textarea {
     padding: 0;
 }
 
+table.censusMethodAttributeTable input[type="text"].speciesIdInput, 
+input[type="text"].speciesIdInput {
+    visibility: hidden;
+    width: 0px;
+    padding: 0px 0 0 0;
+    margin: 0 0 0 -9px;
+    border-width: 0;
+}
+
 table.censusMethodAttributeTable input[type=text], 
 table.censusMethodAttributeTable input[type=password] {
     text-align: center;
@@ -2149,7 +2158,7 @@ table.censusMethodAttributeTable input[type=file] {
 
 table.censusMethodAttributeTable textarea {
     height: 7em;
-    width: 20em;
+    min-width: 20em;
 }
 /* For lining up the ketchup popup to the input */
 .attribute_input_table tbody td input[type="text"].hiddenKetchup,
@@ -2160,9 +2169,17 @@ table.censusMethodAttributeTable textarea {
     margin:0 0 0 -9px;
     border-width:0;
 }
-
-th.deleteColumn {
+table.form_table tbody tr th.deleteColumn, 
+table.form_table table.censusMethodAttributeTable thead tr th.deleteColumn {
     width: auto;
+}
+
+table.censusMethodAttributeTable {
+	width: auto;
+}
+
+table.censusMethodAttributeTable tbody tr td {
+	max-width: 500px;
 }
 
 /***********************************************/

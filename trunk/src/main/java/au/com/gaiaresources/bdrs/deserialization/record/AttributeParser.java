@@ -324,9 +324,6 @@ public abstract class AttributeParser {
             addOrUpdateAttribute = true;
         } else {
             addOrUpdateAttribute = false;
-            if (attrValue == null) {
-                log.warn("Could not find expected pararameter in map: "+paramKey);
-            }
         }
     }
     

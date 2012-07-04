@@ -85,7 +85,7 @@ public class FileView extends AbstractView {
 	        	}
 	            output.write(jsonFile.toString().getBytes(response.getCharacterEncoding()));
 	        	if (StringUtils.notEmpty(callback)) {
-	        		output.write(");".getBytes());
+	        		output.write(");".getBytes(response.getCharacterEncoding()));
 	        	}
 	    	}else{
 	    		response.setContentLength((int)f.length());
