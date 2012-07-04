@@ -331,11 +331,12 @@ public class ShapeFileWriter {
         File outfile = new File(tempdir, baseFilename + ".zip");
 
         // File for field descriptions
-        FileWriter descFileWriter = null;
+        OutputStreamWriter descFileWriter = null;
         try {
             String newline = NEWLINE;
             File fieldDescFile = new File(tempdir, FIELD_DESCRIPTION_FILE);
-            descFileWriter = new FileWriter(fieldDescFile);
+            FileOutputStream fos = new FileOutputStream(fieldDescFile);
+            descFileWriter = new OutputStreamWriter(fos, Charset.defaultCharset());
 
             descFileWriter.write("Field descriptions for " + baseFilename + ".shp");
             descFileWriter.write(newline);

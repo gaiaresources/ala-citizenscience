@@ -704,16 +704,18 @@ public class Condition extends PortalPersistentImpl {
                 List<Object> tempInstances = new ArrayList<Object>(instances);
                 instances.clear();
                 for (Object currentInstance : tempInstances) {
-                    if (currentInstance != null && Iterable.class.isAssignableFrom(currentInstance.getClass())) {
-                        for (Object object : (Iterable) currentInstance) {
-                            PropertyDescriptor pd = BeanUtils.getPropertyDescriptor(object.getClass(), propName);
+                    if (currentInstance != null) {
+                        if (Iterable.class.isAssignableFrom(currentInstance.getClass())) {
+                            for (Object object : (Iterable) currentInstance) {
+                                PropertyDescriptor pd = BeanUtils.getPropertyDescriptor(object.getClass(), propName);
+                                Method readMethod = pd.getReadMethod();
+                                instances.add(readMethod.invoke(object, new Object[] {}));
+                            }
+                        } else {
+                            PropertyDescriptor pd = BeanUtils.getPropertyDescriptor(currentInstance.getClass(), propName);
                             Method readMethod = pd.getReadMethod();
-                            instances.add(readMethod.invoke(object, new Object[] {}));
+                            instances.add(readMethod.invoke(currentInstance, new Object[] {}));
                         }
-                    } else {
-                        PropertyDescriptor pd = BeanUtils.getPropertyDescriptor(currentInstance.getClass(), propName);
-                        Method readMethod = pd.getReadMethod();
-                        instances.add(readMethod.invoke(currentInstance, new Object[] {}));
                     }
                 }
             }

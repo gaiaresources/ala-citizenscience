@@ -45,7 +45,6 @@ public class AttributeDeserializer {
 
     private Logger log = Logger.getLogger(getClass());
     
-    private AttributeDictionaryFactory attrDictFact;
     private AttributeParser attributeParser;
     private Set<Integer> newRecords = new HashSet<Integer>();
     
@@ -57,14 +56,9 @@ public class AttributeDeserializer {
     
     /**
      * Create an instance of AttributeDeserializer
-     * @param attrDictFact an {@link AttributeDictionaryFactory} that is 
-     *                     responsible for creating an {@link Attribute} to 
-     *                     parameter name mapping that this class can use to 
-     *                     translate request parameters into persisted objects
      * @param parser an {@link AttributeParser} that parses the {@link AttributeValue}s for saving
      */
-    public AttributeDeserializer(AttributeDictionaryFactory attrDictFact, AttributeParser parser) {
-        this.attrDictFact = attrDictFact;
+    public AttributeDeserializer(AttributeParser parser) {
         this.attributeParser = parser;
     }
     
@@ -216,7 +210,7 @@ public class AttributeDeserializer {
             Map<String, Integer> recIds = getRecIdsFromMap(attrNameMap, attribute, dataMap, thisRecord);
             // if the census method is null, we cannot save any attribute values
             // if the attribute value is not AttributeValue type, we cannot save it
-            if (cm != null && recAttr != null) {
+            if (cm != null) {
                 int rowId = 0;
                 String rowPrefix = "";
                 // rowId is mapped by the parent record
@@ -238,7 +232,6 @@ public class AttributeDeserializer {
                                 thisRecord = recordDAO.saveRecord(thisRecord);
                             }
                             newRecords.add(thisRecord.getId());
-                            attributable = thisRecord;
                         }
                         rec.setParentRecord(thisRecord);
                         rec.setAttributeValue((AttributeValue)recAttr);
@@ -431,14 +424,10 @@ public class AttributeDeserializer {
             int lastRecordIndex = rowPrefixParamPrefix.lastIndexOf("_record");
             rowPrefixParamPrefix = rowPrefixParamPrefix.substring(0, lastRecordIndex);
             // get the rowPrefix and recordId parameters that correspond to this attribute
-            String[] rowPrefixParam = dataMap.get(rowPrefixParamPrefix + "_rowPrefix");
             String[] rowRecIdParam = dataMap.get(rowPrefixParamPrefix + "_recordId");
             int id = 0;
             String rowNum = rowPrefixParamPrefix;
             try {
-                /*if (rowPrefixParam != null && rowPrefixParam.length > 0) {
-                    rowNum = rowPrefixParam[0];
-                }*/
                 if (rowRecIdParam != null && rowRecIdParam.length > 0) {
                     id = Integer.valueOf(rowRecIdParam[0]);
                 } else {

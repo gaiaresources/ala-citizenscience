@@ -697,7 +697,7 @@
                     </table>
                 </div>
                 <c:if test="${fieldEditable}">
-                    <div id="add_attribute_row_panel" class="buttonpanel textright">
+                    <div id="add_attribute_row_panel" class="buttonpanel center">
                         <input type="hidden" id="${ formPrefix }attribute_${ formField.attribute.id }_record_index" name="attributeRecordIndex" value="${fn:length(recordWebFormContext.namedCollections[id])}"/>
                         <input class="form_action" type="button" value="Add Row" onclick="bdrs.contribute.addAttributeRecordRow('#${formPrefix}attribute_${ formField.attribute.id }_record_index', '[name=surveyId]', '#${formPrefix}attribute_${ formField.attribute.id }_table tbody', ${ formField.attribute.id }, '[name=censusMethodTableId]', '#id_species_id', false, false, '${showScientificName}');"/>
                     </div>

@@ -474,7 +474,7 @@ public class LocationBaseController extends RecordController {
         scope.add(null);
         Map<Attribute, Object> attrNameMap = attrDictFact.createNameKeyDictionary(null, survey, location, null, null, scope, request.getParameterMap());
         Map<Attribute, Object> attrFilenameMap = attrDictFact.createFileKeyDictionary(null, survey, location, null, null, scope, request.getParameterMap());
-        AttributeDeserializer attrDeserializer = new AttributeDeserializer(attrDictFact, attributeParser);
+        AttributeDeserializer attrDeserializer = new AttributeDeserializer(attributeParser);
 
         Set recAtts = location.getAttributes();
         List<TypedAttributeValue> attrValuesToDelete = new ArrayList<TypedAttributeValue>();

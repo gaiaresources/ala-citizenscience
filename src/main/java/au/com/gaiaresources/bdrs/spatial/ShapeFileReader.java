@@ -2,10 +2,12 @@ package au.com.gaiaresources.bdrs.spatial;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -19,7 +21,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.ZipFile;
 
 import org.apache.log4j.Logger;
 import org.geotools.data.shapefile.ShapefileDataStore;
@@ -105,9 +106,11 @@ public class ShapeFileReader {
             // if this file exists this is a previously exported BDRS shapefile.
             
             BufferedReader bufferedReader = null;
-            FileReader reader = null;
+            FileInputStream fis;
+            InputStreamReader reader = null;
             try {
-                reader = new FileReader(helperFile);
+                fis = new FileInputStream(helperFile);
+                reader = new InputStreamReader(fis, Charset.defaultCharset());
                 bufferedReader = new BufferedReader(reader);
                 
                 // read survey id line

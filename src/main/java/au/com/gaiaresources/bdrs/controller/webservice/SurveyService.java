@@ -1,7 +1,7 @@
 package au.com.gaiaresources.bdrs.controller.webservice;
 
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -558,7 +558,7 @@ public class SurveyService extends AbstractController {
 
                 ZipOutputStream zos = new ZipOutputStream(response.getOutputStream());
                 zos.putNextEntry(new ZipEntry("checklist.csv"));
-                writer = new CSVWriter(new PrintWriter(zos), ',');
+                writer = new CSVWriter(new OutputStreamWriter(zos, response.getCharacterEncoding()), ',');
             }
 
             writer.writeNext(new String[] { "Rank", "Scientific Name",

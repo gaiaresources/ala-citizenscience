@@ -1,9 +1,11 @@
 package au.com.gaiaresources.bdrs.util;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -161,6 +163,7 @@ public final class StringUtils {
         
         StringWriter sw = new StringWriter();
         PrintWriter pw = null;
+        InputStreamReader reader = null;
         try {
             Tidy tidy = new Tidy();
             // create a listener to handle errors
@@ -170,11 +173,14 @@ public final class StringUtils {
             tidy.setMessageListener(listener);
             // create an output stream to redirect output from Tidy to the log file
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            pw = new PrintWriter(out);
+            OutputStreamWriter outStream = new OutputStreamWriter(out, Charset.defaultCharset());
+            pw = new PrintWriter(outStream);
             tidy.setErrout(pw);
             tidy.setXHTML(false);
             
-            tidy.parse(new StringReader(html), sw);
+            ByteArrayInputStream htmlStream = new ByteArrayInputStream(html.getBytes(Charset.defaultCharset())); 
+            reader = new InputStreamReader(htmlStream, Charset.defaultCharset());
+            tidy.parse(reader, sw);
             
             log.warn(out.toString());
             // the listener only stores error messages, so if it has a message,
@@ -183,6 +189,13 @@ public final class StringUtils {
         } finally {
             if (pw != null) {
                 pw.close();
+            }
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    
+                }
             }
             try {
                 sw.close();
