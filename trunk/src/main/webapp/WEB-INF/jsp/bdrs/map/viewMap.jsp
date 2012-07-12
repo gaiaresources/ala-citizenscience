@@ -96,6 +96,12 @@
         }
         </c:forEach>
 
+        // must perform a default centering for the map tiles to appear
+        if (layerArray.length > 0) {
+        	bdrs.map.centerMapToLayerExtent(bdrs.map.baseMap, layerArray);
+        } else {
+            bdrs.map.centerMap(bdrs.map.baseMap, null, 3);
+        }
         // Add select for KML stuff
         bdrs.map.addSelectHandler(bdrs.map.baseMap, layerArray);
 		
