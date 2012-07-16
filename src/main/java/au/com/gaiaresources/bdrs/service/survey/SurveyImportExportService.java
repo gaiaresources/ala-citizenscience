@@ -20,6 +20,7 @@ import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.service.AbstractImportExportService;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
 import au.com.gaiaresources.bdrs.util.location.LocationUtils;
 
 /**
@@ -102,6 +103,8 @@ public class SurveyImportExportService extends AbstractImportExportService<Surve
             // flatten the location and prune the attributes to match only the current survey
             Map<String, Object> flatLoc = loc.flatten();
             LocationUtils.filterAttributesBySurveySimple(survey, loc, flatLoc);
+            // Edit flatLoc object to export EWKT.
+            flatLoc.put("location", SpatialUtil.toEWkt(loc.getLocation()));
             this.addToExport(exportData, loc, JSONObject.fromMapToJSONObject(flatLoc));
             addMetadataToExport(exportData, loc.getMetadata());
             addAttributeValuesToExport(exportData, loc.getAttributes(survey));
@@ -132,9 +135,14 @@ public class SurveyImportExportService extends AbstractImportExportService<Surve
         // census method attributes
         if (records != null) {
             for (Record rec : records) {
-                addToExport(exportData, rec);
-                addMetadataToExport(exportData, rec.getMetadata());
-                addAttributeValuesToExport(exportData, rec.getAttributes());
+                if (rec != null) {
+                	JSONObject recJson = JSONObject.fromMapToJSONObject(rec.flatten());
+                	// store the record WKT as an EWKT so it contains the SRID of the geometry.
+                    recJson.put("geometry", SpatialUtil.toEWkt(rec.getGeometry()));
+                	addToExport(exportData, rec, recJson);
+                    addMetadataToExport(exportData, rec.getMetadata());
+                    addAttributeValuesToExport(exportData, rec.getAttributes());
+                }
             }
         }
     }

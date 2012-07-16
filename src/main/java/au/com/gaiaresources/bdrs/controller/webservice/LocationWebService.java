@@ -2,10 +2,9 @@ package au.com.gaiaresources.bdrs.controller.webservice;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.ws.http.HTTPException;
@@ -31,14 +30,15 @@ import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 import au.com.gaiaresources.bdrs.util.location.LocationUtils;
 
 import com.vividsolutions.jts.geom.Geometry;
 
 @Controller
 public class LocationWebService extends AbstractController {
-    @Autowired
-    private au.com.gaiaresources.bdrs.model.location.LocationService locationService;
+    
     @Autowired
     private LocationDAO locationDAO;
     @Autowired
@@ -48,12 +48,18 @@ public class LocationWebService extends AbstractController {
     @Autowired
     private SurveyDAO surveyDAO;
     
+    private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
+    
     public static final String JSON_KEY_ISVALID = "isValid";
     public static final String JSON_KEY_MESSAGE = "message";
     
     public static final String PARAM_WKT = "wkt";
     
     public static final String IS_WKT_VALID_URL = "/webservice/location/isValidWkt.htm";
+    
+    public static final String GET_LOCATION_BY_ID_URL = "/webservice/location/getLocationById.htm";
+    
+    public static final String PARAM_LOCATION_ID = "id";
 
     private Logger log = Logger.getLogger(getClass());
     
@@ -68,15 +74,21 @@ public class LocationWebService extends AbstractController {
      * @param surveyId the id of the {@link Survey} (used to filter attributes)
      * @throws IOException
      */
-    @RequestMapping(value="/webservice/location/getLocationById.htm", method=RequestMethod.GET)
+    @RequestMapping(value=GET_LOCATION_BY_ID_URL, method=RequestMethod.GET)
     public void getLocationById(HttpServletRequest request,
                                 HttpServletResponse response,
-                                @RequestParam(value="id", required=true) int pk,
+                                @RequestParam(value=PARAM_LOCATION_ID, required=true) int pk,
                                 @RequestParam(value=BdrsWebConstants.PARAM_SURVEY_ID, required=false, defaultValue="-1") int surveyId,
                                 @RequestParam(value="displayAttributes", required=false, defaultValue="false") boolean displayAttributes)
         throws IOException {
 
         Location location = locationDAO.getLocation(pk);
+        
+        // For simplicity make sure the output geometry is in WGS84. We could set it to the same
+        // as the survey but then we would have to default back to WGS84 anyway. Added complexity for
+        // little gain IMO
+        location.setLocation(spatialUtil.transform(location.getLocation()));
+        
         // get the depth from the depth of attributes to display
         // use 4 if we want to display attributes and 2 otherwise
         int depth = displayAttributes ? 4 : 2;
@@ -87,6 +99,10 @@ public class LocationWebService extends AbstractController {
         
         response.setContentType("application/json");
         response.getWriter().write(JSONObject.fromMapToString(locationObj));
+        
+        // We have changed the geometry in the location object. evict it
+        // to avoid persisting changes to database.
+        getRequestContext().getHibernate().evict(location);
     }
 
     @RequestMapping(value="/webservice/location/getLocationsById.htm", method=RequestMethod.GET)
@@ -140,7 +156,7 @@ public class LocationWebService extends AbstractController {
         Location loc = new Location();
         loc.setName(locationName);
         loc.setUser(user);
-        loc.setLocation(locationService.createPoint(latitude, longitude));
+        loc.setLocation(spatialUtil.createPoint(latitude, longitude));
         loc = locationDAO.save(loc);
         
         if(isDefault) {
@@ -174,7 +190,7 @@ public class LocationWebService extends AbstractController {
             result.put(JSON_KEY_MESSAGE, "");   // no message
         } else {
             try {
-                Geometry geom = locationService.createGeometryFromWKT(wkt);
+                Geometry geom = spatialUtil.createGeometryFromWKT(wkt);
                 if (geom == null) {
                     result.put(JSON_KEY_ISVALID, false);
                     result.put(JSON_KEY_MESSAGE, "Geometry is null");

@@ -45,11 +45,13 @@ public class RecordDAOImplSpatialTest extends AbstractControllerTest {
     Record r2;
     Record r3;
     Record r4;
+    Record r5;
     
     Geometry g1;
     Geometry g2;
     Geometry g3;
     Geometry g4;
+    Geometry g5;
         
     @Before
     public void setup() {
@@ -63,15 +65,19 @@ public class RecordDAOImplSpatialTest extends AbstractControllerTest {
         survey1 = surveyDAO.createSurvey("my survey");
         survey2 = surveyDAO.createSurvey("second survey");
         
+        GeometryBuilder mgaBuilder = new GeometryBuilder(28350);
+        
         g1 = geometryBuilder.createSquare(0, 0, 10);
         g2 = geometryBuilder.createSquare(5, 0, 10);
         g3 = geometryBuilder.createSquare(0, 5, 10);
         g4 = geometryBuilder.createSquare(5, 5, 10);
+        g5 = mgaBuilder.createSquare(0, 0, 10);
         
         r1 = createTestRecord(now, g1, survey1, RecordVisibility.OWNER_ONLY, admin);
         r2 = createTestRecord(now, g2, survey1, RecordVisibility.OWNER_ONLY, admin);
         r3 = createTestRecord(now, g3, survey2, RecordVisibility.CONTROLLED, root);
         r4 = createTestRecord(now, g4, survey2, RecordVisibility.CONTROLLED, root);
+        r5 = createTestRecord(now, g5, survey1, RecordVisibility.PUBLIC, admin);
                       
         layer1 = new GeoMapLayer();
         layer1.setName("aaaa");
@@ -92,6 +98,7 @@ public class RecordDAOImplSpatialTest extends AbstractControllerTest {
         recordDAO.saveRecord(r2);
         recordDAO.saveRecord(r3);
         recordDAO.saveRecord(r4);
+        recordDAO.saveRecord(r5);
         
         surveyDAO.updateSurvey(survey1);
     }
@@ -181,6 +188,15 @@ public class RecordDAOImplSpatialTest extends AbstractControllerTest {
         {
             List<Record> result = recordDAO.find(layerIds, point, null, admin.getId());
             Assert.assertEquals(1, result.size());
+        }
+    }
+    
+    @Test
+    public void testReturnAll() {
+        Integer[] layerIds = new Integer[] { layer1.getId(), layer2.getId() };
+        {
+            List<Record> result = recordDAO.find(layerIds, null, null, null);
+            Assert.assertEquals(5, result.size());
         }
     }
     

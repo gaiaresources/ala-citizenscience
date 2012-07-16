@@ -31,7 +31,8 @@
         latSelector: "input[name=latitude]",
         longSelector: "input[name=longitude]",
         wktSelector: "input[name=wkt]",
-        locSelector: "select[name=location]"
+        locSelector: "select[name=location]",
+        crsSelector: "input[name=srid], select[name=srid]"
     };
     
     var toolActivatedHandler = function(toolId) {
@@ -51,6 +52,8 @@
     jQuery(window).load(function() {
         bdrs.map.initWktOnChangeValidation('input[name=wkt]', '#wktMessage');
         
+        var layerProj = bdrs.map.getProjection(entryForm.crsSelector);
+        
         var layerName = bdrs.survey.location.LAYER_NAME;
         bdrs.map.initBaseMap('base_map', { geocode: { selector: '#geocode' }, hideShowMapLink : true});
         bdrs.map.addLocationLayer(bdrs.map.baseMap, bdrs.survey.location.LOCATION_LAYER_NAME);
@@ -67,6 +70,7 @@
                           latSelector: entryForm.latSelector,
                           longSelector: entryForm.longSelector,
                           wktSelector: entryForm.wktSelector,
+                          crsSelector: entryForm.crsSelector,
                           toolActivatedHandler: toolActivatedHandler,
                           initialDrawTool: ${not empty wkt ? 'bdrs.map.control.DRAG_FEATURE' : 'bdrs.map.control.DRAW_POINT'},
                           <c:choose>
@@ -85,11 +89,13 @@
                       });
                    </c:when>
                    <c:otherwise>
-                       layer = bdrs.map.addSingleClickPositionLayer(bdrs.map.baseMap, layerName, entryForm.latSelector, entryForm.longSelector);
+                       layer = bdrs.map.addSingleClickPositionLayer(bdrs.map.baseMap, layerName, 
+                           entryForm.latSelector, entryForm.longSelector, entryForm.crsSelector);
                    </c:otherwise>
                </c:choose>
                 
-                bdrs.map.addLonLatChangeHandler(layer, entryForm.longSelector, entryForm.latSelector);
+                bdrs.map.addCrsChangeHandler(layer, entryForm.longSelector, entryForm.latSelector, entryForm.wktSelector, entryForm.crsSelector);
+                
             </c:otherwise>
         </c:choose>
 
@@ -103,7 +109,6 @@
         // for adding a new point, so you can't move new points once they are created
         // Add select for KML stuff
         //bdrs.map.addSelectHandler(bdrs.map.baseMap, layerArray);
-
         
         var lat = jQuery(entryForm.latSelector);
         var lon = jQuery(entryForm.longSelector);
@@ -116,7 +121,7 @@
             // use the wkt string to determine zoom level and map center if available
             var geom = OpenLayers.Geometry.fromWKT(wkt.val());
             if (geom) {
-                geom.transform(bdrs.map.WGS84_PROJECTION, bdrs.map.GOOGLE_PROJECTION);
+                geom.transform(layerProj, bdrs.map.GOOGLE_PROJECTION);
     
                 var feature = new OpenLayers.Feature.Vector(geom);
                 layer.addFeatures(feature);
@@ -131,7 +136,7 @@
             // determine zoom level and map center
             var lonLat = new OpenLayers.LonLat(
                     parseFloat(lon.val()), parseFloat(lat.val()));
-            lonLat = lonLat.transform(bdrs.map.WGS84_PROJECTION,
+            lonLat = lonLat.transform(layerProj,
                                       bdrs.map.GOOGLE_PROJECTION);
             point = new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat);
             layer.addFeatures(new OpenLayers.Feature.Vector(point));

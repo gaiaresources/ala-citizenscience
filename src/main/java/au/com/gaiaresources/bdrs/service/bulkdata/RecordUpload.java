@@ -11,10 +11,7 @@ import org.apache.log4j.Logger;
  * Represents a single row of an uploaded spreadsheet once it has been converted
  * to a Java representation.
  */
-public class RecordUpload {
-
-    private boolean error = false;
-    private String errorMessage;
+public class RecordUpload extends CoordUpload {
 
     private String id;
 
@@ -42,8 +39,6 @@ public class RecordUpload {
     private Date time;
 
     private String locationName;
-    private double latitude;
-    private double longitude;
 
     private String behaviour;
     private String habitat;
@@ -56,8 +51,7 @@ public class RecordUpload {
     private Integer censusMethodId = null;
     private Integer locationId = null;
     
-    private Integer rowNumber;
-    private Integer colNumber;
+    private String epsg;
     
     private Map<String, Map<String, String>> named_attribute_map = new HashMap<String, Map<String, String>>(); 
     
@@ -96,8 +90,8 @@ public class RecordUpload {
         this.when = when != null ? (Date)when.clone() : null;
         this.time = time != null ? (Date)time.clone() : null;
         this.locationName = locationName;
-        this.latitude = latitude;
-        this.longitude = longitude;
+        setLatitude(latitude);
+        setLongitude(longitude);
         this.behaviour = behaviour;
         this.habitat = habitat;
         this.scientificName = scientificName;
@@ -271,22 +265,6 @@ public class RecordUpload {
         this.locationName = locationName;
     }
 
-    public double getLatitude() {
-        return latitude;
-    }
-
-    public void setLatitude(double latitude) {
-        this.latitude = latitude;
-    }
-
-    public double getLongitude() {
-        return longitude;
-    }
-
-    public void setLongitude(double longitude) {
-        this.longitude = longitude;
-    }
-
     public String getBehaviour() {
         return behaviour;
     }
@@ -341,21 +319,6 @@ public class RecordUpload {
         return named_attribute_map.get(namespace).get(name);
     }
 
-    public boolean isError() {
-        return error;
-    }
-
-    public void setError(boolean error) {
-        this.error = error;
-    }
-
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
-    public void setErrorMessage(String errorMessage) {
-        this.errorMessage = errorMessage;
-    }
 
     public boolean isGPSLocationName() {
         return !((locationName != null) && !locationName.isEmpty()
@@ -363,7 +326,7 @@ public class RecordUpload {
     }
 
     public boolean hasLatitudeLongitude() {
-        return !Double.isNaN(latitude) && !Double.isNaN(longitude);
+        return !Double.isNaN(getLatitude()) && !Double.isNaN(getLongitude());
     }
     
     public String getParentId() {
@@ -372,22 +335,6 @@ public class RecordUpload {
 
     public void setParentId(String parentId) {
         this.parentId = parentId;
-    }
-    
-    public Integer getRowNumber() {
-        return rowNumber;
-    }
-    
-    public void setRowNumber(Integer val) {
-        rowNumber = val;
-    }
-    
-    public Integer getColNumber() {
-        return colNumber;
-    }
-    
-    public void setColNumber(Integer val) {
-        colNumber = val;
     }
 
     public Integer getCensusMethodId() {
@@ -415,19 +362,35 @@ public class RecordUpload {
     	}
         return "RecordUpload [behaviour=" + behaviour + ", className="
                 + className + ", commonName=" + commonName + ", createdAt="
-                + createdAt + ", createdBy=" + createdBy + ", error=" + error
-                + ", errorMessage=" + errorMessage + ", firstAppearance="
+                + createdAt + ", createdBy=" + createdBy + ", error=" + isError()
+                + ", errorMessage=" + getErrorMessage() + ", firstAppearance="
                 + firstAppearance + ", groupName=" + groupName + ", habitat="
                 + habitat + ", held=" + held + ", id=" + id
                 + ", lastAppearance=" + lastAppearance + ", lastDate="
                 + whenString + ", lastTime=" + whenString + ", latitude="
-                + latitude + ", locationName=" + locationName
+                + getLatitude() + ", locationName=" + locationName
                 + ", longitude="
-                + longitude + ", notes=" + notes + ", numberSeen=" + numberSeen
+                + getLongitude() + ", notes=" + notes + ", numberSeen=" + numberSeen
                 + ", recordedBy=" + recordedBy + ", recordedByUsername="
                 + recordedByUsername + ", scientificName=" + scientificName
                 + ", surveyName=" + surveyName + ", time=" + whenString
                 + ", updatedAt=" + updatedAt + ", updatedBy=" + updatedBy
                 + ", when=" + whenString + "]";
     }
+
+    /**
+     * Get the SRID setting for this record.
+     * @return The SRID setting for this record.
+     */
+	public String getEpsg() {
+		return epsg;
+	}
+
+	/**
+	 * Set the SRID setting for this record.
+	 * @param epsg The SRID setting for this record.
+	 */
+	public void setEpsg(String epsg) {
+		this.epsg = epsg;
+	}
 }

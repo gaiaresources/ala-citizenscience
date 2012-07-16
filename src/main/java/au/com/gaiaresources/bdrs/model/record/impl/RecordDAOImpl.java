@@ -45,6 +45,7 @@ import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
 import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
@@ -1089,7 +1090,10 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         hb.append("select distinct rec from Record rec inner join rec.survey survey where survey.id in ");
         hb.append(" (select s.id from GeoMapLayer layer inner join layer.survey s where layer.id in (:layerIds)) ");
         if (intersectGeom != null) {
-            hb.append(" and intersects(:geom, rec.geometry) = true");
+        	if (intersectGeom.getSRID() != BdrsCoordReferenceSystem.DEFAULT_SRID) {
+        		throw new IllegalArgumentException("intersect geom must have srid = 4326 but was " + intersectGeom.getSRID());
+        	}
+            hb.append(" and intersects(:geom,  transform(rec.geometry,4326)) = true");
         }
         List<String> orSection = new LinkedList<String>();
         if (isPrivate != null) {
@@ -1142,6 +1146,7 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         Query q = sesh.createQuery("select distinct r from Record r left join r.metadata md where md.key = :key and md.value = :value");
         q.setParameter("key", Metadata.RECORD_CLIENT_ID_KEY);
         q.setParameter("value", clientID);
+        
         q.setMaxResults(1);
         return (Record)q.uniqueResult();
     }

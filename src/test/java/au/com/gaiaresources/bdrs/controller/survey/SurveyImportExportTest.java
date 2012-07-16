@@ -1,5 +1,7 @@
 package au.com.gaiaresources.bdrs.controller.survey;
 
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,13 +21,13 @@ import au.com.gaiaresources.bdrs.controller.LocationAttributeSurveyCreator;
 import au.com.gaiaresources.bdrs.file.FileService;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
@@ -33,8 +35,10 @@ import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.servlet.RequestContext;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 import au.com.gaiaresources.bdrs.util.ZipUtils;
 
 public class SurveyImportExportTest extends AbstractGridControllerTest {
@@ -51,13 +55,13 @@ public class SurveyImportExportTest extends AbstractGridControllerTest {
     private LocationDAO locationDAO;
     @Autowired
     private CensusMethodDAO methodDAO;
+    @Autowired
+    private GeoMapService geoMapService;
     /**
      * Used to change the default view returned by the controller
      */
     @Autowired
     private PreferenceDAO preferenceDAO;
-    @Autowired
-    private LocationService locationService;
     @Autowired
     private FileService fileService;
 
@@ -66,7 +70,8 @@ public class SurveyImportExportTest extends AbstractGridControllerTest {
         requestDropDatabase();
 
         LocationAttributeSurveyCreator surveyCreator = new LocationAttributeSurveyCreator(surveyDAO, locationDAO,
-                locationService, methodDAO, userDAO, taxaDAO, recordDAO, metadataDAO, preferenceDAO, fileService);
+                new SpatialUtilFactory().getLocationUtil(), methodDAO, userDAO, taxaDAO, recordDAO, metadataDAO, preferenceDAO, fileService,
+                geoMapService);
         surveyCreator.create(false);
 
         RequestContext c = new RequestContext(request, applicationContext);
@@ -89,6 +94,17 @@ public class SurveyImportExportTest extends AbstractGridControllerTest {
         requestDropDatabase();
         testSurveyImportExport(survey2);
     }
+    
+    @Test
+    public void testSurveyExportWithNonDefaultCrs() throws Exception {
+    	requestDropDatabase();
+        geoMapService.getForSurvey(survey1).setCrs(BdrsCoordReferenceSystem.MGA);
+        for (Location loc : survey1.getLocations()) {
+        	loc.getLocation().setSRID(28350);
+        }
+        sessionFactory.getCurrentSession().flush();
+        testSurveyImportExport(survey1);
+    }
 
     private void createNewRequest() {
         request = createMockHttpServletRequest();
@@ -97,6 +113,10 @@ public class SurveyImportExportTest extends AbstractGridControllerTest {
     }
 
     private void testSurveyImportExport(Survey survey) throws Exception {
+    	
+    	// create default map
+    	geoMapService.getForSurvey(survey);
+    	
         login("admin", "password", new String[]{Role.ADMIN});
         int initialSurveyCount = surveyDAO.getSurveys(currentUser).size();
 
@@ -111,11 +131,11 @@ public class SurveyImportExportTest extends AbstractGridControllerTest {
         Assert.assertEquals(ZipUtils.ZIP_CONTENT_TYPE, response.getContentType());
         byte[] exportContent = response.getContentAsByteArray();
 
-//        // Uncomment if you want to capture the test file
-//        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("/tmp/test_survey_export_" + survey.getId() + ".zip"));
-//        bos.write(exportContent);
-//        bos.flush();
-//        bos.close();
+        // Uncomment if you want to capture the test file
+        //BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("/tmp/test_survey_export_" + survey.getId() + ".zip"));
+        //bos.write(exportContent);
+        //bos.flush();
+        //bos.close();
 
         response = new MockHttpServletResponse();
         createNewRequest();
@@ -128,6 +148,8 @@ public class SurveyImportExportTest extends AbstractGridControllerTest {
         login("admin", "password", new String[]{Role.ADMIN});
         
         handle(request, response);
+        
+        assertMessageCode("bdrs.survey.import.success");
 
         sessionFactory.getCurrentSession().getTransaction().commit();
         sessionFactory.getCurrentSession().beginTransaction();
@@ -150,6 +172,8 @@ public class SurveyImportExportTest extends AbstractGridControllerTest {
         Assert.assertEquals(survey.getDescription(), actualSurvey.getDescription());
         Assert.assertEquals(survey.getEndDate(), actualSurvey.getEndDate());
         Assert.assertEquals(survey.getStartDate(), actualSurvey.getStartDate());
+        Assert.assertEquals("wrong survey crs", geoMapService.getForSurvey(survey).getCrs(), 
+        		geoMapService.getForSurvey(actualSurvey).getCrs());
 
         assertMetadata(survey.getMetadata(), actualSurvey.getMetadata());
         assertAttributes(survey.getAttributes(), actualSurvey.getAttributes());
@@ -175,6 +199,7 @@ public class SurveyImportExportTest extends AbstractGridControllerTest {
             Assert.assertEquals(expectedLoc.getWeight(), actualLoc.getWeight());
             Assert.assertEquals(expectedLoc.getDescription(), actualLoc.getDescription());
             Assert.assertEquals(expectedLoc.getLocation().toText(), actualLoc.getLocation().toText());
+            Assert.assertEquals("wrong srid", expectedLoc.getLocation().getSRID(), actualLoc.getLocation().getSRID());
 
             assertMetadata(expectedLoc.getMetadata(), actualLoc.getMetadata());
             assertAttrValue(expectedLoc.getAttributes(), actualLoc.getAttributes());

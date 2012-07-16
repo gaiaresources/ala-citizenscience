@@ -1,5 +1,19 @@
 package au.com.gaiaresources.bdrs.controller.review.locations;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import junit.framework.Assert;
+
+import org.hibernate.FlushMode;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.ModelAndViewAssert;
+import org.springframework.web.servlet.ModelAndView;
+
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.controller.LocationAttributeSurveyCreator;
 import au.com.gaiaresources.bdrs.controller.map.RecordDownloadFormat;
@@ -10,7 +24,6 @@ import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
 import au.com.gaiaresources.bdrs.model.preference.Preference;
@@ -30,20 +43,11 @@ import au.com.gaiaresources.bdrs.service.facet.LocationAttributeFacet;
 import au.com.gaiaresources.bdrs.service.facet.SurveyFacet;
 import au.com.gaiaresources.bdrs.service.facet.location.LocationSurveyFacet;
 import au.com.gaiaresources.bdrs.service.facet.location.LocationUserFacet;
+import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.util.KMLUtils;
-import junit.framework.Assert;
-import org.hibernate.FlushMode;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.web.ModelAndViewAssert;
-import org.springframework.web.servlet.ModelAndView;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 /**
  * Tests all aspects of the <code>AdvancedReviewSightingsController</code>.
@@ -68,13 +72,14 @@ public class AdvancedReviewLocationsControllerTest extends
     @Autowired
     private CensusMethodDAO methodDAO;
     @Autowired
-    private LocationService locationService;
-    @Autowired
     private FileService fileService;
     @Autowired
     private FacetService facetService;
     @Autowired
     private AdvancedReviewLocationsController controller;
+    @Autowired
+    private GeoMapService geoMapService;
+    
     /**
      * Used to change the default view returned by the controller
      */
@@ -82,11 +87,13 @@ public class AdvancedReviewLocationsControllerTest extends
     private PreferenceDAO preferenceDAO;
 
     private LocationAttributeSurveyCreator surveyCreator;
+    
+    private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
 
     @Before
     public void setup() throws Exception {
         surveyCreator = new LocationAttributeSurveyCreator(surveyDAO, locationDAO,
-                locationService, methodDAO, userDAO, taxaDAO, recordDAO, metadataDAO, preferenceDAO, fileService);
+                spatialUtil, methodDAO, userDAO, taxaDAO, recordDAO, metadataDAO, preferenceDAO, fileService, geoMapService);
         surveyCreator.create(true);
     }
 

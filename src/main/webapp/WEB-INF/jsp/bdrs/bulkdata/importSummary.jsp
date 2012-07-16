@@ -42,6 +42,21 @@
                             </tr>
                         </c:if>
                     </c:forEach>
+                    <c:forEach items="${bulkUpload.errorLocationUploadList}" var="locUpload">
+                    	<c:if test="${locUpload.error}">
+                    		<tr>
+                                <c:choose>
+                                    <c:when test="${ empty locUpload.pk }">
+                                        <td>Empty</td>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <td><c:out value="${locUpload.pk}"/></td>
+                                    </c:otherwise>
+                                </c:choose>
+                               <td><c:out value="${locUpload.errorMessage}"/></td>
+                            </tr>
+                    	</c:if>
+                    </c:forEach>
                 </table>
             </tiles:putAttribute>
         </tiles:insertDefinition>

@@ -18,9 +18,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.ws.http.HTTPException;
 
-import au.com.gaiaresources.bdrs.json.JSONArray;
-import au.com.gaiaresources.bdrs.json.JSONObject;
-
 import org.apache.log4j.Logger;
 import org.hibernate.FlushMode;
 import org.hibernate.Session;
@@ -36,7 +33,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
 import au.com.gaiaresources.bdrs.db.impl.PaginationFilter;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
+import au.com.gaiaresources.bdrs.json.JSONArray;
+import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
@@ -52,6 +50,8 @@ import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.service.bulkdata.AbstractBulkDataService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 @Controller
 public class RecordService extends AbstractController {
@@ -79,11 +79,11 @@ public class RecordService extends AbstractController {
     @Autowired
     private UserDAO userDAO;
     @Autowired
-    private LocationService locationService;
-    @Autowired
     private TaxaService taxaService;
     @Autowired
     private AbstractBulkDataService bulkDataService;
+    
+    private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
 
     @RequestMapping(value = "/webservice/record/lastRecords.htm", method = RequestMethod.GET)
     public void getLatestRecords(
@@ -223,7 +223,7 @@ public class RecordService extends AbstractController {
             // standard attributes
             double latitude = jsonRecord.getDouble("latitude");
             double longitude = jsonRecord.getDouble("longitude");
-            record.setPoint(locationService.createPoint(latitude, longitude));
+            record.setPoint(spatialUtil.createPoint(latitude, longitude));
             record.setNotes(jsonRecord.getString("notes"));
             String number_string = request.getParameter("numberseen");
             if (number_string != "" & (number_string != null)) {
@@ -320,7 +320,7 @@ public class RecordService extends AbstractController {
                     .getInt("fkindicatorspeciesid")));
             double latitude = jsonRecord.getDouble("latitude");
             double longitude = jsonRecord.getDouble("longitude");
-            record.setPoint(locationService.createPoint(latitude, longitude));
+            record.setPoint(spatialUtil.createPoint(latitude, longitude));
             record.setTime(date.getTime());
             record.setWhen(date);
             // record.setNumber(new Integer(request.getParameter("number")));
@@ -760,7 +760,7 @@ public class RecordService extends AbstractController {
             updateRecord.setSpecies(taxaService.getIndicatorSpecies(jsonUpdateRecord.getInt("fkindicatorspeciesid")));
             double latitude = jsonUpdateRecord.getDouble("latitude");
             double longitude = jsonUpdateRecord.getDouble("longitude");
-            updateRecord.setPoint(locationService.createPoint(latitude, longitude));
+            updateRecord.setPoint(spatialUtil.createPoint(latitude, longitude));
             updateRecord.setTime(date.getTime());
             updateRecord.setWhen(date);
             updateRecord.setNotes(jsonUpdateRecord.getString("notes"));
@@ -819,7 +819,7 @@ public class RecordService extends AbstractController {
             // standard attributes
             double uploadLatitude = jsonUploadRecord.getDouble("latitude");
             double uploadLongitude = jsonUploadRecord.getDouble("longitude");
-            uploadRecord.setPoint(locationService.createPoint(uploadLatitude,uploadLongitude));
+            uploadRecord.setPoint(spatialUtil.createPoint(uploadLatitude,uploadLongitude));
             uploadRecord.setNotes(jsonUploadRecord.getString("notes"));
             String number_string = jsonUploadRecord.getString("numberseen");
             if (number_string != "" & (number_string != null)) {

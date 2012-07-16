@@ -29,14 +29,14 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
-import au.com.gaiaresources.bdrs.model.location.LocationService;
-import au.com.gaiaresources.bdrs.model.location.impl.LocationServiceImpl;
 import au.com.gaiaresources.bdrs.model.map.GeoMapFeature;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.util.FileUtils;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 import au.com.gaiaresources.bdrs.util.ZipUtils;
 
 import com.vividsolutions.jts.geom.Geometry;
@@ -54,7 +54,8 @@ public class ShapeFileReader {
     private String crsCode = UNKNOWN_CRS_CODE;
     
     private boolean geometryValid = false;
-    private LocationService locationService = new LocationServiceImpl();
+
+    private SpatialUtil locationService = new SpatialUtilFactory().getLocationUtil();
     
     private File unzipDir = null;
     
@@ -345,6 +346,14 @@ public class ShapeFileReader {
      * @return
      */
     public String getCrsCode() {
+    	//try {
+        // leaving this here for future work - this is how to get the 
+        // crs description of the layer.
+    	// log.debug("feature source crs : " + dsList.get(0).getSchema().getCoordinateReferenceSystem());
+    	//} catch (IOException ioe) {
+    	//	log.error("failed to print feature source crs", ioe);
+    	//}
+    	
         return this.crsCode;
     }
     

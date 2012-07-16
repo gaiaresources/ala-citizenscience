@@ -32,18 +32,20 @@ public class ContainsHandler implements SimpleOperatorHandler {
         
         List<Object> properties = condition.getPropertiesForPath(entity);
         
-        for (Object property : properties) {
-            Object actualValue = property;
-            Object expectedValue = null;
-            if (property != null && property.getClass().isEnum()) {
-                actualValue = property.toString();
-                expectedValue = Arrays.asList(condition.stringArrayValue());
-            } else {
-                expectedValue = condition.stringValue();
-            }
-            if (match(actualValue, expectedValue)) {
-                return true;
-            }
+        if (properties != null) {
+        	for (Object property : properties) {
+                Object actualValue = property;
+                Object expectedValue = null;
+                if (property != null && property.getClass().isEnum()) {
+                    actualValue = property.toString();
+                    expectedValue = Arrays.asList(condition.stringArrayValue());
+                } else {
+                    expectedValue = condition.stringValue();
+                }
+                if (match(actualValue, expectedValue)) {
+                    return true;
+                }
+            }	
         }
         return false;
     }

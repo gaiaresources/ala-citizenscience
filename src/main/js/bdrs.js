@@ -1555,26 +1555,68 @@ bdrs.map.addVectorLayer = function(map, layerName, stylemap, options) {
     return layer;
 }
 
+/**
+ * Round a number to 'dec' decimal places.
+ * @param {float} num number to round.
+ * @param {int} dec number of decimal places to round to.
+ */
 bdrs.map.roundNumber = function(num, dec){
     var result = Math.round(num * Math.pow(10, dec)) / Math.pow(10, dec);
     return result;
 };
 
+/**
+ * Rounds a lat/lon to 6 decimal places.
+ * @param {float} latOrLong
+ */
 bdrs.map.roundLatOrLon = function(latOrLong){
     return bdrs.map.roundNumber(latOrLong, 6);
 };
 
 /**
- *
+ * Round a coordinate based on the currently selected
+ * coordinate reference system.
+ * @param {number} value Value to round.
+ * @param {jQuery selector} crsSelector jQuery selector for an input containing SRID setting.
  */
-bdrs.map.addSingleClickPositionLayer = function(map, layerName, latitudeInputSelector, longitudeInputSelector){
+bdrs.map.roundCoord = function(value, crsSelector) {
+	var srid = jQuery(crsSelector).val();
+	if (srid) {
+		var proj = bdrs.map.getProjectionBySrid(srid);
+		if (proj.proj.units === 'm') {
+			return bdrs.map.roundNumber(value, 3);
+		} else {
+			// lat and lon falls through to here.
+			return bdrs.map.roundNumber(value, 6);
+		}	
+	} else {
+		// default to 6 dp
+		// lat and lon falls through to here.
+	    return bdrs.map.roundNumber(value, 6);
+	}
+};
+
+/**
+ * Add a map click handler that makes a single point feature on a map when clicked.
+ * 
+ * @param {OpenLayers.Map} map Map to add to.
+ * @param {String} layerName name of layer.
+ * @param {String} latitudeInputSelector selector.
+ * @param {String} longitudeInputSelector selector.
+ * @param {Object} options Options for layer.
+ */
+bdrs.map.addSingleClickPositionLayer = function(map, layerName, latitudeInputSelector, longitudeInputSelector, crsSelector, options){
     var layer = bdrs.map.addPositionLayer(layerName);
     
+    var defaultOptions = {
+    };
+    options = jQuery.extend(defaultOptions, options);
+    
     var updateLatLon = function(feature, pixel){
-        var lonLat = map.getLonLatFromViewPortPx(pixel);
-        lonLat.transform(bdrs.map.GOOGLE_PROJECTION, bdrs.map.WGS84_PROJECTION);
-        jQuery(latitudeInputSelector).val(bdrs.map.roundLatOrLon(lonLat.lat)).trigger("change");
-        jQuery(longitudeInputSelector).val(bdrs.map.roundLatOrLon(lonLat.lon)).trigger("change");
+        var lonLat = map.getLonLatFromViewPortPx(pixel).clone();
+        lonLat.transform(bdrs.map.GOOGLE_PROJECTION, bdrs.map.getProjection(crsSelector));
+        jQuery(latitudeInputSelector).val(bdrs.map.roundCoord(lonLat.lat, crsSelector)).blur();
+        jQuery(longitudeInputSelector).val(bdrs.map.roundCoord(lonLat.lon, crsSelector)).blur();
     };
     
     // Add a drag feature control to move features around.
@@ -1588,11 +1630,11 @@ bdrs.map.addSingleClickPositionLayer = function(map, layerName, latitudeInputSel
     var clickControl = new OpenLayers.Control.Click({
         handlerOptions: {
             "single": true,
-            
             'featureLayerId': layer.id,
             'featureCount': 1,
             'latitudeInputSelector': latitudeInputSelector,
-            'longitudeInputSelector': longitudeInputSelector
+            'longitudeInputSelector': longitudeInputSelector,
+			'crsSelector': crsSelector
         }
     });
     map.addControl(clickControl);
@@ -1669,8 +1711,9 @@ bdrs.map.addSingleFeatureDrawLayer = function(map, layerName, options){
         drawPolygon: false,
         latSelector: "",
         longSelector: "",
+		crsSelector: "",
         wktSelector: "",
-        initialDrawTool: bdrs.map.control.DRAW_POINT
+        initialDrawTool: bdrs.map.control.DRAW_POINT,
     };
     
     options = jQuery.extend(defaultOptions, options);
@@ -1679,7 +1722,7 @@ bdrs.map.addSingleFeatureDrawLayer = function(map, layerName, options){
     var longSelector = options.longSelector;
     var areaSelector = options.areaSelector;
     var wktSelector = options.wktSelector;
-    var wktWriter = new OpenLayers.Format.WKT(bdrs.map.wkt_options);
+	var crsSelector = options.crsSelector;
     
     var triggerWktValidation = function(){
         // remove any error text from lat/long inputs
@@ -1711,19 +1754,22 @@ bdrs.map.addSingleFeatureDrawLayer = function(map, layerName, options){
         }
         layer.removeFeatures(featuresToRemove);
         
-        var centroid = feature.geometry.getCentroid();
-        centroid.transform(bdrs.map.GOOGLE_PROJECTION, bdrs.map.WGS84_PROJECTION);
-        jQuery(longSelector).val(bdrs.map.roundLatOrLon(centroid.x));
-        jQuery(latSelector).val(bdrs.map.roundLatOrLon(centroid.y));
+		var centroid = feature.geometry.getCentroid().clone();
+        centroid.transform(bdrs.map.GOOGLE_PROJECTION, bdrs.map.getProjection(crsSelector));
+        jQuery(longSelector).val(bdrs.map.roundCoord(centroid.x, crsSelector));
+        jQuery(latSelector).val(bdrs.map.roundCoord(centroid.y, crsSelector));
         if (areaSelector && jQuery(areaSelector)) {
             var shape = feature.geometry;
             if (shape instanceof OpenLayers.Geometry.MultiPolygon || 
                     shape instanceof OpenLayers.Geometry.Polygon) {
-                jQuery(areaSelector).val(bdrs.map.roundLatOrLon(shape.getArea()/10000));
+				// round to a reasonable number...
+                jQuery(areaSelector).val(bdrs.map.roundNumber(shape.getArea()/10000, 2));
             } else {
                 jQuery(areaSelector).val('');
             }
         }
+		
+		var wktWriter = bdrs.map.getWktWriter(crsSelector);
         jQuery(wktSelector).val(wktWriter.write(feature));
         
         triggerWktValidation();
@@ -1731,11 +1777,11 @@ bdrs.map.addSingleFeatureDrawLayer = function(map, layerName, options){
     
     // note no trigger wkt validation - we don't want it to occur on drag
     var featureMovedHandler = function(feature, pixel){
-    
+        var wktWriter = bdrs.map.getWktWriter(crsSelector);
         var centroid = feature.geometry.getCentroid();
-        centroid.transform(bdrs.map.GOOGLE_PROJECTION, bdrs.map.WGS84_PROJECTION);
-        jQuery(longSelector).val(bdrs.map.roundLatOrLon(centroid.x));
-        jQuery(latSelector).val(bdrs.map.roundLatOrLon(centroid.y));
+        centroid.transform(bdrs.map.GOOGLE_PROJECTION, bdrs.map.getProjection(crsSelector));
+        jQuery(longSelector).val(bdrs.map.roundCoord(centroid.x, crsSelector));
+        jQuery(latSelector).val(bdrs.map.roundCoord(centroid.y, crsSelector));
         jQuery(wktSelector).val(wktWriter.write(feature));
     };
     
@@ -1751,7 +1797,7 @@ bdrs.map.addSingleFeatureDrawLayer = function(map, layerName, options){
             var shape = feature.geometry;
             if (shape instanceof OpenLayers.Geometry.MultiPolygon || 
                     shape instanceof OpenLayers.Geometry.Polygon) {
-                jQuery(areaSelector).val(bdrs.map.roundLatOrLon(shape.getArea()/10000));
+                jQuery(areaSelector).val(bdrs.map.roundNumber(shape.getArea()/10000, 2));
             } else {
                 jQuery(areaSelector).val('');
             }
@@ -1776,6 +1822,64 @@ bdrs.map.addSingleFeatureDrawLayer = function(map, layerName, options){
     };
     
     return bdrs.map.addPolygonDrawLayer(map, layerName, drawOptions);
+};
+
+/**
+ * cache object so we don't make lots of OpenLayers projection objects.
+ */
+bdrs.map.projectionCache = {};
+
+/**
+ * Get an OpenLayers.Projection object by srid, e.g. 4326
+ * @param {String or int} srid SRID
+ */
+bdrs.map.getProjectionBySrid = function(srid) {
+	return bdrs.map.getProjectionByEpsgCode("EPSG:"+srid);
+};
+
+/**
+ * Get an OpenLayers.Projection object by EPSG code e.g. EPSG:4326
+ * @param {String} code EPSG code
+ */
+bdrs.map.getProjectionByEpsgCode = function(code) {
+	if (!bdrs.map.projectionCache[code]) {
+		bdrs.map.projectionCache[code] = new OpenLayers.Projection(code);
+	}
+	var result = bdrs.map.projectionCache[code];
+	return result;
+};
+
+/**
+ * Get an open layers projection from the value contained in the crs selector.
+ * we expect the value in the selector to be an SRID.
+ * @param {jQuery selector string} crsSelector Selector for an input containing the desired SRID.
+ */
+bdrs.map.getProjection = function(crsSelector) {
+	return bdrs.map.getProjectionBySrid(jQuery(crsSelector).val());
+};
+
+/**
+ * Get a WKT writer from the value contained in the crs selector.
+ * we expect the value in the selector to be an SRID.
+ * @param {jQuery selector string} crsSelector Selector for an input containing the desired SRID.
+ */
+bdrs.map.getWktWriter = function(crsSelector) {
+	return new OpenLayers.Format.WKT({
+        'internalProjection': bdrs.map.GOOGLE_PROJECTION,
+        'externalProjection': bdrs.map.getProjection(crsSelector)
+    });
+};
+
+/**
+ * Get a OpenLayers.Format.WKT object that converts to/from
+ * the given srid.
+ * @param {Object} srid SRID to convert to/from.
+ */
+bdrs.map.getWktFormatBySrid = function(srid) {
+	return new OpenLayers.Format.WKT({
+		'internalProjection': bdrs.map.GOOGLE_PROJECTION,
+        'externalProjection': bdrs.map.getProjectionBySrid(srid)
+	});
 };
 
 bdrs.map.addPolygonDrawLayer = function(map, layerName, options){
@@ -1991,19 +2095,21 @@ bdrs.map.addFeatureClickPopup = function(layer){
     
     var onFeatureSelect = function(feature){
         var selectedFeature = feature;
-        var descObj = jQuery.parseJSON(feature.cluster[0].attributes.description);
-        
-        var descObjArray = new Array();
-        for (var i = 0; i < feature.cluster.length; ++i) {
-            descObjArray.push(jQuery.parseJSON(feature.cluster[i].attributes.description));
-        }
-        
-        var popupOptions = {
-            onPopupClose: onPopupClose,
-            featureToBind: feature
-        };
-        
-        bdrs.map.createFeaturePopup(bdrs.map.baseMap, feature.geometry.getBounds().getCenterLonLat(), descObjArray, popupOptions);
+		if (feature.cluster) {
+			var descObj = jQuery.parseJSON(feature.cluster[0].attributes.description);
+	        
+	        var descObjArray = new Array();
+	        for (var i = 0; i < feature.cluster.length; ++i) {
+	            descObjArray.push(jQuery.parseJSON(feature.cluster[i].attributes.description));
+	        }
+	        
+	        var popupOptions = {
+	            onPopupClose: onPopupClose,
+	            featureToBind: feature
+	        };
+	        
+	        bdrs.map.createFeaturePopup(bdrs.map.baseMap, feature.geometry.getBounds().getCenterLonLat(), descObjArray, popupOptions);	
+		}
     };
     var onFeatureUnselect = function(feature){
         if (feature.popup) {
@@ -2034,7 +2140,7 @@ bdrs.map.createContentState = function(itemArray, popup, mapServerQueryManager){
         var linkValue = jQuery("<div></div>");
         if (item.type == "record") {
             // record specific stuff
-            var recordAttrKeys = ["owner", "census_method", "species", "common_name", "number", "notes", "habitat", "when", "behaviour"];
+            var recordAttrKeys = ["owner", "census_method", "species", "common_name", "number", "notes", "habitat", "when", "behaviour", "coord_ref_system", "x", "y"];
             var recordId = item["recordId"];
             var ownerId = item["ownerId"];
             var recordVisibility = item["recordVisibility"];
@@ -2056,6 +2162,7 @@ bdrs.map.createContentState = function(itemArray, popup, mapServerQueryManager){
                 jQuery("<a>Contact&nbsp;Owner</a>").attr('href', requestRecordInfoUrl).appendTo(requestRecordInfoRow.find("td"));
                 tbody.append(requestRecordInfoRow);
             }
+			var crs = item["coord_ref_system"];
             for (var i = 0; i < recordAttrKeys.length; i++) {
                 var key = recordAttrKeys[i];
                 var value;
@@ -2071,16 +2178,31 @@ bdrs.map.createContentState = function(itemArray, popup, mapServerQueryManager){
 					}
 				} else if (key === 'species' && item[key]) {
 					value = jQuery("<i></i>").append(item[key]);
-				} else if (key === 'number' && item[key]) {
+				} else if ((key === 'number' || key ==='x' || key === 'y') && item[key]) {
 					value = item[key];
 					// It will be a number, change to string
 					if (value.toString) {
 						value = value.toString();	
 					}
-				
+				} else if (key === 'coord_ref_system' && crs) {
+					value = crs.name;
 				} else {
 					value = item[key];
 				}
+
+				// value set, alter key if required
+				if (key === "x") {
+					if (crs) {
+						key = crs.xname;
+					}
+				} else if (key === "y") {
+					if (crs) {
+						key = crs.yname;
+					}
+				} else if (key === "coord_ref_system") {
+					key = "Coord Ref System";
+				}
+				
 				if (value && value !== null && value.length > 0 && value !== '-1') {
                     var row = jQuery("<tr></tr>");
                     row.append(jQuery("<th></th>").css('whiteSpace', 'nowrap').append(titleCaps(key.replace("_", " ")) + ":"));
@@ -2440,13 +2562,37 @@ bdrs.map.setDefaultCenter = function(map){
     map.setCenter(new OpenLayers.LonLat(longitude, latitude).transform(bdrs.map.WGS84_PROJECTION, bdrs.map.GOOGLE_PROJECTION), zoom);
 };
 
+
+bdrs.map.addCrsChangeHandler = function(layer, longSelector, latSelector, wktSelector, crsSelector) {
+	bdrs.map.addLonLatChangeHandler(layer, longSelector, latSelector, crsSelector, {});
+    jQuery(crsSelector).change(function() {
+        var feature = layer.features.length > 0 ? layer.features[0] : null;
+        var proj = bdrs.map.getProjection(crsSelector);
+        if (feature) {
+			var wktWriter = bdrs.map.getWktWriter(crsSelector);
+			jQuery(wktSelector).val(wktWriter.write(feature));
+            var point = feature.geometry.getCentroid().clone();
+            point.transform(bdrs.map.GOOGLE_PROJECTION, proj);
+            jQuery(longSelector).val(bdrs.map.roundCoord(point.x, crsSelector));
+            jQuery(latSelector).val(bdrs.map.roundCoord(point.y, crsSelector));
+        }
+    }).change();
+};
+
 // Attaches for handling when longitude/latitude inputs are changed.
 // Will put the new feature on the draw layer
 //
 // layer: OpenLayers Layer object
 // longSelector: jquery selector for the longitude input
 // latSelector: jquery selector for the latitude input
-bdrs.map.addLonLatChangeHandler = function(layer, longSelector, latSelector, options){
+bdrs.map.addLonLatChangeHandler = function(layer, longSelector, latSelector, crsSelector, options){
+	
+	if (!options) {
+		options = {};
+	}
+
+    jQuery(longSelector).unbind('change');
+    jQuery(latSelector).unbind('change');
 
     var defaultOptions = {
         // only 1 feature on the layer at a time
@@ -2456,15 +2602,13 @@ bdrs.map.addLonLatChangeHandler = function(layer, longSelector, latSelector, opt
     options = jQuery.extend(defaultOptions, options);
     
     var handler = function(){
-    
         if (jQuery(latSelector).val() !== '' && jQuery(longSelector).val() !== '') {
-        
             if (options.uniqueFeature) {
                 layer.removeFeatures(layer.features);
             }
             // draw a new point
             var lonLat = new OpenLayers.LonLat(jQuery(longSelector).val(), jQuery(latSelector).val());
-            lonLat = lonLat.transform(bdrs.map.WGS84_PROJECTION, bdrs.map.GOOGLE_PROJECTION);
+            lonLat = lonLat.transform(bdrs.map.getProjection(crsSelector), bdrs.map.GOOGLE_PROJECTION);
             layer.addFeatures(new OpenLayers.Feature.Vector(new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat)));
         }
     };
@@ -2515,7 +2659,6 @@ bdrs.map.initPointSelectClickHandler = function(map){
         },
         
         onClick: function(evt){
-        
             // You didn't specify what layer to put the feature.
             if (this.handlerOptions.featureLayerId === null) {
                 return;
@@ -2527,19 +2670,25 @@ bdrs.map.initPointSelectClickHandler = function(map){
                 return;
             }
             
-            var lonLat = map.getLonLatFromViewPortPx(evt.xy);
+            var lonLat = map.getLonLatFromViewPortPx(evt.xy).clone();
             var feature = new OpenLayers.Feature.Vector(new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat));
-            
-            lonLat.transform(bdrs.map.GOOGLE_PROJECTION, bdrs.map.WGS84_PROJECTION);
+			
+			var crsSelector = this.handlerOptions.crsSelector;
+			var dstProj = bdrs.map.getProjection(crsSelector);
+			
+            lonLat.transform(bdrs.map.GOOGLE_PROJECTION, dstProj);
             // The extra blur is for ketchup
             if (this.handlerOptions.latitudeInputSelector !== null) {
-                jQuery(this.handlerOptions.latitudeInputSelector).val(bdrs.map.roundLatOrLon(lonLat.lat)).trigger("change").trigger("blur");
+                jQuery(this.handlerOptions.latitudeInputSelector).val(bdrs.map.roundCoord(lonLat.lat, crsSelector)).trigger("change").trigger("blur");
             }
             if (this.handlerOptions.longitudeInputSelector !== null) {
-                jQuery(this.handlerOptions.longitudeInputSelector).val(bdrs.map.roundLatOrLon(lonLat.lon)).trigger("change").trigger("blur");
+                jQuery(this.handlerOptions.longitudeInputSelector).val(bdrs.map.roundCoord(lonLat.lon, crsSelector)).trigger("change").trigger("blur");
             }
             
             if (layer !== null) {
+				if (this.handlerOptions.single === true) {
+					layer.removeFeatures(layer.features);
+				}
                 layer.addFeatures(feature);
             }
         }
@@ -2779,37 +2928,33 @@ bdrs.survey.location.updateLocation = function(pk, surveyId, options) {
     if(pk > 0) {
         var params = {id: pk, surveyId: surveyId, displayAttributes: true};
         jQuery.get(bdrs.portalContextPath+"/webservice/location/getLocationById.htm", params, function(data) {
+			// bdrs.map.wkt_options will always expect the input to be in WGS84 and will return
+			// the result in google projection. Also note that getLocationById webservice will
+			// always return in WGS84.
             var wkt = new OpenLayers.Format.WKT(bdrs.map.wkt_options);
             var feature = wkt.read(data.location);
-            var point = feature.geometry.getCentroid().transform(
+			var dstProj = bdrs.map.getProjection(options.crsSelector);
+            var point = feature.geometry.getCentroid().clone().transform(
                     bdrs.map.GOOGLE_PROJECTION,
-                    bdrs.map.WGS84_PROJECTION);
+                    dstProj);
             var lat = jQuery('input[name=latitude]').val(point.y).blur();
             var lon = jQuery('input[name=longitude]').val(point.x).blur();
 
             // add the location point to the map
             var layer = bdrs.map.baseMap.getLayersByName(bdrs.survey.location.LAYER_NAME)[0];
             layer.removeFeatures(layer.features);
-
-            var lonLat = new OpenLayers.LonLat(point.x, point.y);
-            lonLat = lonLat.transform(bdrs.map.WGS84_PROJECTION,
-                                      bdrs.map.GOOGLE_PROJECTION);
+            var lonLat = new OpenLayers.LonLat(feature.geometry.getCentroid().x, feature.geometry.getCentroid().y);
             layer.addFeatures(new OpenLayers.Feature.Vector(
                 new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat)));
-
             // add the location geometry to the map
             var loclayer = bdrs.map.baseMap.getLayersByName(bdrs.survey.location.LOCATION_LAYER_NAME)[0];
             loclayer.removeFeatures(loclayer.features);
-
             loclayer.addFeatures(feature);
-
             // zoom the map to show the currently selected location
             var geobounds = feature.geometry.getBounds();
             var zoom = bdrs.map.baseMap.getZoomForExtent(geobounds);
-            
             zoom = zoom > bdrs.map.DEFAULT_POINT_ZOOM_LEVEL ? bdrs.map.DEFAULT_POINT_ZOOM_LEVEL : zoom;
             bdrs.map.baseMap.setCenter(geobounds.getCenterLonLat(), zoom);
-            
             // show the location attributes in the locationAttributesContainer
             if (options) {
                 bdrs.attribute.createAttributeDisplayDiv(data.orderedAttributes, options.attributeSelector);

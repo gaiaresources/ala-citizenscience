@@ -20,10 +20,6 @@ import java.util.zip.ZipOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import au.com.gaiaresources.bdrs.model.taxa.*;
-import au.com.gaiaresources.bdrs.json.JSONArray;
-import au.com.gaiaresources.bdrs.json.JSONObject;
-
 import org.apache.log4j.Logger;
 import org.hibernate.FlushMode;
 import org.hibernate.SessionFactory;
@@ -36,18 +32,28 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import au.com.bytecode.opencsv.CSVWriter;
 import au.com.gaiaresources.bdrs.controller.AbstractController;
+import au.com.gaiaresources.bdrs.json.JSONArray;
+import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.group.Group;
 import au.com.gaiaresources.bdrs.model.group.GroupDAO;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
+import au.com.gaiaresources.bdrs.model.taxa.Attribute;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 /**
  * The Survey Service provides a web API for Survey based services.
@@ -67,13 +73,13 @@ public class SurveyService extends AbstractController {
     @Autowired
     private RecordDAO recordDAO;
     @Autowired
-    private LocationService locationService;
-    @Autowired
     private TaxaDAO taxaDAO;
     @Autowired
     private GroupDAO groupDAO;
     @Autowired
     private SessionFactory sessionFactory;
+    
+    private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
 
     static final String AUTHORISATION_PARAMETER = "ident";
     static final String GROUP_ID_PARAMETER = "groupId";
@@ -379,7 +385,7 @@ public class SurveyService extends AbstractController {
             record.setLocation(locationDAO.getLocation(Integer.valueOf(number_locationid)));
         }
 
-        record.setPoint(locationService.createPoint(
+        record.setPoint(spatialUtil.createPoint(
                                                     new Double(request.getParameter("locationLatitude")),
                                                     new Double(request.getParameter("locationLongitude"))));
         record.setTime(date.getTime());
@@ -473,7 +479,7 @@ public class SurveyService extends AbstractController {
             // set location if there is one
             record.setLocation(locationDAO.getLocation(Integer.valueOf(request.getParameter("locationid"))));
         }
-        record.setPoint(locationService.createPoint(
+        record.setPoint(spatialUtil.createPoint(
                                                     new Double(request.getParameter("locationLatitude")),
                                                     new Double(request.getParameter("locationLongitude"))));
         record.setTime(date.getTime());

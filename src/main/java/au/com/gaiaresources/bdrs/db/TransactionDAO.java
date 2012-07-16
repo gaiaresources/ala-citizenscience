@@ -84,4 +84,11 @@ public interface TransactionDAO {
      * @param instance persistent object to refresh.
      */
     public <T extends Persistent> void refresh(T instance);
+    
+    /**
+     * Re-read the state of the instance from the underlying database.
+     * @param sesh Hibernate session.
+     * @param instance persistent object to refresh.
+     */
+    public <T extends Persistent> void refresh(Session sesh, T instance);
 }

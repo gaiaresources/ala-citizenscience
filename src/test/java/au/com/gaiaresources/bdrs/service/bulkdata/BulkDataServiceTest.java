@@ -42,7 +42,7 @@ import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
+import au.com.gaiaresources.bdrs.model.map.GeoMap;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
@@ -53,6 +53,7 @@ import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
 import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
 import au.com.gaiaresources.bdrs.model.record.impl.ScrollableRecordsList;
 import au.com.gaiaresources.bdrs.model.region.Region;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
@@ -66,10 +67,14 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.lsid.LSIDService;
+import au.com.gaiaresources.bdrs.service.map.GeoMapService;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 import com.vividsolutions.jts.geom.Point;
 
 public class BulkDataServiceTest extends AbstractControllerTest {
+
     @Autowired
     private BulkDataService bulkDataService;
     @Autowired
@@ -85,13 +90,15 @@ public class BulkDataServiceTest extends AbstractControllerTest {
     @Autowired
     private TaxaDAO taxaDAO;
     @Autowired
-    private LocationService locationService;
-    @Autowired
     private LSIDService lsidService;
     @Autowired
     private MetadataDAO metadataDAO;
     @Autowired
     private LocationDAO locationDAO;
+	@Autowired
+	private GeoMapService geoMapService;
+	
+	private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
 
     Logger log = Logger.getLogger(getClass());
 
@@ -116,24 +123,30 @@ public class BulkDataServiceTest extends AbstractControllerTest {
     IndicatorSpecies species2;
     IndicatorSpecies species3;
     IndicatorSpecies species4;
-    private Location loc, uploadLoc;
-    private AttributeValue locAttrVal;
-    public static final String CUSTOM_PREFIX = "custom_";
-    
-    
-    /**
-     * Used for asserting exceptions
-     */
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
+	private Location loc, uploadLoc;
+	private AttributeValue locAttrVal;
+	public static final String CUSTOM_PREFIX = "custom_";
+	
+	private static final String EPSG_HEADER = "EPSG Code";
+	
+	
+	/**
+	 * Used for asserting exceptions
+	 */
+	@Rule
+	public ExpectedException thrown = ExpectedException.none();
 
-    @Before
-    public void setup() {
-        user = userDAO.getUser("admin");
-        survey = surveyDAO.createSurvey("my super survey");
-        survey.setDescription("a really great survey");
-        survey.setDefaultRecordVisibility(RecordVisibility.CONTROLLED,
-                metadataDAO);
+	@Before
+	public void setup() {
+		user = userDAO.getUser("admin");
+		survey = surveyDAO.createSurvey("my super survey");
+		
+		GeoMap map1 = geoMapService.getForSurvey(survey);
+		map1.setCrs(BdrsCoordReferenceSystem.WGS84);
+		
+		survey.setDescription("a really great survey");
+		survey.setDefaultRecordVisibility(RecordVisibility.CONTROLLED,
+				metadataDAO);
 
         cm = createCensusMethod("c:m:1:", Taxonomic.NONTAXONOMIC);
         testAttr1 = createAttribute("attribute1", "desc1", true,
@@ -176,31 +189,31 @@ public class BulkDataServiceTest extends AbstractControllerTest {
         survey.getAttributes().add(surveyAttr3);
         survey.getAttributes().add(surveyAttr4);
 
-        loc = new Location();
-        loc.setName("Test Location");
-        loc.setLocation(locationService.createPoint(10.0, 10.0));
-        locAttrVal = new AttributeValue();
-        locAttrVal.setAttribute(surveyAttr4);
-        locAttrVal.setStringValue("location attribute value");
-        locAttrVal = attrDAO.save(locAttrVal);
-        loc.getAttributes().add(locAttrVal);
-        List<Survey> surveyList = new ArrayList<Survey>(1);
-        surveyList.add(survey);
-        loc.setSurveys(surveyList);
-        loc = locationDAO.save(loc);
-        survey.getLocations().add(loc);
-        //survey = surveyDAO.save(survey);
-        
-        taxongroup = taxaDAO.createTaxonGroup("a taxon group", false, false,
-                false, false, false, false);
-        species = taxaDAO.createIndicatorSpecies("hectus workus",
-                "argh pirate", taxongroup, new ArrayList<Region>(),
-                new ArrayList<SpeciesProfile>());
-        
-        species2 = taxaDAO.createIndicatorSpecies("species two", 
-                "common two", 
-                taxongroup, new ArrayList<Region>(),
-                new ArrayList<SpeciesProfile>());
+		loc = new Location();
+		loc.setName("Test Location");
+		loc.setLocation(spatialUtil.createPoint(10.0, 10.0));
+		locAttrVal = new AttributeValue();
+		locAttrVal.setAttribute(surveyAttr4);
+		locAttrVal.setStringValue("location attribute value");
+		locAttrVal = attrDAO.save(locAttrVal);
+		loc.getAttributes().add(locAttrVal);
+		List<Survey> surveyList = new ArrayList<Survey>(1);
+		surveyList.add(survey);
+		loc.setSurveys(surveyList);
+		loc = locationDAO.save(loc);
+		survey.getLocations().add(loc);
+		//survey = surveyDAO.save(survey);
+		
+		taxongroup = taxaDAO.createTaxonGroup("a taxon group", false, false,
+				false, false, false, false);
+		species = taxaDAO.createIndicatorSpecies("hectus workus",
+				"argh pirate", taxongroup, new ArrayList<Region>(),
+				new ArrayList<SpeciesProfile>());
+		
+		species2 = taxaDAO.createIndicatorSpecies("species two", 
+				"common two", 
+				taxongroup, new ArrayList<Region>(),
+				new ArrayList<SpeciesProfile>());
 
         species3 = taxaDAO.createIndicatorSpecies("species three",
                 "",
@@ -225,17 +238,19 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 
         userList = createTestUsers();
 
-        uploadSurvey = surveyDAO.createSurvey("MyUploadSurvey");
-        uploadSurvey.setDescription("a survey for testing uploading records");
-        uploadSurvey.setDefaultRecordVisibility(RecordVisibility.CONTROLLED,
-                metadataDAO);
+		uploadSurvey = surveyDAO.createSurvey("MyUploadSurvey");
+		
+		uploadSurvey.setDescription("a survey for testing uploading records");
+		uploadSurvey.setDefaultRecordVisibility(RecordVisibility.CONTROLLED,
+				metadataDAO);
 
-        uploadLoc = new Location();
-        uploadLoc.setName("MySite");
-        uploadLoc.setLocation(locationService.createPoint(-29.499304258328,
-                139.92773437486));
-        uploadLoc = locationDAO.save(uploadLoc);
-        uploadSurvey.getLocations().add(uploadLoc);
+		uploadLoc = new Location();
+		uploadLoc.setName("MySite");
+		uploadLoc.setLocation(spatialUtil.createPoint(-29.499304258328,
+				139.92773437486));
+		uploadLoc = locationDAO.save(uploadLoc);
+		uploadSurvey.getLocations().add(uploadLoc);
+
 
         RecordProperty numberProperty = new RecordProperty(uploadSurvey,
                 RecordPropertyType.NUMBER, metadataDAO);
@@ -318,39 +333,41 @@ public class BulkDataServiceTest extends AbstractControllerTest {
         // The header - contains the attribute names
         Assert.assertNotNull(obSheet.getRow(2));
 
-        int colIdx = 0;
-        Assert.assertEquals("ID", obSheet.getRow(2).getCell(colIdx++)
-                .getStringCellValue());
-        Assert.assertEquals("Parent ID", obSheet.getRow(2).getCell(colIdx++)
-                .getStringCellValue());
-        Assert.assertEquals("Census Method ID", obSheet.getRow(2).getCell(
-                colIdx++).getStringCellValue());
-        Assert.assertEquals("Census Method", obSheet.getRow(2)
-                .getCell(colIdx++).getStringCellValue());
-        Assert.assertEquals("Scientific Name", obSheet.getRow(2).getCell(
-                colIdx++).getStringCellValue());
-        Assert.assertEquals("Common Name", obSheet.getRow(2).getCell(colIdx++)
-                .getStringCellValue());
-        Assert.assertEquals("Location ID", obSheet.getRow(2).getCell(colIdx++)
-                .getStringCellValue());
-        Assert.assertEquals("Location Name", obSheet.getRow(2)
-                .getCell(colIdx++).getStringCellValue());
-        Assert.assertEquals("Latitude", obSheet.getRow(2).getCell(colIdx++)
-                .getStringCellValue());
-        Assert.assertEquals("Longitude", obSheet.getRow(2).getCell(colIdx++)
-                .getStringCellValue());
-        Assert.assertEquals(new RecordProperty(survey, RecordPropertyType.WHEN,
-                metadataDAO).getDescription(), obSheet.getRow(2).getCell(
-                colIdx++).getStringCellValue());
-        Assert.assertEquals(new RecordProperty(survey, RecordPropertyType.TIME,
-                metadataDAO).getDescription(), obSheet.getRow(2).getCell(
-                colIdx++).getStringCellValue());
-        Assert.assertEquals(new RecordProperty(survey,
-                RecordPropertyType.NUMBER, metadataDAO).getDescription(),
-                obSheet.getRow(2).getCell(colIdx++).getStringCellValue());
-        Assert.assertEquals(new RecordProperty(survey,
-                RecordPropertyType.NOTES, metadataDAO).getDescription(),
-                obSheet.getRow(2).getCell(colIdx++).getStringCellValue());
+		int colIdx = 0;
+		Assert.assertEquals("ID", obSheet.getRow(2).getCell(colIdx++)
+				.getStringCellValue());
+		Assert.assertEquals("Parent ID", obSheet.getRow(2).getCell(colIdx++)
+				.getStringCellValue());
+		Assert.assertEquals("Census Method ID", obSheet.getRow(2).getCell(
+				colIdx++).getStringCellValue());
+		Assert.assertEquals("Census Method", obSheet.getRow(2)
+				.getCell(colIdx++).getStringCellValue());
+		Assert.assertEquals("Scientific Name", obSheet.getRow(2).getCell(
+				colIdx++).getStringCellValue());
+		Assert.assertEquals("Common Name", obSheet.getRow(2).getCell(colIdx++)
+				.getStringCellValue());
+		Assert.assertEquals("Location ID", obSheet.getRow(2).getCell(colIdx++)
+				.getStringCellValue());
+		Assert.assertEquals("Location Name", obSheet.getRow(2)
+				.getCell(colIdx++).getStringCellValue());
+		Assert.assertEquals("Latitude/Northings", obSheet.getRow(2).getCell(colIdx++)
+				.getStringCellValue());
+		Assert.assertEquals("Longitude/Eastings", obSheet.getRow(2).getCell(colIdx++)
+				.getStringCellValue());
+		Assert.assertEquals("wrong header", EPSG_HEADER, obSheet.getRow(2).getCell(colIdx++)
+				.getStringCellValue());
+		Assert.assertEquals(new RecordProperty(survey, RecordPropertyType.WHEN,
+				metadataDAO).getDescription(), obSheet.getRow(2).getCell(
+				colIdx++).getStringCellValue());
+		Assert.assertEquals(new RecordProperty(survey, RecordPropertyType.TIME,
+				metadataDAO).getDescription(), obSheet.getRow(2).getCell(
+				colIdx++).getStringCellValue());
+		Assert.assertEquals(new RecordProperty(survey,
+				RecordPropertyType.NUMBER, metadataDAO).getDescription(),
+				obSheet.getRow(2).getCell(colIdx++).getStringCellValue());
+		Assert.assertEquals(new RecordProperty(survey,
+				RecordPropertyType.NOTES, metadataDAO).getDescription(),
+				obSheet.getRow(2).getCell(colIdx++).getStringCellValue());
 
         Assert.assertEquals("sdesc1", obSheet.getRow(2).getCell(colIdx++)
                 .getStringCellValue());
@@ -380,38 +397,42 @@ public class BulkDataServiceTest extends AbstractControllerTest {
                 .getSheet(AbstractBulkDataService.LOCATION_SHEET_NAME);
         Assert.assertNotNull(locSheet);
 
-        // Header
-        int locColIndex = 0;
-        Assert.assertEquals("Location ID", locSheet.getRow(0).getCell(
-                locColIndex++).getStringCellValue());
-        Assert.assertEquals("Type", locSheet.getRow(0).getCell(locColIndex++)
-                .getStringCellValue());
-        Assert.assertEquals("Location Name", locSheet.getRow(0).getCell(
-                locColIndex++).getStringCellValue());
-        Assert.assertEquals("Latitude", locSheet.getRow(0).getCell(
-                locColIndex++).getStringCellValue());
-        Assert.assertEquals("Longitude", locSheet.getRow(0).getCell(
-                locColIndex++).getStringCellValue());
-        Assert.assertEquals("sdesc4", locSheet.getRow(0).getCell(locColIndex++)
-                .getStringCellValue());
+		// Header
+		int locColIndex = 0;
+		Assert.assertEquals("Location ID", locSheet.getRow(0).getCell(
+				locColIndex++).getStringCellValue());
+		Assert.assertEquals("Type", locSheet.getRow(0).getCell(locColIndex++)
+				.getStringCellValue());
+		Assert.assertEquals("Location Name", locSheet.getRow(0).getCell(
+				locColIndex++).getStringCellValue());
+		Assert.assertEquals("Latitude/Northings", locSheet.getRow(0).getCell(
+				locColIndex++).getStringCellValue());
+		Assert.assertEquals("Longitude/Eastings", locSheet.getRow(0).getCell(
+				locColIndex++).getStringCellValue());
+		Assert.assertEquals("EPSG Code", locSheet.getRow(0).getCell(
+				locColIndex++).getStringCellValue());
+		Assert.assertEquals("sdesc4", locSheet.getRow(0).getCell(locColIndex++)
+				.getStringCellValue());
 
-        // Content - Should have one one row there.
-        locColIndex = 0;
-        Assert.assertEquals(loc.getId().intValue(), new Double(XlsCellUtil
-                .cellToDouble(locSheet.getRow(1).getCell(locColIndex++)))
-                .intValue());
-        Assert.assertEquals(
-                AbstractBulkDataService.LOCATION_SHEET_SURVEY_LOCATION,
-                locSheet.getRow(1).getCell(locColIndex++).getStringCellValue());
-        Assert.assertEquals(loc.getName(), locSheet.getRow(1).getCell(
-                locColIndex++).getStringCellValue());
-        Assert.assertEquals(loc.getLocation().getCentroid().getY(), XlsCellUtil
-                .cellToDouble(locSheet.getRow(1).getCell(locColIndex++)));
-        Assert.assertEquals(loc.getLocation().getCentroid().getX(), XlsCellUtil
-                .cellToDouble(locSheet.getRow(1).getCell(locColIndex++)));
-        Assert.assertEquals(locAttrVal.getStringValue(), XlsCellUtil
-                .cellToString(locSheet.getRow(1).getCell(locColIndex++)));
-    }
+		// Content - Should have one one row there.
+		locColIndex = 0;
+		Assert.assertEquals(loc.getId().intValue(), new Double(XlsCellUtil
+				.cellToDouble(locSheet.getRow(1).getCell(locColIndex++)))
+				.intValue());
+		Assert.assertEquals(
+				AbstractBulkDataService.LOCATION_SHEET_SURVEY_LOCATION,
+				locSheet.getRow(1).getCell(locColIndex++).getStringCellValue());
+		Assert.assertEquals(loc.getName(), locSheet.getRow(1).getCell(
+				locColIndex++).getStringCellValue());
+		Assert.assertEquals(loc.getLocation().getCentroid().getY(), XlsCellUtil
+				.cellToDouble(locSheet.getRow(1).getCell(locColIndex++)));
+		Assert.assertEquals(loc.getLocation().getCentroid().getX(), XlsCellUtil
+				.cellToDouble(locSheet.getRow(1).getCell(locColIndex++)));
+		Assert.assertEquals("wrong epsg code", "EPSG:"+loc.getLocation().getSRID(),
+				XlsCellUtil.cellToString(locSheet.getRow(1).getCell(locColIndex++)));
+		Assert.assertEquals(locAttrVal.getStringValue(), XlsCellUtil
+				.cellToString(locSheet.getRow(1).getCell(locColIndex++)));
+	}
 
     @Test
     public void testImportLocations() throws IOException, ParseException,
@@ -437,20 +458,21 @@ public class BulkDataServiceTest extends AbstractControllerTest {
                 .getSheet(AbstractBulkDataService.LOCATION_SHEET_NAME);
         Assert.assertNotNull(locSheet);
 
-        Row row = locSheet.createRow(locSheet.getLastRowNum() + 1);
-        int colIndex = 0;
-        row.createCell(colIndex++); // Location ID
-        // Intentionally setting everything as strings to stress the format
-        // coercion
-        row.createCell(colIndex++).setCellValue(
-                AbstractBulkDataService.LOCATION_SHEET_SURVEY_LOCATION); // Type
-        row.createCell(colIndex++).setCellValue("I am a new location"); // Location
-                                                                        // Name
-        row.createCell(colIndex++).setCellValue("-20"); // Latitude
-        row.createCell(colIndex++).setCellValue("-20"); // Longitude
-        row.createCell(colIndex++).setCellValue("I am a little teapot"); // Attribute
-                                                                            // Values
-
+		Row row = locSheet.createRow(locSheet.getLastRowNum() + 1);
+		int colIndex = 0;
+		row.createCell(colIndex++); // Location ID
+		// Intentionally setting everything as strings to stress the format
+		// coercion
+		row.createCell(colIndex++).setCellValue(
+				AbstractBulkDataService.LOCATION_SHEET_SURVEY_LOCATION); // Type
+		row.createCell(colIndex++).setCellValue("I am a new location"); // Location
+																		// Name
+		row.createCell(colIndex++).setCellValue("-20"); // Latitude
+		row.createCell(colIndex++).setCellValue("-20"); // Longitude
+		// EPSG:28352 (case insensitive)
+		row.createCell(colIndex++).setCellValue("EpSg:"+BdrsCoordReferenceSystem.MGA52.getSrid());
+		row.createCell(colIndex++).setCellValue("I am a little teapot"); // Attribute
+																			// Values
         FileOutputStream outStream2 = new FileOutputStream(spreadSheetTmp);
         registerStream(outStream2);
         wb.write(outStream2);
@@ -461,27 +483,31 @@ public class BulkDataServiceTest extends AbstractControllerTest {
         int initialLocCount = survey.getLocations().size();
         BulkUpload bulkUpload = bulkDataService.importBulkData(survey,
                 inStream2);
+        
+        Assert.assertEquals("expect no errors", 0, bulkUpload.getErrorLocationUploadList().size());
 
         Assert.assertEquals(2, bulkUpload.getLocationUploads().size());
 
-        sessionFactory.getCurrentSession().getTransaction().commit();
-        sessionFactory.getCurrentSession().beginTransaction();
+        commit();
+        
         bulkDataService.saveRecords(user, bulkUpload, true);
-
+                
         Survey other = surveyDAO.getSurvey(survey.getId());
+        
         int actualLocCount = other.getLocations().size();
         Assert.assertEquals(initialLocCount + 1, actualLocCount);
 
-        boolean otherLocationFound = false;
-        for (Location otherLoc : other.getLocations()) {
-            if (!otherLoc.getId().equals(loc.getId())) {
-                otherLocationFound = true;
-                Assert.assertNull(otherLoc.getUser());
-                Assert.assertEquals(-20.0, otherLoc.getLocation().getCentroid()
-                        .getY());
-                Assert.assertEquals(-20.0, otherLoc.getLocation().getCentroid()
-                        .getX());
-                Assert.assertEquals("I am a new location", otherLoc.getName());
+		boolean otherLocationFound = false;
+		for (Location otherLoc : other.getLocations()) {
+			if (!otherLoc.getId().equals(loc.getId())) {
+				otherLocationFound = true;
+				Assert.assertNull(otherLoc.getUser());
+				Assert.assertEquals(-20.0, otherLoc.getLocation().getCentroid()
+						.getY());
+				Assert.assertEquals(-20.0, otherLoc.getLocation().getCentroid()
+						.getX());
+				Assert.assertEquals("wrong srid", 28352, otherLoc.getLocation().getSRID());
+				Assert.assertEquals("I am a new location", otherLoc.getName());
 
                 Assert.assertEquals(1, loc.getAttributes().size());
                 Assert.assertEquals("I am a little teapot", otherLoc
@@ -520,39 +546,41 @@ public class BulkDataServiceTest extends AbstractControllerTest {
         // The header - contains the attribute names
         Assert.assertNotNull(obSheet.getRow(2));
 
-        int colIdx = 0;
-        Assert.assertEquals("ID", obSheet.getRow(2).getCell(colIdx++)
-                .getStringCellValue());
-        Assert.assertEquals("Parent ID", obSheet.getRow(2).getCell(colIdx++)
-                .getStringCellValue());
-        Assert.assertEquals("Census Method ID", obSheet.getRow(2).getCell(
-                colIdx++).getStringCellValue());
-        Assert.assertEquals("Census Method", obSheet.getRow(2)
-                .getCell(colIdx++).getStringCellValue());
-        Assert.assertEquals("Scientific Name", obSheet.getRow(2).getCell(
-                colIdx++).getStringCellValue());
-        Assert.assertEquals("Common Name", obSheet.getRow(2).getCell(colIdx++)
-                .getStringCellValue());
-        Assert.assertEquals("Location ID", obSheet.getRow(2).getCell(colIdx++)
-                .getStringCellValue());
-        Assert.assertEquals("Location Name", obSheet.getRow(2)
-                .getCell(colIdx++).getStringCellValue());
-        Assert.assertEquals("Latitude", obSheet.getRow(2).getCell(colIdx++)
-                .getStringCellValue());
-        Assert.assertEquals("Longitude", obSheet.getRow(2).getCell(colIdx++)
-                .getStringCellValue());
-        Assert.assertEquals(new RecordProperty(survey, RecordPropertyType.WHEN,
-                metadataDAO).getDescription(), obSheet.getRow(2).getCell(
-                colIdx++).getStringCellValue());
-        Assert.assertEquals(new RecordProperty(survey, RecordPropertyType.TIME,
-                metadataDAO).getDescription(), obSheet.getRow(2).getCell(
-                colIdx++).getStringCellValue());
-        Assert.assertEquals(new RecordProperty(survey,
-                RecordPropertyType.NUMBER, metadataDAO).getDescription(),
-                obSheet.getRow(2).getCell(colIdx++).getStringCellValue());
-        Assert.assertEquals(new RecordProperty(survey,
-                RecordPropertyType.NOTES, metadataDAO).getDescription(),
-                obSheet.getRow(2).getCell(colIdx++).getStringCellValue());
+		int colIdx = 0;
+		Assert.assertEquals("ID", obSheet.getRow(2).getCell(colIdx++)
+				.getStringCellValue());
+		Assert.assertEquals("Parent ID", obSheet.getRow(2).getCell(colIdx++)
+				.getStringCellValue());
+		Assert.assertEquals("Census Method ID", obSheet.getRow(2).getCell(
+				colIdx++).getStringCellValue());
+		Assert.assertEquals("Census Method", obSheet.getRow(2)
+				.getCell(colIdx++).getStringCellValue());
+		Assert.assertEquals("Scientific Name", obSheet.getRow(2).getCell(
+				colIdx++).getStringCellValue());
+		Assert.assertEquals("Common Name", obSheet.getRow(2).getCell(colIdx++)
+				.getStringCellValue());
+		Assert.assertEquals("Location ID", obSheet.getRow(2).getCell(colIdx++)
+				.getStringCellValue());
+		Assert.assertEquals("Location Name", obSheet.getRow(2)
+				.getCell(colIdx++).getStringCellValue());
+		Assert.assertEquals("Latitude/Northings", obSheet.getRow(2).getCell(colIdx++)
+				.getStringCellValue());
+		Assert.assertEquals("Longitude/Eastings", obSheet.getRow(2).getCell(colIdx++)
+				.getStringCellValue());
+		Assert.assertEquals("wrong header", EPSG_HEADER, obSheet.getRow(2).getCell(colIdx++)
+				.getStringCellValue());
+		Assert.assertEquals(new RecordProperty(survey, RecordPropertyType.WHEN,
+				metadataDAO).getDescription(), obSheet.getRow(2).getCell(
+				colIdx++).getStringCellValue());
+		Assert.assertEquals(new RecordProperty(survey, RecordPropertyType.TIME,
+				metadataDAO).getDescription(), obSheet.getRow(2).getCell(
+				colIdx++).getStringCellValue());
+		Assert.assertEquals(new RecordProperty(survey,
+				RecordPropertyType.NUMBER, metadataDAO).getDescription(),
+				obSheet.getRow(2).getCell(colIdx++).getStringCellValue());
+		Assert.assertEquals(new RecordProperty(survey,
+				RecordPropertyType.NOTES, metadataDAO).getDescription(),
+				obSheet.getRow(2).getCell(colIdx++).getStringCellValue());
 
         Assert.assertEquals("sdesc1", obSheet.getRow(2).getCell(colIdx++)
                 .getStringCellValue());
@@ -601,39 +629,41 @@ public class BulkDataServiceTest extends AbstractControllerTest {
         // The header - contains the attribute names
         Assert.assertNotNull(obSheet.getRow(2));
 
-        int colIdx = 0;
-        Assert.assertEquals("ID", obSheet.getRow(2).getCell(colIdx++)
-                .getStringCellValue());
-        Assert.assertEquals("Parent ID", obSheet.getRow(2).getCell(colIdx++)
-                .getStringCellValue());
-        Assert.assertEquals("Census Method ID", obSheet.getRow(2).getCell(
-                colIdx++).getStringCellValue());
-        Assert.assertEquals("Census Method", obSheet.getRow(2)
-                .getCell(colIdx++).getStringCellValue());
-        Assert.assertEquals("Scientific Name", obSheet.getRow(2).getCell(
-                colIdx++).getStringCellValue());
-        Assert.assertEquals("Common Name", obSheet.getRow(2).getCell(colIdx++)
-                .getStringCellValue());
-        Assert.assertEquals("Location ID", obSheet.getRow(2).getCell(colIdx++)
-                .getStringCellValue());
-        Assert.assertEquals("Location Name", obSheet.getRow(2)
-                .getCell(colIdx++).getStringCellValue());
-        Assert.assertEquals("Latitude", obSheet.getRow(2).getCell(colIdx++)
-                .getStringCellValue());
-        Assert.assertEquals("Longitude", obSheet.getRow(2).getCell(colIdx++)
-                .getStringCellValue());
-        Assert.assertEquals(recordProperties.get(RecordPropertyType.WHEN)
-                .getDescription(), obSheet.getRow(2).getCell(colIdx++)
-                .getStringCellValue());
-        Assert.assertEquals(recordProperties.get(RecordPropertyType.TIME)
-                .getDescription(), obSheet.getRow(2).getCell(colIdx++)
-                .getStringCellValue());
-        Assert.assertEquals(recordProperties.get(RecordPropertyType.NUMBER)
-                .getDescription(), obSheet.getRow(2).getCell(colIdx++)
-                .getStringCellValue());
-        Assert.assertEquals(recordProperties.get(RecordPropertyType.NOTES)
-                .getDescription(), obSheet.getRow(2).getCell(colIdx++)
-                .getStringCellValue());
+		int colIdx = 0;
+		Assert.assertEquals("ID", obSheet.getRow(2).getCell(colIdx++)
+				.getStringCellValue());
+		Assert.assertEquals("Parent ID", obSheet.getRow(2).getCell(colIdx++)
+				.getStringCellValue());
+		Assert.assertEquals("Census Method ID", obSheet.getRow(2).getCell(
+				colIdx++).getStringCellValue());
+		Assert.assertEquals("Census Method", obSheet.getRow(2)
+				.getCell(colIdx++).getStringCellValue());
+		Assert.assertEquals("Scientific Name", obSheet.getRow(2).getCell(
+				colIdx++).getStringCellValue());
+		Assert.assertEquals("Common Name", obSheet.getRow(2).getCell(colIdx++)
+				.getStringCellValue());
+		Assert.assertEquals("Location ID", obSheet.getRow(2).getCell(colIdx++)
+				.getStringCellValue());
+		Assert.assertEquals("Location Name", obSheet.getRow(2)
+				.getCell(colIdx++).getStringCellValue());
+		Assert.assertEquals("Latitude/Northings", obSheet.getRow(2).getCell(colIdx++)
+				.getStringCellValue());
+		Assert.assertEquals("Longitude/Eastings", obSheet.getRow(2).getCell(colIdx++)
+				.getStringCellValue());
+		Assert.assertEquals("wrong header", EPSG_HEADER, obSheet.getRow(2).getCell(colIdx++)
+				.getStringCellValue());
+		Assert.assertEquals(recordProperties.get(RecordPropertyType.WHEN)
+				.getDescription(), obSheet.getRow(2).getCell(colIdx++)
+				.getStringCellValue());
+		Assert.assertEquals(recordProperties.get(RecordPropertyType.TIME)
+				.getDescription(), obSheet.getRow(2).getCell(colIdx++)
+				.getStringCellValue());
+		Assert.assertEquals(recordProperties.get(RecordPropertyType.NUMBER)
+				.getDescription(), obSheet.getRow(2).getCell(colIdx++)
+				.getStringCellValue());
+		Assert.assertEquals(recordProperties.get(RecordPropertyType.NOTES)
+				.getDescription(), obSheet.getRow(2).getCell(colIdx++)
+				.getStringCellValue());
 
         Assert.assertEquals("sdesc1", obSheet.getRow(2).getCell(colIdx++)
                 .getStringCellValue());
@@ -669,39 +699,45 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 
         String ssParentId = "1";
 
-        MyTestRow parentRow = new MyTestRow();
-        parentRow.setIdAsNumber(true);
-        // test with leading / trailing white space
-        parentRow.setId(ssParentId);
-        parentRow.setCmId(cm.getId().toString());
-        parentRow.setCmName(cm.getName());
-        parentRow.setScientificName("hectus workus");
-        parentRow.setCommonName("common workus");
-        parentRow.setSurveyAttr1(1);
-        parentRow.setSurveyAttr2("4");
-        parentRow.setCm1Attr1(2);
-        parentRow.setCm1Attr2("5");
-        parentRow.setCm2Attr1(3);
-        parentRow.setCm2Attr2("6");
-        parentRow.createRow(obSheet, 3);
+		MyTestRow parentRow = new MyTestRow();
+		parentRow.setIdAsNumber(true);
+		// test with leading / trailing white space
+		parentRow.setId(ssParentId);
+		parentRow.setCmId(cm.getId().toString());
+		parentRow.setCmName(cm.getName());
+		parentRow.setScientificName("hectus workus");
+		parentRow.setCommonName("common workus");
+		parentRow.setSurveyAttr1(1);
+		parentRow.setSurveyAttr2("4");
+		parentRow.setCm1Attr1(2);
+		parentRow.setCm1Attr2("5");
+		parentRow.setCm2Attr1(3);
+		parentRow.setCm2Attr2("6");
+		parentRow.setLatitude(7000000);
+		parentRow.setLongitude(550000);
+		parentRow.setEpsg(BdrsCoordReferenceSystem.MGA50.getDisplayName());
+		parentRow.createRow(obSheet, 3);
 
-        MyTestRow childRow = new MyTestRow();
-        childRow.setIdAsNumber(true);
-        childRow.setId("");
-        childRow.setParentId(ssParentId);
-        childRow.setCmId(cm2.getId().toString());
-        childRow.setCmName(cm2.getName());
-        childRow.setScientificName("hectus workus");
-        childRow.setCommonName("common workus");
-        childRow.setSurveyAttr1(11);
-        childRow.setNumberSeen(1);
-        childRow.setNotes("7");
-        childRow.setSurveyAttr2("8");
-        childRow.setCm1Attr1(2);
-        childRow.setCm1Attr2("9");
-        childRow.setCm2Attr1(33);
-        childRow.setCm2Attr2("10");
-        childRow.createRow(obSheet, 4);
+		MyTestRow childRow = new MyTestRow();
+		childRow.setIdAsNumber(true);
+		childRow.setId("");
+		childRow.setParentId(ssParentId);
+		childRow.setCmId(cm2.getId().toString());
+		childRow.setCmName(cm2.getName());
+		childRow.setScientificName("hectus workus");
+		childRow.setCommonName("common workus");
+		childRow.setSurveyAttr1(11);
+		childRow.setNumberSeen(1);
+		childRow.setNotes("7");
+		childRow.setSurveyAttr2("8");
+		childRow.setCm1Attr1(2);
+		childRow.setCm1Attr2("9");
+		childRow.setCm2Attr1(33);
+		childRow.setCm2Attr2("10");
+		childRow.setLatitude(6800000);
+		childRow.setLongitude(560000);
+		childRow.setEpsg(Integer.toString(BdrsCoordReferenceSystem.MGA51.getSrid()));
+		childRow.createRow(obSheet, 4);
 
         FileOutputStream outStream2 = new FileOutputStream(spreadSheetTmp);
         registerStream(outStream2);
@@ -715,8 +751,8 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 
         Assert.assertEquals(2, bulkUpload.getRecordUploadList().size());
 
-        sessionFactory.getCurrentSession().getTransaction().commit();
-        sessionFactory.getCurrentSession().beginTransaction();
+        commit();
+        
         bulkDataService.saveRecords(user, bulkUpload, true);
 
         Assert.assertEquals(2, recDAO.countAllRecords().intValue());
@@ -754,9 +790,13 @@ public class BulkDataServiceTest extends AbstractControllerTest {
             Assert.assertEquals("5", getRecAttr(r, cm, "desc2")
                     .getStringValue());
 
-            Assert.assertNull(getRecAttr(r, cm2, "desc3"));
-            Assert.assertNull(getRecAttr(r, cm2, "desc4"));
-        }
+			Assert.assertNull(getRecAttr(r, cm2, "desc3"));
+			Assert.assertNull(getRecAttr(r, cm2, "desc4"));
+			
+			Assert.assertEquals("wrong lat", 7000000, r.getLatitude(), 0.1);
+			Assert.assertEquals("wrong lon", 550000, r.getLongitude(), 0.1);
+			Assert.assertEquals("wrong srid", 28350, r.getGeometry().getSRID());
+		}
 
         // Assert the child is correct
         {
@@ -782,11 +822,15 @@ public class BulkDataServiceTest extends AbstractControllerTest {
             Assert.assertEquals(33, getRecAttr(rChild, cm2, "desc3")
                     .getNumericValue().intValue());
 
-            Assert.assertNotNull(getRecAttr(rChild, cm2, "desc4"));
-            Assert.assertEquals("10", getRecAttr(rChild, cm2, "desc4")
-                    .getStringValue());
-        }
-    }
+			Assert.assertNotNull(getRecAttr(rChild, cm2, "desc4"));
+			Assert.assertEquals("10", getRecAttr(rChild, cm2, "desc4")
+					.getStringValue());
+			
+			Assert.assertEquals("wrong lat", 6800000, rChild.getLatitude(), 0.1);
+			Assert.assertEquals("wrong lon", 560000, rChild.getLongitude(), 0.1);
+			Assert.assertEquals("wrong srid", 28351, rChild.getGeometry().getSRID());
+		}
+	}
 
     @Test(expected = DataReferenceException.class)
     public void testImportSurveyNoCensusMethod() throws IOException,
@@ -859,8 +903,8 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 
         Assert.assertEquals(2, bulkUpload.getRecordUploadList().size());
 
-        sessionFactory.getCurrentSession().getTransaction().commit();
-        sessionFactory.getCurrentSession().beginTransaction();
+        commit();
+        
         bulkDataService.saveRecords(user, bulkUpload, true);
     }
 
@@ -910,15 +954,16 @@ public class BulkDataServiceTest extends AbstractControllerTest {
             MissingDataException, InvalidSurveySpeciesException,
             DataReferenceException, AmbiguousDataException {
 
-        setRequired(survey, false);
-        Calendar cal = Calendar.getInstance();
-        cal.set(2011, 2, 27, 14, 42, 0);
-        Point point = locationService.createPoint(-40, 120);
-        Record rec = createRecord(survey, point, user, species, cal
+		setRequired(survey, false);
+		Calendar cal = Calendar.getInstance();
+		cal.set(2011, 2, 27, 14, 42, 0);
+		Point point = spatialUtil.createPoint(-40, 120);
+		Record rec = createRecord(survey, point, user, species, cal
                 .getTime(), cal.getTime().getTime(), null, null, "", false, false, "", "",
                 200, new HashMap<Attribute, Object>());
-        rec.setCensusMethod(cm);
-        // setting record visibility here so records will be visible anonymously
+		rec.setCensusMethod(cm);
+		// setting record visibility here so records will be visible anonymously
+
         // alternately, we could add a login to the test
         rec.setRecordVisibility(RecordVisibility.PUBLIC);
         createCensusMethodRecordAttributes(rec);
@@ -988,8 +1033,10 @@ public class BulkDataServiceTest extends AbstractControllerTest {
             Assert.assertEquals(120, new Double(XlsCellUtil
                     .cellToDouble(parentXlsRow.getCell(colIdx++))).intValue());
 
-            colIdx++; // Date
-            colIdx++; // Time
+			colIdx++; // epsg
+		
+			colIdx++; // Date
+			colIdx++; // Time
 
             colIdx++; // Number
             colIdx++; // Notes
@@ -1040,6 +1087,8 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 
             colIdx++; // Latitude
             colIdx++; // Longitude
+			
+			colIdx++; // epsg
 
             colIdx++; // Date
             colIdx++; // Time
@@ -1072,9 +1121,9 @@ public class BulkDataServiceTest extends AbstractControllerTest {
             // common name
             childXlsRow.getCell(5).setCellValue("");
 
-            childXlsRow.getCell(16).setCellValue(10);
-            childXlsRow.getCell(17).setCellValue("new string");
-        }
+			childXlsRow.getCell(17).setCellValue(10);
+			childXlsRow.getCell(18).setCellValue("new string");
+		}
 
         // add a new row, make it a child of our original parent record
         {
@@ -1105,12 +1154,9 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 
         Assert.assertEquals(3, bulkUpload.getRecordUploadList().size());
 
-        sessionFactory.getCurrentSession().getTransaction().commit();
+        commit();
+        
         bulkDataService.saveRecords(user, bulkUpload, true);
-        // save Records will end the current transaction one way or
-        // another....so we
-        // need a new one to use our DAOs.
-        sessionFactory.getCurrentSession().beginTransaction();
         
         Assert.assertEquals(3, recDAO.countAllRecords().intValue());
 
@@ -1188,9 +1234,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 
         Assert.assertEquals(2, bulkUpload.getRecordUploadList().size());
 
-        sessionFactory.getCurrentSession().getTransaction().commit();
-        // we need a new one to use our DAOs.
-        sessionFactory.getCurrentSession().beginTransaction();
+        commit();
 
         bulkDataService.saveRecords(user, bulkUpload, true);
 
@@ -1351,6 +1395,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
                                                                                                                                         // Name
         locRow.createCell(colIndex++).setCellValue("-20"); // Latitude
         locRow.createCell(colIndex++).setCellValue("-20"); // Longitude
+        locRow.createCell(colIndex++).setCellValue("EPSG:4326"); // epsg code
         locRow.createCell(colIndex++).setCellValue("I am a little teapot"); // Attribute
 
         FileOutputStream outStream2 = new FileOutputStream(spreadSheetTmp);
@@ -1362,11 +1407,10 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 
         BulkUpload bulkUpload = bulkDataService.importBulkData(survey, inStream2);
 
+        Assert.assertEquals("wrong number of errors", 0, bulkUpload.getErrorCount());
         Assert.assertEquals(1, bulkUpload.getRecordUploadList().size());
 
-        sessionFactory.getCurrentSession().getTransaction().commit();
-        // we need a new one to use our DAOs.
-        sessionFactory.getCurrentSession().beginTransaction();
+        commit();
 
         bulkDataService.saveRecords(user, bulkUpload, true);
 
@@ -1421,9 +1465,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 
         Assert.assertEquals(1, bulkUpload.getRecordUploadList().size());
 
-        sessionFactory.getCurrentSession().getTransaction().commit();
-        // we need a new one to use our DAOs.
-        sessionFactory.getCurrentSession().beginTransaction();
+        commit();
 
         bulkDataService.saveRecords(user, bulkUpload, true);
 
@@ -1510,9 +1552,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 
         Assert.assertEquals(speciesArray.length, bulkUpload.getRecordUploadList().size());
 
-        sessionFactory.getCurrentSession().getTransaction().commit();
-        // we need a new one to use our DAOs.
-        sessionFactory.getCurrentSession().beginTransaction();
+        commit();
 
         bulkDataService.saveRecords(user, bulkUpload, true);
     }
@@ -1571,9 +1611,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 
         Assert.assertEquals(speciesSet.size(), bulkUpload.getRecordUploadList().size());
 
-        sessionFactory.getCurrentSession().getTransaction().commit();
-        // we need a new one to use our DAOs.
-        sessionFactory.getCurrentSession().beginTransaction();
+        commit();
 
         bulkDataService.saveRecords(user, bulkUpload, true);
 
@@ -1684,10 +1722,10 @@ public class BulkDataServiceTest extends AbstractControllerTest {
                 inStream2);
 
         Assert.assertEquals(1, bulkUpload.getRecordUploadList().size());
+		
+		Assert.assertEquals("wrong number of errors", 0, bulkUpload.getErrorCount());
 
-        sessionFactory.getCurrentSession().getTransaction().commit();
-        // we need a new one to use our DAOs.
-        sessionFactory.getCurrentSession().beginTransaction();
+        commit();
 
         bulkDataService.saveRecords(user, bulkUpload, true);
 
@@ -1825,6 +1863,20 @@ public class BulkDataServiceTest extends AbstractControllerTest {
                 stream);
         Assert.assertEquals(1, bulkUpload.getErrorCount());
     }
+	
+	/**
+	 * The xls file has all the not required fields populated, the required
+	 * fields are left blank.
+	 */
+	@Test
+	public void testLocationCrsFieldEmpty() throws Exception, ParseException {
+		InputStream stream = getClass().getResourceAsStream(
+				"requiredLocationCrsEmpty_upload.xls");
+		BulkUpload bulkUpload = bulkDataService.importBulkData(uploadSurvey,
+				stream);
+		Assert.assertEquals(1, bulkUpload.getErrorCount());
+		Assert.assertEquals("wrong num location upload in error", 1, bulkUpload.getErrorLocationUploadList().size());
+	}
 
     private class MyTestRow {
 
@@ -1849,6 +1901,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
         String cm1Attr2 = "string2";
         double cm2Attr1 = 3;
         String cm2Attr2 = "string3";
+		String epsg = null;
 
         public Row createRow(Sheet sheet, int rowIndex) {
             Row result = sheet.createRow(rowIndex);
@@ -1860,85 +1913,87 @@ public class BulkDataServiceTest extends AbstractControllerTest {
                     .get(Calendar.HOUR_OF_DAY))
                     + ":" + String.format("%02d", cal.get(Calendar.MINUTE));
 
-            if (!idAsNumber) {
-                result.createCell(colIdx++).setCellValue(id); // id
-                result.createCell(colIdx++).setCellValue(parentId); // parent id
-                result.createCell(colIdx++).setCellValue(cmId); // census method
-                result.createCell(colIdx++).setCellValue(cmName); // census
-                                                                    // method
-                result.createCell(colIdx++).setCellValue(scientificName); // scientific
-                                                                            // name
-                result.createCell(colIdx++).setCellValue(commonName); // common
-                                                                        // name
-                result.createCell(colIdx++).setCellValue(locationId); // location
-                                                                        // name
-                result.createCell(colIdx++).setCellValue(locationName); // location
-                                                                        // name
-                result.createCell(colIdx++).setCellValue(latitude); // latitude
-                result.createCell(colIdx++).setCellValue(longitude); // longitude
-                result.createCell(colIdx++).setCellValue(date); // date
-                result.createCell(colIdx++).setCellValue(timeString); // time
-                result.createCell(colIdx++).setCellValue(numberSeen); // number
-                                                                        // seen
-                result.createCell(colIdx++).setCellValue(notes); // notes
-                result.createCell(colIdx++).setCellValue(surveyAttr1); // sdesc1
-                result.createCell(colIdx++).setCellValue(surveyAttr2); // sdesc2
-                result.createCell(colIdx++).setCellValue(cm1Attr1); // cm1 -
-                                                                    // desc1
-                result.createCell(colIdx++).setCellValue(cm1Attr2); // cm1 -
-                                                                    // desc2
-                result.createCell(colIdx++).setCellValue(cm2Attr1); // cm2 -
-                                                                    // desc3
-                result.createCell(colIdx++).setCellValue(cm2Attr2); // cm2 -
-                                                                    // desc4
-            } else {
-                if (StringUtils.hasLength(id)) {
-                    result.createCell(colIdx++).setCellValue(
-                            Double.parseDouble(id)); // id
-                } else {
-                    result.createCell(colIdx++).setCellValue(""); // id
-                }
-                if (StringUtils.hasLength(parentId)) {
-                    result.createCell(colIdx++).setCellValue(
-                            Double.parseDouble(parentId)); // parent id
-                } else {
-                    result.createCell(colIdx++).setCellValue(""); // parent id
-                }
-                // result.createCell(colIdx++).setCellValue(StringUtils.hasLength(id)
-                // ? Double.parseDouble(id) : ""); // id
-                // result.createCell(colIdx++).setCellValue(StringUtils.hasLength(parentId)
-                // ? Double.parseDouble(parentId) : ""); // parent id
-                result.createCell(colIdx++).setCellValue(cmId); // census method
-                result.createCell(colIdx++).setCellValue(cmName); // census
-                                                                    // method
-                result.createCell(colIdx++).setCellValue(scientificName); // scientific
-                                                                            // name
-                result.createCell(colIdx++).setCellValue(commonName); // common
-                                                                        // name
-                result.createCell(colIdx++).setCellValue(locationId); // location
-                                                                        // name
-                result.createCell(colIdx++).setCellValue(locationName); // location
-                                                                        // name
-                result.createCell(colIdx++).setCellValue(latitude); // latitude
-                result.createCell(colIdx++).setCellValue(longitude); // longitude
-                result.createCell(colIdx++).setCellValue(date); // date
-                result.createCell(colIdx++).setCellValue(timeString); // time
-                result.createCell(colIdx++).setCellValue(numberSeen); // number
-                                                                        // seen
-                result.createCell(colIdx++).setCellValue(notes); // notes
-                result.createCell(colIdx++).setCellValue(surveyAttr1); // sdesc1
-                result.createCell(colIdx++).setCellValue(surveyAttr2); // sdesc2
-                result.createCell(colIdx++).setCellValue(cm1Attr1); // cm1 -
-                                                                    // desc1
-                result.createCell(colIdx++).setCellValue(cm1Attr2); // cm1 -
-                                                                    // desc2
-                result.createCell(colIdx++).setCellValue(cm2Attr1); // cm2 -
-                                                                    // desc3
-                result.createCell(colIdx++).setCellValue(cm2Attr2); // cm2 -
-                                                                    // desc4
-            }
-            return result;
-        }
+			if (!idAsNumber) {
+				result.createCell(colIdx++).setCellValue(id); // id
+				result.createCell(colIdx++).setCellValue(parentId); // parent id
+				result.createCell(colIdx++).setCellValue(cmId); // census method
+				result.createCell(colIdx++).setCellValue(cmName); // census
+																	// method
+				result.createCell(colIdx++).setCellValue(scientificName); // scientific
+																			// name
+				result.createCell(colIdx++).setCellValue(commonName); // common
+																		// name
+				result.createCell(colIdx++).setCellValue(locationId); // location
+																		// name
+				result.createCell(colIdx++).setCellValue(locationName); // location
+																		// name
+				result.createCell(colIdx++).setCellValue(latitude); // latitude
+				result.createCell(colIdx++).setCellValue(longitude); // longitude
+				result.createCell(colIdx++).setCellValue(epsg);
+				result.createCell(colIdx++).setCellValue(date); // date
+				result.createCell(colIdx++).setCellValue(timeString); // time
+				result.createCell(colIdx++).setCellValue(numberSeen); // number
+																		// seen
+				result.createCell(colIdx++).setCellValue(notes); // notes
+				result.createCell(colIdx++).setCellValue(surveyAttr1); // sdesc1
+				result.createCell(colIdx++).setCellValue(surveyAttr2); // sdesc2
+				result.createCell(colIdx++).setCellValue(cm1Attr1); // cm1 -
+																	// desc1
+				result.createCell(colIdx++).setCellValue(cm1Attr2); // cm1 -
+																	// desc2
+				result.createCell(colIdx++).setCellValue(cm2Attr1); // cm2 -
+																	// desc3
+				result.createCell(colIdx++).setCellValue(cm2Attr2); // cm2 -
+																	// desc4
+			} else {
+				if (StringUtils.hasLength(id)) {
+					result.createCell(colIdx++).setCellValue(
+							Double.parseDouble(id)); // id
+				} else {
+					result.createCell(colIdx++).setCellValue(""); // id
+				}
+				if (StringUtils.hasLength(parentId)) {
+					result.createCell(colIdx++).setCellValue(
+							Double.parseDouble(parentId)); // parent id
+				} else {
+					result.createCell(colIdx++).setCellValue(""); // parent id
+				}
+				// result.createCell(colIdx++).setCellValue(StringUtils.hasLength(id)
+				// ? Double.parseDouble(id) : ""); // id
+				// result.createCell(colIdx++).setCellValue(StringUtils.hasLength(parentId)
+				// ? Double.parseDouble(parentId) : ""); // parent id
+				result.createCell(colIdx++).setCellValue(cmId); // census method
+				result.createCell(colIdx++).setCellValue(cmName); // census
+																	// method
+				result.createCell(colIdx++).setCellValue(scientificName); // scientific
+																			// name
+				result.createCell(colIdx++).setCellValue(commonName); // common
+																		// name
+				result.createCell(colIdx++).setCellValue(locationId); // location
+																		// name
+				result.createCell(colIdx++).setCellValue(locationName); // location
+																		// name
+				result.createCell(colIdx++).setCellValue(latitude); // latitude
+				result.createCell(colIdx++).setCellValue(longitude); // longitude
+				result.createCell(colIdx++).setCellValue(epsg);
+				result.createCell(colIdx++).setCellValue(date); // date
+				result.createCell(colIdx++).setCellValue(timeString); // time
+				result.createCell(colIdx++).setCellValue(numberSeen); // number
+																		// seen
+				result.createCell(colIdx++).setCellValue(notes); // notes
+				result.createCell(colIdx++).setCellValue(surveyAttr1); // sdesc1
+				result.createCell(colIdx++).setCellValue(surveyAttr2); // sdesc2
+				result.createCell(colIdx++).setCellValue(cm1Attr1); // cm1 -
+																	// desc1
+				result.createCell(colIdx++).setCellValue(cm1Attr2); // cm1 -
+																	// desc2
+				result.createCell(colIdx++).setCellValue(cm2Attr1); // cm2 -
+																	// desc3
+				result.createCell(colIdx++).setCellValue(cm2Attr2); // cm2 -
+																	// desc4
+			}
+			return result;
+		}
 
         public String getId() {
             return id;
@@ -2019,6 +2074,14 @@ public class BulkDataServiceTest extends AbstractControllerTest {
         public void setLongitude(double longitude) {
             this.longitude = longitude;
         }
+		
+		public void setEpsg(String epsg) {
+			this.epsg = epsg;
+		}
+		
+		public String getEpsg() {
+			return this.epsg;
+		}
 
         public Date getDate() {
             return date;

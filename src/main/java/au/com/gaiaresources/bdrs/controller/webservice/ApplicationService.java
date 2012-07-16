@@ -13,10 +13,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import javassist.scopedpool.SoftValueHashMap;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import javassist.scopedpool.SoftValueHashMap;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.FlushMode;
@@ -54,6 +55,8 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxaService;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 @Controller
 public class ApplicationService extends AbstractController {
@@ -94,8 +97,7 @@ public class ApplicationService extends AbstractController {
     @Autowired
     private FileService fileService;
     
-    @Autowired
-    private au.com.gaiaresources.bdrs.model.location.LocationService locationService;
+    private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
     
     @Autowired
     private LocationDAO locationDAO;
@@ -365,7 +367,7 @@ public class ApplicationService extends AbstractController {
         // Geometry
         String locationWKT = getJSONString(jsonLocationBean, "location", null);
         if(locationWKT != null && !locationWKT.isEmpty()) {
-            loc.setLocation(locationService.createGeometryFromWKT(locationWKT));
+            loc.setLocation(spatialUtil.createGeometryFromWKT(locationWKT));
         }
         
         loc = locationDAO.save(loc);
@@ -527,7 +529,7 @@ public class ApplicationService extends AbstractController {
         String longitudeString = getJSONString(jsonRecordBean, "longitude", "");
         Double longitude = longitudeString.trim().isEmpty() ? null : Double.parseDouble(longitudeString);
         if (latitude != null && longitude != null) {
-            rec.setPoint(locationService.createPoint(latitude, longitude));
+            rec.setPoint(spatialUtil.createPoint(latitude, longitude));
         }
 
         String accuracyStr = getJSONString(jsonRecordBean, "accuracy", "");

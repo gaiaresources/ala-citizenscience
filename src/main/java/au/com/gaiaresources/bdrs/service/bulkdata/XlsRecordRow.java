@@ -26,6 +26,7 @@ import au.com.gaiaresources.bdrs.controller.insecure.taxa.ComparePersistentImplB
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.record.Record;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyService;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
@@ -97,6 +98,7 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
          if(!new RecordProperty(survey, RecordPropertyType.POINT, metadataDAO).isHidden()) {
         	 headerMap.put(propertyService.getPropertyValue(PropertyService.BULKDATA, "xls.row.header.bdrs.latitude", "LATITUDE"), propertyService.getPropertyValue(PropertyService.BULKDATA, "xls.row.header.bdrs.help.latitude", ""));
              headerMap.put(propertyService.getPropertyValue(PropertyService.BULKDATA, "xls.row.header.bdrs.longitude", "LONGITUDE"), propertyService.getPropertyValue(PropertyService.BULKDATA, "xls.row.header.bdrs.help.longitude", ""));
+             headerMap.put(propertyService.getPropertyValue(PropertyService.BULKDATA, "xls.row.header.bdrs.epsg", "EPSG"), propertyService.getPropertyValue(PropertyService.BULKDATA, "xls.row.header.bdrs.help.epsg", ""));
          }
          
          if(!new RecordProperty(survey, RecordPropertyType.WHEN, metadataDAO).isHidden()) {
@@ -174,7 +176,7 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
         	String key = entry.getKey();
         	if (key.equals("Scientific Name") || key.equals("Common Name")) {
         		key = new RecordProperty(survey, RecordPropertyType.SPECIES, metadataDAO).getDescription();
-        	} else if (key.equals("Latitude") || key.equals("Longitude")) {
+        	} else if (key.equals("Latitude/Northings") || key.equals("Longitude/Eastings")) {
         		key = new RecordProperty(survey, RecordPropertyType.POINT, metadataDAO).getDescription();
         	} else if (key.equals(AbstractBulkDataService.LOCATION_SHEET_LOCATION_NAME) || key.equals(AbstractBulkDataService.LOCATION_SHEET_LOCATION_ID)) {
         		key = new RecordProperty(survey, RecordPropertyType.LOCATION, metadataDAO).getDescription();
@@ -270,6 +272,8 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
         if(!new RecordProperty(survey, RecordPropertyType.POINT, metadataDAO).isHidden()) {
         	colIndex = writeRowLatitude(row, rec, colIndex);
         	colIndex = writeRowLongitude(row, rec, colIndex);
+        	colIndex = writeRowEpsg(row, rec, colIndex);
+        	
         }
 
         // Date Time
@@ -402,6 +406,27 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
         }
         if (latitude != null) {
             row.createCell(colIndex++).setCellValue(latitude.doubleValue());
+        } else {
+            row.createCell(colIndex++).setCellValue("");
+        }
+        return colIndex;
+    }
+    
+    protected int writeRowEpsg(Row row, Record rec, int colIndex) {
+    	Integer srid = null;
+    	if (rec.getGeometry() != null) {
+    		srid = rec.getGeometry().getSRID();
+    	}
+    	if (rec.getLocation() == null) {
+            if (rec.getGeometry() != null) {
+                srid = rec.getGeometry().getSRID();
+            }
+        } else {
+            srid = rec.getLocation().getLocation().getSRID();
+        }
+        if (srid != null) {
+        	BdrsCoordReferenceSystem crs = BdrsCoordReferenceSystem.getBySRID(srid);
+            row.createCell(colIndex++).setCellValue(crs.getDisplayName());
         } else {
             row.createCell(colIndex++).setCellValue("");
         }
@@ -570,6 +595,7 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
         RecordUpload recUpload = new RecordUpload();
 
         recUpload.setRowNumber(row.getRowNum());
+        recUpload.setSheetName(AbstractBulkDataService.RECORD_SHEET_NAME);
         
         censusMethods = surveyService.catalogCensusMethods(survey);
         
@@ -603,7 +629,7 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
             
             if (!speciesRecordPropery.isHidden()) {
             	colIndex = readRowTaxonomy(row, recUpload, colIndex);
-            	if(speciesRecordPropery.isRequired() && (recUpload.getScientificName() == null || recUpload.getCommonName() == null || recUpload.getScientificName().equalsIgnoreCase("") || recUpload.getCommonName().equalsIgnoreCase(""))) {
+            	if(speciesRecordPropery.isRequired() && (!StringUtils.hasLength(recUpload.getScientificName()) && !StringUtils.hasLength(recUpload.getCommonName()))) {
             		throw new IllegalArgumentException(
                     "The scientific name and common name are required.");
             	}
@@ -625,6 +651,7 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
             if (!pointRecordProperty.isHidden()) {
             	 colIndex = readRowLatitude(row, recUpload, colIndex);
                  colIndex = readRowLongitude(row, recUpload, colIndex);
+                 colIndex = readRowEpsg(row, recUpload, colIndex);
                  if (pointRecordProperty.isRequired() && !recUpload.hasLatitudeLongitude()) {
                 	 throw new IllegalArgumentException(
                      "Latitude and Longitude are required");
@@ -666,7 +693,6 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
 			
         } catch (Exception e) {
         	
-            recUpload.setError(true);
             String msg = e.getMessage() == null ? e.toString() : e.getMessage();
             
             String value = currentReadCell.toString();
@@ -800,13 +826,20 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
         double longitude = Double.NaN;
         if (currentReadCell.getCellType() != Cell.CELL_TYPE_BLANK) {
             longitude = XlsCellUtil.cellToDouble(currentReadCell);
-            if (longitude < -180 || longitude > 180) {
-                throw new IllegalArgumentException(
-                        "Longitude must be between -180 and 180.");
-            }
         }
         recUpload.setLongitude(longitude);
         return colIndex;
+    }
+    
+    protected int readRowEpsg(Row row, RecordUpload recUpload, int colIndex) {
+    	// Epsg
+    	 currentReadCell = row.getCell(colIndex++, Row.CREATE_NULL_AS_BLANK);
+         if (currentReadCell.getCellType() == Cell.CELL_TYPE_BLANK) {
+             recUpload.setEpsg(null);
+         } else {
+             recUpload.setEpsg(XlsCellUtil.cellToString(currentReadCell));
+         }
+         return colIndex;
     }
 
     protected int readRowLatitude(Row row, RecordUpload recUpload, int colIndex) {
@@ -815,10 +848,6 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
         double latitude = Double.NaN;
         if (currentReadCell.getCellType() != Cell.CELL_TYPE_BLANK) {
             latitude = XlsCellUtil.cellToDouble(currentReadCell);
-            if (latitude < -90 || latitude > 90) {
-                throw new IllegalArgumentException(
-                        "Latitude must be between -90 and 90.");
-            }
         }
         recUpload.setLatitude(latitude);
         return colIndex;

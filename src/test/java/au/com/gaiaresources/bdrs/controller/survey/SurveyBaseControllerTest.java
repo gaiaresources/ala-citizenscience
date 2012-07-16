@@ -1,18 +1,19 @@
 package au.com.gaiaresources.bdrs.controller.survey;
 
-import au.com.gaiaresources.bdrs.controller.AbstractGridControllerTest;
-import au.com.gaiaresources.bdrs.model.map.BaseMapLayer;
-import au.com.gaiaresources.bdrs.model.map.BaseMapLayerSource;
-import au.com.gaiaresources.bdrs.model.map.GeoMap;
-import au.com.gaiaresources.bdrs.model.map.GeoMapDAO;
-import au.com.gaiaresources.bdrs.model.map.GeoMapLayerDAO;
-import au.com.gaiaresources.bdrs.model.metadata.Metadata;
-import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
-import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
-import au.com.gaiaresources.bdrs.model.survey.SurveyFormSubmitAction;
-import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.io.FilenameUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -23,13 +24,14 @@ import org.springframework.mock.web.MockMultipartHttpServletRequest;
 import org.springframework.test.web.ModelAndViewAssert;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.*;
-import java.util.List;
+import au.com.gaiaresources.bdrs.controller.AbstractGridControllerTest;
+import au.com.gaiaresources.bdrs.model.metadata.Metadata;
+import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
+import au.com.gaiaresources.bdrs.model.survey.Survey;
+import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
+import au.com.gaiaresources.bdrs.model.survey.SurveyFormSubmitAction;
+import au.com.gaiaresources.bdrs.security.Role;
 
 public class SurveyBaseControllerTest extends AbstractGridControllerTest {
     
@@ -91,6 +93,7 @@ public class SurveyBaseControllerTest extends AbstractGridControllerTest {
         params.put(Metadata.SURVEY_LOGO, imgTmp.getName());
         params.put(SurveyBaseController.PARAM_DEFAULT_RECORD_VISIBILITY, RecordVisibility.CONTROLLED.toString());
         params.put(SurveyBaseController.PARAM_FORM_SUBMIT_ACTION, SurveyFormSubmitAction.STAY_ON_FORM.toString());
+        params.put(SurveyBaseController.PARAM_CRS, BdrsCoordReferenceSystem.MGA.toString());
         
         // no value...
         //params.put(SurveyBaseController.PARAM_RECORD_VISIBILITY_MODIFIABLE, "false");
@@ -115,6 +118,7 @@ public class SurveyBaseControllerTest extends AbstractGridControllerTest {
         Assert.assertEquals(RecordVisibility.CONTROLLED, survey.getDefaultRecordVisibility());
         Assert.assertEquals(false, survey.isRecordVisibilityModifiable());
         Assert.assertEquals("form submit action mismatch", SurveyFormSubmitAction.STAY_ON_FORM, survey.getFormSubmitAction());
+        Assert.assertEquals("wrong crs", BdrsCoordReferenceSystem.MGA, survey.getMap().getCrs());
     }
     
     /**
@@ -150,6 +154,7 @@ public class SurveyBaseControllerTest extends AbstractGridControllerTest {
         params.put(SurveyBaseController.PARAM_DEFAULT_RECORD_VISIBILITY, RecordVisibility.CONTROLLED.toString());
         params.put(SurveyBaseController.PARAM_RECORD_VISIBILITY_MODIFIABLE, "true");
         params.put(SurveyBaseController.PARAM_FORM_SUBMIT_ACTION, SurveyFormSubmitAction.MY_SIGHTINGS.toString());
+        params.put(SurveyBaseController.PARAM_CRS, BdrsCoordReferenceSystem.WGS84.toString());
         
         request.setParameters(params);
         
@@ -171,10 +176,22 @@ public class SurveyBaseControllerTest extends AbstractGridControllerTest {
         Assert.assertEquals(RecordVisibility.CONTROLLED, survey.getDefaultRecordVisibility());
         Assert.assertEquals(true, survey.isRecordVisibilityModifiable());
         Assert.assertEquals("form submit action mismatch", SurveyFormSubmitAction.MY_SIGHTINGS, survey.getFormSubmitAction());
+        Assert.assertEquals("wrong crs", BdrsCoordReferenceSystem.WGS84, survey.getMap().getCrs());
     }
 
     @Override
     protected MockHttpServletRequest createMockHttpServletRequest() {
         return super.createUploadRequest();
+    }
+    
+    // Simulates the controller running in it's own transaction.
+    @Override
+    protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    	sesh.flush();
+    	sesh.clear();
+    	ModelAndView mv = super.handle(request, response);
+    	sesh.flush();
+    	sesh.clear();
+    	return mv;
     }
 }

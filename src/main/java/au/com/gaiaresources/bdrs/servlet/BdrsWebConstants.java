@@ -26,7 +26,15 @@ public class BdrsWebConstants {
      * Constant for web form parameter "locationId"
      */
     public static final String PARAM_LOCATION_ID = "locationId";
-
+    /**
+     * Constant for web form parameter for the zone when recording
+     * utm based coordinates.
+     */
+    public static final String PARAM_SRID = "srid";
+    /**
+     * Constant for the web for parameter wkt (well known text) string
+     */
+    public static final String PARAM_WKT = "wkt";
     /**
      * Constant for the web form parameter "commentId".
      */

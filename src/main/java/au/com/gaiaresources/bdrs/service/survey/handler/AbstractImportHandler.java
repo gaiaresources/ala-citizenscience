@@ -1,22 +1,5 @@
 package au.com.gaiaresources.bdrs.service.survey.handler;
 
-import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
-import au.com.gaiaresources.bdrs.json.JSONArray;
-import au.com.gaiaresources.bdrs.json.JSONObject;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
-import au.com.gaiaresources.bdrs.model.record.Record;
-import au.com.gaiaresources.bdrs.service.survey.ImportHandler;
-import au.com.gaiaresources.bdrs.service.survey.ImportHandlerRegistry;
-import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
-
-import com.vividsolutions.jts.geom.Geometry;
-import org.apache.commons.beanutils.ConstructorUtils;
-import org.apache.log4j.Logger;
-import org.hibernate.annotations.CollectionOfElements;
-import org.hibernate.Session;
-import org.springframework.beans.BeanUtils;
-
-import javax.persistence.*;
 import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
@@ -24,7 +7,40 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.persistence.Column;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Transient;
+
+import org.apache.commons.beanutils.ConstructorUtils;
+import org.apache.log4j.Logger;
+import org.hibernate.Session;
+import org.hibernate.annotations.CollectionOfElements;
+import org.springframework.beans.BeanUtils;
+
+import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
+import au.com.gaiaresources.bdrs.json.JSONArray;
+import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
+import au.com.gaiaresources.bdrs.service.survey.ImportHandler;
+import au.com.gaiaresources.bdrs.service.survey.ImportHandlerRegistry;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
+
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * Provides basic import capability for objects that do not require special handling.
@@ -44,7 +60,11 @@ public abstract class AbstractImportHandler implements ImportHandler {
     /**
      * Provides facilities to convert WKT strings to Geometry instances.
      */
-    private LocationService locationService;
+    
+    /**
+     * Provides facilities to convert WKT strings to Geometry instances.
+     */
+    private SpatialUtilFactory spatialUtilFactory;
 
     /**
      * A registry for listeners to be fired at various stages of the import process.
@@ -68,8 +88,8 @@ public abstract class AbstractImportHandler implements ImportHandler {
      *
      * @param locationService provides facilities to convert WKT strings to Geometry instances.
      */
-    public AbstractImportHandler(LocationService locationService) {
-        this.locationService = locationService;
+    public AbstractImportHandler(SpatialUtilFactory spatialUtilFactory) {
+        this.spatialUtilFactory = spatialUtilFactory;
     }
 
     @Override
@@ -425,7 +445,41 @@ public abstract class AbstractImportHandler implements ImportHandler {
         } else if (BigDecimal.class.isAssignableFrom(type)) {
             return new BigDecimal(jsonPersistent.getString(key));
         } else if (Geometry.class.isAssignableFrom(type)) {
-            return locationService.createGeometryFromWKT(jsonPersistent.getString(key));
+        	String wkt = jsonPersistent.getString(key);
+        	// check if it is an ewkt.
+        	if (wkt != null) {
+        		String[] wktSplit = wkt.split(";");
+            	if (wktSplit.length <= 0) {
+            		// empty!
+            		return null;
+            	} else if (wktSplit.length == 1) {
+            		// is a standard wkt.
+            		return spatialUtilFactory.getLocationUtil().createGeometryFromWKT(wktSplit[0]);
+            	} else {
+            		// is an ewkt.
+            		// ewkt looks like : 'SRID=4326;POINT(-44.3 60.1)'
+            		Geometry geom = spatialUtilFactory.getLocationUtil().createGeometryFromWKT(wktSplit[1]);
+            		String[] sridSplit = wktSplit[0].split("=");
+            		int srid;
+            		if (sridSplit.length < 2) {
+            			// invalid srid, set to default
+            			srid = BdrsCoordReferenceSystem.DEFAULT_SRID;
+            		} else {
+            			// parse srid appropriately.
+            			try {
+            				srid = Integer.valueOf(sridSplit[1]);	
+            			} catch (NumberFormatException nfe) {
+            				log.error("Bad srid passed in ewkt : " + wkt + ". Using default srid.", nfe);
+            				srid = BdrsCoordReferenceSystem.DEFAULT_SRID;
+            			}
+            		}
+            		geom.setSRID(srid);
+            		return geom;
+            	}
+                	
+        	} else {
+        		return null;
+        	}
         } else if (type.isArray()) {
             JSONArray array = jsonPersistent.getJSONArray(key);
             if (array.size() > 0) {

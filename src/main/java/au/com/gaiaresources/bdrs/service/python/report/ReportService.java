@@ -1,11 +1,25 @@
 package au.com.gaiaresources.bdrs.service.python.report;
 
+import java.io.File;
+import java.io.IOException;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import jep.Jep;
+import jep.JepException;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.ModelAndView;
+
 import au.com.gaiaresources.bdrs.controller.report.ReportController;
 import au.com.gaiaresources.bdrs.db.ScrollableResults;
 import au.com.gaiaresources.bdrs.file.FileService;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
 import au.com.gaiaresources.bdrs.model.portal.PortalDAO;
@@ -26,18 +40,8 @@ import au.com.gaiaresources.bdrs.service.taxonomy.BdrsTaxonLibException;
 import au.com.gaiaresources.bdrs.service.taxonomy.TaxonLibSessionFactory;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
-import jep.Jep;
-import jep.JepException;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.ModelAndView;
-
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 /**
  * The <code>ReportService</code> handles the rendering of reports from candidate views (such as the
@@ -78,8 +82,6 @@ public class ReportService extends PythonService {
     @Autowired
     private FileService fileService;
     @Autowired
-    private LocationService locationService;
-    @Autowired
     private SurveyDAO surveyDAO;
     @Autowired
     private CensusMethodDAO censusMethodDAO;
@@ -101,6 +103,8 @@ public class ReportService extends PythonService {
     private MetadataDAO metadataDAO;
     @Autowired
     private TaxonLibSessionFactory taxonLibSessionFactory;
+    
+    private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
 
     /**
      * Renders the specified report.
@@ -135,7 +139,7 @@ public class ReportService extends PythonService {
             File reportDir = fileService.getTargetDirectory(report, Report.REPORT_DIR, true);
 
             // Setup the parameters to send to the Python report.
-            bdrs = new PyBDRS(request, locationService,
+            bdrs = new PyBDRS(request, spatialUtil,
                     fileService, report, RequestContextHolder.getContext().getUser(),
                     surveyDAO, censusMethodDAO,
                     taxaDAO, recordDAO, portalDAO, attributeDAO, attributeOptionDAO, attributeValueDAO,

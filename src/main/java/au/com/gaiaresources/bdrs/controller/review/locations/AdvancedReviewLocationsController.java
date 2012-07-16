@@ -17,14 +17,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBException;
 
 import org.apache.log4j.Logger;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.PerFieldAnalyzerWrapper;
 import org.apache.lucene.queryParser.ParseException;
-import org.apache.lucene.search.Sort;
 import org.hibernate.Query;
 import org.hibernate.Session;
-import org.hibernate.search.FullTextQuery;
-import org.hibernate.search.Search;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,22 +35,26 @@ import au.com.gaiaresources.bdrs.db.impl.HqlQuery;
 import au.com.gaiaresources.bdrs.db.impl.HqlQuery.SortOrder;
 import au.com.gaiaresources.bdrs.db.impl.Predicate;
 import au.com.gaiaresources.bdrs.db.impl.ScrollableResultsImpl;
+import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.kml.KMLWriter;
 import au.com.gaiaresources.bdrs.model.index.IndexScheduleDAO;
 import au.com.gaiaresources.bdrs.model.index.IndexUtil;
-import au.com.gaiaresources.bdrs.model.index.IndexingConstants;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
 import au.com.gaiaresources.bdrs.model.record.Record;
+import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
 import au.com.gaiaresources.bdrs.model.report.Report;
+import au.com.gaiaresources.bdrs.model.survey.Survey;
+import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.search.SearchService;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.facet.Facet;
 import au.com.gaiaresources.bdrs.service.facet.SurveyFacet;
 import au.com.gaiaresources.bdrs.service.facet.option.FacetOption;
 import au.com.gaiaresources.bdrs.util.DateFormatter;
 import au.com.gaiaresources.bdrs.util.KMLUtils;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 import edu.emory.mathcs.backport.java.util.Arrays;
 import edu.emory.mathcs.backport.java.util.Collections;
@@ -71,6 +70,8 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
 
     @Autowired
     private LocationDAO locationDAO;
+    @Autowired
+    private SurveyDAO surveyDAO;
     
     @Autowired
     private IndexScheduleDAO indexDAO;
@@ -180,7 +181,12 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
         
         HqlQuery hqlQuery = new HqlQuery(getCountSelect());
         if (!StringUtils.nullOrEmpty(locationArea)) {
-            hqlQuery.and(new Predicate("within(location.location, ?) = True"));
+        	// IMPORTANT!
+        	// we expect location area to be in lat/lons i.e. srid = 4326. Since the database can now
+        	// contain geomtries of varying SRIDs, we need to transform them to all be the same.
+        	// 4326 is the most logical choice since that is the same SRID as our geometry
+        	// argument.
+            hqlQuery.and(new Predicate("within(transform(location.location,4326), ?) = True"));
         }
         applyFacetsToQuery(hqlQuery, facetList, surveyId, searchText);
 
@@ -346,6 +352,34 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
                                                               locationArea, locList);
         
         downloadLocations(request, response, downloadFormat, sc, locList);
+    }
+    
+    /**
+     * Returns a JSON array of results matching the {@link Facet} criteria.
+     */
+    private void advancedReviewJSONSightings(HttpServletResponse response,
+                                            List<Facet> facetList, ScrollableResults<Location> sc) throws IOException {
+        int recordCount = 0;
+        JSONArray array = new JSONArray();
+        SpatialUtilFactory spatialUtilFactory = new SpatialUtilFactory();
+        Location loc;
+        while(sc.hasMoreElements()) {
+            loc = sc.nextElement();
+            Map<String, Object> rec_flatten = flatten(loc);
+            if (loc.getLocation() != null) {
+            	// LocationUtil = LocationUtilFactory.
+            	SpatialUtil spatialUtil = spatialUtilFactory.getLocationUtil(loc.getLocation().getSRID());
+                // appropriately truncate lat and lon.
+                rec_flatten.put("longitude", spatialUtil.truncate(loc.getLongitude()));
+                rec_flatten.put("latitude", spatialUtil.truncate(loc.getLatitude()));
+            }
+            array.add(rec_flatten);
+            if (++recordCount % ScrollableRecords.RESULTS_BATCH_SIZE == 0) {
+                getRequestContext().getHibernate().clear();
+            }
+        }
+        
+        writeJson(response, array.toString());
     }
 
     /**

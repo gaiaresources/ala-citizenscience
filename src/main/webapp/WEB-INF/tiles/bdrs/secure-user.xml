@@ -172,6 +172,11 @@
 	<definition name="speciesFormField" template="/WEB-INF/jsp/bdrs/user/record/render/speciesFormField.jsp">
 		<put-attribute name="formField" type="object"/>
 	</definition>
+	
+    <!-- Coordinate form field -->
+    <definition name="coordFormField" template="/WEB-INF/jsp/bdrs/user/record/render/coordFormField.jsp">
+        <put-attribute name="formField" type="object"/>
+    </definition>
 
     <!-- Tracker -->
     <definition name="tracker" extends="user-template">

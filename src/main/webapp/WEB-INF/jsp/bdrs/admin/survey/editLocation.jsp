@@ -6,11 +6,16 @@
 <%@page import="java.util.Set" %>
 <%@page import="java.util.HashSet" %>
 <%@page import="au.com.gaiaresources.bdrs.model.location.Location" %>
-<jsp:useBean id="location" type="au.com.gaiaresources.bdrs.model.location.Location" scope="request"/><jsp:useBean id="survey" type="au.com.gaiaresources.bdrs.model.survey.Survey" scope="request"/>
+<%@page import="au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem"%>
+<jsp:useBean id="location" type="au.com.gaiaresources.bdrs.model.location.Location" scope="request"/>
+<jsp:useBean id="survey" type="au.com.gaiaresources.bdrs.model.survey.Survey" scope="request"/>
+<jsp:useBean id="webMap" type="au.com.gaiaresources.bdrs.controller.map.WebMap" scope="request"/>
 
 <%-- Access the facade to retrieve the preference information --%>
 <jsp:useBean id="bdrsPluginFacade" scope="request" type="au.com.gaiaresources.bdrs.servlet.BdrsPluginFacade"></jsp:useBean>
 <c:set var="showScientificName" value="<%= bdrsPluginFacade.getPreferenceBooleanValue(\"taxon.showScientificName\") %>" />
+
+<c:set var="required" value="<%= Boolean.TRUE %>" />
 
 <c:choose>
 	<c:when test="${location.id != null}">
@@ -22,6 +27,21 @@
 </c:choose>
 
 <cw:getContent key="admin/editProject/editLocation" />
+
+<c:set var="crs" value="${ webMap.map.crs }" />
+<c:set var="selectedSrid" value="<%= location != null && location.getLocation() != null ? location.getLocation().getSRID() : 0 %>" />
+<c:set var="xCoord" value="<%= location != null && location.getLocation() != null ? location.getLocation().getCentroid().getX() : null %>" />
+<c:set var="yCoord" value="<%= location != null && location.getLocation() != null ? location.getLocation().getCentroid().getY() : null %>" />
+<c:set var="wkt" value="<%= location != null && location.getLocation() != null? location.getLocation().toText() : \"\" %>" />
+<c:set var="required" value="<%= Boolean.TRUE %>" />
+<c:set var="editEnabled" value="<%= Boolean.TRUE %>" />
+<c:set var="readOnly" value="<%= Boolean.FALSE %>" />
+<%
+    BdrsCoordReferenceSystem crs = (BdrsCoordReferenceSystem)pageContext.getAttribute("crs");
+    Integer selectedSrid = (Integer)pageContext.getAttribute("selectedSrid");
+	pageContext.setAttribute("crsFieldRequired", crs.isZoneRequired() || (selectedSrid != 0 && (crs.getSrid() != selectedSrid.intValue())));
+	pageContext.setAttribute("selectedCrs", selectedSrid != 0 ? BdrsCoordReferenceSystem.getBySRID(selectedSrid) : crs);
+%>
 
 <form method="POST" action="${portalContextPath}/bdrs/admin/survey/editLocation.htm" enctype="multipart/form-data">
     <input type="hidden" name="surveyId" value="${survey.id}"/>
@@ -61,26 +81,71 @@
         <div class="locations_container attributesContainer form_table locationAttributes">
             <tiles:insertDefinition name="locationEntryMap">
                 <tiles:putAttribute name="survey" value="${survey}"/>
-            </tiles:insertDefinition><input id="locationWkt" type="hidden" name="location_WKT" />
+            </tiles:insertDefinition>
+            <input id="locationWkt" type="hidden" name="location_WKT" value="${ wkt }" />
+            <c:if test="${ not crsFieldRequired }">
+	       	    <input type="hidden" name="srid" value="${ crs.srid }" />
+	        </c:if>
             <table>
+            	<c:if test="${ crsFieldRequired }">
+	                <tr>
+	                    <th><label for="srid">Zone</label></th>
+	                    <td>
+	                        <tiles:insertDefinition name="coordFormField">
+	                            <tiles:putAttribute name="crs" value="${ crs }"/>
+	                            <tiles:putAttribute name="isZone" value="true"/>
+	                            <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
+	                            <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
+	                            <tiles:putAttribute name="readOnly" value="${ readOnly }"/>
+	                            <tiles:putAttribute name="selectedSrid" value="${ selectedSrid }" />
+	                            <tiles:putAttribute name="xCoord" value="${ xCoord }" />
+	                            <tiles:putAttribute name="yCoord" value="${ yCoord }" />
+	                            <tiles:putAttribute name="editEnabled" value="${ editEnabled }"/>
+	                            <tiles:putAttribute name="required" value="${ required }" />
+	                        </tiles:insertDefinition>
+	                    </td>
+	                </tr>
+                </c:if>
                 <tr>
                     <th>
                         <label class="right textright" for="latitude">
-                            Latitude
+                            ${ selectedCrs.yname }
                         </label>
                     </th>
                     <td>
-                        <input type="text" name="latitude" id="latitude" class="validate(range(-90,90), number)" />
+                        <tiles:insertDefinition name="coordFormField">
+                            <tiles:putAttribute name="crs" value="${ crs }"/>
+                            <tiles:putAttribute name="isLatitude" value="true"/>
+                            <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
+                            <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
+                            <tiles:putAttribute name="readOnly" value="${ readOnly }"/>
+                            <tiles:putAttribute name="selectedSrid" value="${ selectedSrid }" />
+                            <tiles:putAttribute name="xCoord" value="${ xCoord }" />
+                            <tiles:putAttribute name="yCoord" value="${ yCoord }" />
+                            <tiles:putAttribute name="editEnabled" value="${ editEnabled }"/>
+                            <tiles:putAttribute name="required" value="${ required }" />
+                        </tiles:insertDefinition>
                     </td>
                 </tr>
                 <tr>
                     <th>
                         <label class="right textright" for="longitude">
-                            Longitude
+                            ${ selectedCrs.xname }
                         </label>
                     </th>
                     <td>
-                        <input type="text" name="longitude" id="longitude" class="validate(range(-180,180), number)" />
+                        <tiles:insertDefinition name="coordFormField">
+                            <tiles:putAttribute name="crs" value="${ crs }"/>
+                            <tiles:putAttribute name="isLongitude" value="true"/>
+                            <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
+                            <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
+                            <tiles:putAttribute name="readOnly" value="${ readOnly }"/>
+                            <tiles:putAttribute name="selectedSrid" value="${ selectedSrid }" />
+                            <tiles:putAttribute name="xCoord" value="${ xCoord }" />
+                            <tiles:putAttribute name="yCoord" value="${ yCoord }" />
+                            <tiles:putAttribute name="editEnabled" value="${ editEnabled }"/>
+                            <tiles:putAttribute name="required" value="${ required }" />
+                        </tiles:insertDefinition>
                     </td>
                 </tr>
                 <tr>

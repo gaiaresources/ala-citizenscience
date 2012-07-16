@@ -2,6 +2,7 @@ package au.com.gaiaresources.bdrs.controller.record;
 
 import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.deserialization.record.RecordKeyLookup;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 public class TrackerFormRecordKeyLookup implements RecordKeyLookup {
     
@@ -114,4 +115,14 @@ public class TrackerFormRecordKeyLookup implements RecordKeyLookup {
     public String getParentRecordIdKey() {
         return TrackerController.PARAM_PARENT_RECORD_ID;
     }
+
+	@Override
+	public String getZoneKey() {
+		return BdrsWebConstants.PARAM_SRID;
+	}
+
+	@Override
+	public String getWktKey() {
+		return BdrsWebConstants.PARAM_WKT;
+	}
 }

@@ -12,8 +12,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import junit.framework.Assert;
 
@@ -58,6 +58,7 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
+import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.test.AbstractTransactionalTest;
 
 import com.vividsolutions.jts.geom.Geometry;
@@ -78,6 +79,8 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
     CensusMethodDAO cmDAO;
     @Autowired
     MetadataDAO metaDAO;
+    @Autowired
+    GeoMapService geoMapService;
     
     User currentUser;
     Survey survey;
@@ -209,6 +212,10 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         basicSurvey.setName("a basic survey");
         basicSurvey.setDescription("basic survey description");
         surveyDAO.save(basicSurvey);
+        
+        // create GeoMaps
+        geoMapService.getForSurvey(survey);
+        geoMapService.getForSurvey(basicSurvey);
     }
     
     @Test

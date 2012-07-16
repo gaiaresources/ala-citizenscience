@@ -75,10 +75,12 @@ public class KMLUtils {
         String label;
         String description;
         
+        SpatialUtilFactory spatialUtilFactory = new SpatialUtilFactory();
+        
         for(Record record : recordList) {
             label = String.format("Record #%d", record.getId());
             AccessControlledRecordAdapter recAdapter = new AccessControlledRecordAdapter(record, currentUser);
-            description = jsonService.toJson(recAdapter, contextPath).toString();
+            description = jsonService.toJson(recAdapter, contextPath, spatialUtilFactory).toString();
             
             Geometry geom = record.getGeometry();
             if (geom != null) {
@@ -109,9 +111,11 @@ public class KMLUtils {
         String label;
         String description;
         
+        SpatialUtilFactory spatialUtilFactory = new SpatialUtilFactory();
+        
         for(Location location : locationList) {
             label = String.format("Location #%d", location.getId());
-            description = jsonService.toJson(location, contextPath).toString();
+            description = jsonService.toJson(location, contextPath, spatialUtilFactory).toString();
             
             Geometry geom = location.getLocation();
             if (geom != null) {

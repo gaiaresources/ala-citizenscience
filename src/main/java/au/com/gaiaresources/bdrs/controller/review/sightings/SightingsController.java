@@ -13,7 +13,6 @@ import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.controller.map.RecordDownloadFormat;
 import au.com.gaiaresources.bdrs.controller.map.RecordDownloadWriter;
 import au.com.gaiaresources.bdrs.controller.record.RecordController;
@@ -21,7 +20,6 @@ import au.com.gaiaresources.bdrs.db.ScrollableResults;
 import au.com.gaiaresources.bdrs.kml.KMLWriter;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.bulkdata.BulkDataService;
 import au.com.gaiaresources.bdrs.util.FileUtils;

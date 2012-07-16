@@ -29,6 +29,7 @@ import org.springframework.web.servlet.ModelAndView;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordFormFieldCollection;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
+import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyFormField;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
 import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.deserialization.record.RecordDeserializer;
@@ -150,7 +151,8 @@ public abstract class SingleSiteController extends RecordController {
         User user = getRequestContext().getUser();
         
         RecordKeyLookup lookup = new TrackerFormRecordKeyLookup();
-        SingleSiteFormToRecordEntryTransformer transformer = new SingleSiteFormToRecordEntryTransformer(locationService);
+        
+        SingleSiteFormToRecordEntryTransformer transformer = new SingleSiteFormToRecordEntryTransformer();
         SingleSiteFormAttributeDictionaryFactory adf = new SingleSiteFormAttributeDictionaryFactory();
         AttributeParser parser = new WebFormAttributeParser(taxaDAO);
 
@@ -381,7 +383,7 @@ public abstract class SingleSiteController extends RecordController {
         // mock save the record
         if (valueMap != null) {
             RecordKeyLookup lookup = new TrackerFormRecordKeyLookup();
-            SingleSiteFormToRecordEntryTransformer transformer = new SingleSiteFormToRecordEntryTransformer(locationService);
+            SingleSiteFormToRecordEntryTransformer transformer = new SingleSiteFormToRecordEntryTransformer();
             SingleSiteFormAttributeDictionaryFactory adf = new SingleSiteFormAttributeDictionaryFactory();
             AttributeParser parser = new WebFormAttributeParser(taxaDAO);
     

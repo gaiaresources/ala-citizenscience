@@ -3,7 +3,6 @@ package au.com.gaiaresources.bdrs.controller;
 import au.com.gaiaresources.bdrs.file.FileService;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
@@ -21,8 +20,12 @@ import au.com.gaiaresources.bdrs.model.taxa.*;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
 import junit.framework.Assert;
+
+import org.apache.log4j.Logger;
 import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
 import org.springframework.security.authentication.encoding.PasswordEncoder;
 
@@ -68,8 +71,9 @@ public class LocationAttributeSurveyCreator {
     private PreferenceDAO preferenceDAO;
     private LocationDAO locationDAO;
 
-    private LocationService locationService;
+    private SpatialUtil locationService;
     private FileService fileService;
+    private GeoMapService geoMapService;
 
     /**
      * Total number of records created by setup.
@@ -88,6 +92,8 @@ public class LocationAttributeSurveyCreator {
      * Total number of records created for each indicator species.
      */
     private int taxonRecordCount;
+    
+    private Logger log = Logger.getLogger(getClass());
 
     /**
      * Total number of locations created by setup.
@@ -112,10 +118,10 @@ public class LocationAttributeSurveyCreator {
      * @param preferenceDAO   provides database access to Preferences.
      * @param fileService     provides access to the application file store.
      */
-    public LocationAttributeSurveyCreator(SurveyDAO surveyDAO, LocationDAO locationDAO, LocationService locationService,
+    public LocationAttributeSurveyCreator(SurveyDAO surveyDAO, LocationDAO locationDAO, SpatialUtil locationService,
                                           CensusMethodDAO methodDAO, UserDAO userDAO, TaxaDAO taxaDAO,
                                           RecordDAO recordDAO, MetadataDAO metadataDAO, PreferenceDAO preferenceDAO,
-                                          FileService fileService) {
+                                          FileService fileService, GeoMapService geoMapService) {
 
         this.surveyDAO = surveyDAO;
         this.preferenceDAO = preferenceDAO;
@@ -127,6 +133,7 @@ public class LocationAttributeSurveyCreator {
         this.methodDAO = methodDAO;
         this.userDAO = userDAO;
         this.fileService = fileService;
+        this.geoMapService = geoMapService;
     }
 
     /**
@@ -315,17 +322,20 @@ public class LocationAttributeSurveyCreator {
             survey = surveyDAO.save(survey);
             survey.setLocations(createLocations(survey));
             survey = surveyDAO.save(survey);
+            
+            
+            // create map
+            geoMapService.getForSurvey(RequestContextHolder.getContext().getHibernate(), survey);
+                       
             surveyRecordCount = 0;
             taxonRecordCount = 0;
             methodRecordCount = 0;
-
             if (createRecords) {
                 for (Location loc : survey.getLocations()) {
                     for (IndicatorSpecies species : survey.getSpecies()) {
                         for (CensusMethod cm : survey.getCensusMethods()) {
                             for (User u : new User[]{admin, user}) {
                                 createRecord(survey, cm, loc, species, u);
-
                                 recordCount++;
                                 surveyRecordCount++;
 

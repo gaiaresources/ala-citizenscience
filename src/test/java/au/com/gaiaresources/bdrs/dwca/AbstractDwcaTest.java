@@ -19,6 +19,8 @@ import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 /**
  * Holds common setup / helper methods for DwcA related tests 
@@ -33,6 +35,8 @@ public abstract class AbstractDwcaTest extends AbstractGridControllerTest {
     protected static final String APPLICATION_URL = REQUEST_SCHEME + "://" + REQUEST_SERVER_NAME + ":" + REQUEST_SERVER_PORT + REQUEST_CONTEXT_PATH;
     
     protected RedirectionService rdService = new RedirectionService(APPLICATION_URL);
+    
+    protected SpatialUtil locService = new SpatialUtilFactory().getLocationUtil();
     
     protected void assertDwcRecord(DarwinCoreRecord dwcr, StarRecord starRecord, List<Record> allRecords) {
         

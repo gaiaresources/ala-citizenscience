@@ -1,5 +1,24 @@
 package au.com.gaiaresources.bdrs.controller.review.sightings;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import junit.framework.Assert;
+
+import org.hibernate.FlushMode;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.ModelAndViewAssert;
+import org.springframework.web.servlet.ModelAndView;
+
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.controller.LocationAttributeSurveyCreator;
 import au.com.gaiaresources.bdrs.controller.map.RecordDownloadFormat;
@@ -9,7 +28,6 @@ import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
@@ -37,25 +55,10 @@ import au.com.gaiaresources.bdrs.service.facet.VisibilityFacet;
 import au.com.gaiaresources.bdrs.service.facet.option.CensusMethodTypeFacetOption;
 import au.com.gaiaresources.bdrs.service.facet.record.RecordSurveyFacet;
 import au.com.gaiaresources.bdrs.service.facet.record.RecordUserFacet;
+import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.util.KMLUtils;
-import junit.framework.Assert;
-import org.hibernate.FlushMode;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.web.ModelAndViewAssert;
-import org.springframework.web.servlet.ModelAndView;
-
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 /**
  * Tests all aspects of the <code>AdvancedReviewSightingsController</code>.
@@ -80,13 +83,14 @@ public class AdvancedReviewSightingsControllerTest extends
     @Autowired
     private CensusMethodDAO methodDAO;
     @Autowired
-    private LocationService locationService;
-    @Autowired
     private FileService fileService;
     @Autowired
     private FacetService facetService;
     @Autowired
     private AdvancedReviewSightingsController controller;
+    @Autowired
+    private GeoMapService geoMapService;
+    
     /**
      * Used to change the default view returned by the controller
      */
@@ -98,7 +102,8 @@ public class AdvancedReviewSightingsControllerTest extends
     @Before
     public void setup() throws Exception {
         surveyCreator = new LocationAttributeSurveyCreator(surveyDAO, locationDAO,
-                locationService, methodDAO, userDAO, taxaDAO, recordDAO, metadataDAO, preferenceDAO, fileService);
+                new SpatialUtilFactory().getLocationUtil(), methodDAO, userDAO, taxaDAO, recordDAO, metadataDAO, preferenceDAO, fileService,
+                geoMapService);
         surveyCreator.create(true);
     }
 

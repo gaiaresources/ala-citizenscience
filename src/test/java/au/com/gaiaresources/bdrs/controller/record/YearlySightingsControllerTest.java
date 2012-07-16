@@ -26,7 +26,6 @@ import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyFo
 import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.record.Record;
@@ -45,6 +44,8 @@ import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 /**
  * Tests all aspects of the <code>YearlySightingsControllerTest</code>.
@@ -62,9 +63,9 @@ public class YearlySightingsControllerTest extends RecordFormTest {
     @Autowired
     private LocationDAO locationDAO;
     @Autowired
-    private LocationService locationService;
-    @Autowired
     private RedirectionService redirectionService;
+    
+    private SpatialUtil locationService = new SpatialUtilFactory().getLocationUtil();
 
     private Survey survey;
     private TaxonGroup taxonGroup;

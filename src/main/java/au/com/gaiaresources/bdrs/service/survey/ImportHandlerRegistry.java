@@ -11,18 +11,20 @@ import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.file.FileService;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.location.Location;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
+import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.service.survey.handler.AttributeValueImportHandler;
 import au.com.gaiaresources.bdrs.service.survey.handler.MetadataImportHandler;
 import au.com.gaiaresources.bdrs.service.survey.handler.RecordImportHandler;
 import au.com.gaiaresources.bdrs.service.survey.handler.SimpleImportHandler;
+import au.com.gaiaresources.bdrs.service.survey.handler.SurveyImportHandler;
 import au.com.gaiaresources.bdrs.service.survey.handler.UserImportHandler;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 /**
  * Provides a mapping between data types that can be imported and the appropriate parser for the encoded data.
@@ -30,25 +32,31 @@ import au.com.gaiaresources.bdrs.service.survey.handler.UserImportHandler;
 public class ImportHandlerRegistry extends HashMap<String, ImportHandler> {
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
      * Creates a new instance and registers all parsers.
      *
-     * @param locationService Provides WKT to Geometry conversion facilities.
+     * @param spatialUtil Provides WKT to Geometry conversion facilities.
      * @param fileService     Provides access to the BDRS file store.
      * @param userDAO         Provides access to the BDRS users for user import.
      */
-    public ImportHandlerRegistry(LocationService locationService, FileService fileService, UserDAO userDAO) {
-        new SimpleImportHandler(locationService, Survey.class).register(this);
-        new MetadataImportHandler(locationService, fileService).register(this);
-        new SimpleImportHandler(locationService, Attribute.class).register(this);
-        new SimpleImportHandler(locationService, AttributeOption.class).register(this);
-        new SimpleImportHandler(locationService, CensusMethod.class).register(this);
-        new SimpleImportHandler(locationService, Location.class).register(this);
-        new RecordImportHandler(locationService, Record.class).register(this);
-        new AttributeValueImportHandler(locationService, fileService).register(this);
+    public ImportHandlerRegistry(SpatialUtilFactory spatialUtilFactory, FileService fileService, UserDAO userDAO, GeoMapService geoMapService) {    	
+        //new SimpleImportHandler(locationUtil, Survey.class).register(this);
+    	new SurveyImportHandler(spatialUtilFactory, Survey.class, geoMapService).register(this);
+        new MetadataImportHandler(spatialUtilFactory, fileService).register(this);
+        new SimpleImportHandler(spatialUtilFactory, Attribute.class).register(this);
+        new SimpleImportHandler(spatialUtilFactory, AttributeOption.class).register(this);
+        new SimpleImportHandler(spatialUtilFactory, CensusMethod.class).register(this);
+        new SimpleImportHandler(spatialUtilFactory, Location.class).register(this);
+        new RecordImportHandler(spatialUtilFactory, Record.class).register(this);
+        new AttributeValueImportHandler(spatialUtilFactory, fileService).register(this);
         // don't register the user import handler if there is no way to access 
         // the system user accounts
         if (userDAO != null) {
-            new UserImportHandler(locationService, userDAO).register(this);
+            new UserImportHandler(spatialUtilFactory, userDAO).register(this);
         }
     }
 

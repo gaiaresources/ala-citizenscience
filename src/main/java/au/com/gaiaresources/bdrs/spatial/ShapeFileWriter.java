@@ -17,8 +17,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.codehaus.plexus.util.StringUtils;
@@ -42,12 +42,15 @@ import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.method.Taxonomic;
 import au.com.gaiaresources.bdrs.model.record.AccessControlledRecordAdapter;
 import au.com.gaiaresources.bdrs.model.record.Record;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.template.TemplateService;
 import au.com.gaiaresources.bdrs.util.FileUtils;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 import au.com.gaiaresources.bdrs.util.ZipUtils;
 
 import com.vividsolutions.jts.geom.Geometry;
@@ -82,6 +85,9 @@ public class ShapeFileWriter {
     public static final String EXPORT_TYPE_RECORD = "record";
     public static final String EXPORT_TYPE_LOCATION = "location";
     
+    // always export in lat lons
+    private static final int DEFAULT_SRID = BdrsCoordReferenceSystem.DEFAULT_SRID;
+    
     private SimpleDateFormat shpDateFormat = new SimpleDateFormat("dd MMM yyyy");
     
     private SimpleDateFormat metadataDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
@@ -110,7 +116,8 @@ public class ShapeFileWriter {
         
         List<Survey> surveyList = new ArrayList<Survey>(surveySet);
         List<CensusMethod> cmList = new ArrayList<CensusMethod>(cmSet);
-        return createZipShapefile(surveyList, cmList, shapefileTypeSet, recList, accessor);
+        
+        return createZipShapefile(surveyList, cmList, shapefileTypeSet, recList, accessor, DEFAULT_SRID);
     }
     
     /**
@@ -141,16 +148,29 @@ public class ShapeFileWriter {
         Set<ShapefileType> shapefileTypeSet = new HashSet<ShapefileType>(1);
         shapefileTypeSet.add(shapefileType);
         
-        return createZipShapefile(surveyList, cmList, shapefileTypeSet, Collections.EMPTY_LIST, null);
+        return createZipShapefile(surveyList, cmList, shapefileTypeSet, Collections.EMPTY_LIST, null, DEFAULT_SRID);
     }
     
-    public File createZipShapefile(List<Survey> surveyList, List<CensusMethod> cmList, 
-            Set<ShapefileType> shapefileTypeSet, List<Record> recList, User accessor) throws Exception {
+    /**
+     * Creates a zipped shape file package from records from multiple surveys.
+     * 
+     * @param surveyList List of surveys.
+     * @param cmList List of census methods.
+     * @param shapefileTypeSet Set of shape file types (e.g. point, line, polygon).
+     * @param recList List of records.
+     * @param accessor User requesting shape file export operation.
+     * @return Zipped shapefile package.
+     * @throws Exception
+     */
+    private File createZipShapefile(List<Survey> surveyList, List<CensusMethod> cmList, 
+            Set<ShapefileType> shapefileTypeSet, List<Record> recList, User accessor, int srid) throws Exception {
         
         if (shapefileTypeSet.isEmpty()) {
             // There are no shape file types so we will default to a point type.
             shapefileTypeSet.add(ShapefileType.POINT);
         }
+        
+        SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil(srid);
         
         boolean hasRecords = !recList.isEmpty();
         
@@ -318,7 +338,7 @@ public class ShapeFileWriter {
                     
                     writeAttributeValues(recAdapter.getAttributes(), attrNameMap, featureAttr);
                     
-                    ShapefileFeature feature = new ShapefileFeature(recAdapter.getGeometry(), featureAttr);
+                    ShapefileFeature feature = new ShapefileFeature(spatialUtil.transform(recAdapter.getGeometry()), featureAttr);
                     writeFeatureMap.get(recordShpType).add(feature);
                 }
             }
@@ -752,7 +772,7 @@ public class ShapeFileWriter {
      * @return
      * @throws Exception
      */
-    public File exportLocations(List<Location> locList) throws Exception {
+    public File exportLocations(List<Location> locList, int srid) throws Exception {
         Set<ShapefileType> shapefileTypeSet = new HashSet<ShapefileType>();
         
         for (Location r : locList) {
@@ -762,7 +782,7 @@ public class ShapeFileWriter {
             }
         }
         
-        return createZipShapefile(shapefileTypeSet, locList);
+        return createZipShapefile(shapefileTypeSet, locList, srid);
     }
     
     /**
@@ -772,7 +792,7 @@ public class ShapeFileWriter {
      * @return
      * @throws Exception
      */
-    public File createZipShapefile(Set<ShapefileType> shapefileTypeSet, List<Location> locList) throws Exception {
+    public File createZipShapefile(Set<ShapefileType> shapefileTypeSet, List<Location> locList, int srid) throws Exception {
         
         if (shapefileTypeSet.isEmpty()) {
             // There are no shape file types so we will default to a point type.
@@ -780,6 +800,8 @@ public class ShapeFileWriter {
         }
         
         boolean hasLocs = !locList.isEmpty();
+        
+        SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil(srid);
         
         RecordKeyLookup klu = new ShapefileLocationKeyLookup();
         
@@ -864,7 +886,7 @@ public class ShapeFileWriter {
                     featureAttr.put("name", loc.getName());
                     featureAttr.put("desc", loc.getDescription());
                     
-                    ShapefileFeature feature = new ShapefileFeature(loc.getLocation(), featureAttr);
+                    ShapefileFeature feature = new ShapefileFeature(spatialUtil.transform(loc.getLocation()), featureAttr);
                     writeFeatureMap.get(recordShpType).add(feature);
                 }
             }

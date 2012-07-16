@@ -17,6 +17,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.controller.record.validator.DateValidator;
 import au.com.gaiaresources.bdrs.controller.record.validator.DoubleRangeValidator;
 import au.com.gaiaresources.bdrs.controller.record.validator.HistoricalDateValidator;
@@ -24,8 +25,8 @@ import au.com.gaiaresources.bdrs.controller.record.validator.IntRangeValidator;
 import au.com.gaiaresources.bdrs.controller.record.validator.StringValidator;
 import au.com.gaiaresources.bdrs.controller.record.validator.TaxonValidator;
 import au.com.gaiaresources.bdrs.controller.record.validator.Validator;
-import au.com.gaiaresources.bdrs.service.property.PropertyService;
-import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
+import au.com.gaiaresources.bdrs.model.map.GeoMap;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
@@ -33,6 +34,7 @@ import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
+import au.com.gaiaresources.bdrs.service.property.PropertyService;
 
 public class RecordFormValidatorTest extends AbstractControllerTest {
 
@@ -589,5 +591,76 @@ public class RecordFormValidatorTest extends AbstractControllerTest {
         value = "I can even use numb3r5 and _und3r5c0r35 and CAPITALS.";
         paramMap.put(key, new String[] { value });
         Assert.assertTrue(validator.validate(paramMap, ValidationType.REGEX, key, att));
+    }
+    
+    @Test
+    public void testCoordValidator() {
+    	Survey surveyWgs = new Survey();
+    	surveyWgs.setMap(new GeoMap());
+    	surveyWgs.getMap().setCrs(BdrsCoordReferenceSystem.WGS84);
+    	Survey surveyMga = new Survey();
+    	surveyMga.setMap(new GeoMap());
+    	surveyMga.getMap().setCrs(BdrsCoordReferenceSystem.MGA50);
+    	
+    	RecordFormValidator validatorWgs = new RecordFormValidator(propertyService, taxaDAO, surveyWgs);
+    	
+    	assertValid(validatorWgs, ValidationType.COORD_Y, "90", true, null);
+    	assertValid(validatorWgs, ValidationType.COORD_Y, "90.1", false, null);
+    	assertValid(validatorWgs, ValidationType.COORD_Y, "-90", true, null);
+    	assertValid(validatorWgs, ValidationType.COORD_Y, "-90.1", false, null);
+    	assertValid(validatorWgs, ValidationType.COORD_X, "180", true, null);
+    	assertValid(validatorWgs, ValidationType.COORD_X, "-180", true, null);
+    	assertValid(validatorWgs, ValidationType.COORD_X, "180.1", false, null);
+    	assertValid(validatorWgs, ValidationType.COORD_X, "-180.1", false, null);
+    	assertValid(validatorWgs, ValidationType.COORD_X, "", true, null);
+    	assertValid(validatorWgs, ValidationType.COORD_Y, "", true, null);
+    	
+    	assertValid(validatorWgs, ValidationType.REQUIRED_COORD_Y, "90", true, null);
+    	assertValid(validatorWgs, ValidationType.REQUIRED_COORD_Y, "90.1", false, null);
+    	assertValid(validatorWgs, ValidationType.REQUIRED_COORD_Y, "-90", true, null);
+    	assertValid(validatorWgs, ValidationType.REQUIRED_COORD_Y, "-90.1", false, null);
+    	assertValid(validatorWgs, ValidationType.REQUIRED_COORD_X, "180", true, null);
+    	assertValid(validatorWgs, ValidationType.REQUIRED_COORD_X, "-180", true, null);
+    	assertValid(validatorWgs, ValidationType.REQUIRED_COORD_X, "180.1", false, null);
+    	assertValid(validatorWgs, ValidationType.REQUIRED_COORD_X, "-180.1", false, null);
+    	assertValid(validatorWgs, ValidationType.REQUIRED_COORD_X, "", false, null);
+    	assertValid(validatorWgs, ValidationType.REQUIRED_COORD_Y, "", false, null);
+    	
+    	RecordFormValidator validatorMga = new RecordFormValidator(propertyService, taxaDAO, surveyMga);
+    	
+    	assertValid(validatorMga, ValidationType.COORD_Y, "90", true, null);
+    	assertValid(validatorMga, ValidationType.COORD_Y, "90.1", true, null);
+    	assertValid(validatorMga, ValidationType.COORD_Y, "-90", true, null);
+    	assertValid(validatorMga, ValidationType.COORD_Y, "-90.1", true, null);
+    	assertValid(validatorMga, ValidationType.COORD_X, "180", true, null);
+    	assertValid(validatorMga, ValidationType.COORD_X, "-180", true, null);
+    	assertValid(validatorMga, ValidationType.COORD_X, "180.1", true, null);
+    	assertValid(validatorMga, ValidationType.COORD_X, "-180.1", true, null);
+    	assertValid(validatorMga, ValidationType.COORD_X, "", true, null);
+    	assertValid(validatorMga, ValidationType.COORD_Y, "", true, null);
+    	
+    	assertValid(validatorMga, ValidationType.REQUIRED_COORD_Y, "90", true, null);
+    	assertValid(validatorMga, ValidationType.REQUIRED_COORD_Y, "90.1", true, null);
+    	assertValid(validatorMga, ValidationType.REQUIRED_COORD_Y, "-90", true, null);
+    	assertValid(validatorMga, ValidationType.REQUIRED_COORD_Y, "-90.1", true, null);
+    	assertValid(validatorMga, ValidationType.REQUIRED_COORD_X, "180", true, null);
+    	assertValid(validatorMga, ValidationType.REQUIRED_COORD_X, "-180", true, null);
+    	assertValid(validatorMga, ValidationType.REQUIRED_COORD_X, "180.1", true, null);
+    	assertValid(validatorMga, ValidationType.REQUIRED_COORD_X, "-180.1", true, null);
+    	assertValid(validatorMga, ValidationType.REQUIRED_COORD_X, "", false, null);
+    	assertValid(validatorMga, ValidationType.REQUIRED_COORD_Y, "", false, null);
+    }
+    
+    private void assertValid(RecordFormValidator rfv, ValidationType type, 
+    		String value, boolean expectedValid, String expectedMsg) {
+    	String key = "dummyKey";
+    	rfv.getErrorMap().clear();
+    	Map<String, String[]> pMap = new HashMap<String, String[]>(1);
+    	pMap.put(key, new String[] { value });
+    	boolean result = rfv.validate(pMap, type, key, null);
+    	Assert.assertEquals("wrong valid result", expectedValid, result);
+    	if (expectedMsg != null) {
+    		Assert.assertEquals("wrong msg", expectedMsg, rfv.getErrorMap().get(key));
+    	}
     }
 }

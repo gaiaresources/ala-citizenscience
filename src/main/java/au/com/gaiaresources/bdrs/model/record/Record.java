@@ -1,22 +1,30 @@
 package au.com.gaiaresources.bdrs.model.record;
 
-import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
-import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
-import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
-import au.com.gaiaresources.bdrs.model.attribute.Attributable;
-import au.com.gaiaresources.bdrs.model.expert.ReviewRequest;
-import au.com.gaiaresources.bdrs.model.location.Location;
-import au.com.gaiaresources.bdrs.model.metadata.Metadata;
-import au.com.gaiaresources.bdrs.model.method.CensusMethod;
-import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeValueUtil;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.user.User;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.TimeZone;
+
+import javax.persistence.AttributeOverride;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
 import org.apache.log4j.Logger;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.Filter;
@@ -28,15 +36,25 @@ import org.hibernate.annotations.Index;
 import org.hibernate.annotations.ParamDef;
 import org.hibernate.annotations.Type;
 
-import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.TimeZone;
+import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
+import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
+import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
+import au.com.gaiaresources.bdrs.model.attribute.Attributable;
+import au.com.gaiaresources.bdrs.model.expert.ReviewRequest;
+import au.com.gaiaresources.bdrs.model.location.Location;
+import au.com.gaiaresources.bdrs.model.metadata.Metadata;
+import au.com.gaiaresources.bdrs.model.method.CensusMethod;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
+import au.com.gaiaresources.bdrs.model.survey.Survey;
+import au.com.gaiaresources.bdrs.model.taxa.Attribute;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValueUtil;
+import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
+import au.com.gaiaresources.bdrs.model.user.User;
+
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Point;
 
 @Entity
 @FilterDefs({
@@ -884,5 +902,21 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
         }
 
         return comment;
+    }
+    
+    @Transient
+    public BdrsCoordReferenceSystem getCrs() {
+    	Integer srid = getSrid();
+    	return srid != null ? BdrsCoordReferenceSystem.getBySRID(srid) : null;
+    }
+    
+    /**
+     * Get the SRID for the geometry contained in this record.
+     * If geometry is null this method will return null.
+     * @return SRID for the contained geometry.
+     */
+    @Transient
+    public Integer getSrid() {
+    	return this.geometry != null ? this.geometry.getSRID() : null;
     }
 }

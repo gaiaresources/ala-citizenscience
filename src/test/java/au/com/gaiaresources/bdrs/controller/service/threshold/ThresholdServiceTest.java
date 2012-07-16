@@ -47,6 +47,8 @@ import au.com.gaiaresources.bdrs.service.threshold.actionhandler.EmailActionHand
 import au.com.gaiaresources.bdrs.service.threshold.actionhandler.HoldRecordHandler;
 import au.com.gaiaresources.bdrs.service.threshold.actionhandler.ModerationEmailActionHandler;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 import au.com.gaiaresources.bdrs.util.ModerationUtil;
 
 public class ThresholdServiceTest extends AbstractGridControllerTest {
@@ -61,6 +63,8 @@ public class ThresholdServiceTest extends AbstractGridControllerTest {
     
     @Autowired
     private RedirectionService redirService;
+    
+    private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
     
     @Test
     public void testEqualsStringCondition() throws Exception {
@@ -411,13 +415,13 @@ public class ThresholdServiceTest extends AbstractGridControllerTest {
         Location locationA = new Location();
         locationA.setName("Location A");
         locationA.setUser(admin);
-        locationA.setLocation(locService.createPoint(-40.58, 153.1));
+        locationA.setLocation(spatialUtil.createPoint(-40.58, 153.1));
         //locationDAO.save(locationA);
 
         Location locationB = new Location();
         locationB.setName("Location B");
         locationB.setUser(admin);
-        locationB.setLocation(locService.createPoint(-32.58, 154.2));
+        locationB.setLocation(spatialUtil.createPoint(-32.58, 154.2));
         //locationDAO.save(locationB);
 
         // ----------------------------------------
@@ -547,7 +551,7 @@ public class ThresholdServiceTest extends AbstractGridControllerTest {
         record.setHeld(false);
         record.setSpecies(speciesA);
         record.setUser(admin);
-        record.setPoint(locService.createPoint(-32.58, 154.2));
+        record.setPoint(spatialUtil.createPoint(-32.58, 154.2));
         record = recordDAO.saveRecord(record);
         int recordPk = record.getId();
 
@@ -593,7 +597,7 @@ public class ThresholdServiceTest extends AbstractGridControllerTest {
         record.setHeld(false);
         record.setSpecies(speciesA);
         record.setUser(admin);
-        record.setPoint(locService.createPoint(-32.58, 154.2));
+        record.setPoint(spatialUtil.createPoint(-32.58, 154.2));
 
         record = recordDAO.saveRecord(record);
 
@@ -659,7 +663,7 @@ public class ThresholdServiceTest extends AbstractGridControllerTest {
         record.setHeld(false);
         record.setSpecies(speciesA);
         record.setUser(user);
-        record.setPoint(locService.createPoint(-32.58, 154.2));
+        record.setPoint(spatialUtil.createPoint(-32.58, 154.2));
         record.setSurvey(survey);
         record = recordDAO.saveRecord(record);
 

@@ -790,4 +790,9 @@ public class Survey extends PortalPersistentImpl implements Comparable<Survey> {
 	public void setMap(GeoMap geoMap) {
 		this.geoMap = geoMap;
 	}
+	
+	@Transient
+	public BdrsCoordReferenceSystem getCrs() {
+		return geoMap != null ? geoMap.getCrs() : null;
+	}
 }

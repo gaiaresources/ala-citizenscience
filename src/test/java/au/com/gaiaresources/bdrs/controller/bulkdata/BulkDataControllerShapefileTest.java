@@ -13,8 +13,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import junit.framework.Assert;
 
@@ -45,6 +45,7 @@ import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
 import au.com.gaiaresources.bdrs.model.method.Taxonomic;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
@@ -57,6 +58,7 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.servlet.Interceptor;
 import au.com.gaiaresources.bdrs.spatial.ShapeFileReader;
 import au.com.gaiaresources.bdrs.spatial.ShapeFileWriter;
@@ -81,6 +83,8 @@ public class BulkDataControllerShapefileTest extends AbstractControllerTest {
     UserDAO userDAO;
     @Autowired
     CensusMethodDAO cmDAO;
+    @Autowired
+    GeoMapService geoMapService;
     
     User currentUser;
     Survey survey;
@@ -158,6 +162,9 @@ public class BulkDataControllerShapefileTest extends AbstractControllerTest {
         currentUser = userDAO.getUser("admin");
         
         login("admin", "password", new String[] { Role.ADMIN } );
+        
+        // create GeoMap
+        geoMapService.getForSurvey(survey);
     }
     
     @Test
@@ -190,7 +197,7 @@ public class BulkDataControllerShapefileTest extends AbstractControllerTest {
         Assert.assertEquals(0, reader.getCensusMethodIdList().get(0).intValue());
         
         // manipulate the template:
-        GeometryBuilder gb = new GeometryBuilder();
+        GeometryBuilder gb = new GeometryBuilder(BdrsCoordReferenceSystem.DEFAULT_SRID);
         ShapefileDataStore ds = reader.getDataStore();
         
         List<ShapefileFeature> featureList = new LinkedList<ShapefileFeature>();
@@ -288,7 +295,7 @@ public class BulkDataControllerShapefileTest extends AbstractControllerTest {
         Assert.assertEquals(0, reader.getCensusMethodIdList().get(0).intValue());
         
         // manipulate the template:
-        GeometryBuilder gb = new GeometryBuilder();
+        GeometryBuilder gb = new GeometryBuilder(BdrsCoordReferenceSystem.DEFAULT_SRID);
         ShapefileDataStore ds = reader.getDataStore();
         
         List<ShapefileFeature> featureList = new LinkedList<ShapefileFeature>();

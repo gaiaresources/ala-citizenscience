@@ -151,6 +151,9 @@ public class XlsCellUtil {
      * @param cell the cell containing the content to be returned.
      */
     public static double cellToDouble(Cell cell) {
+    	if (cell == null) {
+    		throw new IllegalArgumentException("Cell has no value");
+    	}
         double ret;
         switch(cell.getCellType()) {
             case Cell.CELL_TYPE_BLANK:

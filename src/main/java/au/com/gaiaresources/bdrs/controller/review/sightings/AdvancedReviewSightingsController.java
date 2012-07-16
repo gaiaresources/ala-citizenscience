@@ -13,6 +13,7 @@ import au.com.gaiaresources.bdrs.kml.KMLWriter;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.record.Record;
+import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
 import au.com.gaiaresources.bdrs.model.report.Report;
 import au.com.gaiaresources.bdrs.model.report.ReportCapability;
 import au.com.gaiaresources.bdrs.model.report.impl.ReportView;
@@ -26,6 +27,8 @@ import au.com.gaiaresources.bdrs.service.facet.SurveyFacet;
 import au.com.gaiaresources.bdrs.service.facet.record.RecordSurveyFacet;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.util.KMLUtils;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 import edu.emory.mathcs.backport.java.util.Collections;
 import org.apache.log4j.Logger;
@@ -579,6 +582,34 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
         }
 
         return toHibernateQuery(hqlQuery);
+    }
+    
+    /**
+     * Returns a JSON array of results matching the {@link Facet} criteria.
+     */
+    private void advancedReviewJSONSightings(HttpServletResponse response,
+                                            List<Facet> facetList, ScrollableResults<Record> sc) throws IOException {
+        int recordCount = 0;
+        JSONArray array = new JSONArray();
+        SpatialUtilFactory spatialUtilFactory = new SpatialUtilFactory();
+        Record r;
+        while(sc.hasMoreElements()) {
+            r = sc.nextElement();
+            Map<String, Object> rec_flatten = flatten(r);
+            if (r.getGeometry() != null) {
+            	// LocationUtil = LocationUtilFactory.
+            	SpatialUtil spatialUtil = spatialUtilFactory.getLocationUtil(r.getGeometry().getSRID());
+                // appropriately truncate lat and lon.
+                rec_flatten.put("longitude", spatialUtil.truncate(r.getLongitude()));
+                rec_flatten.put("latitude", spatialUtil.truncate(r.getLatitude()));
+            }
+            array.add(rec_flatten);
+            if (++recordCount % ScrollableRecords.RESULTS_BATCH_SIZE == 0) {
+                getRequestContext().getHibernate().clear();
+            }
+        }
+        
+        writeJson(response, array.toString());
     }
 
     /*

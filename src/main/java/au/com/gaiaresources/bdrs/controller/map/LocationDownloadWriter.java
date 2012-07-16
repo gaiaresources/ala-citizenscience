@@ -17,9 +17,11 @@ import org.hibernate.Session;
 import au.com.gaiaresources.bdrs.db.ScrollableResults;
 import au.com.gaiaresources.bdrs.kml.KMLWriter;
 import au.com.gaiaresources.bdrs.model.location.Location;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.bulkdata.BulkDataService;
+import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.spatial.ShapeFileWriter;
 import au.com.gaiaresources.bdrs.util.KMLUtils;
 
@@ -66,7 +68,11 @@ public class LocationDownloadWriter extends AbstractDownloadWriter<Location> {
             // no point writing a non empty shapefile since the user is not
             // expecting a template in this download but a populated shapefile
             ShapeFileWriter writer = new ShapeFileWriter();
-            File zipFile = writer.exportLocations(locList);
+            
+            // Currently the survey will ALWAYS be null - but if it's not in the future, use
+            // the survey srid setting.
+            int srid = survey != null ? survey.getMap().getSrid() : BdrsCoordReferenceSystem.DEFAULT_SRID;
+            File zipFile = writer.exportLocations(locList, srid);
             
             sesh.clear();
             locList.clear();

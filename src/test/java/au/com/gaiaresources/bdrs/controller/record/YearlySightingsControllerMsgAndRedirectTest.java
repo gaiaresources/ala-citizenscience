@@ -18,7 +18,6 @@ import org.springframework.web.servlet.ModelAndView;
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.record.Record;
@@ -33,6 +32,8 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 public class YearlySightingsControllerMsgAndRedirectTest extends
         AbstractControllerTest {
@@ -48,9 +49,9 @@ public class YearlySightingsControllerMsgAndRedirectTest extends
     @Autowired
     private LocationDAO locationDAO;
     @Autowired
-    private LocationService locationService;
-    @Autowired
     private RedirectionService redirectionService;
+    
+    private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
     
     private Survey survey;
     private TaxonGroup taxonGroup;
@@ -89,7 +90,7 @@ public class YearlySightingsControllerMsgAndRedirectTest extends
         locationA = new Location();
         locationA.setName("Location A");        
         locationA.setUser(admin);
-        locationA.setLocation(locationService.createPoint(-40.58, 153.1));
+        locationA.setLocation(spatialUtil.createPoint(-40.58, 153.1));
         locationDAO.save(locationA);
         
         login("admin", "password", new String[] { Role.ADMIN });

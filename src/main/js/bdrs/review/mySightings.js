@@ -64,6 +64,7 @@ bdrs.review.mysightings.TABLE_ROW_TMPL = '\
     <td class="textcenter"><a href="${ contextPath }/bdrs/user/surveyRenderRedirect.htm?surveyId=${ survey }&recordId=${ id }">${ _when }</a></td>\
     <td class=\"commonName\">${ species.commonName }</td>\
     <td class=\"scientificName\">${ species.scientificName }</td>\
+	<td>${ crs }</td>\
     <td class=\"nowrap\">${ latitude }</td>\
     <td class=\"nowrap\">${ longitude }</td>\
     <td>${ number }</td>\

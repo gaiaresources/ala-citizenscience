@@ -14,7 +14,6 @@ import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
@@ -52,6 +51,8 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 import edu.emory.mathcs.backport.java.util.Arrays;
 
 /**
@@ -325,12 +326,23 @@ public class MySightingsController extends SightingsController {
         Session sesh = getRequestContext().getHibernate();
         JSONArray array = new JSONArray();
         int count = 0;
+        
+        SpatialUtilFactory spatialUtilFactory = new SpatialUtilFactory();
+        
         while (sr.hasMoreElements() && recordIndex < lastRec) {
             Record rec = sr.nextElement();
             Map<String, Object> rec_flatten = rec.flatten();
+            
             IndicatorSpecies species = rec.getSpecies();
             if(species != null) {
                 rec_flatten.put("species", species.flatten());
+            }
+            
+            if (rec.getGeometry() != null) {
+            	SpatialUtil spatialUtil = spatialUtilFactory.getLocationUtil(rec.getGeometry().getSRID());
+                // appropriately truncate lat and lon.
+                rec_flatten.put("longitude", spatialUtil.truncate(rec.getLongitude()));
+                rec_flatten.put("latitude", spatialUtil.truncate(rec.getLatitude()));
             }
             
             List<Map<String, Object>> attrList = new ArrayList<Map<String,Object>>(rec.getAttributes().size());

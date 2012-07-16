@@ -185,4 +185,14 @@ public class SingleSiteFormRecordKeyLookup implements RecordKeyLookup {
     public String getTimeMinuteKey() {
         return SingleSiteController.PARAM_TIME_MINUTE;
     }
+
+	@Override
+	public String getZoneKey() {
+		return BdrsWebConstants.PARAM_SRID;
+	}
+
+	@Override
+	public String getWktKey() {
+		return BdrsWebConstants.PARAM_WKT;
+	}
 }

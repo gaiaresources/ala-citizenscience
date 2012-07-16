@@ -7,13 +7,13 @@ import java.io.InputStream;
 import java.text.ParseException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 
 import javax.annotation.security.RolesAllowed;
 import javax.security.sasl.AuthenticationException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import au.com.gaiaresources.bdrs.service.bulkdata.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.HibernateException;
@@ -40,6 +40,12 @@ import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.bulkdata.AmbiguousDataException;
+import au.com.gaiaresources.bdrs.service.bulkdata.BulkDataService;
+import au.com.gaiaresources.bdrs.service.bulkdata.BulkUpload;
+import au.com.gaiaresources.bdrs.service.bulkdata.DataReferenceException;
+import au.com.gaiaresources.bdrs.service.bulkdata.InvalidSurveySpeciesException;
+import au.com.gaiaresources.bdrs.service.bulkdata.MissingDataException;
 import au.com.gaiaresources.bdrs.spatial.ShapeFileReader;
 import au.com.gaiaresources.bdrs.spatial.ShapeFileWriter;
 import au.com.gaiaresources.bdrs.spatial.ShapefileAttributeDictionaryFactory;
@@ -67,6 +73,7 @@ public class BulkDataController extends AbstractController {
     public static final String MV_PARAM_WRITE_COUNT = "writeCount";
     
     public static final String MSG_KEY_SHAPEFILE_UPLOAD_BAD_ZIP = "bdrs.bulkdata.shapefile.uploadBadZip";
+    public static final String MSG_KEY_SHAPEFILE_UNSUPPORTED_CRS = "bdrs.bulkdata.shapefile.unsupportedCrs";
     
     private Logger log = Logger.getLogger(getClass());
 
@@ -336,6 +343,9 @@ public class BulkDataController extends AbstractController {
         ShapeFileReader reader;
         try {
             reader = new ShapeFileReader(tempFile);
+            if (!reader.isCrsSupported()) {
+            	getRequestContext().addMessage(MSG_KEY_SHAPEFILE_UNSUPPORTED_CRS);
+            }
         } catch (IOException ioe) {
             getRequestContext().addMessage(MSG_KEY_SHAPEFILE_UPLOAD_BAD_ZIP);
             return redirect(BULK_DATA_URL);

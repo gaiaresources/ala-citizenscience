@@ -1,6 +1,5 @@
 package au.com.gaiaresources.bdrs.controller.record;
 
-import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -18,8 +17,6 @@ import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.mock.web.MockMultipartHttpServletRequest;
 import org.springframework.test.web.ModelAndViewAssert;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -31,7 +28,6 @@ import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyTy
 import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.record.Record;
@@ -52,6 +48,8 @@ import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 /**
  * Tests all aspects of the <code>TrackerController</code>.
@@ -67,9 +65,9 @@ public class TrackerControllerTest extends RecordFormTest {
     @Autowired
     private LocationDAO locationDAO;
     @Autowired
-    private LocationService locationService;
-    @Autowired
     private RedirectionService redirectionService;
+    
+    private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
 
     private Survey survey;
     private TaxonGroup taxonGroupBirds;
@@ -84,6 +82,7 @@ public class TrackerControllerTest extends RecordFormTest {
     
     @Before
     public void setUp() throws Exception {
+    	
         taxonGroupBirds = new TaxonGroup();
         taxonGroupBirds.setName("Birds");
         taxonGroupBirds = taxaDAO.save(taxonGroupBirds);
@@ -154,17 +153,17 @@ public class TrackerControllerTest extends RecordFormTest {
         locationA = new Location();
         locationA.setName("Location A");
         locationA.setUser(admin);
-        locationA.setLocation(locationService.createPoint(-40.58, 153.1));
+        locationA.setLocation(spatialUtil.createPoint(-40.58, 153.1));
         locationDAO.save(locationA);
 
         locationB = new Location();
         locationB.setName("Location B");
         locationB.setUser(admin);
-        locationB.setLocation(locationService.createPoint(-32.58, 154.2));
+        locationB.setLocation(spatialUtil.createPoint(-32.58, 154.2));
         locationDAO.save(locationB);
         
         locationPoly = new Location();
-        locationPoly.setLocation(locationService.createGeometryFromWKT("POLYGON((114.91699218293 -33.678639850485,115.18066405793 -34.406909655312,117.46582030783 -35.272531755372,119.92675780773 -33.897777012664,114.91699218293 -33.678639850485))"));
+        locationPoly.setLocation(spatialUtil.createGeometryFromWKT("POLYGON((114.91699218293 -33.678639850485,115.18066405793 -34.406909655312,117.46582030783 -35.272531755372,119.92675780773 -33.897777012664,114.91699218293 -33.678639850485))"));
         locationPoly.setName("Location Poly");
         locationPoly.setUser(admin);
         locationPoly = locationDAO.save(locationPoly);

@@ -25,9 +25,11 @@ import au.com.gaiaresources.bdrs.model.method.Taxonomic;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.MultiLineString;
@@ -192,6 +194,7 @@ public class TrackerControllerWktTest extends AbstractControllerTest {
         request.setParameter(TrackerController.PARAM_TIME, "15:48");
         request.setParameter(TrackerController.PARAM_NOTES, "my notes");
         request.setParameter(TrackerController.PARAM_WKT, wktString);
+        request.setParameter(BdrsWebConstants.PARAM_SRID, Integer.toString(BdrsCoordReferenceSystem.WGS84.getSrid()));
 
         ModelAndView mv = handle(request, response);
         
@@ -201,8 +204,7 @@ public class TrackerControllerWktTest extends AbstractControllerTest {
         
         RecordKeyLookup klu = new TrackerFormRecordKeyLookup();
         
-        Assert.assertTrue("Error for lat should not be empty", StringUtils.hasLength(errorMap.get(klu.getLatitudeKey())));
-        Assert.assertTrue("Error for long should not be empty", StringUtils.hasLength(errorMap.get(klu.getLongitudeKey())));
+        Assert.assertTrue("Error for wkt should not be empty", StringUtils.hasLength(errorMap.get(klu.getWktKey())));
     }
     
     @Override

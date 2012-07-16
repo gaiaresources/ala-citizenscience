@@ -28,8 +28,8 @@
                         {'sortName' : 'location.location',
                          'displayClass' : 'locationColumn ',
                          'divClass' :  'left alaSightingsTableHeader',
-                         'tooltip' : 'The latitude and longitude of the location.',
-                         'title' : 'Latitude/Longitude'},
+                         'tooltip' : 'The coordinates of the location.',
+                         'title' : 'Coordinates'},
                         {'sortName' : 'location.user',
                          'displayClass' : 'userColumn',
                          'divClass' :  'left alaSightingsTableHeader',
@@ -91,10 +91,7 @@
             'pointRadius': 4
         };
     var wktWriter = new OpenLayers.Format.WKT(bdrs.map.wkt_options);
-    var inversewkt = new OpenLayers.Format.WKT({
-            'internalProjection': bdrs.map.WGS84_PROJECTION,
-            'externalProjection': bdrs.map.GOOGLE_PROJECTION
-        });
+
     var initMap = function() {
         var layer = bdrs.map.addVectorLayer(bdrs.map.baseMap, "Location Selector", stylemap);
         // Will remove all but the most recently added feature
@@ -195,12 +192,13 @@
     
     var highlightFeatures = function(layer) {
         var selectControl = new OpenLayers.Control.SelectFeature(layer);
+        selectControl.unselectAll();
         // highlight selected features
         for (var i = 0; i < bdrs.advancedReview.locations.length; i++) {
             var feature = layer.getFeatureByFid(bdrs.advancedReview.locations[i]);
-                if (feature) {
-                    selectControl.select(feature);
-                }
+            if (feature) {
+                selectControl.select(feature);
+            }
         }
     };
     
@@ -227,28 +225,19 @@
        // refresh the map layer to only show locations within the added feature
        // don't filter this by locations
        jQuery("#locations").val('');
+       // clear array
+       bdrs.advancedReview.locations = [];
        
        bdrs.ajaxPostWith(bdrs.portalContextPath+bdrs.advancedReview.JSON_URL, bdrs.serializeObject("form", false), function(data) {
            var featureArray = [];
            var selFeatureArr = [];
            // use the selection geometry to determine the map zoom
-           var geobounds;
            var layer = bdrs.map.baseMap.getLayersByName("Sightings")[0];
-           var selectControl = new OpenLayers.Control.SelectFeature(layer);
-           layer.removeAllFeatures();
+           
            for (var i = 0; i < data.length; i++) {
-               var feature = wktWriter.read(OpenLayers.Geometry.fromWKT(data[i].location).transform(bdrs.map.WGS84_PROJECTION, bdrs.map.GOOGLE_PROJECTION));
-               feature.fid = data[i].id;
-               
-               featureArray.push(feature);
-                if (geobounds) {
-                    geobounds.extend(feature.geometry.getBounds());
-                } else {
-                    geobounds = feature.geometry.getBounds();
-                }
+               bdrs.advancedReview.locations.push(data[i].id);
            }
            // remove the existing features from the layer and add the new ones
-           layer.addFeatures(featureArray);
            
            // zoom the map to show the selected area
            var selectLayer = bdrs.map.baseMap.getLayersByName("Location Selector")[0];
@@ -265,13 +254,16 @@
    var clearMapSelection = function() {
        jQuery("#locationArea").val('');
        jQuery("#locations").val('');
+       bdrs.advancedReview.locations = [];
        // clear any messages about results limitation and links to clear maps
        jQuery("#resultsMessages").html('');
-       //locations.length = 0;
        if (bdrs.map.baseMap) {
            var selectLayer = bdrs.map.baseMap.getLayersByName("Location Selector")[0];
            selectLayer.removeAllFeatures();
-           refreshLocationLayer();
+           // use the selection geometry to determine the map zoom
+           var layer = bdrs.map.baseMap.getLayersByName("Sightings")[0];
+           highlightFeatures(layer);
+           bdrs.map.centerMapToLayerExtent(bdrs.map.baseMap, layer);
        } else {
            // clear the table, then reload the data
            jQuery("#alaSightingsTable").find('tbody').empty();

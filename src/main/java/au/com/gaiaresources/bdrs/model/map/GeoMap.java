@@ -13,6 +13,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
@@ -20,11 +21,12 @@ import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.ParamDef;
 import org.hibernate.annotations.Type;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
-
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+
+import com.vividsolutions.jts.geom.Point;
 
 @Entity
 @FilterDef(name=PortalPersistentImpl.PORTAL_FILTER_NAME, parameters=@ParamDef( name="portalId", type="integer" ) )
@@ -46,6 +48,8 @@ public class GeoMap extends PortalPersistentImpl {
     private List<AssignedGeoMapLayer> assignedGeoMapLayers = new ArrayList<AssignedGeoMapLayer>();
     private Point center;
     private Integer zoom;
+    
+    private BdrsCoordReferenceSystem crs = BdrsCoordReferenceSystem.WGS84;
     
     /**
      * Get the {@link BaseMapLayer} for this map
@@ -225,4 +229,32 @@ public class GeoMap extends PortalPersistentImpl {
 	public void setZoom(Integer zoom) {
 		this.zoom = zoom;
 	}
+
+	/**
+     * Get the SRID for this map.
+     * @return the SRID for this map.
+     */
+    @Transient
+	public Integer getSrid() {
+		return this.crs.getSrid();
+	}
+	
+    /**
+     * Get the CRS for this map.
+     * @return CRS for this map.
+     */
+    @Column(name="crs", nullable=false)
+    @Enumerated(EnumType.STRING)
+	public BdrsCoordReferenceSystem getCrs() {
+		return crs;
+	}
+    
+    public void setCrs(BdrsCoordReferenceSystem crs) {
+    	this.crs = crs;
+    }
+    
+    @Transient
+    public String getEpsgCode() {
+    	return BdrsCoordReferenceSystem.sridToEpsg(getSrid());
+    }
 }

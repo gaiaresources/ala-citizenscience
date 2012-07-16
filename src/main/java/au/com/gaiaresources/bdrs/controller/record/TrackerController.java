@@ -38,6 +38,7 @@ import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
+import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
 import au.com.gaiaresources.bdrs.model.method.Taxonomic;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
@@ -158,7 +159,7 @@ public class TrackerController extends RecordController {
      * Request param, the wkt string representing the geographical location
      * of the record
      */
-    public static final String PARAM_WKT = "wkt";
+    public static final String PARAM_WKT = BdrsWebConstants.PARAM_WKT;
     /**
      * Request param - the visibility of the record.
      */
@@ -251,21 +252,19 @@ public class TrackerController extends RecordController {
     private RecordDAO recordDAO;
     @Autowired
     private TaxaDAO taxaDAO;
-
     @Autowired
-    private LocationService locationService;
-    
+    private CensusMethodDAO cmDAO;
     @Autowired
     private RedirectionService redirectionService;
-    
     @Autowired
     private MetadataDAO metadataDAO;
-
     /** Required to get the user who last updated the Record */
     @Autowired
     private RecordService recordService;
     @Autowired
     private GeoMapService geoMapService;
+    @Autowired
+    private LocationService locationService;
 
     /**
      * Handler to get the tracker form. Will populate the form with values if an existing
@@ -320,7 +319,7 @@ public class TrackerController extends RecordController {
         if (valueMap != null) {
             // mock save record with value map results to populate form on server error
             RecordKeyLookup lookup = new TrackerFormRecordKeyLookup();
-            TrackerFormToRecordEntryTransformer transformer = new TrackerFormToRecordEntryTransformer(locationService);
+            TrackerFormToRecordEntryTransformer transformer = new TrackerFormToRecordEntryTransformer();
             TrackerFormAttributeDictionaryFactory adf = new TrackerFormAttributeDictionaryFactory();
             AttributeParser parser = new WebFormAttributeParser(taxaDAO);
             
@@ -588,7 +587,8 @@ public class TrackerController extends RecordController {
         }
         
         RecordKeyLookup lookup = new TrackerFormRecordKeyLookup();
-        TrackerFormToRecordEntryTransformer transformer = new TrackerFormToRecordEntryTransformer(locationService);
+        
+        TrackerFormToRecordEntryTransformer transformer = new TrackerFormToRecordEntryTransformer();
         TrackerFormAttributeDictionaryFactory adf = new TrackerFormAttributeDictionaryFactory();
         AttributeParser parser = new WebFormAttributeParser(taxaDAO);
         

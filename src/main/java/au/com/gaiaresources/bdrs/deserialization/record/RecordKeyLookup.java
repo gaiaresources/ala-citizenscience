@@ -89,6 +89,19 @@ public interface RecordKeyLookup {
     String getLongitudeKey();
     
     /**
+     * The zone for the y/x pair. Used for UTM based coordinate systems.
+     * @return
+     */
+    String getZoneKey();
+    
+    /**
+     * The wkt string representing the geometry. If this is present, the lat/lon
+     * param values will be ignored.
+     * @return
+     */
+    String getWktKey();
+    
+    /**
      * The bdrs location id number where the recording was taken
      * @return
      */

@@ -338,6 +338,7 @@
     jQuery(window).load(function() {
     	var lat = jQuery('input[name=latitude]');
         var lon = jQuery('input[name=longitude]');
+        var sridSelector = 'input[name=srid]';
 
         var geocodeClickHandler = function(lonLat) {
             lonLat.transform(bdrs.map.GOOGLE_PROJECTION, bdrs.map.WGS84_PROJECTION);
@@ -456,8 +457,8 @@
                 var layer = bdrs.map.addPositionLayer(layerName);
             </c:when>
             <c:otherwise>
-                var layer = bdrs.map.addSingleClickPositionLayer(bdrs.map.baseMap, layerName, 'input[name=latitude]', 'input[name=longitude]');
-                bdrs.map.addLonLatChangeHandler(layer, 'input[name=longitude]', 'input[name=latitude]');
+                var layer = bdrs.map.addSingleClickPositionLayer(bdrs.map.baseMap, layerName, 'input[name=latitude]', 'input[name=longitude]', sridSelector);
+                bdrs.map.addCrsChangeHandler(layer, 'input[name=longitude]', 'input[name=latitude]', null, sridSelector);
             </c:otherwise>
         </c:choose>
         
@@ -478,6 +479,11 @@
             var geobounds = feature.geometry.getBounds();
             var zoom = bdrs.map.baseMap.getZoomForExtent(geobounds);
             bdrs.map.baseMap.setCenter(geobounds.getCenterLonLat(), 10);
+        } else {
+        	// Center on the middle of australia.
+        	var ausCenter = new OpenLayers.LonLat(133.5, -28);
+        	ausCenter.transform(bdrs.map.WGS84_PROJECTION, bdrs.map.GOOGLE_PROJECTION);
+            bdrs.map.baseMap.setCenter(ausCenter, 2);
         }
     });
 </script>

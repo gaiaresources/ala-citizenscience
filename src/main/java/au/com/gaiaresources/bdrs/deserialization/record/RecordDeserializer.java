@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -27,7 +28,6 @@ import au.com.gaiaresources.bdrs.db.SessionFactory;
 import au.com.gaiaresources.bdrs.deserialization.attribute.AttributeDeserializer;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
@@ -35,6 +35,7 @@ import au.com.gaiaresources.bdrs.model.method.Taxonomic;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
@@ -46,13 +47,14 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.service.property.PropertyService;
 import au.com.gaiaresources.bdrs.util.DateFormatter;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 
 import com.vividsolutions.jts.geom.Geometry;
-
-import edu.emory.mathcs.backport.java.util.Arrays;
 
 public class RecordDeserializer {
 
@@ -62,9 +64,9 @@ public class RecordDeserializer {
     private TaxaDAO taxaDAO = AppContext.getBean(TaxaDAO.class);
     private LocationDAO locationDAO = AppContext.getBean(LocationDAO.class);
     private CensusMethodDAO cmDAO = AppContext.getBean(CensusMethodDAO.class);
-    private LocationService locationService = AppContext.getBean(LocationService.class);
     private PropertyService propertyService = AppContext.getBean(PropertyService.class);
     private MetadataDAO metadataDAO = AppContext.getBean(MetadataDAO.class);
+    private GeoMapService geoMapService = AppContext.getBean(GeoMapService.class);
     private SessionFactory sessionFactory = AppContext.getBean(SessionFactory.class);
     
     RecordKeyLookup klu;
@@ -161,6 +163,10 @@ public class RecordDeserializer {
                 Integer censusMethodId = Integer.parseInt(censusMethodIdString);
                 
                 Survey survey = surveyDAO.getSurvey(surveyPk);
+                // lazy initialise the map for the survey
+                if (survey.getMap() == null) {
+                	survey.setMap(geoMapService.getForSurvey(survey));
+                }
                 CensusMethod censusMethod = cmDAO.get(censusMethodId);
                 
                 // Get the record here so we can first check authorization without doing all of the 
@@ -292,13 +298,37 @@ public class RecordDeserializer {
                         }
                                 
                         if (entry.getGeometry() == null) {
+                        	// check wkt
+                        	String wktString = getFirstValue(params, klu.getWktKey());
+                        	String latString = getFirstValue(params, klu.getLatitudeKey());
+                            String lonString = getFirstValue(params, klu.getLongitudeKey());
+                            boolean hasSpatial = (StringUtils.notEmpty(wktString) || StringUtils.notEmpty(latString) 
+                    				|| StringUtils.notEmpty(lonString));
+                            
+                            // If any of the coordinate related parameters have been set, check if the 
+                            // coordinate reference system needs to be specified.
+                            String crsString = getFirstValue(params, klu.getZoneKey());
+                            boolean crsValid = true;
+                            if ((StringUtils.notEmpty(crsString) || survey.getMap().getCrs().isZoneRequired()) && hasSpatial) {
+                            	crsValid = validator.validate(params, ValidationType.REQUIRED_CRS, klu.getZoneKey(), null);
+                            	if (crsValid) {
+                            		validator.setCrs(BdrsCoordReferenceSystem.getBySRID(Integer.valueOf(crsString)));
+                            	}
+                            }
+                            
                             recordProperty = new RecordProperty(survey, RecordPropertyType.POINT, metadataDAO);
-                            if ( recordProperty.isRequired()) {
-                                validator.validate(params, ValidationType.REQUIRED_DEG_LATITUDE, klu.getLatitudeKey(), null, recordProperty);
-                                validator.validate(params, ValidationType.REQUIRED_DEG_LONGITUDE, klu.getLongitudeKey(), null, recordProperty);    
-                            } else {
-                                validator.validate(params, ValidationType.DEG_LATITUDE, klu.getLatitudeKey(), null, recordProperty);
-                                validator.validate(params, ValidationType.DEG_LONGITUDE, klu.getLongitudeKey(), null, recordProperty); 
+                            if (StringUtils.nullOrEmpty(wktString)) {
+                                if ( recordProperty.isRequired()) {
+                                    validator.validate(params, ValidationType.REQUIRED_COORD_Y, klu.getLatitudeKey(), null, recordProperty);
+                                    validator.validate(params, ValidationType.REQUIRED_COORD_X, klu.getLongitudeKey(), null, recordProperty);    
+                                } else {
+                                    validator.validate(params, ValidationType.COORD_Y, klu.getLatitudeKey(), null, recordProperty);
+                                    validator.validate(params, ValidationType.COORD_X, klu.getLongitudeKey(), null, recordProperty); 
+                                }
+                            } else if (crsValid) {
+                            	// Since wkt validation relies on the CRS being valid, only do this validation when the earlier CRS validates!
+                            	// If the wkt string is non empty, we require it to be valid.
+                            	validator.validate(params, ValidationType.REQUIRED_WKT, klu.getWktKey(), null, recordProperty);
                             }
                         } else {
                             // make sure the geometry is valid !
@@ -313,7 +343,8 @@ public class RecordDeserializer {
                             } else {
                                 // attempt to do geometry conversion as we only support multiline, multipolygon and singlepoint
                                 try {
-                                    Geometry geom = locationService.convertToMultiGeom(entry.getGeometry());
+                                	SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil(entry.getGeometry().getSRID());
+                                    Geometry geom = spatialUtil.convertToMultiGeom(entry.getGeometry());
                                     entry.setGeometry(geom);
                                 } catch (IllegalArgumentException iae) {
                                     Map<String, String> errorMap = validator.getErrorMap();
@@ -473,19 +504,34 @@ public class RecordDeserializer {
                         record.setLastTime(cal.getTimeInMillis());
                     }
                     if (entry.getGeometry() == null) {
-                        // Position
-                        // Geometry is nullable now
-                        if(!(StringUtils.nullOrEmpty(entry.getValue(klu.getLatitudeKey())) && StringUtils.nullOrEmpty(entry.getValue(klu.getLongitudeKey())))){
-                            double latitude = Double.parseDouble(entry.getValue(klu.getLatitudeKey()));
-                            double longitude = Double.parseDouble(entry.getValue(klu.getLongitudeKey()));
-                            record.setPoint(locationService.createPoint(latitude, longitude));
-                        }
-                            
-                    } else {
-                        // we always store our geometries in SRID 4326 aka WGS84
-                        Geometry theGeom = entry.getGeometry();
+                    	// By this point we have already validated the srid in the param map is valid so
+                    	// we'll parse it blindly. If there is no srid in the param map we will use
+                    	// the current survey srid setting.
+                    	Integer srid = StringUtils.notEmpty(entry.getValue(klu.getZoneKey())) ?
+                    			Integer.valueOf(entry.getValue(klu.getZoneKey())) 
+                    	        : survey.getMap().getSrid();
+                    	SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil(srid);
+                    	
+                    	String wktString = getFirstValue(params, klu.getWktKey());
                         
-                        theGeom.setSRID(4326);
+                        if (StringUtils.notEmpty(wktString)) {
+                        	// use wkt
+                        	Geometry geom = spatialUtil.createGeometryFromWKT(wktString);
+                        	record.setGeometry(geom);
+                        } else {
+                        	// use lat lon
+                        	String latString = getFirstValue(params, klu.getLatitudeKey());
+                            String lonString = getFirstValue(params, klu.getLongitudeKey());
+                            // Position
+                            // Geometry is nullable now
+                            if(!(StringUtils.nullOrEmpty(latString) && StringUtils.nullOrEmpty(lonString))){
+                                double latitude = Double.parseDouble(latString);
+                                double longitude = Double.parseDouble(lonString);
+                                record.setPoint(spatialUtil.createPoint(latitude, longitude));
+                            }
+                        } 
+                    } else {
+                    	Geometry theGeom = entry.getGeometry();
                         record.setGeometry(theGeom);
                     }
                     Location loc = null;
@@ -499,7 +545,7 @@ public class RecordDeserializer {
                     // If the location lookup fails, try to see if we should create
                     // a new location.
                     if(loc == null) {
-                        String locationName = entry.getValue(klu.getLocationNameKey());
+                    	String locationName = entry.getValue(klu.getLocationNameKey());
                         if(locationName != null && !locationName.isEmpty()) {
                             loc = new Location();
                             loc.setName(locationName);
@@ -507,7 +553,10 @@ public class RecordDeserializer {
                             double latitude = record.getGeometry().getCentroid().getY();
                             double longitude = record.getGeometry().getCentroid().getX();
                             
-                            loc.setLocation(locationService.createPoint(latitude, longitude));
+                            // use the same srid as the record's geom.
+                        	SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil(record.getGeometry().getSRID());
+                        	
+                            loc.setLocation(spatialUtil.createPoint(latitude, longitude));
                             loc = locationDAO.save(loc);
                         }
                     }
@@ -706,5 +755,13 @@ public class RecordDeserializer {
         }
         rec.setParentRecord(recordDAO.getRecord(parentRecordId));
         return rec;
+    }
+    
+    private String getFirstValue(Map<String, String[]> paramMap, String key) {
+    	String[] val = paramMap.get(key);
+    	if (val == null || val.length == 0) {
+    		return null;
+    	}
+    	return val[0];
     }
 }

@@ -6,7 +6,14 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.security.sasl.AuthenticationException;
 
@@ -20,9 +27,9 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
 import org.springframework.security.authentication.encoding.PasswordEncoder;
@@ -32,13 +39,12 @@ import au.com.gaiaresources.bdrs.model.group.Group;
 import au.com.gaiaresources.bdrs.model.group.GroupDAO;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
-import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
 import au.com.gaiaresources.bdrs.model.record.impl.EmptyScrollableRecords;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyService;
@@ -52,8 +58,11 @@ import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.service.lsid.LSIDService;
 import au.com.gaiaresources.bdrs.service.lsid.Lsid;
+import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.service.property.PropertyService;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 
 public abstract class AbstractBulkDataService {
@@ -70,6 +79,7 @@ public abstract class AbstractBulkDataService {
     public static final String HELP_SHEET_NAME = "Help";
     public static final String TAXONOMY_SHEET_NAME = "Taxonomy";
     public static final String LOCATION_SHEET_NAME = "Locations";
+    public static final String CRS_SHEET_NAME = "EPSG Codes";
     /**
      * Header of the column containing Location primary keys.
      */ 
@@ -115,9 +125,6 @@ public abstract class AbstractBulkDataService {
     private UserDAO userDAO;
 
     @Autowired
-    private LocationService locationService;
-
-    @Autowired
     private LocationDAO locationDAO;
 
     @Autowired
@@ -140,6 +147,13 @@ public abstract class AbstractBulkDataService {
 
     @Autowired
     protected BulkDataReadWriteService bulkDataReadWriteService;
+    
+    @Autowired
+    protected GeoMapService geoMapService;
+    
+    
+
+    
 
     private PasswordEncoder passwordEncoder = new Md5PasswordEncoder();
 
@@ -225,6 +239,7 @@ public abstract class AbstractBulkDataService {
             }
 
             writeTaxonomySheet(survey, wb, rowPrinter);
+            writeCrsSheet(wb, rowPrinter);
             writeHelpSheet(survey, wb, rowPrinter);
         }
         wb.write(outputStream);
@@ -369,6 +384,41 @@ public abstract class AbstractBulkDataService {
                     0, // first column (0-based)
                     headerRow.getLastCellNum() - 1 // last column (0-based)
             ));
+        }
+    }
+    
+    private void writeCrsSheet(Workbook wb, RecordRow recordRow) {
+    	Sheet crsSheet = wb.createSheet(CRS_SHEET_NAME);
+    	
+    	int rowIndex = 0;
+    	int colIndex = 0;
+    	Row row;
+    	
+        // CRS Header
+        CellStyle helpHeaderStyle = recordRow.getCellStyleByKey(XlsRecordRow.STYLE_HELP_HEADER);
+        row = crsSheet.createRow(rowIndex++);
+        colIndex = 0;
+        Cell epsgCodeHeaderCell = row.createCell(colIndex++);
+        epsgCodeHeaderCell.setCellValue("EPSG Code");
+
+        Cell sridHeaderCell = row.createCell(colIndex++);
+        sridHeaderCell.setCellValue("SRID");
+
+        Cell nameHeaderCell = row.createCell(colIndex++);
+        nameHeaderCell.setCellValue("Name");
+        
+        if (helpHeaderStyle != null) {
+            epsgCodeHeaderCell.setCellStyle(helpHeaderStyle);
+            nameHeaderCell.setCellStyle(helpHeaderStyle);
+            sridHeaderCell.setCellStyle(helpHeaderStyle);
+        }
+        
+        for (BdrsCoordReferenceSystem crs : BdrsCoordReferenceSystem.values()) {
+        	row = crsSheet.createRow(rowIndex++);
+            colIndex = 0;
+            row.createCell(colIndex++).setCellValue(crs.getEpsgCode());
+            row.createCell(colIndex++).setCellValue(Integer.toString(crs.getSrid()));
+            row.createCell(colIndex++).setCellValue(crs.getDisplayName());
         }
     }
 
@@ -532,6 +582,10 @@ public abstract class AbstractBulkDataService {
             // Skip the header row
             if (!locationRow.isHeader(row) && !isBlankRow(row)) {
                 LocationUpload locUpload = locationRow.readRow(row);
+                // make sure the row is valid.
+                validateCoords(locUpload);
+                // else the survey setting will be used.
+                
                 bulkUpload.addLocationUpload(locUpload);
             }
         }
@@ -575,6 +629,7 @@ public abstract class AbstractBulkDataService {
                 if (!isBlankRow(row)) {
                     recordUpload = recordRow.readRow(survey, row);
                     recordUpload.setSurveyName(survey.getName());
+                    // Check date of record
                     // if the record date is outside the survey date range,
                     // add an error message for that record
                     if(recordUpload.getWhen() != null) {
@@ -593,10 +648,14 @@ public abstract class AbstractBulkDataService {
                                             : "start date ("
                                                     + sdf.format(survey.getStartDate())
                                                     + ")") + ".");
-                            recordUpload.setError(true);
                         }
                     }
-
+                    // Check coordinates of record
+                    if (recordUpload.hasLatitudeLongitude()) {
+                    	validateCoords(recordUpload);	
+                    }
+                    
+                    // make sure the row is valid.
                     
                     bulkUpload.addRecordUpload(recordUpload);
                     if (recordUpload.isError()) {
@@ -610,6 +669,27 @@ public abstract class AbstractBulkDataService {
             // We still haven't found the header
             throw new ParseException("Unable to find header row.", -1);
         }
+    }
+    
+    private void validateCoords(CoordUpload coordUpload) {
+    	if (!coordUpload.isError() && StringUtils.notEmpty(coordUpload.getEpsg())) {
+       	 BdrsCoordReferenceSystem crs = BdrsCoordReferenceSystem.getByText(coordUpload.getEpsg());
+       	 if (crs == null) {
+       		 coordUpload.setErrorMessage(coordUpload.getEpsg(), "EPSG Code is not valid.");
+       	 } else {
+       		 if (crs.getMinX() != null && crs.getMaxY() != null) {
+       			 double lon = coordUpload.getLongitude();
+       			 double lat = coordUpload.getLatitude();
+       			 if (lon > crs.getMaxX() || lon < crs.getMinX()) {
+       				 coordUpload.setErrorMessage(Double.toString(lon), crs.getXname() + " must be between " 
+       						 + crs.getMinX() + " and " + crs.getMaxX());
+       			 } else if (lat > crs.getMaxY() || lat < crs.getMinY()) {
+       				 coordUpload.setErrorMessage(Double.toString(lat), crs.getYname() + " must be between " 
+       						 + crs.getMinX() + " and " + crs.getMaxX());
+       			 }
+       		 }
+       	 }
+       }
     }
 
     private boolean isBlankRow(Row row) {
@@ -683,11 +763,13 @@ public abstract class AbstractBulkDataService {
                 tx.rollback();
                 throw new AmbiguousDataException();
             }
+            
+            SpatialUtilFactory spatialUtilFactory = new SpatialUtilFactory();
 
             // Create the locations
             Map<Integer, Location> locationPkMap = new HashMap<Integer, Location>();
             Map<String, Location> locationNameMap = new HashMap<String, Location>();
-            populateLocation(sesh, ownerForSesh, bulkUpload, locationPkMap, locationNameMap);
+            populateLocation(sesh, ownerForSesh, bulkUpload, locationPkMap, locationNameMap, spatialUtilFactory);
 
             // Create the records
             Survey survey;
@@ -824,7 +906,12 @@ public abstract class AbstractBulkDataService {
                     rec.setLocation(loc);
                 }
                 if (recordUpload.hasLatitudeLongitude()) {
-                    rec.setPoint(locationService.createPoint(recordUpload.getLatitude(), recordUpload.getLongitude()));
+                	BdrsCoordReferenceSystem crs = BdrsCoordReferenceSystem.getByText(recordUpload.getEpsg());
+                	if (crs == null) {
+                		crs = geoMapService.getForSurvey(sesh, survey).getCrs();
+                	}
+                	SpatialUtil spatialUtil = spatialUtilFactory.getLocationUtil(crs.getSrid());
+                    rec.setPoint(spatialUtil.createPoint(recordUpload.getLatitude(), recordUpload.getLongitude()));
                 }
 
                 rec.setHeld(recordUpload.isHeld());
@@ -1011,7 +1098,7 @@ public abstract class AbstractBulkDataService {
 
     private void populateLocation(Session sesh, User owner,
             BulkUpload bulkUpload, Map<Integer, Location> locationPkMap,
-            Map<String, Location> locationNameMap) {
+            Map<String, Location> locationNameMap, SpatialUtilFactory spatialUtilFactory) {
 
         for (LocationUpload locUpload : bulkUpload.getLocationUploads()) {
             Location location = null;
@@ -1031,11 +1118,19 @@ public abstract class AbstractBulkDataService {
                         // New uploaded locations are always survey locations.
                         // location.setUser(owner);
                         location.setName(locUpload.getLocationName());
-                        location.setLocation(locationService.createPoint(locUpload.getLatitude(), locUpload.getLongitude()));
-                        location = locationDAO.save(sesh, location);
-
+                        
+                        BdrsCoordReferenceSystem crs = BdrsCoordReferenceSystem.getByText(locUpload.getEpsg());
+                    	if (crs == null) {
+                    		crs = geoMapService.getForSurvey(sesh, survey).getCrs();
+                    	}
+                    	SpatialUtil spatialUtil = spatialUtilFactory.getLocationUtil(crs.getSrid());
+                        location.setLocation(spatialUtil.createPoint(locUpload.getLatitude(), locUpload.getLongitude()));
+                        
                         survey.getLocations().add(location);
-                        surveyDAO.update(sesh, survey);
+                        
+                        location = locationDAO.save(sesh, location);
+                        
+                        sesh.flush();
 
                         locationPkMap.put(location.getId(), location);
                         locationNameMap.put(location.getName(), location);

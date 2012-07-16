@@ -102,7 +102,11 @@ public abstract class AbstractDAOImpl implements TransactionDAO {
     }
     
     public <T extends Persistent> void refresh(T instance) {
-    	this.getSession().refresh(instance);
+    	refresh(this.getSession(), instance);
+    }
+    
+    public <T extends Persistent> void refresh(Session sesh, T instance) {
+    	sesh.refresh(instance);
     }
     
     private void updateTimestamp(Persistent persistent) {

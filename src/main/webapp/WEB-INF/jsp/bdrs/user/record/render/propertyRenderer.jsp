@@ -41,9 +41,11 @@
         </tiles:insertDefinition>
     </c:when>
     <c:when test="<%= RecordPropertyType.LOCATION.getName().equals(formField.getPropertyName()) %>">
+    	<c:set var="crsSelector" value="[name=${ formPrefix }srid]" />
+    
         <c:choose>
             <c:when test="${fieldEditable}">
-                <select id="location" onchange="bdrs.survey.location.updateLocation(jQuery(this).val(), ${ formField.survey.id }, { attributeSelector: '#attributesContainer' });" name="${ formPrefix }location" >
+                <select id="location" onchange="bdrs.survey.location.updateLocation(jQuery(this).val(), ${ formField.survey.id }, { attributeSelector: '#attributesContainer', crsSelector: '${ crsSelector }' });" name="${ formPrefix }location" >
                     <option value="-1"></option>
                     <c:forEach items="${ locations }" var="location">
                         <jsp:useBean id="location" type="au.com.gaiaresources.bdrs.model.location.Location"/>
@@ -69,7 +71,10 @@
                               the hidden input is only present to support ketchup validation.
                             --%>
                             jQuery(window).load(function() {
-                                bdrs.survey.location.updateLocation(${ location.id }, ${ formField.survey.id }, { attributeSelector: '#attributesContainer' });
+                                bdrs.survey.location.updateLocation(${ location.id }, ${ formField.survey.id }, { 
+                                	attributeSelector: '#attributesContainer',
+                                	crsSelector: '${ crsSelector }'
+                                });
                             });
                         </script>
                         </c:if>
@@ -83,7 +88,7 @@
                               the hidden input is only present to support ketchup validation.
                             --%>
                             jQuery(window).load(function() {
-                                bdrs.survey.location.updateLocation(${ location.id }, ${ formField.survey.id }, { attributeSelector: '#attributesContainer' });
+                                bdrs.survey.location.updateLocation(${ location.id }, ${ formField.survey.id }, { attributeSelector: '#attributesContainer', crsSelector: '${ crsSelector }' });
                             });
                         </script>
                         </c:if>
@@ -102,7 +107,7 @@
                           the hidden input is only present to support ketchup validation.
                         --%>
                         jQuery(window).load(function() {
-                            bdrs.survey.location.updateLocation(${ formField.record.location.id }, ${ formField.survey.id }, { attributeSelector: '#attributesContainer' });
+                            bdrs.survey.location.updateLocation(${ formField.record.location.id }, ${ formField.survey.id }, { attributeSelector: '#attributesContainer', crsSelector: '${ crsSelector }' });
                         });
                         
                     </script>

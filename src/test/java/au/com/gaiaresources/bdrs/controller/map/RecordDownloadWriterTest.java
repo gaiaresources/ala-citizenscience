@@ -15,13 +15,11 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import junit.framework.Assert;
 
-import au.com.gaiaresources.bdrs.json.JSONArray;
-import au.com.gaiaresources.bdrs.json.JSONObject;
-import au.com.gaiaresources.bdrs.json.JSONSerializer;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
+import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -29,20 +27,29 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import au.com.gaiaresources.bdrs.json.JSONArray;
+import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.json.JSONSerializer;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.impl.ScrollableRecordsList;
 import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.service.web.JsonService;
 import au.com.gaiaresources.bdrs.spatial.AbstractShapefileTest;
 import au.com.gaiaresources.bdrs.spatial.ShapeFileReader;
 
 public class RecordDownloadWriterTest extends AbstractShapefileTest {
-    
+	
     private static final String KML_DESCRIPTION_TAG = "description";
     
     private Logger log = Logger.getLogger(getClass());
     
-    private RecordDownloadWriter downloadWriter = new RecordDownloadWriter();
+    private RecordDownloadWriter downloadWriter;
+    
+    @Before
+    public void recordDownloadWriterTestSetup() {
+    	downloadWriter = new RecordDownloadWriter();
+    }
     
     // the export 'no' record case is the same as exporting a template
     @SuppressWarnings("deprecation")

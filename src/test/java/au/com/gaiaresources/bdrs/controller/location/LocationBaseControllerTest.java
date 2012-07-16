@@ -2,6 +2,7 @@ package au.com.gaiaresources.bdrs.controller.location;
 
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.AbstractFormField;
+import au.com.gaiaresources.bdrs.controller.map.WebMap;
 import au.com.gaiaresources.bdrs.controller.record.RecordWebFormContext;
 import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.model.location.Location;
@@ -116,13 +117,15 @@ public class LocationBaseControllerTest extends AbstractControllerTest {
         ModelAndViewAssert.assertViewName(mv, "surveyEditLocation");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "survey");
         ModelAndViewAssert.assertModelAttributeValue(mv, RecordWebFormContext.MODEL_EDIT, true);
+        ModelAndViewAssert.assertModelAttributeAvailable(mv, BdrsWebConstants.MV_WEB_MAP);
+        Assert.assertTrue("wrong class", mv.getModel().get(BdrsWebConstants.MV_WEB_MAP) instanceof WebMap);
     }
 
     /**
      * Tests the basic use case of creating a new location and clicking save.
      */
     @Test
-    public void testAddLocationSubmit() throws Exception {
+    public void testAddLocationSubmitWgs84() throws Exception {
         login("admin", "password", new String[] { Role.ADMIN });
 
         request.setMethod("POST");
@@ -136,6 +139,7 @@ public class LocationBaseControllerTest extends AbstractControllerTest {
         params.put("location_WKT", "POINT(115.77240371813 -31.945572001881)");
         params.put("latitude", "-31.945572001881");
         params.put("longitude", "115.77240371813");
+        params.put(BdrsWebConstants.PARAM_SRID, "4326");
 
         request.setParameters(params);
         
@@ -152,6 +156,45 @@ public class LocationBaseControllerTest extends AbstractControllerTest {
         //Assert.assertEquals(location.getLocation().toText(), params.get("location_WKT"));
         Assert.assertEquals(String.valueOf(location.getY()), params.get("latitude"));
         Assert.assertEquals(String.valueOf(location.getX()), params.get("longitude"));
+        Assert.assertEquals("wrong srid", 4326, location.getLocation().getSRID());
+    }
+    
+    /**
+     * Tests the basic use case of creating a new location and clicking save.
+     */
+    @Test
+    public void testAddLocationSubmitMga50() throws Exception {
+        login("admin", "password", new String[] { Role.ADMIN });
+
+        request.setMethod("POST");
+        request.setRequestURI("/bdrs/admin/survey/editLocation.htm");
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, String.valueOf(simpleSurvey.getId()));
+        
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("survey", String.valueOf(simpleSurvey.getId()));
+        params.put("locationName", "Test Location 1234");
+        params.put("locationDescription", "This is a test location");
+        params.put("location_WKT", "POINT(550000.123456 7500000.123456)");
+        params.put("latitude", "7500000.123456");
+        params.put("longitude", "550000.123456");
+        params.put(BdrsWebConstants.PARAM_SRID, "28350");
+
+        request.setParameters(params);
+        
+        ModelAndView mv = handle(request, response);
+        
+        Assert.assertTrue(mv.getView() instanceof RedirectView);
+        RedirectView redirect = (RedirectView)mv.getView();
+        assertUrlEquals("/bdrs/admin/survey/locationListing.htm", redirect.getUrl());
+        
+        Location location = locationDAO.getLocationByName(simpleSurvey.getName(), params.get("locationName"));
+        Assert.assertEquals(location.getName(), params.get("locationName"));
+        Assert.assertEquals(location.getDescription(), params.get("locationDescription"));
+        // ignore the wkt right now because going in it is POINT[](x,y), but coming out it is POINT[ ](x,y)
+        //Assert.assertEquals(location.getLocation().toText(), params.get("location_WKT"));
+        Assert.assertEquals(String.valueOf(location.getY()), params.get("latitude"));
+        Assert.assertEquals(String.valueOf(location.getX()), params.get("longitude"));
+        Assert.assertEquals("wrong srid", 28350, location.getLocation().getSRID());
     }
     
     @Test
@@ -190,6 +233,7 @@ public class LocationBaseControllerTest extends AbstractControllerTest {
         request.setMethod("POST");
         request.setRequestURI("/bdrs/admin/survey/editLocation.htm");
         request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, String.valueOf(locAttSurvey.getId()));
+        request.setParameter(BdrsWebConstants.PARAM_SRID, "4326");
         
         Calendar cal = Calendar.getInstance();
         cal.clear();
