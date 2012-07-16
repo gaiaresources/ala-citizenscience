@@ -725,3 +725,18 @@ drop table indicator_species_indicator_species_attribute;
 rollback;
 
 </code>
+
+
+= r366 =
+<code language="sql">
+
+begin;
+
+-- Add column, set default value, set not null!
+
+alter table geo_map add column crs text;
+update geo_map set crs='WGS84';
+alter table geo_map alter crs set not null;
+
+rollback;
+</code>
