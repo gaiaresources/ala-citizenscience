@@ -25,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.deserialization.record.RecordKeyLookup;
 import au.com.gaiaresources.bdrs.geometry.GeometryBuilder;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
 import au.com.gaiaresources.bdrs.model.method.Taxonomic;
@@ -44,6 +43,9 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.map.GeoMapService;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -61,7 +63,9 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
     @Autowired
     protected CensusMethodDAO cmDAO;
     @Autowired
-    protected LocationService locService;
+    protected GeoMapService geoMapService;
+    
+    protected SpatialUtil locService = new SpatialUtilFactory().getLocationUtil(4326);;
     
     protected User owner;
     protected User admin;
@@ -231,6 +235,10 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
         r2 = createRecord(survey, taxaCm, locService.convertToMultiGeom(geomBuilder.createPoint(20, 20)), species, cal.getTime(), owner, 9002, null, 2d, RecordVisibility.CONTROLLED);
         r3 = createRecord(secondSurvey, null, locService.convertToMultiGeom(geomBuilder.createLine(-10, -10, 0, 0)), null, cal.getTime(), owner, null, null, null, RecordVisibility.CONTROLLED);        
         r4 = createRecord(survey, cm, locService.convertToMultiGeom(geomBuilder.createPoint(15, 15)), null, cal.getTime(), owner, null, null, null, RecordVisibility.CONTROLLED);
+        
+        // create GeoMap
+        geoMapService.getForSurvey(survey);
+        geoMapService.getForSurvey(secondSurvey);
     }
     
     protected Record createRecord(Survey survey, CensusMethod cm, Geometry geom, IndicatorSpecies species, 

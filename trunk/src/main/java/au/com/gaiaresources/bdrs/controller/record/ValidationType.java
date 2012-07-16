@@ -39,6 +39,12 @@ public enum ValidationType implements JSONEnum {
     REQUIRED_DEG_LATITUDE,
     DEG_LONGITUDE,
     DEG_LATITUDE,
+    COORD_X,
+    COORD_Y,
+    REQUIRED_COORD_X,
+    REQUIRED_COORD_Y,
+    REQUIRED_CRS,
+    REQUIRED_WKT,
     
     DATE,
     REQUIRED_DATE, 

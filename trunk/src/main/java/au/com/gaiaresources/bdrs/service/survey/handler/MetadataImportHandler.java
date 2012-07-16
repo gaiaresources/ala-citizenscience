@@ -3,9 +3,11 @@ package au.com.gaiaresources.bdrs.service.survey.handler;
 import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.file.FileService;
 import au.com.gaiaresources.bdrs.json.JSONObject;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.service.survey.ImportHandler;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
@@ -36,8 +38,8 @@ public class MetadataImportHandler extends SimpleImportHandler implements Import
      * @param locationService provides facilities to convert WKT strings to Geometry instances.
      * @param fileService     provides access to the filestore to save decoded files.
      */
-    public MetadataImportHandler(LocationService locationService, FileService fileService) {
-        super(locationService, Metadata.class);
+    public MetadataImportHandler(SpatialUtilFactory spatialUtilFactory, FileService fileService) {
+        super(spatialUtilFactory, Metadata.class);
         this.fileService = fileService;
 
         addListener(this);

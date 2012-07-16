@@ -1,5 +1,33 @@
 package au.com.gaiaresources.bdrs.controller.review;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.JAXBException;
+
+import org.apache.log4j.Logger;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.PerFieldAnalyzerWrapper;
+import org.apache.lucene.queryParser.ParseException;
+import org.apache.lucene.search.Sort;
+import org.hibernate.FlushMode;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.search.FullTextQuery;
+import org.hibernate.search.Search;
+import org.hibernate.type.CustomType;
+import org.hibernatespatial.GeometryUserType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.servlet.ModelAndView;
+
 import au.com.gaiaresources.bdrs.controller.map.WebMap;
 import au.com.gaiaresources.bdrs.controller.review.locations.AdvancedReviewLocationsController;
 import au.com.gaiaresources.bdrs.controller.review.sightings.SightingsController;
@@ -14,7 +42,6 @@ import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.kml.KMLWriter;
 import au.com.gaiaresources.bdrs.model.index.IndexingConstants;
 import au.com.gaiaresources.bdrs.model.location.Location;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.map.GeoMap;
 import au.com.gaiaresources.bdrs.model.map.GeoMapDAO;
 import au.com.gaiaresources.bdrs.model.map.MapOwner;
@@ -35,34 +62,11 @@ import au.com.gaiaresources.bdrs.service.python.report.ReportService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.servlet.RequestContext;
 import au.com.gaiaresources.bdrs.util.KMLUtils;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 import au.com.gaiaresources.bdrs.util.StringUtils;
-import com.vividsolutions.jts.geom.Geometry;
-import org.apache.log4j.Logger;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.PerFieldAnalyzerWrapper;
-import org.apache.lucene.queryParser.ParseException;
-import org.apache.lucene.search.Sort;
-import org.hibernate.FlushMode;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.search.FullTextQuery;
-import org.hibernate.search.Search;
-import org.hibernate.type.CustomType;
-import org.hibernatespatial.GeometryUserType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.servlet.ModelAndView;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.JAXBException;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * An advanced review view has a group of facets and 3 views: table, map, download.
@@ -119,13 +123,13 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
     protected ReportService reportService;
     
     @Autowired
-    protected LocationService locationService;
-    
-    @Autowired
     private SearchService searchService;
     
     @Autowired
     private GeoMapDAO geoMapDAO;
+    
+    // defaults to using WGS84 / lonlat/ 4326 (they are all the same thing)
+    private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
     
     /**
      * Returns the view for the request
@@ -239,28 +243,6 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
      */
     protected abstract void writeKMLResults(KMLWriter writer, User currentUser,
             String contextPath, List<T> rList);
-
-    /**
-     * Returns a JSON array of results matching the {@link Facet} criteria.
-     */
-    public void advancedReviewJSONSightings(HttpServletResponse response,
-                                            List<Facet> facetList, ScrollableResults<? extends PortalPersistentImpl> sc) throws IOException {
-        int recordCount = 0;
-        JSONArray array = new JSONArray();
-        PortalPersistentImpl r;
-        while(sc.hasMoreElements()) {
-            r = sc.nextElement();
-            array.add(flatten(r));
-            if (++recordCount % ScrollableRecords.RESULTS_BATCH_SIZE == 0) {
-                getRequestContext().getHibernate().clear();
-            }
-        }
-        
-        response.setContentType("application/json");
-        response.getWriter().write(array.toString());
-        response.getWriter().flush();
-    }
-
 
     /**
      * Turns the supplied PortalPersistentImpl into an Map containing it's properties.
@@ -527,7 +509,8 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
         CustomType geometryType = new CustomType(GeometryUserType.class, null);
         int index = 0;
         if (!StringUtils.nullOrEmpty(locationArea)) {
-            Geometry geometry = locationService.createGeometryFromWKT(locationArea);
+        	// geometry created will be in SRID = 4326 aka lonlats
+            Geometry geometry = spatialUtil.createGeometryFromWKT(locationArea);
             query.setParameter(index++, geometry, geometryType);
         }
         
@@ -631,7 +614,12 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
                         "location.createdAt, location.user from Location location");
         
         if (!StringUtils.nullOrEmpty(locationArea)) {
-            hqlQuery.and(new Predicate("within(location.location, ?) = True"));
+        	// IMPORTANT!
+        	// we expect location area to be in lat/lons i.e. srid = 4326. Since the database can now
+        	// contain geomtries of varying SRIDs, we need to transform them to all be the same.
+        	// 4326 is the most logical choice since that is the same SRID as our geometry
+        	// argument.
+            hqlQuery.and(new Predicate("within(transform(location.location,4326), ?) = True"));
         }
         applyLocationFacetsToQuery(hqlQuery, facetList, surveyId, searchText);
 

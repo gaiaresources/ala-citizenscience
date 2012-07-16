@@ -7,26 +7,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
-import au.com.gaiaresources.bdrs.json.JSONArray;
-import au.com.gaiaresources.bdrs.json.JSONObject;
-
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
+import au.com.gaiaresources.bdrs.json.JSONArray;
+import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.map.GeoMapFeature;
 import au.com.gaiaresources.bdrs.model.preference.Preference;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
 import au.com.gaiaresources.bdrs.model.record.AccessControlledRecordAdapter;
 import au.com.gaiaresources.bdrs.model.record.Record;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 @Service
 public class JsonService {
@@ -54,6 +56,9 @@ public class JsonService {
     public static final String RECORD_KEY_RECORD_ID = BdrsWebConstants.PARAM_RECORD_ID;
     public static final String RECORD_KEY_SURVEY_ID = BdrsWebConstants.PARAM_SURVEY_ID;
     public static final String RECORD_KEY_VISIBILITY = "recordVisibility";
+    public static final String RECORD_KEY_X_COORD = "x";
+    public static final String RECORD_KEY_Y_COORD = "y";
+    public static final String RECORD_KEY_CRS = "coord_ref_system";
     
     // first + last name of the recording user
     public static final String RECORD_KEY_USER = "owner";
@@ -73,7 +78,7 @@ public class JsonService {
      * @param hideDetails - whether or not we should hide the details of the record. In general, on a public map we will hide the details
      * @return
      */
-    public JSONObject toJson(AccessControlledRecordAdapter record, String contextPath) {
+    public JSONObject toJson(AccessControlledRecordAdapter record, String contextPath, SpatialUtilFactory spatialUtilFactory) {
         if (contextPath == null) {
             throw new IllegalArgumentException("String, contextPath, cannot be null");
         }
@@ -115,7 +120,6 @@ public class JsonService {
             addToAttributeMap(attrMap, k, v);
         }
         
-        
         // legacy
         addToAttributeMap(attrMap, RECORD_KEY_RECORD_ID, record.getId());
         addToAttributeMap(attrMap, RECORD_KEY_SURVEY_ID, record.getSurvey().getId());
@@ -125,7 +129,25 @@ public class JsonService {
         addToAttributeMap(attrMap, JSON_KEY_TYPE, JSON_ITEM_TYPE_RECORD);
         addToAttributeMap(attrMap, RECORD_KEY_VISIBILITY, record.getRecordVisibility());
         
+        
+        if (record.getGeometry() != null) {
+        	SpatialUtil spatialUtil = spatialUtilFactory.getLocationUtil(record.getGeometry().getSRID());
+        	BdrsCoordReferenceSystem crs = BdrsCoordReferenceSystem.getBySRID(record.getGeometry().getSRID());
+        	addToAttributeMap(attrMap, RECORD_KEY_CRS, toJson(crs));
+        	addToAttributeMap(attrMap, RECORD_KEY_X_COORD, spatialUtil.truncate(record.getLongitude()));
+            addToAttributeMap(attrMap, RECORD_KEY_Y_COORD, spatialUtil.truncate(record.getLatitude()));
+        }
+        
         return JSONObject.fromMapToJSONObject(attrMap);
+    }
+    
+    public JSONObject toJson(BdrsCoordReferenceSystem crs) {
+    	JSONObject obj = new JSONObject();
+    	obj.accumulate("srid", crs.getSrid());
+    	obj.accumulate("xname", crs.getXname());
+    	obj.accumulate("yname", crs.getYname());
+    	obj.accumulate("name", crs.getDisplayName());
+    	return obj;
     }
     
     public JSONObject toJson(GeoMapFeature feature) {
@@ -243,7 +265,7 @@ public class JsonService {
      * @param contextPath the contextPath of the application
      * @return A JSONObject representing the location.
      */
-    public JSONObject toJson(Location location, String contextPath) {
+    public JSONObject toJson(Location location, String contextPath, SpatialUtilFactory spatialUtilFactory) {
         Map<String, Object> attrMap = new HashMap<String, Object>(16);
         addToAttributeMap(attrMap, "name", location.getName());
         addToAttributeMap(attrMap, "description", location.getDescription());
@@ -258,6 +280,15 @@ public class JsonService {
 
         if(location.getCreatedAt() != null) {
             addToAttributeMap(attrMap, RECORD_KEY_WHEN, location.getCreatedAt().getTime());
+        }
+        
+        if (location.getLocation() != null) {
+        	int srid = location.getLocation().getSRID();
+	    	SpatialUtil spatialUtil = spatialUtilFactory.getLocationUtil(srid);
+	    	BdrsCoordReferenceSystem crs = BdrsCoordReferenceSystem.getBySRID(srid);
+	    	addToAttributeMap(attrMap, RECORD_KEY_CRS, toJson(crs));
+	    	addToAttributeMap(attrMap, RECORD_KEY_X_COORD, spatialUtil.truncate(location.getLongitude()));
+	        addToAttributeMap(attrMap, RECORD_KEY_Y_COORD, spatialUtil.truncate(location.getLatitude()));
         }
         
         attrMap.put(JSON_KEY_ATTRIBUTES, getOrderedAttributes(location.getOrderedAttributes(), contextPath));

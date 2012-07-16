@@ -5,6 +5,9 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
+import au.com.gaiaresources.bdrs.controller.record.validator.CoordXValidator;
+import au.com.gaiaresources.bdrs.controller.record.validator.CoordYValidator;
+import au.com.gaiaresources.bdrs.controller.record.validator.CrsValidator;
 import au.com.gaiaresources.bdrs.controller.record.validator.DateValidator;
 import au.com.gaiaresources.bdrs.controller.record.validator.DoubleRangeValidator;
 import au.com.gaiaresources.bdrs.controller.record.validator.DoubleValidator;
@@ -19,6 +22,8 @@ import au.com.gaiaresources.bdrs.controller.record.validator.StringValidator;
 import au.com.gaiaresources.bdrs.controller.record.validator.TaxonValidator;
 import au.com.gaiaresources.bdrs.controller.record.validator.TimeValidator;
 import au.com.gaiaresources.bdrs.controller.record.validator.Validator;
+import au.com.gaiaresources.bdrs.controller.record.validator.WktValidator;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
@@ -89,6 +94,10 @@ public class RecordFormValidator {
         validatorMap.put(ValidationType.DEG_LONGITUDE, new DoubleRangeValidator(propertyService, false, true, -180, 180));
         validatorMap.put(ValidationType.DEG_LATITUDE, new DoubleRangeValidator(propertyService, false, true, -90, 90));
         
+        if (survey != null) {
+        	setCrs(survey.getMap().getCrs());
+        }
+        
         validatorMap.put(ValidationType.DATE, new DateValidator(propertyService, false, true));
         validatorMap.put(ValidationType.REQUIRED_DATE, new DateValidator(propertyService, true, false));
         validatorMap.put(ValidationType.REQUIRED_HISTORICAL_DATE, new HistoricalDateValidator(propertyService, true, false));
@@ -100,6 +109,8 @@ public class RecordFormValidator {
         
         validatorMap.put(ValidationType.REQUIRED_TAXON, new TaxonValidator(propertyService, true, false, taxaDAO, survey));
         validatorMap.put(ValidationType.TAXON, new TaxonValidator(propertyService, false, true, taxaDAO, survey));
+        
+        validatorMap.put(ValidationType.REQUIRED_CRS, new CrsValidator(propertyService, true, false));
     }
     
     /**
@@ -159,6 +170,22 @@ public class RecordFormValidator {
 			// Now we really do the validation
 			return this.validate(parameterMap, type, key, attribute);
 		}
+	}
+	
+	/**
+	 * Set the expected coordinate reference system to be used when validating fields for 
+	 * the current record. This is initially set to the survey's crs but we can re-set it to
+	 * whatever we require.
+	 */
+	public void setCrs(BdrsCoordReferenceSystem crs) {
+		if (crs == null) {
+			throw new IllegalArgumentException("BdrsCoordRefernceSystem cannot be null");
+		}
+    	validatorMap.put(ValidationType.COORD_X, new CoordXValidator(propertyService, false, true, crs));
+        validatorMap.put(ValidationType.REQUIRED_COORD_X, new CoordXValidator(propertyService, true, false, crs));
+        validatorMap.put(ValidationType.COORD_Y, new CoordYValidator(propertyService, false, true, crs));
+        validatorMap.put(ValidationType.REQUIRED_COORD_Y, new CoordYValidator(propertyService, true, false, crs));	
+        validatorMap.put(ValidationType.REQUIRED_WKT, new WktValidator(propertyService, true, false, crs));
 	}
 }
 

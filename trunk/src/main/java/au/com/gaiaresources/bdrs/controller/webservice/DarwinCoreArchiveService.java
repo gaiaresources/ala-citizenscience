@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import au.com.gaiaresources.bdrs.controller.file.AbstractDownloadFileController;
 import au.com.gaiaresources.bdrs.dwca.RecordDwcaWriter;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
 import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
@@ -23,6 +22,8 @@ import au.com.gaiaresources.bdrs.model.record.impl.RecordFilter;
 import au.com.gaiaresources.bdrs.service.content.ContentService;
 import au.com.gaiaresources.bdrs.service.lsid.LSIDService;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 @Controller
 public class DarwinCoreArchiveService extends AbstractDownloadFileController {
@@ -33,8 +34,8 @@ public class DarwinCoreArchiveService extends AbstractDownloadFileController {
     private LSIDService lsidService;
     @Autowired
     private RecordDAO recordDAO;
-    @Autowired
-    private LocationService locService;
+    
+    private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
     
     private Logger log = Logger.getLogger(getClass());
     
@@ -53,7 +54,7 @@ public class DarwinCoreArchiveService extends AbstractDownloadFileController {
         
         ScrollableRecords scrollableRec = recordDAO.getScrollableRecords(recFilter);
         
-        RecordDwcaWriter recordDwcaWriter = new RecordDwcaWriter(lsidService, locService, redirService);
+        RecordDwcaWriter recordDwcaWriter = new RecordDwcaWriter(lsidService, spatialUtil, redirService);
         File zip = recordDwcaWriter.writeArchive(scrollableRec);
         
         downloadFile(zip, response, "bdrs_dwca", "zip");

@@ -17,18 +17,18 @@ import org.springframework.web.servlet.ModelAndView;
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 
 import com.vividsolutions.jts.util.Assert;
@@ -42,8 +42,7 @@ public abstract class RecordFormTest extends AbstractControllerTest {
     @Autowired
     private SurveyDAO surveyDAO;
     
-    @Autowired
-    private LocationService locationService;    
+    private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();    
     
     protected void testRecordLocations(String requestURI,
                             boolean predefinedLocationsOnly,
@@ -88,7 +87,7 @@ public abstract class RecordFormTest extends AbstractControllerTest {
             loc = new Location();
             loc.setName(String.format("Location %d", i));        
             loc.setUser(admin);
-            loc.setLocation(locationService.createPoint(-40.58+(0.1*i), 153.1+(0.1*i)));
+            loc.setLocation(spatialUtil.createPoint(-40.58+(0.1*i), 153.1+(0.1*i)));
             loc = locationDAO.save(loc);
             survey.getLocations().add(loc);
         }
@@ -112,7 +111,7 @@ public abstract class RecordFormTest extends AbstractControllerTest {
             loc = new Location();
             loc.setName(String.format("Location %d", i));        
             loc.setUser(user);
-            loc.setLocation(locationService.createPoint(-40.58+(0.1*i), 153.1+(0.1*i)));
+            loc.setLocation(spatialUtil.createPoint(-40.58+(0.1*i), 153.1+(0.1*i)));
             loc = locationDAO.save(loc);
             userLocList.add(loc);
         }

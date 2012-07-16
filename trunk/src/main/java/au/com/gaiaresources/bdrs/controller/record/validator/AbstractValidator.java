@@ -10,7 +10,7 @@ import au.com.gaiaresources.bdrs.service.property.PropertyService;
  */
 public abstract class AbstractValidator implements Validator {
     
-    private static final String REQUIRED_MESSAGE_KEY = "AbstractValidator.required";
+    public static final String REQUIRED_MESSAGE_KEY = "AbstractValidator.required";
     private static final String REQUIRED_MESSAGE = "This field is required.";
     
     private static final String BLANK_MESSAGE_KEY = "AbstractValidator.blank";

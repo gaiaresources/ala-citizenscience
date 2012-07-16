@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -13,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.ModelAndView;
 
 import au.com.gaiaresources.bdrs.controller.AbstractController;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.map.AssignedGeoMapLayer;
 import au.com.gaiaresources.bdrs.model.map.BaseMapLayer;
 import au.com.gaiaresources.bdrs.model.map.BaseMapLayerDAO;
@@ -21,6 +19,8 @@ import au.com.gaiaresources.bdrs.model.map.BaseMapLayerSource;
 import au.com.gaiaresources.bdrs.model.map.GeoMap;
 import au.com.gaiaresources.bdrs.model.map.GeoMapLayer;
 import au.com.gaiaresources.bdrs.model.map.GeoMapLayerDAO;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 
 import com.vividsolutions.jts.geom.Point;
@@ -90,9 +90,9 @@ public abstract class AbstractEditMapController extends AbstractController {
     private GeoMapLayerDAO geoMapLayerDAO;
     @Autowired
     private BaseMapLayerDAO baseMapLayerDAO;
-    @Autowired
-    private LocationService locationService;
-	
+    
+	private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
+    
 	/**
      * View for editing map settings.  Allows the user to set up default zoom and 
      * centering, base layer and custom bdrs layers to show on the project maps.
@@ -173,7 +173,7 @@ public abstract class AbstractEditMapController extends AbstractController {
         String centerWkt = request.getParameter(PARAM_MAP_CENTER);
         Point center = null;
         if (StringUtils.notEmpty(centerWkt)) {
-        	center = (Point)locationService.createGeometryFromWKT(centerWkt);
+        	center = (Point)spatialUtil.createGeometryFromWKT(centerWkt);
         }
         geoMap.setCenter(center);
         

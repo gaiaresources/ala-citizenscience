@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
 import au.com.gaiaresources.bdrs.model.group.Group;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
@@ -20,6 +22,8 @@ import au.com.gaiaresources.bdrs.model.user.User;
  */
 public class BulkUpload {
 
+    private Logger log = Logger.getLogger(getClass());
+
     // Group Name : Group
     private Map<String, Group> groupMap;
     private Set<String> groupNameSet;
@@ -30,6 +34,7 @@ public class BulkUpload {
 
     // Location Name : Location
     private Map<String, LocationUpload> locationMap;
+    private List<LocationUpload> errorLocationUploadList;
 
     // Survey Name : Survey
     private Map<String, Survey> surveyMap;
@@ -78,6 +83,8 @@ public class BulkUpload {
 
         recordUploadList = new ArrayList<RecordUpload>();
         errorRecordUploadList = new ArrayList<RecordUpload>();
+        
+        errorLocationUploadList = new ArrayList<LocationUpload>();
     }
 
     // ----- Group
@@ -119,7 +126,11 @@ public class BulkUpload {
     // ----- Location
 
     public void addLocationUpload(LocationUpload loc) {
-        locationMap.put(loc.getLocationName(), loc);
+    	if (loc.isError()) {
+    		errorLocationUploadList.add(loc);
+    	} else {
+    		locationMap.put(loc.getLocationName(), loc);	
+    	}
     }
 
     public LocationUpload getLocationUploadByName(String locationName) {
@@ -129,12 +140,12 @@ public class BulkUpload {
     public Collection<LocationUpload> getLocationUploads() {
         return Collections.unmodifiableCollection(locationMap.values());
     }
-    // ----- Survey
-
-    public void addSurveyName(String surveyName) {
-        surveyNameSet.add(surveyName);
+    
+    public List<LocationUpload> getErrorLocationUploadList() {
+    	return this.errorLocationUploadList;
     }
-
+    
+    // ----- Survey
     public Collection<Survey> getSurveys() {
         return Collections.unmodifiableCollection(surveyMap.values());
     }
@@ -148,7 +159,11 @@ public class BulkUpload {
     }
 
     public Set<String> getSurveyNames() {
-        return Collections.unmodifiableSet(surveyNameSet);
+    	Set<String> result = new HashSet<String>();
+    	for (Survey s : getSurveys()) {
+    		result.add(s.getName());
+    	}
+    	return result;
     }
 
     // ----- Indicator Species
@@ -199,11 +214,11 @@ public class BulkUpload {
     // ----- RecordUpload
 
     public boolean hasError() {
-        return !errorRecordUploadList.isEmpty();
+        return !errorRecordUploadList.isEmpty() || !errorLocationUploadList.isEmpty();
     }
 
     public int getErrorCount() {
-        return errorRecordUploadList.size();
+        return errorRecordUploadList.size() + errorLocationUploadList.size();
     }
 
     public void addRecordUpload(RecordUpload recordUpload) {

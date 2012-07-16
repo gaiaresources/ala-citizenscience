@@ -367,4 +367,14 @@ public class Location extends PortalPersistentImpl implements Attributable<Attri
             return null;
         }
     }
+    
+    /**
+     * Get the SRID for the geometry contained in this location.
+     * If geometry is null this method will return null.
+     * @return SRID for the contained geometry.
+     */
+    @Transient
+    public Integer getSrid() {
+    	return this.location != null ? this.location.getSRID() : null;
+    }
 }

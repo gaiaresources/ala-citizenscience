@@ -347,11 +347,14 @@
                             <th class="sciNameColumn">
                                 Scientific&nbsp;Name
                             </th>
+                            <th class="crsColumn" title="Coordinate Reference System">
+                            	CRS
+                            </th>
                             <th class="latitudeColumn">
-                                Latitude
+                                Latitude / Northings
                             </th>
                             <th class="longitudeColumn">
-                                Longitude
+                                Longitude / Eastings
                             </th>
                             <th class="numberColumn">
                                 Number

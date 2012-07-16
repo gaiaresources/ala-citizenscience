@@ -24,6 +24,8 @@ import au.com.gaiaresources.bdrs.service.taxonomy.BdrsTaxonLibException;
 import au.com.gaiaresources.bdrs.service.taxonomy.TaxonLibSessionFactory;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 import jep.Jep;
 import jep.JepException;
 import org.apache.log4j.Logger;
@@ -71,8 +73,6 @@ public class CustomFormService extends PythonService {
     @Autowired
     private FileService fileService;
     @Autowired
-    private LocationService locationService;
-    @Autowired
     private SurveyDAO surveyDAO;
     @Autowired
     private CensusMethodDAO censusMethodDAO;
@@ -94,6 +94,8 @@ public class CustomFormService extends PythonService {
     private MetadataDAO metadataDAO;
     @Autowired
     private TaxonLibSessionFactory taxonLibSessionFactory;
+    
+    private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
 
     /**
      * Renders the specified custom form.
@@ -112,7 +114,7 @@ public class CustomFormService extends PythonService {
             File formDir = fileService.getTargetDirectory(form, CustomForm.CUSTOM_FORM_DIR, true);
 
             // Setup the parameters to send to the Python custom form.
-            bdrs = new PyBDRS(request, locationService,
+            bdrs = new PyBDRS(request, spatialUtil,
                     fileService, form, RequestContextHolder.getContext().getUser(),
                     surveyDAO, censusMethodDAO,
                     taxaDAO, recordDAO, portalDAO, attributeDAO, attributeOptionDAO, attributeValueDAO,

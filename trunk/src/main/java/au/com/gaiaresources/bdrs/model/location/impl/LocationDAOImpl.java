@@ -230,9 +230,11 @@ public class LocationDAOImpl extends AbstractDAOImpl implements LocationDAO {
     @SuppressWarnings("unchecked")
     @Override
     public List<Location> getLocation(Survey survey, User user) {
+    	// Warning : this _might_ cause issues when we select locations that
+    	// contain geometries with different SRIDs.
         StringBuilder builder = new StringBuilder();
-        builder.append(" select loc ");
-        builder.append(" from Survey s left join s.locations loc ");
+        builder.append(" select distinct loc ");
+        builder.append(" from Survey s join s.locations loc ");
         builder.append(" where ");
         builder.append("     s = :survey and ");
         builder.append("     loc.user = :user and ");
@@ -256,19 +258,24 @@ public class LocationDAOImpl extends AbstractDAOImpl implements LocationDAO {
         
         boolean unrestricted = user.isPoweruser() || user.isSupervisor() || user.isAdmin();
         
+        // This convoluted SQL expression is to avoid calling distinct on
+        // a geometry object. Postgis does not allow spatial functions (i.e. st_xxx())
+        // to be called on geometries with different SRIDs.
         StringBuilder builder = new StringBuilder();
-        builder.append("select distinct loc ");
+        builder.append("from Location l where l.id in (");
+        builder.append("select distinct loc.id ");
         builder.append(" from Survey s join s.locations loc");
         builder.append(" where s.id != :surveyId");
         if (!unrestricted) {
             builder.append( " and (s.public = true or :user in (select u from s.users u))");
         }
+        builder.append(")");
         Map<String, Object> argMap = new HashMap<String, Object>();
         argMap.put(BdrsWebConstants.PARAM_SURVEY_ID, surveyId);
         if (!unrestricted) {
             argMap.put("user", user);
         }
-        return new QueryPaginator<Location>().page(this.getSession(), builder.toString(), argMap, filter, "loc");
+        return new QueryPaginator<Location>().page(this.getSession(), builder.toString(), argMap, filter, "l");
     }
     
     /*

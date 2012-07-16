@@ -1,56 +1,19 @@
 package au.com.gaiaresources.bdrs.spatial;
 
 import java.io.File;
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import junit.framework.Assert;
 
 import org.apache.log4j.Logger;
-import org.junit.Before;
 import org.junit.Test;
-import org.opengis.feature.Property;
-import org.opengis.feature.simple.SimpleFeature;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
-import au.com.gaiaresources.bdrs.deserialization.record.RecordKeyLookup;
-import au.com.gaiaresources.bdrs.geometry.GeometryBuilder;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
-import au.com.gaiaresources.bdrs.model.method.CensusMethod;
-import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
-import au.com.gaiaresources.bdrs.model.method.Taxonomic;
 import au.com.gaiaresources.bdrs.model.record.Record;
-import au.com.gaiaresources.bdrs.model.record.RecordDAO;
-import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
-import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.model.user.UserDAO;
-import au.com.gaiaresources.bdrs.security.Role;
-
-import com.vividsolutions.jts.geom.Geometry;
 
 public class ExportRecordToShapefileTest extends AbstractShapefileTest {
-    
+	
     private Logger log = Logger.getLogger(getClass());
     
     // the export 'no' record case is the same as exporting a template

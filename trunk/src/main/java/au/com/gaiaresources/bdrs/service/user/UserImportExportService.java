@@ -11,6 +11,7 @@ import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.service.AbstractImportExportService;
 import au.com.gaiaresources.bdrs.service.survey.ImportHandlerRegistry;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 /**
  * Exports and imports user accounts from one BDRS to another.
@@ -35,7 +36,7 @@ public class UserImportExportService extends AbstractImportExportService<User> {
     @Override
     @PostConstruct
     public void initService() {
-        importHandlerRegistry = new ImportHandlerRegistry(locationService, fileService, userDAO);
+        importHandlerRegistry = new ImportHandlerRegistry(new SpatialUtilFactory(), fileService, userDAO, geoMapService);
     }
     
     

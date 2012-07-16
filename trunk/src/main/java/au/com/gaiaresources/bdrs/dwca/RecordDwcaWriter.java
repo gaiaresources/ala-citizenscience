@@ -2,7 +2,6 @@ package au.com.gaiaresources.bdrs.dwca;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -22,7 +21,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import au.com.gaiaresources.bdrs.util.StringUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.log4j.Logger;
 import org.apache.xml.serialize.OutputFormat;
@@ -32,7 +30,6 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
@@ -43,6 +40,8 @@ import au.com.gaiaresources.bdrs.service.lsid.LSIDService;
 import au.com.gaiaresources.bdrs.service.web.RedirectionService;
 import au.com.gaiaresources.bdrs.util.CSVUtils;
 import au.com.gaiaresources.bdrs.util.FileUtils;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.StringUtils;
 import au.com.gaiaresources.bdrs.util.ZipUtils;
 
 public class RecordDwcaWriter {
@@ -72,12 +71,12 @@ public class RecordDwcaWriter {
     
     private static final String BYTE_ENCODING = "UTF-8";
     
-    public RecordDwcaWriter(LSIDService lsidService, LocationService locService, RedirectionService redirService) { 
+    public RecordDwcaWriter(LSIDService lsidService, SpatialUtil spatialUtil, RedirectionService redirService) { 
         
         if (lsidService == null) {
             throw new IllegalArgumentException("LSIDService, lsidService, cannot be null");
         }
-        if (locService == null) {
+        if (spatialUtil == null) {
             throw new IllegalArgumentException("LocationService, locService, cannot be null");
         }
         if (redirService == null) {
@@ -88,8 +87,8 @@ public class RecordDwcaWriter {
         Map<CorePropertyGetter, ConceptTerm> coreMapBuilder = new LinkedHashMap<CorePropertyGetter, ConceptTerm>();
         coreMapBuilder.put(new CorePathGetter("id"), DwcTerm.catalogNumber);
         coreMapBuilder.put(new CoreScientificNameGetter(), DwcTerm.scientificName);
-        coreMapBuilder.put(new CoreCoordGetter("latitude", locService), DwcTerm.decimalLatitude);
-        coreMapBuilder.put(new CoreCoordGetter("longitude", locService), DwcTerm.decimalLongitude);
+        coreMapBuilder.put(new CoreCoordGetter("latitude", spatialUtil), DwcTerm.decimalLatitude);
+        coreMapBuilder.put(new CoreCoordGetter("longitude", spatialUtil), DwcTerm.decimalLongitude);
         coreMapBuilder.put(new CoreFixedGetter("HumanObservation"), DwcTerm.basisOfRecord);
         coreMapBuilder.put(new CoreFixedGetter("BDRS"), DwcTerm.institutionCode);
         coreMapBuilder.put(new CoreFixedGetter("BDRS"), DwcTerm.collectionCode);
@@ -551,11 +550,11 @@ public class RecordDwcaWriter {
      */
     private static class CoreCoordGetter implements CorePropertyGetter {
         private String path;
-        private LocationService locService;
+        private SpatialUtil locService;
         
         private Logger log = Logger.getLogger(getClass());
         
-        public CoreCoordGetter(String path, LocationService locService) {
+        public CoreCoordGetter(String path, SpatialUtil locService) {
             if (path == null) {
                 throw new IllegalArgumentException("String, path, cannot be null");
             }

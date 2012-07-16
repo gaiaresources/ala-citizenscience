@@ -10,9 +10,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import junit.framework.Assert;
-import au.com.gaiaresources.bdrs.json.JSONArray;
-import au.com.gaiaresources.bdrs.json.JSONObject;
-import au.com.gaiaresources.bdrs.json.JSONSerializer;
 
 import org.apache.log4j.Logger;
 import org.junit.Before;
@@ -27,9 +24,9 @@ import org.xml.sax.SAXException;
 
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.geometry.GeometryBuilder;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
-import au.com.gaiaresources.bdrs.model.map.GeoMapFeature;
-import au.com.gaiaresources.bdrs.model.map.GeoMapFeatureDAO;
+import au.com.gaiaresources.bdrs.json.JSONArray;
+import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.json.JSONSerializer;
 import au.com.gaiaresources.bdrs.model.map.GeoMapLayer;
 import au.com.gaiaresources.bdrs.model.map.GeoMapLayerDAO;
 import au.com.gaiaresources.bdrs.model.map.GeoMapLayerSource;
@@ -43,9 +40,10 @@ import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.web.JsonService;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 public class GeoMapLayerControllerGetLayerTest extends AbstractControllerTest {
     
@@ -61,8 +59,8 @@ public class GeoMapLayerControllerGetLayerTest extends AbstractControllerTest {
     RecordDAO recDAO;
     @Autowired
     AttributeDAO attrDAO;
-    @Autowired
-    LocationService locationService;
+    
+    SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
 
     
     Attribute recAttr1;
@@ -117,7 +115,7 @@ public class GeoMapLayerControllerGetLayerTest extends AbstractControllerTest {
         recordOwnerOnly.setUser(owner);
         recordOwnerOnly.setWhen(cal.getTime());
         recordOwnerOnly.setLastDate(cal.getTime());
-        recordOwnerOnly.setGeometry(locationService.convertToMultiGeom(geomBuilder.createSquare(-10, -10, 10)));
+        recordOwnerOnly.setGeometry(spatialUtil.convertToMultiGeom(geomBuilder.createSquare(-10, -10, 10)));
         recordOwnerOnly.setSurvey(survey);
         recordOwnerOnly.getAttributes().add(createTestAttrValue(recAttr1, "1"));
         recordOwnerOnly.getAttributes().add(createTestAttrValue(recAttr2, "two"));
@@ -129,7 +127,7 @@ public class GeoMapLayerControllerGetLayerTest extends AbstractControllerTest {
         recordPublic.setUser(owner);
         recordPublic.setWhen(cal.getTime());
         recordPublic.setLastDate(cal.getTime());
-        recordPublic.setGeometry(locationService.convertToMultiGeom(geomBuilder.createSquare(-10, -10, 10)));
+        recordPublic.setGeometry(spatialUtil.convertToMultiGeom(geomBuilder.createSquare(-10, -10, 10)));
         recordPublic.setSurvey(survey);
         recordPublic.getAttributes().add(createTestAttrValue(recAttr1, "7"));
         recordPublic.getAttributes().add(createTestAttrValue(recAttr2, "eight"));
@@ -141,7 +139,7 @@ public class GeoMapLayerControllerGetLayerTest extends AbstractControllerTest {
         recordControlled.setUser(owner);
         recordControlled.setWhen(cal.getTime());
         recordControlled.setLastDate(cal.getTime());
-        recordControlled.setGeometry(locationService.convertToMultiGeom(geomBuilder.createSquare(-10, -10, 10)));
+        recordControlled.setGeometry(spatialUtil.convertToMultiGeom(geomBuilder.createSquare(-10, -10, 10)));
         recordControlled.setSurvey(survey);
         recordControlled.getAttributes().add(createTestAttrValue(recAttr1, "10"));
         recordControlled.getAttributes().add(createTestAttrValue(recAttr2, "eleven"));

@@ -24,7 +24,6 @@ import au.com.gaiaresources.bdrs.model.group.Group;
 import au.com.gaiaresources.bdrs.model.group.GroupDAO;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.region.RegionService;
@@ -38,6 +37,8 @@ import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.content.ContentService;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -56,9 +57,6 @@ public class SetupController extends AbstractController {
 
     @Autowired
     private RegionService regionService;
-
-    @Autowired
-    private LocationService locationService;
 
     @Autowired
     private RegistrationService registrationService;
@@ -81,7 +79,8 @@ public class SetupController extends AbstractController {
     @Autowired
     private RecordDAO recordDAO;
 
-
+    private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
+    
     /**
      * @deprecated URL not used, causes a 500 error
      * @param request
@@ -179,13 +178,14 @@ public class SetupController extends AbstractController {
 
     	    // Locations
     	    Location loc = new Location();
-            loc.setLocation(locationService.getGeometryFactory().createPoint(new Coordinate(-32, 113)));
+    	    
+            loc.setLocation(spatialUtil.getGeometryFactory().createPoint(new Coordinate(-32, 113)));
             loc.setName("Alpha Site");
             loc.setUser(getRequestContext().getUser());
             locationDAO.save(loc);
 
             Location loc2 = new Location();
-            loc2.setLocation(locationService.getGeometryFactory().createPoint(new Coordinate(-41, 152)));
+            loc2.setLocation(spatialUtil.getGeometryFactory().createPoint(new Coordinate(-41, 152)));
             loc2.setName("Beta Site");
             loc2.setUser(getRequestContext().getUser());
             locationDAO.save(loc2);

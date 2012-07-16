@@ -26,7 +26,6 @@ import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
@@ -47,6 +46,8 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 /**
  * Tests all aspects of the <code>TrackerController</code>.
@@ -65,9 +66,9 @@ public class RecordDeletionControllerTest extends AbstractControllerTest {
     @Autowired
     private CensusMethodDAO methodDAO;
     @Autowired
-    private LocationService locationService;
-    @Autowired
     private RecordDAO recordDAO;
+    
+    private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
 
     private TaxonGroup taxonGroupBirds;
     private TaxonGroup taxonGroupFrogs;
@@ -224,13 +225,13 @@ public class RecordDeletionControllerTest extends AbstractControllerTest {
         locationA = new Location();
         locationA.setName("Location A");
         locationA.setUser(admin);
-        locationA.setLocation(locationService.createPoint(-40.58, 153.1));
+        locationA.setLocation(spatialUtil.createPoint(-40.58, 153.1));
         locationDAO.save(locationA);
 
         locationB = new Location();
         locationB.setName("Location B");
         locationB.setUser(admin);
-        locationB.setLocation(locationService.createPoint(-32.58, 154.2));
+        locationB.setLocation(spatialUtil.createPoint(-32.58, 154.2));
         locationDAO.save(locationB);
         
         recordList = new ArrayList<Record>();
@@ -337,7 +338,7 @@ public class RecordDeletionControllerTest extends AbstractControllerTest {
         record.setCensusMethod(cm);
         record.setUser(user);
         record.setLocation(null);
-        record.setPoint(locationService.createPoint(-32.42, 154.15));
+        record.setPoint(spatialUtil.createPoint(-32.42, 154.15));
         record.setHeld(false);
         record.setWhen(recDate);
         record.setTime(recDate.getTime());

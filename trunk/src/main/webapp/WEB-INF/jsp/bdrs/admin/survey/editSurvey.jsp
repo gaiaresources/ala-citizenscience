@@ -6,6 +6,7 @@
 <%@page import="au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType"%>
 <%@page import="au.com.gaiaresources.bdrs.model.survey.SurveyFormSubmitAction"%>
 <%@page import="au.com.gaiaresources.bdrs.model.metadata.Metadata"%>
+<%@page import="au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem"%>
 <jsp:useBean id="survey" type="au.com.gaiaresources.bdrs.model.survey.Survey" scope="request"/>
 <c:choose>
     <c:when test="${survey.id == null }">
@@ -256,6 +257,19 @@
                             />
                         </td>
                     </tr>
+                    <tr>
+                        <th title="The coordinate reference system to use for this project.">Coordinate Reference System</th>
+                        <td>
+                            <select name="crs">
+                                <c:forEach items="<%=BdrsCoordReferenceSystem.values()%>" var="crs">
+                                    <%-- calls toString on the enum object --%>
+                                    <option value="${ crs }"
+                                        <c:if test="${ survey.map.crs == crs }">selected="selected"</c:if>
+                                    ><c:out value="${ crs.displayName }"/></option>
+                                </c:forEach>
+                            </select>
+                        </td>
+                    </tr>
 				</tbody>
 			</table>
 		</div>
@@ -272,7 +286,14 @@
 
 <script type="text/javascript">
     editSurveyPage = {
+       crsSelector: "select[name=crs]",
+       crsHiddenSelector: "input[name=crs]",
+       
        rendererTypeChanged: function() {
+    	   var crsElem = jQuery(editSurveyPage.crsSelector);
+    	   crsElem.prop("disabled", false);
+    	   // remove hidden elem if it exists.
+    	   jQuery(editSurveyPage.crsHiddenSelector).remove();
            var value = $('input:radio[name=rendererType]:checked').val();
            var recordVisCheckBox = jQuery('input[name=recordVisModifiable]');
            var isRecordVisEnabled = false;
@@ -284,6 +305,11 @@
               isRecordVisEnabled = false;
            } else if (value === 'ATLAS') {
               isRecordVisEnabled = false;
+              // must use lon/lat
+              crsElem.val("WGS84");
+              crsElem.prop("disabled", true);
+              var crsHiddenElem = jQuery('<input type="hidden" name="crs" value="WGS84" />');
+              crsElem.after(crsHiddenElem);
            } else {
               // If it is a custom form then allow the record visibility to be modifiable.
               // It is the responsibility of the custom form to provide this facility.

@@ -76,6 +76,9 @@
         <script src="${pageContext.request.contextPath}/js${version}/jquery-tmpl/jquery.tmpl.js" type="text/javascript"></script>
                 
         <c:if test="${maps == true}">
+            <script src="${pageContext.request.contextPath}/js${version}/proj4js/lib/proj4js-combined.js" type="text/javascript"></script>
+            <%-- Include EPSG definitions. If more definitions are required add to EPSG.js --%>
+            <script src="${pageContext.request.contextPath}/js${version}/proj4js/lib/defs/EPSG.js" type="text/javascript"></script>
             <script src="${pageContext.request.contextPath}/js${version}/ol/OpenLayers.js" type="text/javascript"></script>
             <script src="http://maps.google.com/maps?file=api&amp;v=2&amp;&amp;sensor=false&amp;key=${bdrsGoogleMapsKey}" type="text/javascript"></script>
             <script src="${pageContext.request.contextPath}/js${version}/BdrsCluster.js" type="text/javascript"></script>

@@ -12,13 +12,24 @@ import junit.framework.Assert;
 
 import org.apache.log4j.Logger;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import au.com.gaiaresources.bdrs.model.survey.Survey;
+import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
-import au.com.gaiaresources.bdrs.test.AbstractSpringContextTest;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.service.map.GeoMapService;
+import au.com.gaiaresources.bdrs.test.AbstractTransactionalTest;
 
-public class ShapeFileWriterTest extends AbstractSpringContextTest {
+public class ShapeFileWriterTest extends AbstractTransactionalTest {
+    
+	@Autowired
+    private GeoMapService geoMapService;
+	@Autowired
+	private SurveyDAO surveyDAO;
+	@Autowired
+	private TaxaDAO taxaDAO;
     
     Logger log = Logger.getLogger(getClass());
 
@@ -47,7 +58,7 @@ public class ShapeFileWriterTest extends AbstractSpringContextTest {
         ShapeFileWriter writer = new ShapeFileWriter();
         
         Survey survey = new Survey();
-        survey.setId(99);
+        //survey.setId(99);
         survey.setStartDate(new Date());
         survey.setName("my survey");
         survey.setDescription("my survey description woooo");
@@ -65,9 +76,14 @@ public class ShapeFileWriterTest extends AbstractSpringContextTest {
             Attribute a = createAttribute(name);
             a.setTypeCode(attrType.getCode());
             surveyAttrList.add(a);
+            taxaDAO.save(a);
         }
         
         survey.setAttributes(surveyAttrList);
+        
+        surveyDAO.save(survey);
+        // create GeoMap
+        geoMapService.getForSurvey(survey);
         
         File zippedShapefile = writer.createZipShapefile(survey, null, shpType);
         

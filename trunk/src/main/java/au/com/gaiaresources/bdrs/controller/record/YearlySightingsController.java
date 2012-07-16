@@ -26,6 +26,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.vividsolutions.jts.geom.Point;
+
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormFieldFactory;
 import au.com.gaiaresources.bdrs.file.FileService;
@@ -50,6 +52,8 @@ import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 /**
  * Controller to render the yearly sightings form
@@ -244,6 +248,7 @@ public class YearlySightingsController extends RecordController {
         throws ParseException, IOException {
         
         Location location = locationDAO.getLocation(locationId);
+        SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil(location.getLocation().getSRID());
         Survey survey = surveyDAO.getSurvey(surveyId);
         IndicatorSpecies species = survey.getSpecies().iterator().next();
         User user = getRequestContext().getUser();
@@ -287,7 +292,9 @@ public class YearlySightingsController extends RecordController {
                         rec.setSpecies(species);
                         rec.setUser(user);
                         rec.setLocation(location);
-                        rec.setPoint(location.getLocation().getCentroid());
+                        Point point = location.getLocation().getCentroid();
+                        // Use the location util. it truncates appropriately and sets the SRID.
+                        rec.setPoint(spatialUtil.createPoint(point.getY(), point.getX()));
                         rec.setHeld(false);
 
                         Date recordTime = new Date(time);

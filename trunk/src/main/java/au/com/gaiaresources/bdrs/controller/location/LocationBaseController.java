@@ -1,8 +1,39 @@
 package au.com.gaiaresources.bdrs.controller.location;
 
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.security.RolesAllowed;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.ws.http.HTTPException;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.propertyeditors.CustomDateEditor;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.servlet.ModelAndView;
+
 import au.com.gaiaresources.bdrs.attribute.AttributeDictionaryFactory;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormFieldFactory;
+import au.com.gaiaresources.bdrs.controller.map.WebMap;
 import au.com.gaiaresources.bdrs.controller.record.RecordController;
 import au.com.gaiaresources.bdrs.controller.record.RecordWebFormContext;
 import au.com.gaiaresources.bdrs.controller.record.WebFormAttributeParser;
@@ -18,40 +49,29 @@ import au.com.gaiaresources.bdrs.deserialization.attribute.AttributeDeserializer
 import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
-import au.com.gaiaresources.bdrs.model.taxa.*;
+import au.com.gaiaresources.bdrs.model.taxa.Attribute;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
-import com.vividsolutions.jts.geom.Geometry;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.propertyeditors.CustomDateEditor;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.ServletRequestDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
-import org.springframework.web.servlet.ModelAndView;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
-import javax.annotation.security.RolesAllowed;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.ws.http.HTTPException;
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import com.vividsolutions.jts.geom.Geometry;
 
 @Controller
 public class LocationBaseController extends RecordController {
@@ -59,7 +79,6 @@ public class LocationBaseController extends RecordController {
     public static final String GET_SURVEY_LOCATIONS_FOR_USER = "/bdrs/location/getSurveyLocationsForUser.htm";
     
     public static final String PARAM_SURVEY_ID = BdrsWebConstants.PARAM_SURVEY_ID;
-
 
     private Logger log = Logger.getLogger(getClass());
 
@@ -77,7 +96,7 @@ public class LocationBaseController extends RecordController {
     @Autowired
     private TaxaDAO taxaDAO;
     @Autowired
-    private LocationService locationService;
+    private GeoMapService geoMapService;
     @Autowired
     private SessionFactory sessionFactory;
     
@@ -138,7 +157,7 @@ public class LocationBaseController extends RecordController {
         // Added Locations
         Map<Integer, Location> addedLocationMap = new HashMap<Integer, Location>();
         for(int rawIndex : addLocationIndexes) {
-            Location location = createNewLocation(request, String.valueOf(rawIndex));
+            Location location = createNewLocation(request, String.valueOf(rawIndex), BdrsCoordReferenceSystem.DEFAULT_SRID);
             location.setUser(user);
             location = locationDAO.save(location);
             
@@ -148,7 +167,7 @@ public class LocationBaseController extends RecordController {
         // Updated Locations
         for(int pk : locationIds) {
             Location location = locationMap.remove(pk);
-            location = updateLocation(request, String.valueOf(pk), location);
+            location = updateLocation(request, String.valueOf(pk), location, BdrsCoordReferenceSystem.DEFAULT_SRID);
             location.setUser(user);
             locationDAO.save(location);
         }
@@ -372,6 +391,7 @@ public class LocationBaseController extends RecordController {
         mv.addObject(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT, context);
         // location scoped attributes are always editable on the edit location page...
         mv.addObject(RecordWebFormContext.MODEL_EDIT, true);
+        mv.addObject(BdrsWebConstants.MV_WEB_MAP, new WebMap(geoMapService.getForSurvey(survey)));
         
         return mv;
     }
@@ -388,7 +408,8 @@ public class LocationBaseController extends RecordController {
     @RequestMapping(value = "/bdrs/admin/survey/editLocation.htm", method = RequestMethod.POST)
     public ModelAndView submitSurveyLocation(MultipartHttpServletRequest request, HttpServletResponse response,
             @RequestParam(value=BdrsWebConstants.PARAM_SURVEY_ID, required = true) int surveyId,
-            @RequestParam(value=BdrsWebConstants.PARAM_LOCATION_ID, required = false) Integer locationId) {
+            @RequestParam(value=BdrsWebConstants.PARAM_LOCATION_ID, required = false) Integer locationId,
+            @RequestParam(value=BdrsWebConstants.PARAM_SRID, required=true) int srid) {
         Survey survey = getSurvey(surveyId);
         if (survey == null) {
             return SurveyBaseController.nullSurveyRedirect(getRequestContext());
@@ -404,13 +425,13 @@ public class LocationBaseController extends RecordController {
                 Location location = null;
                 // Added Locations
                 if(locationId == null) {
-                    location = createNewLocation(request);
+                    location = createNewLocation(request, srid);
                 } 
                 else {
                     location = locationDAO.getLocation(locationId);
                     // remove the location before updating and re-adding it
                     locationList.remove(location);
-                    location = updateLocation(request, location);
+                    location = updateLocation(request, location, srid);
                 }
                 // save the location attributes
                 try {
@@ -507,8 +528,8 @@ public class LocationBaseController extends RecordController {
      * @return The modified Location object
      */
     private Location updateLocation(HttpServletRequest request, String id,
-            Location location) {
-        return updateLocation(location, request.getParameter("location_WKT_"+id), request.getParameter("name_"+id));
+            Location location, int srid) {
+        return updateLocation(location, request.getParameter("location_WKT_"+id), request.getParameter("name_"+id), srid);
     }
 
     /**
@@ -518,10 +539,10 @@ public class LocationBaseController extends RecordController {
      * @param location The existing location object from the DAO
      * @return The modified Location object
      */
-    private Location updateLocation(HttpServletRequest request, Location location) {
+    private Location updateLocation(HttpServletRequest request, Location location, int srid) {
         return updateLocation(location, request.getParameter("location_WKT"), 
                               request.getParameter("locationName"),
-                              request.getParameter("locationDescription"));
+                              request.getParameter("locationDescription"), srid);
     }
 
     /**
@@ -532,8 +553,8 @@ public class LocationBaseController extends RecordController {
      * @param name The name of the location
      * @return The modified Location object
      */
-    private Location updateLocation(Location location, String wktString, String name) {
-        return updateLocation(location, wktString, name, null);
+    private Location updateLocation(Location location, String wktString, String name, int srid) {
+        return updateLocation(location, wktString, name, null, srid);
     }
     
     /**
@@ -544,8 +565,9 @@ public class LocationBaseController extends RecordController {
      * @param name The name of the location
      * @return The modified Location object
      */
-    private Location updateLocation(Location location, String wktString, String name, String description) {
-        Geometry geometry = locationService.createGeometryFromWKT(wktString);
+    private Location updateLocation(Location location, String wktString, String name, String description, int srid) {
+    	SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil(srid);
+        Geometry geometry = spatialUtil.createGeometryFromWKT(wktString);
         location.setName(name);
         location.setLocation(geometry);
         location.setDescription(description);
@@ -558,9 +580,9 @@ public class LocationBaseController extends RecordController {
      * @param id The unique identifier of the location in the request
      * @return The newly created Location object
      */
-    private Location createNewLocation(HttpServletRequest request, String id) {
+    private Location createNewLocation(HttpServletRequest request, String id, int srid) {
         Location location = new Location();
-        return updateLocation(location, request.getParameter("add_location_WKT_"+id), request.getParameter("add_name_"+id));
+        return updateLocation(location, request.getParameter("add_location_WKT_"+id), request.getParameter("add_name_"+id), srid);
     }
 
     /**
@@ -568,11 +590,11 @@ public class LocationBaseController extends RecordController {
      * @param request The request object
      * @return The newly created Location object
      */
-    private Location createNewLocation(HttpServletRequest request) {
+    private Location createNewLocation(HttpServletRequest request, int srid) {
         Location location = new Location();
         return updateLocation(location, request.getParameter("location_WKT"), 
                               request.getParameter("locationName"),
-                              request.getParameter("locationDescription"));
+                              request.getParameter("locationDescription"), srid);
     }
     
     private Survey getSurvey(Integer rawSurveyId) {

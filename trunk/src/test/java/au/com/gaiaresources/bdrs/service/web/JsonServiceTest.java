@@ -28,6 +28,7 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.test.AbstractSpringContextTest;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 public class JsonServiceTest extends AbstractSpringContextTest {
 
@@ -48,10 +49,13 @@ public class JsonServiceTest extends AbstractSpringContextTest {
     AttributeValue av2;
     AttributeValue av3;
     
+    private SpatialUtilFactory spatialUtilFactory;
+    
     private Logger log = Logger.getLogger(getClass());
 
     @Before
     public void setup() {
+    	spatialUtilFactory = new SpatialUtilFactory();
         
         Survey survey = new Survey();
         survey.setName("survey name");
@@ -137,7 +141,7 @@ public class JsonServiceTest extends AbstractSpringContextTest {
     
     private void testRecordToJson_showAll(User accessor) {
         AccessControlledRecordAdapter recAdapter = new AccessControlledRecordAdapter(record, accessor);
-        JSONObject obj = jsonService.toJson(recAdapter, CONTEXT_PATH);
+        JSONObject obj = jsonService.toJson(recAdapter, CONTEXT_PATH, spatialUtilFactory);
         
         Assert.assertEquals("indicatus specius", obj.getString(JsonService.RECORD_KEY_SPECIES));
         Assert.assertEquals(owner.getFirstName() + " " + owner.getLastName(), obj.getString(JsonService.RECORD_KEY_USER));
@@ -174,7 +178,7 @@ public class JsonServiceTest extends AbstractSpringContextTest {
     @Test
     public void testRecordToJson_asNonOwner() {
         AccessControlledRecordAdapter recAdapter = new AccessControlledRecordAdapter(record, nonOwner);
-        JSONObject obj = jsonService.toJson(recAdapter, CONTEXT_PATH);
+        JSONObject obj = jsonService.toJson(recAdapter, CONTEXT_PATH, spatialUtilFactory);
         
         Assert.assertEquals(owner.getFirstName() + " " + owner.getLastName(), obj.getString(JsonService.RECORD_KEY_USER));
         Assert.assertEquals(owner.getId().intValue(), obj.getInt(JsonService.RECORD_KEY_USER_ID));

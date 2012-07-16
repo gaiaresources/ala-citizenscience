@@ -17,6 +17,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 
 import au.com.gaiaresources.bdrs.controller.insecure.taxa.ComparePersistentImplByWeight;
 import au.com.gaiaresources.bdrs.model.location.Location;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
@@ -86,6 +87,7 @@ public class XlsLocationRow extends StyledRowImpl {
             row.createCell(colIndex++).setCellValue(loc.getName());
             row.createCell(colIndex++).setCellValue(loc.getLocation().getCentroid().getY());
             row.createCell(colIndex++).setCellValue(loc.getLocation().getCentroid().getX());
+            row.createCell(colIndex++).setCellValue(formatCrs(loc));
             
             // Location Attribute Values
             Map<Attribute, AttributeValue> locAttrValMap = new HashMap<Attribute, AttributeValue>();
@@ -128,9 +130,14 @@ public class XlsLocationRow extends StyledRowImpl {
         row.createCell(colIndex++).setCellValue(location.getName());
         row.createCell(colIndex++).setCellValue(location.getLocation().getCentroid().getY());
         row.createCell(colIndex++).setCellValue(location.getLocation().getCentroid().getX());
+        row.createCell(colIndex++).setCellValue(formatCrs(location));
         
         // user locations do not have any location attribute values.
         // if that changes. add that stuff here.
+    }
+    
+    private String formatCrs(Location loc) {
+    	return BdrsCoordReferenceSystem.sridToEpsg(loc.getLocation().getSRID());
     }
     
     /**
@@ -168,11 +175,15 @@ public class XlsLocationRow extends StyledRowImpl {
         cell.setCellStyle(headerStyle);
 
         cell = row.createCell(colIndex++);
-        cell.setCellValue("Latitude");
+        cell.setCellValue("Latitude/Northings");
         cell.setCellStyle(headerStyle);
 
         cell = row.createCell(colIndex++);
-        cell.setCellValue("Longitude");
+        cell.setCellValue("Longitude/Eastings");
+        cell.setCellStyle(headerStyle);
+        
+        cell = row.createCell(colIndex++);
+        cell.setCellValue("EPSG Code");
         cell.setCellStyle(headerStyle);
         
         for(Attribute attr : locationScopeAttrs) {
@@ -202,50 +213,51 @@ public class XlsLocationRow extends StyledRowImpl {
      * @return a LocationUpload representing the location in the row.
      */
     public LocationUpload readRow(Row row) {
-        
         currentReadCell = null;
         LocationUpload locationUpload = new LocationUpload();
         
+        locationUpload.setRowNumber(row.getRowNum());
+        locationUpload.setSheetName(AbstractBulkDataService.LOCATION_SHEET_LOCATION_NAME);
+        
+        int colIndex = 0;
         try {
-            
-            int colIndex = 0;
-            currentReadCell = row.getCell(colIndex++, Row.CREATE_NULL_AS_BLANK);
+            currentReadCell = row.getCell(colIndex, Row.CREATE_NULL_AS_BLANK);
             if(Cell.CELL_TYPE_BLANK != currentReadCell.getCellType()) {
                 locationUpload.setPk((int)XlsCellUtil.cellToDouble(currentReadCell));
             }
             
             // Skip over the location type. We don't need it.
-            colIndex++;
+            ++colIndex;
             
-            currentReadCell = row.getCell(colIndex++);
+            currentReadCell = row.getCell(++colIndex);
             locationUpload.setLocationName(XlsCellUtil.cellToString(currentReadCell));
             
-            currentReadCell = row.getCell(colIndex++);
+            currentReadCell = row.getCell(++colIndex);
             locationUpload.setLatitude(XlsCellUtil.cellToDouble(currentReadCell));
             
-            currentReadCell = row.getCell(colIndex++);
+            currentReadCell = row.getCell(++colIndex);
             locationUpload.setLongitude(XlsCellUtil.cellToDouble(currentReadCell));
+            
+            currentReadCell = row.getCell(++colIndex);
+            locationUpload.setEpsg(XlsCellUtil.cellToString(currentReadCell));
             
             locationUpload.setSurveyName(survey.getName());
             
-            colIndex = readLocationAttributeValue(locationUpload, row, colIndex);
+            colIndex = readLocationAttributeValue(locationUpload, row, ++colIndex);
                                                       
         } catch (Exception e) {
-            
             String msg = e.getMessage() == null ? e.toString() : e.getMessage();
             
             String value = currentReadCell != null ? currentReadCell.toString() : null;
-            String cellColRef = currentReadCell != null ? CellReference.convertNumToColString(currentReadCell.getColumnIndex()) : "0";
+            String cellColRef = currentReadCell != null ? CellReference.convertNumToColString(currentReadCell.getColumnIndex()) : CellReference.convertNumToColString(colIndex);
             String sheetName = row.getSheet().getSheetName();
             
-            String errMsg = String.format("Cell %s!%s%d[ value=\"%s\" ]: %s %s", sheetName, cellColRef, row.getRowNum(), value, e.getClass().getSimpleName(), msg);
-
-            locationUpload.setError(true);
+            String errMsg = String.format("Cell %s!%s%d[ value=\"%s\" ]: %s %s", sheetName, cellColRef, row.getRowNum()+1, value, e.getClass().getSimpleName(), msg);
             locationUpload.setErrorMessage(errMsg);
             
-            log.debug(errMsg);
             log.warn(e.toString(), e);
         }
+        
         return locationUpload;
     }
     

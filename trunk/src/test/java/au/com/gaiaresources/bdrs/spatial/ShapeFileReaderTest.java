@@ -74,6 +74,18 @@ public class ShapeFileReaderTest extends AbstractSpringContextTest {
     }
     
     @Test
+    public void testShapefiletoGeoMapLayerMga50() throws ShapefileException, IOException {
+        String filename = getClass().getResource("Simple4.zip").getFile();
+        File file = new File(filename);
+        
+        ShapeFileReader reader = new ShapeFileReader(file);
+        
+        Assert.assertFalse(reader.isCrsSupported());
+        
+        Assert.assertFalse("crs should not be supporteD", reader.isCrsSupported());
+    }
+    
+    @Test
     public void testShapefiletoGeoMapLayerNumber2() throws ShapefileException, IOException {
         String filename = getClass().getResource("Small_GDA.zip").getFile();
         File file = new File(filename);

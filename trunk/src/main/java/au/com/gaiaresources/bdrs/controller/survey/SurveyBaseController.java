@@ -43,14 +43,12 @@ import au.com.gaiaresources.bdrs.model.form.CustomForm;
 import au.com.gaiaresources.bdrs.model.form.CustomFormDAO;
 import au.com.gaiaresources.bdrs.model.group.Group;
 import au.com.gaiaresources.bdrs.model.group.GroupDAO;
-import au.com.gaiaresources.bdrs.model.map.BaseMapLayer;
 import au.com.gaiaresources.bdrs.model.map.BaseMapLayerDAO;
-import au.com.gaiaresources.bdrs.model.map.BaseMapLayerSource;
 import au.com.gaiaresources.bdrs.model.map.GeoMap;
-import au.com.gaiaresources.bdrs.model.map.GeoMapDAO;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
@@ -130,6 +128,10 @@ public class SurveyBaseController extends AbstractEditMapController {
      * The query parameter to save and continue to the next form
      */
     public static final String PARAM_SAVE_AND_CONTINUE = "saveAndContinue";
+    /**
+     * The query parameter for the coordinate reference system
+     */
+    public static final String PARAM_CRS = "crs";
 
     private Logger log = Logger.getLogger(getClass());
 
@@ -248,7 +250,8 @@ public class SurveyBaseController extends AbstractEditMapController {
             @RequestParam(value = PARAM_DEFAULT_RECORD_VISIBILITY, required = true) String defaultRecordVis,
             @RequestParam(value = PARAM_RECORD_VISIBILITY_MODIFIABLE, defaultValue="false") boolean recordVisMod,
             @RequestParam(value = PARAM_RECORD_COMMENTS_ENABLED, defaultValue="false") boolean recordCommentsEnabled,
-            @RequestParam(value = PARAM_FORM_SUBMIT_ACTION, required = true) String formSubmitAction) 
+            @RequestParam(value = PARAM_FORM_SUBMIT_ACTION, required = true) String formSubmitAction,
+            @RequestParam(value = PARAM_CRS, required = true) String crs) 
         throws IOException {
 
         Survey survey;
@@ -357,6 +360,8 @@ public class SurveyBaseController extends AbstractEditMapController {
         } 
         
         surveyDAO.save(survey);
+        
+        geoMapService.getForSurvey(survey).setCrs(BdrsCoordReferenceSystem.valueOf(crs));
 
         // Work around for the Survey DAO. The DAO automatically sets the
         // survey to active when creating the survey. This forces the survey

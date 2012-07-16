@@ -1,7 +1,8 @@
 package au.com.gaiaresources.bdrs.service.survey.handler;
 
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import org.springframework.beans.BeanUtils;
+
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 /**
  * A basic implementation of an {@link au.com.gaiaresources.bdrs.service.survey.ImportHandler} that will generally
@@ -20,8 +21,8 @@ public class SimpleImportHandler extends AbstractImportHandler {
      * @param locationService provides facilities to convert WKT strings to Geometry instances.
      * @param klazz           the datatype that shall be decoded by this handler.
      */
-    public SimpleImportHandler(LocationService locationService, Class<?> klazz) {
-        super(locationService);
+    public SimpleImportHandler(SpatialUtilFactory spatialUtilFactory, Class<?> klazz) {
+        super(spatialUtilFactory);
         this.klazz = klazz;
     }
 

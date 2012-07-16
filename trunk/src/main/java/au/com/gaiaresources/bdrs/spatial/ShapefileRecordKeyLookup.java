@@ -113,7 +113,7 @@ public class ShapefileRecordKeyLookup implements RecordKeyLookup {
 
     @Override
     public String getTimeKey() {
-        return "time";
+        return ShapefileFields.TIME;
     }
 
     @Override
@@ -125,4 +125,17 @@ public class ShapefileRecordKeyLookup implements RecordKeyLookup {
     public String getParentRecordIdKey() {
         return ShapefileFields.PARENT_RECORD_ID;
     }
+
+	@Override
+	public String getZoneKey() {
+		// zone is actually not important for shapefiles since it is contained
+		// in the CRS setting of the shapefile.
+		return "";
+	}
+
+	@Override
+	public String getWktKey() {
+		// not required for shapefiles
+		return "";
+	}
 }

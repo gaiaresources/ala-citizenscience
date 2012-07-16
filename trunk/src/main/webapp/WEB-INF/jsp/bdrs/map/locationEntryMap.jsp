@@ -21,7 +21,8 @@
         longSelector: "input[name=longitude]",
         wktSelector: "input[name=location_WKT]",
         areaSelector: "input[name=locationArea]",
-        locSelector: "input[name=locationId]"
+        locSelector: "input[name=locationId]",
+        crsSelector: "input[name=srid], select[name=srid]"
     };
     
     var toolActivatedHandler = function(toolId) {
@@ -46,6 +47,7 @@
                   wktSelector: entryForm.wktSelector,
                   areaSelector: entryForm.areaSelector,
                   toolActivatedHandler: toolActivatedHandler,
+                  crsSelector: entryForm.crsSelector,
                   initialDrawTool: ${not empty wkt ? 'bdrs.map.control.DRAG_FEATURE' : 'bdrs.map.control.DRAW_POINT'},
                   // default for non census method forms
                   drawPoint: true,
@@ -53,12 +55,16 @@
                   drawPolygon: true
               });
         
-        bdrs.map.addLonLatChangeHandler(layer, entryForm.longSelector, entryForm.latSelector);
+        bdrs.map.addCrsChangeHandler(layer, entryForm.longSelector, entryForm.latSelector, entryForm.wktSelector, entryForm.crsSelector);
     
         var lat = jQuery(entryForm.latSelector);
         var lon = jQuery(entryForm.longSelector);
         var wkt = jQuery(entryForm.wktSelector);
         var loc = jQuery(entryForm.locSelector);
+        var crs = jQuery(entryForm.crsSelector);
+        
+        var srcProj = bdrs.map.getProjection(entryForm.crsSelector);
+        
         var point;
 
         // center and zoom the map to either the wkt string, lat/lon pair, or default
@@ -66,7 +72,7 @@
             // use the wkt string to determine zoom level and map center if available
             var geom = OpenLayers.Geometry.fromWKT(wkt.val());
             if (geom) {
-                geom.transform(bdrs.map.WGS84_PROJECTION, bdrs.map.GOOGLE_PROJECTION);
+                geom.transform(srcProj, bdrs.map.GOOGLE_PROJECTION);
     
                 var feature = new OpenLayers.Feature.Vector(geom);
                 layer.addFeatures(feature);
@@ -81,7 +87,7 @@
             // determine zoom level and map center
             var lonLat = new OpenLayers.LonLat(
                     parseFloat(lon.val()), parseFloat(lat.val()));
-            lonLat = lonLat.transform(bdrs.map.WGS84_PROJECTION,
+            lonLat = lonLat.transform(srcProj,
                                       bdrs.map.GOOGLE_PROJECTION);
             point = new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat);
             layer.addFeatures(new OpenLayers.Feature.Vector(point));

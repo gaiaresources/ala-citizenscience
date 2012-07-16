@@ -12,6 +12,8 @@ import javax.xml.bind.Marshaller;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 import au.com.gaiaresources.bdrs.kml.net.opengis.kml.AbstractFeatureType;
 import au.com.gaiaresources.bdrs.kml.net.opengis.kml.BasicLinkType;
@@ -54,6 +56,9 @@ public class KMLWriter {
     private KmlType kmlType;
     private JAXBElement<KmlType> kml;
     private DocumentType documentType;
+    
+    // kml must always be output in 4326 as this is what OpenLayers is expecting.
+    private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
 
     /**
      * Constructor.
@@ -186,6 +191,9 @@ public class KMLWriter {
     
     public void createPlacemark(String folderName, String label,
             String description, String id, Geometry location, String style) {
+    	
+    	location = spatialUtil.transform(location);
+    	
         PlacemarkType placemarkType = objectFactory.createPlacemarkType();
         placemarkType.setName(label);
         placemarkType.setId(id);

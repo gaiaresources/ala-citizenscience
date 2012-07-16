@@ -12,18 +12,13 @@ import au.com.gaiaresources.bdrs.model.taxa.Attribute;
  * have been saved. If the Location is unsaved, the primary key of this object
  * will be {@link LocationUpload#DEFAULT_PK}.
  */
-public class LocationUpload {
+public class LocationUpload extends CoordUpload {
     
     public static final int DEFAULT_PK = 0;
-    
-    private boolean error = false;
-    private String errorMessage;
 
     private int pk = DEFAULT_PK;
     private String surveyName;
     private String locationName;
-    private double latitude;
-    private double longitude;
     
     private Map<Attribute, String> attrMap = new HashMap<Attribute, String>();
 
@@ -38,8 +33,8 @@ public class LocationUpload {
         this.pk = pk;
         this.surveyName = surveyName;
         this.locationName = locationName;
-        this.latitude = latitude;
-        this.longitude = longitude;
+        setLatitude(latitude);
+        setLongitude(longitude);
     }
 
     public String getSurveyName() {
@@ -56,22 +51,6 @@ public class LocationUpload {
 
     public void setLocationName(String locationName) {
         this.locationName = locationName;
-    }
-
-    public double getLatitude() {
-        return latitude;
-    }
-
-    public void setLatitude(double latitude) {
-        this.latitude = latitude;
-    }
-
-    public double getLongitude() {
-        return longitude;
-    }
-
-    public void setLongitude(double longitude) {
-        this.longitude = longitude;
     }
     
     public void setAttributeValue(Attribute attr, String value) {
@@ -90,18 +69,14 @@ public class LocationUpload {
         this.pk = pk;
     }
 
-    public boolean isError() {
-        return error;
-    }
-
     @Override
     public String toString() {
         final int maxLen = 100;
         return "LocationUpload [attrMap="
                 + (attrMap != null ? toString(attrMap.entrySet(), maxLen)
-                        : null) + ", error=" + error + ", errorMessage="
-                + errorMessage + ", latitude=" + latitude + ", locationName="
-                + locationName + ", longitude=" + longitude + ", pk=" + pk
+                        : null) + ", error=" + isError() + ", errorMessage="
+                + getErrorMessage() + ", latitude=" + getLatitude() + ", locationName="
+                + locationName + ", longitude=" + getLongitude() + ", pk=" + pk
                 + ", surveyName=" + surveyName + "]";
     }
 
@@ -117,17 +92,5 @@ public class LocationUpload {
         }
         builder.append("]");
         return builder.toString();
-    }
-
-    public void setError(boolean error) {
-        this.error = error;
-    }
-
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
-    public void setErrorMessage(String errorMessage) {
-        this.errorMessage = errorMessage;
     }
 }

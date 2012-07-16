@@ -10,11 +10,11 @@ import org.hibernate.Session;
 
 import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.json.JSONObject;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 /**
  * Handler for importing {@link User Users}. Will not import accounts that already exist.
@@ -26,8 +26,8 @@ public class UserImportHandler extends SimpleImportHandler {
     
     private UserDAO userDAO;
     
-    public UserImportHandler(LocationService locationService, UserDAO userDAO) {
-        super(locationService, User.class);
+    public UserImportHandler(SpatialUtilFactory spatialUtilFactory, UserDAO userDAO) {
+        super(spatialUtilFactory, User.class);
         this.userDAO = userDAO;
     }
 

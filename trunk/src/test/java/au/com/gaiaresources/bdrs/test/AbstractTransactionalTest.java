@@ -46,11 +46,23 @@ public abstract class AbstractTransactionalTest extends AbstractSpringContextTes
     
     private boolean dropDatabase = false;
 
+    // @BeforeTransaction runs before @Before
+    @BeforeTransaction
+    public final void beginTransaction() throws Exception {
+    	// create the session that we will use for the whole test unless
+    	// the test does its own session management in which case you need to be careful!
+    	sesh = sessionFactory.getCurrentSession();
+        request = createMockHttpServletRequest();
+        RequestContext c = new RequestContext(request, applicationContext);
+        RequestContextHolder.set(c);
+        c.setHibernate(sesh);
+        sesh.beginTransaction();
+    }
+    
     @Before
     public void primeDatabase() {
         dropDatabase = false;
         try {
-            sesh = sessionFactory.getCurrentSession();
             Portal portal = new PortalInitialiser().initRootPortal(sesh, null);
             defaultPortal = portal;
             FilterManager.setPortalFilter(sesh, portal);
@@ -62,33 +74,41 @@ public abstract class AbstractTransactionalTest extends AbstractSpringContextTes
         }
     }
     
-    @BeforeTransaction
-    public final void beginTransaction() throws Exception {
-        request = createMockHttpServletRequest();
-        RequestContext c = new RequestContext(request, applicationContext);
-        RequestContextHolder.set(c);
-        c.setHibernate(sessionFactory.getCurrentSession());
-        
-        sessionFactory.getCurrentSession().beginTransaction();
-    }
-    
     @AfterTransaction
     public final void rollbackTransaction() throws Exception {
         if (dropDatabase) {
-            if(sessionFactory.getCurrentSession().getTransaction().isActive()) {
-                sessionFactory.getCurrentSession().getTransaction().rollback();
-            }
+        	// the session may have been closed...
+        	rollbackSession(sesh);
+        	
+        	// check the current session in the session factory incase
+        	// another session was opened without our knowledge.
+        	// I have observed this happening in the BulkDataServiceTest.
+        	rollbackSession(sessionFactory.getCurrentSession());
 
-            org.hibernate.classic.Session sesh = sessionFactory.openSession();
-            SQLQuery q = sesh.createSQLQuery("truncate table portal cascade;");
-            Transaction tx = sesh.beginTransaction();
+            Session dropDatabaseSesh = sessionFactory.openSession();
+            SQLQuery q = dropDatabaseSesh.createSQLQuery("truncate table portal cascade;");
+            Transaction tx = dropDatabaseSesh.beginTransaction();
             q.executeUpdate();
             tx.commit();
-            sesh.close();
+            dropDatabaseSesh.close();
         } else {
             // do normal rollback...
-            sessionFactory.getCurrentSession().getTransaction().rollback();
+            sesh.getTransaction().rollback();
         }
+    }
+    
+    private void rollbackSession(Session sesh) {
+    	if (sesh.isOpen()) {
+    		if(sesh.getTransaction().isActive()) {
+                sesh.getTransaction().rollback();
+            }
+    	}
+    	// sessions may be closed automatically when their
+    	// transactions are rolled back but it is not guaranteed.
+    	// thus...
+    	if (sesh.isOpen()) {
+    		sesh.close();
+    	}
     }
     
     protected final void requestDropDatabase() {
@@ -96,11 +116,14 @@ public abstract class AbstractTransactionalTest extends AbstractSpringContextTes
     }
     
     protected void commit() {
+        sesh.getTransaction().commit();
         
-        sessionFactory.getCurrentSession().getTransaction().commit();
-        
-        sessionFactory.getCurrentSession().beginTransaction();
-        RequestContextHolder.getContext().setHibernate(sessionFactory.getCurrentSession());
+        if (!sesh.isOpen()) {
+        	// should open a new session
+        	sesh = sessionFactory.getCurrentSession();
+        }
+        sesh.beginTransaction();
+        RequestContextHolder.getContext().setHibernate(sesh);
     }
 
     /**

@@ -81,6 +81,18 @@ public abstract class AbstractController {
             response.getWriter().write(");");
         }
     }
+
+    /**
+     * Write json to the http response.
+     * @param response HttpServletResponse.
+     * @param json JSON formatted string.
+     * @throws IOException write error.
+     */
+    protected void writeJson(HttpServletResponse response, String json) throws IOException {
+    	response.setContentType("application/json");
+	    response.getWriter().write(json);
+	    response.getWriter().flush();
+    }
     
     protected String getRedirectHome() {
         return "redirectWithoutModel:/home.htm";

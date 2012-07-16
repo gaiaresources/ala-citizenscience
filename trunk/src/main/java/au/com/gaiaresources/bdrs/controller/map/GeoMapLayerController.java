@@ -1,5 +1,31 @@
 package au.com.gaiaresources.bdrs.controller.map;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import javax.activation.FileDataSource;
+import javax.annotation.security.RolesAllowed;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.JAXBException;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
+import org.hibernate.FlushMode;
+import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
+
 import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataBuilder;
 import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataHelper;
@@ -14,7 +40,12 @@ import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.file.ManagedFile;
 import au.com.gaiaresources.bdrs.model.file.ManagedFileDAO;
-import au.com.gaiaresources.bdrs.model.map.*;
+import au.com.gaiaresources.bdrs.model.map.AssignedGeoMapLayer;
+import au.com.gaiaresources.bdrs.model.map.GeoMapFeature;
+import au.com.gaiaresources.bdrs.model.map.GeoMapFeatureDAO;
+import au.com.gaiaresources.bdrs.model.map.GeoMapLayer;
+import au.com.gaiaresources.bdrs.model.map.GeoMapLayerDAO;
+import au.com.gaiaresources.bdrs.model.map.GeoMapLayerSource;
 import au.com.gaiaresources.bdrs.model.record.AccessControlledRecordAdapter;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
@@ -30,33 +61,11 @@ import au.com.gaiaresources.bdrs.service.web.JsonService;
 import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 import au.com.gaiaresources.bdrs.spatial.ShapeFileReader;
 import au.com.gaiaresources.bdrs.util.KMLUtils;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 import au.com.gaiaresources.bdrs.util.TransactionHelper;
+
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
-import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
-import org.hibernate.FlushMode;
-import org.hibernate.Session;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.ModelAndView;
-
-import javax.activation.FileDataSource;
-import javax.annotation.security.RolesAllowed;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.JAXBException;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.regex.Pattern;
 
 @Controller
 public class GeoMapLayerController extends AbstractController {
@@ -488,10 +497,11 @@ public class GeoMapLayerController extends AbstractController {
         User accessingUser = getRequestContext().getUser();                             
         List<Record> recList = getRecordsToDisplay(mapLayedIds, accessingUser, spatialFilter);
 
+        SpatialUtilFactory spatialUtilFactory = new SpatialUtilFactory();
         JSONArray itemArray = new JSONArray();
         for (Record record : recList) {
             AccessControlledRecordAdapter recordAdapter = new AccessControlledRecordAdapter(record, accessingUser);
-            itemArray.add(jsonService.toJson(recordAdapter, request.getContextPath()));
+            itemArray.add(jsonService.toJson(recordAdapter, request.getContextPath(), spatialUtilFactory));
         }
         for (GeoMapFeature f : gmfList) {
             itemArray.add(jsonService.toJson(f));

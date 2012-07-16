@@ -6,6 +6,7 @@ import java.util.Collections;
 import au.com.gaiaresources.bdrs.controller.attribute.DisplayContext;
 import au.com.gaiaresources.bdrs.model.method.Taxonomic;
 import au.com.gaiaresources.bdrs.model.record.Record;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
@@ -163,5 +164,14 @@ public class RecordPropertyFormField extends AbstractRecordFormField implements 
 	@Override
 	public Collection<IndicatorSpecies> getAllowableSpecies() {
 		return survey != null ? survey.getSpecies() : Collections.EMPTY_LIST;
+	}
+	
+	/**
+	 * Get the coordinate reference system to use for this field.
+	 * Only applicable if the field is of type POINT.
+	 * @return BdrsCoordReferenceSystem 
+	 */
+	public BdrsCoordReferenceSystem getCrs() {
+		return this.survey != null ? this.survey.getMap().getCrs() : null;
 	}
 }

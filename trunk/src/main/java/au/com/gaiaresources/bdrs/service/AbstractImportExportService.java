@@ -21,10 +21,11 @@ import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.file.FileService;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
+import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.service.survey.ImportHandler;
 import au.com.gaiaresources.bdrs.service.survey.ImportHandlerRegistry;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 /**
  * Provides a basic import/export service for PersistentImpl.
@@ -43,12 +44,15 @@ public abstract class AbstractImportExportService<T extends PersistentImpl> impl
      */
     @Autowired
     protected FileService fileService;
+    
+    
+    @Autowired
+    protected GeoMapService geoMapService;
 
     /**
      * Provides WKT to Geometry conversion facilities.
      */
-    @Autowired
-    protected LocationService locationService;
+    protected SpatialUtilFactory spatialUtilFactory = new SpatialUtilFactory();
 
     /**
      * A mapping of datatypes (such as Survey) to their associated parsers.
@@ -62,7 +66,7 @@ public abstract class AbstractImportExportService<T extends PersistentImpl> impl
      */
     @Override
     public void initService() {
-        importHandlerRegistry = new ImportHandlerRegistry(locationService, fileService, null);
+        importHandlerRegistry = new ImportHandlerRegistry(spatialUtilFactory, fileService, null, geoMapService);
     }
     
     /**
@@ -75,7 +79,8 @@ public abstract class AbstractImportExportService<T extends PersistentImpl> impl
         if (persistent == null) {
             return;
         }
-        this.addToExport(exportData, persistent, JSONObject.fromMapToJSONObject(persistent.flatten()));
+        JSONObject persistentJson = JSONObject.fromMapToJSONObject(persistent.flatten());
+        this.addToExport(exportData, persistent, persistentJson);
     }
 
     /**
