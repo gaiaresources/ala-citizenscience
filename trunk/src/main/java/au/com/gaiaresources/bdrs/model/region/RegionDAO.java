@@ -2,10 +2,12 @@ package au.com.gaiaresources.bdrs.model.region;
 
 import java.util.List;
 
+import au.com.gaiaresources.bdrs.db.TransactionDAO;
+
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 
-public interface RegionDAO {
+public interface RegionDAO extends TransactionDAO {
     /**
      * Create a region.
      * @param name The name of the region.

@@ -52,6 +52,7 @@ import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
 import au.com.gaiaresources.bdrs.model.report.Report;
 import au.com.gaiaresources.bdrs.model.report.ReportDAO;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.search.SearchService;
 import au.com.gaiaresources.bdrs.service.facet.Facet;
@@ -619,7 +620,7 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
         	// contain geomtries of varying SRIDs, we need to transform them to all be the same.
         	// 4326 is the most logical choice since that is the same SRID as our geometry
         	// argument.
-            hqlQuery.and(new Predicate("within(transform(location.location,4326), ?) = True"));
+            hqlQuery.and(new Predicate("within(transform(location.location,"+BdrsCoordReferenceSystem.DEFAULT_SRID+"), ?) = True"));
         }
         applyLocationFacetsToQuery(hqlQuery, facetList, surveyId, searchText);
 

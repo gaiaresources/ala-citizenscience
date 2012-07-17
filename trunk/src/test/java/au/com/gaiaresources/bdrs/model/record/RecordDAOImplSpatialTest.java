@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.geometry.GeometryBuilder;
+import au.com.gaiaresources.bdrs.model.location.Location;
+import au.com.gaiaresources.bdrs.model.location.LocationDAO;
 import au.com.gaiaresources.bdrs.model.map.GeoMapLayer;
 import au.com.gaiaresources.bdrs.model.map.GeoMapLayerDAO;
 import au.com.gaiaresources.bdrs.model.map.GeoMapLayerSource;
@@ -33,6 +35,8 @@ public class RecordDAOImplSpatialTest extends AbstractControllerTest {
     private GeoMapLayerDAO layerDAO;
     @Autowired
     private UserDAO userDAO;
+    @Autowired
+    private LocationDAO locDAO;
     
     User admin;
     User root;
@@ -200,6 +204,15 @@ public class RecordDAOImplSpatialTest extends AbstractControllerTest {
         }
     }
     
+    @Test
+    public void testGetWithin() {
+    	// create a srid = 4326 rectangle.
+    	Geometry geom = geometryBuilder.createRectangle(-1, -1, 30, 30);
+    	// this rectangle should contain all of the points.
+    	List<Record> result = recordDAO.getRecords(geom);
+    	Assert.assertEquals("wrong list size", 4, result.size());
+    }
+    
     private Record createTestRecord(Date now, Geometry geom, Survey survey, RecordVisibility publish, User owner) {
         Record rec = new Record();
         rec.setUser(owner);
@@ -210,6 +223,14 @@ public class RecordDAOImplSpatialTest extends AbstractControllerTest {
         rec.setLastDate(now);
         rec.setGeometry(geom);   
         rec.setRecordVisibility(publish);
+        
+        Location loc = new Location();
+        loc.setName("lname");
+        loc.setDescription("ldesc");
+        loc.setLocation(geom);
+        rec.setLocation(loc);
+        locDAO.save(loc);
+        
         return rec;
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import au.com.gaiaresources.bdrs.model.region.Region;
 import au.com.gaiaresources.bdrs.model.region.RegionDAO;
 import au.com.gaiaresources.bdrs.model.region.RegionService;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -26,7 +27,7 @@ public class RegionServiceImpl implements RegionService {
     private GeometryFactory geometryFactory;
     
     public RegionServiceImpl() {
-        geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
+        geometryFactory = new GeometryFactory(new PrecisionModel(), BdrsCoordReferenceSystem.DEFAULT_SRID);
     }
     
     @Override

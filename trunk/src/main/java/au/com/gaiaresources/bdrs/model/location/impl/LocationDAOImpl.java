@@ -16,6 +16,8 @@ import org.apache.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.type.CustomType;
+import org.hibernatespatial.GeometryUserType;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -26,12 +28,14 @@ import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
 import au.com.gaiaresources.bdrs.db.impl.PaginationFilter;
 import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.db.impl.QueryPaginator;
+import au.com.gaiaresources.bdrs.geometry.GeometryBuilder;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
 import au.com.gaiaresources.bdrs.model.record.impl.RecordFilter;
 import au.com.gaiaresources.bdrs.model.region.Region;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
@@ -40,7 +44,10 @@ import au.com.gaiaresources.bdrs.service.db.DeleteCascadeHandler;
 import au.com.gaiaresources.bdrs.service.db.DeletionService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.util.Pair;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
 
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 
 import edu.emory.mathcs.backport.java.util.Collections;
@@ -157,7 +164,15 @@ public class LocationDAOImpl extends AbstractDAOImpl implements LocationDAO {
 
     @Override
     public List<Location> getUserLocations(User user, Region region) {
-        return newQueryCriteria(Location.class).add("user", QueryOperation.EQUAL, user).add("location", QueryOperation.WITHIN, region).addOrderBy("name", true).run();
+    	StringBuilder sb = new StringBuilder("from Location l where");
+    	sb.append(" l.user = :user");
+    	sb.append(" and (within(transform(l.location,"+BdrsCoordReferenceSystem.DEFAULT_SRID+"),:withinGeom) = true)");
+    	sb.append(" order by l.name");
+    	Query q = getSession().createQuery(sb.toString());
+    	CustomType geometryType = new CustomType(GeometryUserType.class, null);
+    	q.setParameter("withinGeom", region.getBoundary(), geometryType);
+    	q.setParameter("user", user);
+    	return q.list();
     }
 
     @Override
@@ -257,7 +272,6 @@ public class LocationDAOImpl extends AbstractDAOImpl implements LocationDAO {
         }
         
         boolean unrestricted = user.isPoweruser() || user.isSupervisor() || user.isAdmin();
-        
         // This convoluted SQL expression is to avoid calling distinct on
         // a geometry object. Postgis does not allow spatial functions (i.e. st_xxx())
         // to be called on geometries with different SRIDs.
@@ -271,7 +285,7 @@ public class LocationDAOImpl extends AbstractDAOImpl implements LocationDAO {
         }
         builder.append(")");
         Map<String, Object> argMap = new HashMap<String, Object>();
-        argMap.put(BdrsWebConstants.PARAM_SURVEY_ID, surveyId);
+        argMap.put("surveyId", surveyId);
         if (!unrestricted) {
             argMap.put("user", user);
         }

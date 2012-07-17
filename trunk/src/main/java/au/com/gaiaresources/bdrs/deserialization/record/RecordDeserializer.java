@@ -147,6 +147,8 @@ public class RecordDeserializer {
 
         // disable the partial record filter to allow records for attribute values to be retrieved
         FilterManager.disablePartialRecordCountFilter(sessionFactory.getCurrentSession());
+        SpatialUtilFactory spatialUtilFactory = new SpatialUtilFactory();
+        
         try {
             for (RecordEntry entry : entries) {
                 
@@ -343,7 +345,7 @@ public class RecordDeserializer {
                             } else {
                                 // attempt to do geometry conversion as we only support multiline, multipolygon and singlepoint
                                 try {
-                                	SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil(entry.getGeometry().getSRID());
+                                	SpatialUtil spatialUtil = spatialUtilFactory.getLocationUtil(entry.getGeometry().getSRID());
                                     Geometry geom = spatialUtil.convertToMultiGeom(entry.getGeometry());
                                     entry.setGeometry(geom);
                                 } catch (IllegalArgumentException iae) {
@@ -510,7 +512,7 @@ public class RecordDeserializer {
                     	Integer srid = StringUtils.notEmpty(entry.getValue(klu.getZoneKey())) ?
                     			Integer.valueOf(entry.getValue(klu.getZoneKey())) 
                     	        : survey.getMap().getSrid();
-                    	SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil(srid);
+                    	SpatialUtil spatialUtil = spatialUtilFactory.getLocationUtil(srid);
                     	
                     	String wktString = getFirstValue(params, klu.getWktKey());
                         
@@ -554,7 +556,7 @@ public class RecordDeserializer {
                             double longitude = record.getGeometry().getCentroid().getX();
                             
                             // use the same srid as the record's geom.
-                        	SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil(record.getGeometry().getSRID());
+                        	SpatialUtil spatialUtil = spatialUtilFactory.getLocationUtil(record.getGeometry().getSRID());
                         	
                             loc.setLocation(spatialUtil.createPoint(latitude, longitude));
                             loc = locationDAO.save(loc);
