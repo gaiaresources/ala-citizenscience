@@ -1,6 +1,6 @@
 #summary Basic guide on how to setup MapServer and MapCache. Not BDRS specific.
 
-= Installation steps for Linux (standard cgi script) =
+= Installation steps for Ubuntu (standard cgi script) =
 
 1. Install MapServer using apt-get
 {{{
@@ -24,3 +24,58 @@ http://localhost/cgi-bin/mapserv
 }}}
 
 4. Your MapServer should now be able to serve up layers defined in your config file.
+
+= Installing MapCache for Ubuntu =
+See http://mapserver.org/trunk/mapcache/install.html
+
+find out which apache mpm you are running:
+{{{
+/usr/sbin/apache2 -V
+}}}
+ if threaded: 
+{{{
+    sudo apt-get install apache2-threaded-dev
+}}}
+ otherwise:
+{{{
+    sudo apt-get install apache2-prefork-dev
+}}}
+install other dependencies from page:
+{{{
+sudo apt-get install libpng12-dev
+sudo apt-get install libjpeg62-dev
+sudo apt-get install libcurl4-gnutls-dev
+}}}
+recommended:
+{{{
+sudo apt-get install libpcre3-dev
+sudo apt-get install libpixman-1-dev
+sudo apt-get install libfcgi-dev
+}}}
+After installation is complete
+{{{
+sudo ldconfig
+sudo service apache2 restart
+}}}
+
+add mapping to httpd.conf:
+{{{
+<IfModule mapcache_module>
+   <Directory /path/to/directory>
+      Order Allow,Deny
+      Allow from all
+   </Directory>
+   MapCacheAlias /mapcache "/path/to/directory/mapcache.xml"
+</IfModule>
+}}}
+
+Restart apache
+{{{
+sudo apachectl restart
+}}}
+
+Add fast cgi
+{{{
+sudo apt-get install libapache2-mod-fcgid
+edit httpd.conf with module info
+}}}
