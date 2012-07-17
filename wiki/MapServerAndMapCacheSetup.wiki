@@ -1,21 +1,26 @@
 #summary Basic guide on how to setup MapServer and MapCache. Not BDRS specific.
 
-= Installation steps for Linux (no fast cgi) =
+= Installation steps for Linux (standard cgi script) =
 
 1. Install MapServer using apt-get
+{{{
+sudo apt-get install cgi-mapserver mapserver-bin mapserver-doc php5-mapscript python-mapscript
+}}}
+The default install directory is */usr/lib/cgi-bin*.
+Verify installation
+{{{
+/usr/lib/cgi-bin/mapserv -v
+}}}
+Verify apache can run the cgi script
+{{{
+http://localhost/cgi-bin/mapserv
+}}}
+
 2. Put your MapServer config file into your cgi-lib directory. By default it is in /usr/lib/cgi-bin. The mapserv executable cgi script should also be in this directory.
-3. Add the google projection to your epsg file in /usr/share/proj/epsg
-
-<code>
+3. Not always required but google projection is a very common projection that isn't part of the standard epsg file. Add the google projection to your epsg file in /usr/share/proj/epsg
+{{{
 # Google projection
-<900913> +proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 
-+y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs <>
-</code>
+<900913> +proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs <>
+}}}
 
-
-= Details =
-
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+4. Your MapServer should now be able to serve up layers defined in your config file.
