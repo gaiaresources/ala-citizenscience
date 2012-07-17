@@ -25,6 +25,8 @@ http://localhost/cgi-bin/mapserv
 
 4. Your MapServer should now be able to serve up layers defined in your config file.
 
+If you have any problems getting this working turn on debug in your map config file. http://mapserver.org/optimization/debugging.html#step-1-set-the-ms-errorfile-variable
+
 = Installing MapCache for Ubuntu =
 See http://mapserver.org/trunk/mapcache/install.html
 
@@ -69,6 +71,8 @@ add mapping to httpd.conf:
 </IfModule>
 }}}
 
+Make sure that the directory that you have specified for mapcache to use as the actual cache has write permissions.
+
 Restart apache
 {{{
 sudo apachectl restart
@@ -79,3 +83,5 @@ Add fast cgi
 sudo apt-get install libapache2-mod-fcgid
 edit httpd.conf with module info
 }}}
+
+If you have any problems getting mapcache working look at the apache error logs.
