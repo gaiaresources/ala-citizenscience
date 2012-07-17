@@ -1,0 +1,8 @@
+#summary Configuring MapServer for a BDRS instance
+
+= Instructions =
+
+  # Make sure you have installed MapServer - http://code.google.com/p/ala-citizenscience/wiki/MapServerAndMapCacheSetup
+  # Package and deploy your BDRS
+  # Go to your deployed directory and run WEB-INF/replaceMapConfigTokens.sh
+  # Copy bdrs.map to */usr/lib/cgi-bin/* (or wherever your mapserv cgi script is found).
