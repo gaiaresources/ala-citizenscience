@@ -1,5 +1,6 @@
 package au.com.gaiaresources.bdrs.spatial;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -87,6 +88,8 @@ public class ShapeFileWriter {
     
     // always export in lat lons
     private static final int DEFAULT_SRID = BdrsCoordReferenceSystem.DEFAULT_SRID;
+    
+    private static final String BYTE_ENCODING = "UTF-8";
     
     private SimpleDateFormat shpDateFormat = new SimpleDateFormat("dd MMM yyyy");
     
@@ -421,11 +424,13 @@ public class ShapeFileWriter {
         }
         
         // contains the survey id and the census method id
-        FileWriter helperFileWriter = null;
+        BufferedWriter helperFileWriter = null;
         try {
             String newline = NEWLINE;
             File fieldDescFile = new File(tempdir, HELPER_FILE);
-            helperFileWriter = new FileWriter(fieldDescFile);
+            //helperFileWriter = new FileWriter(fieldDescFile, BYTE_ENCODING);
+            helperFileWriter = new BufferedWriter(new OutputStreamWriter(
+            		new FileOutputStream(fieldDescFile),BYTE_ENCODING));
             
             // for building the ID arrays in the helper file....
             List<String> surveyIds = new ArrayList<String>();

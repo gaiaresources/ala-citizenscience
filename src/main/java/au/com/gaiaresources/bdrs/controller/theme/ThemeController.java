@@ -47,6 +47,8 @@ public class ThemeController extends AbstractDownloadFileController {
     
     public static final String REVERT_DEFAULT_THEME_URL = "/bdrs/theme/revertDefault.htm";
     
+    private static final String BYTE_ENCODING = "UTF-8";
+    
     private Logger log = Logger.getLogger(getClass());
     
     @Autowired
@@ -613,7 +615,7 @@ public class ThemeController extends AbstractDownloadFileController {
             response.getWriter().write("IOException reverting default theme : \n");
             response.getWriter().write(ioe.getMessage());
             response.getWriter().write("\n");
-            ioe.printStackTrace(new PrintStream(response.getOutputStream()));
+            ioe.printStackTrace(new PrintStream(response.getOutputStream(), true, BYTE_ENCODING));
         }
     }
 }
