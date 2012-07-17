@@ -2,13 +2,19 @@ package au.com.gaiaresources.bdrs.model.region.impl;
 
 import java.util.List;
 
+import org.hibernate.Query;
+import org.hibernate.type.CustomType;
+import org.hibernatespatial.GeometryUserType;
 import org.springframework.stereotype.Repository;
 
 import au.com.gaiaresources.bdrs.db.QueryOperation;
 import au.com.gaiaresources.bdrs.db.impl.AbstractDAOImpl;
 import au.com.gaiaresources.bdrs.model.region.Region;
 import au.com.gaiaresources.bdrs.model.region.RegionDAO;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
+import au.com.gaiaresources.bdrs.util.StringUtils;
 
+import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 
@@ -78,8 +84,15 @@ public class RegionDAOImpl extends AbstractDAOImpl implements RegionDAO {
      * {@inheritDoc}
      */
     public List<Region> findRegions(Point point) {
-        return newQueryCriteria(Region.class)
-                        .add("boundary", QueryOperation.CONTAINS, point)
-                        .run();
+    	if (point.getSRID() != BdrsCoordReferenceSystem.DEFAULT_SRID) {
+    		throw new IllegalArgumentException("Point not in default srid, " + point.getSRID());
+    	}
+    	Query q = getSession().createQuery("from Region r where contains(transform(r.boundary," +
+    			BdrsCoordReferenceSystem.DEFAULT_SRID + "), ?) = true");
+    	
+    	// the geometry comes first
+        CustomType geometryType = new CustomType(GeometryUserType.class, null);
+        q.setParameter(0, point, geometryType);
+    	return q.list();
     }
 }

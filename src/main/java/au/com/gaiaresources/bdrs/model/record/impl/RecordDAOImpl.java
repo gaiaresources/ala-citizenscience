@@ -23,6 +23,7 @@ import org.apache.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.type.CustomType;
 import org.hibernatespatial.GeometryUserType;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -173,8 +174,15 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
 
     @Override
     public List<Record> getRecords(Geometry withinGeom) {
-        return newQueryCriteria(Record.class).add("location", "location",
-                QueryOperation.WITHIN, withinGeom).run();
+    	if (withinGeom.getSRID() != BdrsCoordReferenceSystem.DEFAULT_SRID) {
+    		throw new IllegalArgumentException("geom argument not in default srid, " + withinGeom.getSRID());
+    	}
+    	
+    	Query q = getSession().createQuery("from Record r where within(transform(r.location.location," + BdrsCoordReferenceSystem.DEFAULT_SRID + "), ?) = true");
+    	// the geometry comes first
+        CustomType geometryType = new CustomType(GeometryUserType.class, null);
+        q.setParameter(0, withinGeom, geometryType);
+    	return q.list();
     }
 
     @Override
@@ -300,7 +308,6 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         if(Calendar.FIELD_COUNT < calendarField ){
             throw new ArrayIndexOutOfBoundsException(calendarField);
         }
-//        calendar.add
         calendar.setTime(record.getWhen());
         calendar.add(calendarField, -extendTime);
         Date timeFrom = calendar.getTime();
@@ -310,30 +317,50 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         Point point;
         if(record.getPoint()!=null){
             point = record.getPoint();
-        }else if(record.getLocation()!= null){
+        } else if(record.getLocation()!= null){
             point = record.getLocation().getLocation().getCentroid();
-        }
-        else{
+        } else{
             log.warn("Record Needs to have a point or a location associated with it");
             return new HashSet<Record>();
         }
         Geometry buffer = geometryBuilder.bufferInM(point, bufferMetre);
-        QueryCriteria<Record> queryCriterea = newQueryCriteria(Record.class).add("point", QueryOperation.INTERSECTS, buffer)
-            .add("when", QueryOperation.GREATER_THAN_OR_EQUAL, timeFrom)
-            .add("when", QueryOperation.LESS_THAN_OR_EQUAL, timeUntil)
-            .add("id", QueryOperation.NOT_EQUAL, record.getId());
+        
+        StringBuilder sb = new StringBuilder("from Record r where");
+        sb.append(" intersects(transform(r.geometry,"+BdrsCoordReferenceSystem.DEFAULT_SRID+"), :buffer) = true");
+        sb.append(" and r.when >= :timeFrom");
+        sb.append(" and r.when <= :timeUntil");
+        sb.append(" and id != :recordId");
+        
         if (record.getSpecies() != null) {
-            queryCriterea.add("species", QueryOperation.EQUAL, record.getSpecies());
+        	sb.append(" and r.species = :species");
         } else {
-            queryCriterea.add("species", QueryOperation.IS_NULL, record.getSpecies());
+        	sb.append(" and r.species is null");
         }
         if(excludeRecordIds != null && excludeRecordIds.length > 0) {
-            queryCriterea.add("id", QueryOperation.NOT_IN, (Object[])excludeRecordIds);
+        	sb.append(" and r.id not in (:excludeRecordIds)");
         }
         if(includeRecordIds!= null && includeRecordIds.length > 0) {
-            queryCriterea.add("id", QueryOperation.IN, (Object[])includeRecordIds);
+        	sb.append(" and r.id in (:includeRecordIds)");
         }
-        return new HashSet<Record>(queryCriterea.run());
+        
+        Query q = getSession().createQuery(sb.toString());
+        
+        CustomType geometryType = new CustomType(GeometryUserType.class, null);
+        q.setParameter("buffer", buffer, geometryType);
+        q.setParameter("timeFrom", timeFrom);
+        q.setParameter("timeUntil", timeUntil);
+        q.setParameter("recordId", record.getId());
+        
+        if (record.getSpecies() != null) {
+        	q.setParameter("species", record.getSpecies());
+        }
+        if(excludeRecordIds != null && excludeRecordIds.length > 0) {
+            q.setParameterList("excludeRecordIds", excludeRecordIds);
+        }
+        if(includeRecordIds!= null && includeRecordIds.length > 0) {
+        	q.setParameterList("includeRecordIds", includeRecordIds);
+        }
+        return new HashSet(q.list());
     }
 
     @Override
@@ -349,8 +376,6 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         List<SortingCriteria> sortCriteria = Collections.emptyList(); 
         return this.getRecordQuery(recFilter, sortCriteria);
     }
-    
-
     
     @Override
     public int countRecords(RecordFilter recFilter) {
@@ -1091,9 +1116,10 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         hb.append(" (select s.id from GeoMapLayer layer inner join layer.survey s where layer.id in (:layerIds)) ");
         if (intersectGeom != null) {
         	if (intersectGeom.getSRID() != BdrsCoordReferenceSystem.DEFAULT_SRID) {
-        		throw new IllegalArgumentException("intersect geom must have srid = 4326 but was " + intersectGeom.getSRID());
+        		throw new IllegalArgumentException("intersect geom must have srid = " + 
+        				BdrsCoordReferenceSystem.DEFAULT_SRID +" but was " + intersectGeom.getSRID());
         	}
-            hb.append(" and intersects(:geom,  transform(rec.geometry,4326)) = true");
+            hb.append(" and intersects(:geom,  transform(rec.geometry," + BdrsCoordReferenceSystem.DEFAULT_SRID +")) = true");
         }
         List<String> orSection = new LinkedList<String>();
         if (isPrivate != null) {

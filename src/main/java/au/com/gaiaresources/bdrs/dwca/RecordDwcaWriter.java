@@ -77,7 +77,7 @@ public class RecordDwcaWriter {
             throw new IllegalArgumentException("LSIDService, lsidService, cannot be null");
         }
         if (spatialUtil == null) {
-            throw new IllegalArgumentException("LocationService, locService, cannot be null");
+            throw new IllegalArgumentException("SpatialUtil, spatialUtil, cannot be null");
         }
         if (redirService == null) {
             throw new IllegalArgumentException("RedirectionService, redirService, cannot be null");
@@ -550,19 +550,19 @@ public class RecordDwcaWriter {
      */
     private static class CoreCoordGetter implements CorePropertyGetter {
         private String path;
-        private SpatialUtil locService;
+        private SpatialUtil spatialUtil;
         
         private Logger log = Logger.getLogger(getClass());
         
-        public CoreCoordGetter(String path, SpatialUtil locService) {
+        public CoreCoordGetter(String path, SpatialUtil spatialUtil) {
             if (path == null) {
                 throw new IllegalArgumentException("String, path, cannot be null");
             }
-            if (locService == null) {
+            if (spatialUtil == null) {
                 throw new IllegalArgumentException("LocationService, locService, cannot be null");
             }
             this.path = path;
-            this.locService = locService;
+            this.spatialUtil = spatialUtil;
         }
         
         @Override
@@ -573,7 +573,7 @@ public class RecordDwcaWriter {
                     return null;
                 }
                 if (value instanceof Double) {
-                    double truncDouble = this.locService.truncate(((Double) value).doubleValue());
+                    double truncDouble = this.spatialUtil.truncate(((Double) value).doubleValue());
                     return String.format("%f", truncDouble);
                 } else {
                     throw new IllegalStateException("coord must be of type double");

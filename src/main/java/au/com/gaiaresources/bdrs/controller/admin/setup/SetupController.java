@@ -27,6 +27,7 @@ import au.com.gaiaresources.bdrs.model.location.LocationDAO;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.region.RegionService;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
@@ -113,7 +114,7 @@ public class SetupController extends AbstractController {
             Location loc = new Location();
             loc.setUser(getRequestContext().getUser());
             loc.setName("big tree");
-            GeometryFactory geomFactory = new GeometryFactory(new PrecisionModel(), 4326);
+            GeometryFactory geomFactory = new GeometryFactory(new PrecisionModel(), BdrsCoordReferenceSystem.DEFAULT_SRID);
             loc.setLocation(geomFactory.createPoint(new Coordinate(113, -32)));
             locationSet.add(loc);
             locationDAO.createLocation(loc);

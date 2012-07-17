@@ -3,6 +3,8 @@ package au.com.gaiaresources.bdrs.util;
 import java.util.HashMap;
 import java.util.Map;
 
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
+
 /**
  * Creates LocationUtil objects.
  */
@@ -27,6 +29,6 @@ public class SpatialUtilFactory {
 	 * @return LocationUtil
 	 */
 	public SpatialUtil getLocationUtil() {
-		return getLocationUtil(4326);
+		return getLocationUtil(BdrsCoordReferenceSystem.DEFAULT_SRID);
 	}
 }

@@ -9,6 +9,8 @@ import javax.measure.unit.Unit;
 import org.geotools.referencing.GeodeticCalculator;
 import org.springframework.stereotype.Component;
 
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
+
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -24,7 +26,7 @@ public class GeometryBuilder {
     private GeometryFactory factory;
     
     public GeometryBuilder() {
-        this(4326);
+        this(BdrsCoordReferenceSystem.DEFAULT_SRID);
     }
     
     public GeometryFactory getFactory(){

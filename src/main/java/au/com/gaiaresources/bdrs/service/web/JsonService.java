@@ -45,6 +45,11 @@ public class JsonService {
     public static final String JSON_ITEM_TYPE_RECORD = "record";
     public static final String JSON_ITEM_TYPE_MAP_FEATURE = "geoMapFeature";
     
+    public static final String JSON_KEY_SRID = "srid";
+    public static final String JSON_KEY_X_NAME = "xname";
+    public static final String JSON_KEY_Y_NAME = "yname";
+    public static final String JSON_KEY_CRS_DISPLAY_NAME = "name";
+    
     public static final String RECORD_KEY_CENSUS_METHOD = "census_method";
     public static final String RECORD_KEY_NUMBER = "number";
     public static final String RECORD_KEY_NOTES = "notes";
@@ -143,10 +148,10 @@ public class JsonService {
     
     public JSONObject toJson(BdrsCoordReferenceSystem crs) {
     	JSONObject obj = new JSONObject();
-    	obj.accumulate("srid", crs.getSrid());
-    	obj.accumulate("xname", crs.getXname());
-    	obj.accumulate("yname", crs.getYname());
-    	obj.accumulate("name", crs.getDisplayName());
+    	obj.accumulate(JSON_KEY_SRID, crs.getSrid());
+    	obj.accumulate(JSON_KEY_X_NAME, crs.getXname());
+    	obj.accumulate(JSON_KEY_Y_NAME, crs.getYname());
+    	obj.accumulate(JSON_KEY_CRS_DISPLAY_NAME, crs.getDisplayName());
     	return obj;
     }
     
