@@ -34,6 +34,7 @@ import au.com.gaiaresources.bdrs.model.portal.Portal;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
@@ -201,10 +202,10 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
         speciesList.add(surfingBird);
         
         locationList = new ArrayList<Location>();
-        locationList.add(createLocationPoint("loc 1", currentUser, -10, -10));
-        locationList.add(createLocationPoint("loc 2", currentUser, -90, -180));
-        locationList.add(createLocationPoint("loc 3", currentUser, 90, 180));
-        locationList.add(createLocationPoint("loc 4", currentUser, 0, 0));
+        locationList.add(createLocationPoint("loc 1", currentUser, -10, -10, BdrsCoordReferenceSystem.DEFAULT_SRID));
+        locationList.add(createLocationPoint("loc 2", currentUser, -90, -180, BdrsCoordReferenceSystem.DEFAULT_SRID));
+        locationList.add(createLocationPoint("loc 3", currentUser, 90, 180, BdrsCoordReferenceSystem.DEFAULT_SRID));
+        locationList.add(createLocationPoint("loc 4", currentUser, 0, 0, BdrsCoordReferenceSystem.MGA53.getSrid()));
         
         List<CensusMethod> survey1_cmList = new ArrayList<CensusMethod>();
         survey1_cmList.add(taxaCm);
@@ -214,10 +215,10 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
                                now, null, true, survey1_cmList, SurveyFormRendererType.DEFAULT);
         // give survey 1 some locations !
         List<Location> survey1LocList = new ArrayList<Location>();
-        survey1LocList.add(createLocationPoint("survey 1 loc 1", currentUser, -20, -20));
-        survey1LocList.add(createLocationPoint("survey 1 loc 2", currentUser, -21, -21));
-        survey1LocList.add(createLocationPoint("survey 1 loc 3", currentUser, -22, -22));
-        survey1LocList.add(createLocationPoint("survey 1 loc 4", currentUser, -23, -23));
+        survey1LocList.add(createLocationPoint("survey 1 loc 1", currentUser, -20, -20, BdrsCoordReferenceSystem.MGA54.getSrid()));
+        survey1LocList.add(createLocationPoint("survey 1 loc 2", currentUser, -21, -21, BdrsCoordReferenceSystem.MGA55.getSrid()));
+        survey1LocList.add(createLocationPoint("survey 1 loc 3", currentUser, -22, -22, BdrsCoordReferenceSystem.MGA56.getSrid()));
+        survey1LocList.add(createLocationPoint("survey 1 loc 4", currentUser, -23, -23, BdrsCoordReferenceSystem.MGA57.getSrid()));
         survey1.setLocations(survey1LocList);
         allSurveyLocationList.addAll(survey1LocList);
         
@@ -290,19 +291,19 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
                                                getDate(1980, 1, 1), getDate(2000, 1, 1), false, emptyCensusMethodList, 
                                                SurveyFormRendererType.YEARLY_SIGHTINGS);
         
-        r1 = createRecord(survey1, null, dropBear, currentUser, 1, getDate(2010, 9, 21), 1, 1, RecordVisibility.PUBLIC, true);
-        r2 = createRecord(survey1, taxaCm, nyanCat, currentUser, 2, getDate(2010, 9, 22), 2.123456789d, 22.123456789d, RecordVisibility.PUBLIC, true);
-        r3 = createRecord(survey1, nonTaxaCm, null, currentUser, null, getDate(2010, 9, 23), 3, 3, RecordVisibility.PUBLIC, true);
-        r4 = createRecord(survey1, optTaxaCm, surfingBird, currentUser, 4, getDate(2010, 9, 24), 4, 4, RecordVisibility.PUBLIC, true);
+        r1 = createRecord(survey1, null, dropBear, currentUser, 1, getDate(2010, 9, 21), 1, 1, BdrsCoordReferenceSystem.DEFAULT_SRID, RecordVisibility.PUBLIC, true);
+        r2 = createRecord(survey1, taxaCm, nyanCat, currentUser, 2, getDate(2010, 9, 22), 2.123456789d, 22.123456789d, BdrsCoordReferenceSystem.DEFAULT_SRID,RecordVisibility.PUBLIC, true);
+        r3 = createRecord(survey1, nonTaxaCm, null, currentUser, null, getDate(2010, 9, 23), 3, 3, BdrsCoordReferenceSystem.MGA52.getSrid(),RecordVisibility.PUBLIC, true);
+        r4 = createRecord(survey1, optTaxaCm, surfingBird, currentUser, 4, getDate(2010, 9, 24), 4, 4, BdrsCoordReferenceSystem.DEFAULT_SRID,RecordVisibility.PUBLIC, true);
         
         // optional items *without* taxonomic information
-        r5 = createRecord(survey1, null, null, currentUser, null, getDate(2010, 9, 25), 5, 5, RecordVisibility.PUBLIC, true);
-        r6 = createRecord(survey1, optTaxaCm, null, currentUser, null, getDate(2010, 9, 26), 6, 6, RecordVisibility.PUBLIC, true);
+        r5 = createRecord(survey1, null, null, currentUser, null, getDate(2010, 9, 25), 5, 5, BdrsCoordReferenceSystem.DEFAULT_SRID,RecordVisibility.PUBLIC, true);
+        r6 = createRecord(survey1, optTaxaCm, null, currentUser, null, getDate(2010, 9, 26), 6, 6, BdrsCoordReferenceSystem.DEFAULT_SRID,RecordVisibility.PUBLIC, true);
         
-        r7 = createRecord(survey1, null, hoopSnake, currentUser, 1, getDate(2010, 9, 27), 1, 1, RecordVisibility.CONTROLLED, true);
-        r8 = createRecord(survey1, null, dropBear, currentUser, 1, getDate(2010, 9, 28), 1, 1, RecordVisibility.OWNER_ONLY, true);
+        r7 = createRecord(survey1, null, hoopSnake, currentUser, 1, getDate(2010, 9, 27), 1, 1, BdrsCoordReferenceSystem.DEFAULT_SRID,RecordVisibility.CONTROLLED, true);
+        r8 = createRecord(survey1, null, dropBear, currentUser, 1, getDate(2010, 9, 28), 1, 1, BdrsCoordReferenceSystem.DEFAULT_SRID,RecordVisibility.OWNER_ONLY, true);
         
-        r9 = createRecord(survey2, null, hoopSnake, currentUser, 10, getDate(2010, 9, 29), -1, -1, RecordVisibility.PUBLIC, false);
+        r9 = createRecord(survey2, null, hoopSnake, currentUser, 10, getDate(2010, 9, 29), -1, -1, BdrsCoordReferenceSystem.DEFAULT_SRID,RecordVisibility.PUBLIC, false);
         
         survey1RecordsList = new ArrayList<Record>(8);
         survey1RecordsList.add(r1);
@@ -342,7 +343,7 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
         privateSurvey.setName("Private Survey");
         privateSurvey.setDescription("Private survey description wooo");
         
-        Location privSurveyLocation = createLocationPoint("private survey location", user, 80, 80);
+        Location privSurveyLocation = createLocationPoint("private survey location", user, 80, 80, BdrsCoordReferenceSystem.MGA50.getSrid());
         
         List<Location> privateSurveyLocations = new ArrayList<Location>();
         privateSurveyLocations.add(privSurveyLocation);
@@ -360,7 +361,7 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
         return result;
     }
     
-    private Location createLocationPoint(String name, User owner, double lat, double lon) {
+    private Location createLocationPoint(String name, User owner, double lat, double lon, int srid) {
         Location loc = new Location();
         loc.setName(name);
         loc.setDescription(name + " description blah blah");
@@ -391,16 +392,16 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
         List<Record> result = new ArrayList<Record>();
         
         // ref item 1
-        result.add(createRecord(survey, null, hoopSnake, currentUser, 2, date1, 30, 30, recVis, true));
+        result.add(createRecord(survey, null, hoopSnake, currentUser, 2, date1, 30, 30, BdrsCoordReferenceSystem.DEFAULT_SRID, recVis, true));
         // ref item 2
-        result.add(createRecord(survey, null, dropBear, currentUser, 3, date1, 30, 30, recVis, true));
+        result.add(createRecord(survey, null, dropBear, currentUser, 3, date1, 30, 30, 28350, recVis, true));
         
-        result.add(createRecord(survey, null, dropBear, currentUser, 4, date1, 31, 31, recVis, true));
-        result.add(createRecord(survey, null, nyanCat, currentUser, 5, date1, 30, 30, recVis, false));
-        result.add(createRecord(survey, null, hoopSnake, currentUser, 6, date2, 30, 30, recVis, true));
-        result.add(createRecord(survey, null, dropBear, currentUser, 7, date2, 30, 30, recVis, true));
-        result.add(createRecord(survey, null, dropBear, currentUser, 8, date2, 31, 31, recVis, true));
-        result.add(createRecord(survey, null, nyanCat, currentUser, 9, date2, 30, 30, recVis, false));
+        result.add(createRecord(survey, null, dropBear, currentUser, 4, date1, 31, 31, 28351, recVis, true));
+        result.add(createRecord(survey, null, nyanCat, currentUser, 5, date1, 30, 30, BdrsCoordReferenceSystem.DEFAULT_SRID, recVis, false));
+        result.add(createRecord(survey, null, hoopSnake, currentUser, 6, date2, 30, 30, BdrsCoordReferenceSystem.DEFAULT_SRID, recVis, true));
+        result.add(createRecord(survey, null, dropBear, currentUser, 7, date2, 30, 30, BdrsCoordReferenceSystem.DEFAULT_SRID, recVis, true));
+        result.add(createRecord(survey, null, dropBear, currentUser, 8, date2, 31, 31, BdrsCoordReferenceSystem.DEFAULT_SRID, recVis, true));
+        result.add(createRecord(survey, null, nyanCat, currentUser, 9, date2, 30, 30, BdrsCoordReferenceSystem.DEFAULT_SRID, recVis, false));
         return result;
     }
     
@@ -434,7 +435,7 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
     }
     
     private Record createRecord(Survey survey, CensusMethod cm, IndicatorSpecies sp, 
-            User u, Integer count, Date now, double lon, double lat, RecordVisibility vis, boolean generateAv) throws ParseException, IOException {
+            User u, Integer count, Date now, double lon, double lat, int srid, RecordVisibility vis, boolean generateAv) throws ParseException, IOException {
         Record r = new Record();
         r.setSurvey(survey);
         r.setCensusMethod(cm);

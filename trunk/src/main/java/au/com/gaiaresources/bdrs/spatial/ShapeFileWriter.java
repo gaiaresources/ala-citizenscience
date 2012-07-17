@@ -3,7 +3,6 @@ package au.com.gaiaresources.bdrs.spatial;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Serializable;
@@ -428,7 +427,6 @@ public class ShapeFileWriter {
         try {
             String newline = NEWLINE;
             File fieldDescFile = new File(tempdir, HELPER_FILE);
-            //helperFileWriter = new FileWriter(fieldDescFile, BYTE_ENCODING);
             helperFileWriter = new BufferedWriter(new OutputStreamWriter(
             		new FileOutputStream(fieldDescFile),BYTE_ENCODING));
             
@@ -484,7 +482,7 @@ public class ShapeFileWriter {
         }
         
         // metadata file
-        FileWriter metadataFileWriter = null;
+        BufferedWriter metadataFileWriter = null;
         try {
             Map<String, Object> mdParam = new HashMap<String, Object>();
             
@@ -517,7 +515,8 @@ public class ShapeFileWriter {
             
             String output = templateService.transformToString(METADATA_TEMPLATE_FILENAME, ShapeFileWriter.class, mdParam);
             File metadataFile = new File(tempdir, METADATA_FILE);
-            metadataFileWriter = new FileWriter(metadataFile);
+            metadataFileWriter = new BufferedWriter(new OutputStreamWriter(
+            		new FileOutputStream(metadataFile),BYTE_ENCODING));
             metadataFileWriter.write(output);
         } finally {
             if (metadataFileWriter != null) {
