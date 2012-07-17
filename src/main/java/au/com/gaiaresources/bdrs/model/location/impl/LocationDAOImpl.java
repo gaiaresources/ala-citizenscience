@@ -164,6 +164,10 @@ public class LocationDAOImpl extends AbstractDAOImpl implements LocationDAO {
 
     @Override
     public List<Location> getUserLocations(User user, Region region) {
+    	if (region.getBoundary() != null && region.getBoundary().getSRID() != BdrsCoordReferenceSystem.DEFAULT_SRID) {
+    		throw new IllegalArgumentException("Region boundary SRID is not equal to the default, " 
+    				+ region.getBoundary().getSRID());
+    	}
     	StringBuilder sb = new StringBuilder("from Location l where");
     	sb.append(" l.user = :user");
     	sb.append(" and (within(transform(l.location,"+BdrsCoordReferenceSystem.DEFAULT_SRID+"),:withinGeom) = true)");
