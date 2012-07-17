@@ -64,6 +64,8 @@ public class UserService extends AbstractController {
     public static final String PARAM_CONTAINS = "contains";
     public static final String PARAM_PARENT_GROUP_ID = "parentGroupId";
     
+    private static final String BYTE_ENCODING = "UTF-8";
+    
     @Autowired
     private UserDAO userDAO;
 
@@ -241,7 +243,7 @@ public class UserService extends AbstractController {
 	        	
 	        	MessageDigest m = MessageDigest.getInstance("MD5");
 	        	String key = (query + "0a43f170d6c4282682511317d843d050");
-				m.update(key.getBytes(),0,key.length());
+				m.update(key.getBytes(BYTE_ENCODING),0,key.length());
 				String mySig = new BigInteger(1,m.digest()).toString(16);
 				while (mySig.length() < 32) {
 					  mySig = "0" + mySig;

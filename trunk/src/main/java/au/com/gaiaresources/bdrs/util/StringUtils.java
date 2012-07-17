@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Random;
@@ -29,6 +30,8 @@ public final class StringUtils {
                                             "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     
     private static Logger log = Logger.getLogger(StringUtils.class);
+    
+    private static final String BYTE_ENCODING = "UTF-8";
     
     /**
      * Generate a random string containing characters from <code>ALPHA_NUMERIC_CHARACTERS</code>.
@@ -182,7 +185,12 @@ public final class StringUtils {
             reader = new InputStreamReader(htmlStream, Charset.defaultCharset());
             tidy.parse(reader, sw);
             
-            log.warn(out.toString());
+            try {
+            	log.warn(out.toString(BYTE_ENCODING));	
+            } catch (UnsupportedEncodingException uee) {
+            	log.error("Could not write output stream", uee);
+            }
+            
             // the listener only stores error messages, so if it has a message,
             // there was an error in the validation
             return listener.getErrors().size() > 0 ? null : sw.toString();
