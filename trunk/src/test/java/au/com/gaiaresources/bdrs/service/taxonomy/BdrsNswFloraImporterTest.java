@@ -37,11 +37,6 @@ public class BdrsNswFloraImporterTest extends TaxonomyImportTest {
 
     private Logger log = Logger.getLogger(getClass());
 
-    @Before
-    public void setup() {
-        requestTaxonomyImportTestDropDatabase();
-    }
-
     private void doImport(String file) throws Exception {
         InputStream csvStream = null;
         try {
@@ -164,7 +159,7 @@ public class BdrsNswFloraImporterTest extends TaxonomyImportTest {
             ITaxonConcept tc = searchResult.get(0);
             Assert.assertEquals("wrong author", "Recard.j.", tc.getAuthor());
             ITaxonConcept tc_microglossa = tc.getParent();
-            Assert.assertNotNull("parent should not be null");
+            Assert.assertNotNull("parent should not be null", tc_microglossa);
             Assert.assertNotNull("parent should not have null name", tc_microglossa.getName());
             Assert.assertEquals("wrong name for parent", "microglossa", tc_microglossa.getName().getName());
             Assert.assertEquals("wrong display name for parent", "Rhodanthe microglossa", tc_microglossa.getName().getDisplayName());

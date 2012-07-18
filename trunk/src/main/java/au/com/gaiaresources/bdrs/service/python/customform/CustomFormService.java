@@ -1,5 +1,20 @@
 package au.com.gaiaresources.bdrs.service.python.customform;
 
+import java.io.File;
+import java.io.IOException;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import jep.Jep;
+import jep.JepException;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.ModelAndView;
+
 import au.com.gaiaresources.bdrs.controller.RenderController;
 import au.com.gaiaresources.bdrs.controller.customform.CustomFormController;
 import au.com.gaiaresources.bdrs.controller.record.TrackerController;
@@ -7,7 +22,6 @@ import au.com.gaiaresources.bdrs.file.FileService;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.form.CustomForm;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
-import au.com.gaiaresources.bdrs.model.location.LocationService;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
 import au.com.gaiaresources.bdrs.model.portal.PortalDAO;
@@ -21,23 +35,10 @@ import au.com.gaiaresources.bdrs.python.PyBDRS;
 import au.com.gaiaresources.bdrs.python.PyResponse;
 import au.com.gaiaresources.bdrs.service.python.PythonService;
 import au.com.gaiaresources.bdrs.service.taxonomy.BdrsTaxonLibException;
-import au.com.gaiaresources.bdrs.service.taxonomy.TaxonLibSessionFactory;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 import au.com.gaiaresources.bdrs.util.SpatialUtil;
 import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
-import jep.Jep;
-import jep.JepException;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.ModelAndView;
-
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
 
 /**
  * The <code>CustomFormService</code> handles the rendering of custom forms from candidate views (such as the
@@ -92,8 +93,6 @@ public class CustomFormService extends PythonService {
     private AttributeValueDAO attributeValueDAO;
     @Autowired
     private MetadataDAO metadataDAO;
-    @Autowired
-    private TaxonLibSessionFactory taxonLibSessionFactory;
     
     private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
 
@@ -118,7 +117,7 @@ public class CustomFormService extends PythonService {
                     fileService, form, RequestContextHolder.getContext().getUser(),
                     surveyDAO, censusMethodDAO,
                     taxaDAO, recordDAO, portalDAO, attributeDAO, attributeOptionDAO, attributeValueDAO,
-                    metadataDAO, locationDAO, taxonLibSessionFactory);
+                    metadataDAO, locationDAO);
             JSONObject jsonParams = toJSONParams(request);
 
             // Fire up a new Python interpreter

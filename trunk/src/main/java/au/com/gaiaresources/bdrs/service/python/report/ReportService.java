@@ -143,7 +143,7 @@ public class ReportService extends PythonService {
                     fileService, report, RequestContextHolder.getContext().getUser(),
                     surveyDAO, censusMethodDAO,
                     taxaDAO, recordDAO, portalDAO, attributeDAO, attributeOptionDAO, attributeValueDAO,
-                    metadataDAO, locationDAO, taxonLibSessionFactory);
+                    metadataDAO, locationDAO);
             JSONObject jsonParams = toJSONParams(request);
             // Fire up a new Python interpreter
             StringBuilder pythonPath = new StringBuilder();

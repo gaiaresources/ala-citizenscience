@@ -165,8 +165,7 @@ public class TaxonLibImportController extends AbstractController {
             sendStartEmail(currentUser);
 
             try {
-                taxonLibSession = taxonLibSessionFactory.getSession();
-
+                taxonLibSession = getRequestContext().getTaxonLibSession();
                 TaxonLibImportSource importSource = TaxonLibImportSource.valueOf(request.getParameter("importSource"));
 
                 switch (importSource) {

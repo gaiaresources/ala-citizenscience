@@ -4,3 +4,12 @@
 .shiftContentRightContainer {
     padding-right: 5px;
 }
+
+table.scientificClassification tr.taxonomicHierarchy td {
+  width: 250px;
+  max-width: inherit;
+  overflow: hidden;
+}
+ul.hierarchy a span {
+  white-space: normal;
+}

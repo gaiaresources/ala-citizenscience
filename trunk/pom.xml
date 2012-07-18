@@ -14,9 +14,9 @@
     </properties>
     <repositories>
         <repository>
-    		<id>maven.gaiaresources</id>
-			<url>http://maven.gaiaresources.com.au</url>
-		</repository>
+            <id>maven.gaiaresources</id>
+            <url>http://maven.gaiaresources.com.au</url>
+        </repository>
         <repository>
             <id>GeoTools repo</id>
             <url>http://download.osgeo.org/webdav/geotools/</url>
@@ -343,6 +343,14 @@
             <version>1.6</version>
             <scope>compile</scope>
         </dependency>
+        <!-- Velocity Tools - Includes escape functionality and numerous formatters-->
+        <dependency>
+          <groupId>velocity-tools</groupId>
+          <artifactId>velocity-tools-generic</artifactId>
+          <version>1.2</version>
+        </dependency>
+            
+            
         <!-- JTS -->
         <dependency>
             <groupId>com.vividsolutions</groupId>
@@ -565,7 +573,7 @@
         <dependency>
             <groupId>au.com.gaiaresources</groupId>
             <artifactId>taxonlib</artifactId>
-			<version>0.6</version>
+            <version>0.7</version>
             <scope>compile</scope>
         </dependency>
         <!-- Adding here to ensure the correct version.  Many prior 
@@ -1010,7 +1018,7 @@
                 <bdrs.recaptcha.public.key>6LfbwwQAAAAAAEiDp_pgbdLzIOgVLpTpA3kqUfXF</bdrs.recaptcha.public.key>
                 <bdrs.recaptcha.private.key>6LfbwwQAAAAAAF5wVuk8nLcOanKCwvA_-rmtvNIL</bdrs.recaptcha.private.key>
                 <!-- File storage location -->
-                <bdrs.file.store.location>/tmp</bdrs.file.store.location>
+                <bdrs.file.store.location>/home/kehan/workspace/bdrs_filestore</bdrs.file.store.location>
                 <!-- Taxonlib test properties -->
                 <taxonlib.db.username>postgres</taxonlib.db.username>
                 <taxonlib.db.password>postgres</taxonlib.db.password>

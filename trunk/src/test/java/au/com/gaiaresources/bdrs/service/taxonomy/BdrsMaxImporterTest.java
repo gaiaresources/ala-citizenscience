@@ -36,7 +36,7 @@ public class BdrsMaxImporterTest extends AbstractBdrsMaxImporterTest {
 	private TaxaDAO taxaDAO;
 	
 	@Before
-	public void setup() {
+	public void setupAbstractBdrsMaxImporter() {
 		temporalContext = taxonLibSession.getTemporalContext(now);
 	}
 	
