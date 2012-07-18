@@ -1,5 +1,28 @@
 package au.com.gaiaresources.bdrs.controller.fieldguide;
 
+import java.text.ParseException;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+import org.apache.velocity.tools.generic.EscapeTool;
+import org.displaytag.tags.TableTagParameters;
+import org.displaytag.util.ParamEncoder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
+
 import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataBuilder;
 import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataHelper;
@@ -11,20 +34,10 @@ import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
-import org.apache.log4j.Logger;
-import org.displaytag.tags.TableTagParameters;
-import org.displaytag.util.ParamEncoder;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.ModelAndView;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.text.ParseException;
+import au.com.gaiaresources.taxonlib.ITaxonLibSession;
+import au.com.gaiaresources.taxonlib.ITemporalContext;
+import au.com.gaiaresources.taxonlib.model.ITaxonConcept;
+import au.com.gaiaresources.taxonlib.model.ITaxonName;
 
 /**
  * The <code>BDRSFieldGuide</code> controller is a taxongroup and taxa add form renderer
@@ -37,14 +50,18 @@ public class BDRSFieldGuideController  extends AbstractController {
 
     private static final String TAXA_LISTING_TABLE_ID = "fieldGuideTaxaListingTable";
     private static final int TAXA_LISTING_PAGE_SIZE = 50;
-    private static final String  FIELDGUIDE_GROUPS_URL= "/fieldguide/groups.htm";
-    public static final String FIELGUIDE_LIST_TAXA_URL = "/fieldguide/listTaxa.htm";
+    public static final String FIELDGUIDE_GROUPS_URL= "/fieldguide/groups.htm";
+    public static final String FIELDGUIDE_LIST_TAXA_URL = "/fieldguide/listTaxa.htm";
     public static final String FIELDGUIDE_TAXA_URL = "/fieldguide/taxa.htm";
+    public static final String FIELDGUIDE_TAXON_URL = "/fieldguide/taxon.htm";
+    public static final String INDICATOR_SPECIES_ID_PARAMETER = "id";
+    public static final String TEMPORAL_CONTEXT_DATE_PARAMETER = "timestamp";
     
-    @SuppressWarnings("unused")
     private Logger log = Logger.getLogger(getClass());
     @Autowired
     private TaxaDAO taxaDAO;
+    private ITemporalContext temporalContext;
+    
     private ParamEncoder taxonListingParamEncoder = new ParamEncoder(TAXA_LISTING_TABLE_ID);
     
     /**
@@ -127,7 +144,7 @@ public class BDRSFieldGuideController  extends AbstractController {
      * @param groupId the taxongroup id
      * @throws Exception
      */
-    @RequestMapping(value = FIELGUIDE_LIST_TAXA_URL, method = RequestMethod.GET)
+    @RequestMapping(value = FIELDGUIDE_LIST_TAXA_URL, method = RequestMethod.GET)
     public void asyncListTaxa(HttpServletRequest request,
                                 HttpServletResponse response,
                                 @RequestParam(value="search_in_groups",  required=false) String searchInGroups,
@@ -183,12 +200,70 @@ public class BDRSFieldGuideController  extends AbstractController {
         }
     }
 
-    @RequestMapping(value = "/fieldguide/taxon.htm", method = RequestMethod.GET)
+    @RequestMapping(value = FIELDGUIDE_TAXON_URL, method = RequestMethod.GET)
     public ModelAndView viewTaxon(  HttpServletRequest request,
                                     HttpServletResponse response,
-                                    @RequestParam(value="id", required=true) int taxonPk) {
+                                    @RequestParam(value=INDICATOR_SPECIES_ID_PARAMETER, required = true) int taxonPk,
+                                    @RequestParam(value=TEMPORAL_CONTEXT_DATE_PARAMETER, required = false) Long timestamp ){
         ModelAndView mv = new ModelAndView("fieldGuideViewTaxon");
-        mv.addObject("taxon", taxaDAO.getIndicatorSpecies(taxonPk));
+        IndicatorSpecies taxon = taxaDAO.getIndicatorSpecies(taxonPk); 
+        mv.addObject("taxon", taxon);
+
+        EscapeTool escapeTool = new EscapeTool();
+        mv.addObject("esc", escapeTool);
+        
+        ITaxonLibSession taxonLibSession = getRequestContext().getTaxonLibSessionOrNull(true);
+        if(taxonLibSession != null && taxon.getSourceId() != null){
+            Date date = new Date();
+            if (timestamp != null){
+                date.setTime(timestamp.longValue());
+            }
+            mv.addObject("date", date);
+            temporalContext = taxonLibSession.getTemporalContext(date);
+            mv.addObject("temporalContext", temporalContext);
+            
+            ITaxonName name = temporalContext.selectNameById(Integer.parseInt(taxon.getSourceId()));
+            ITaxonConcept tc = temporalContext.selectConceptByNameId(Integer.parseInt(taxon.getSourceId()));
+            if(name != null){
+                mv.addObject("taxonName", name);
+                
+                if(tc != null){
+                    mv.addObject("currentConcept", tc);
+                    List<ITaxonConcept> newSynonyms = temporalContext.selectNewSynonyms(tc);
+                    List<ITaxonConcept> oldSynonyms = temporalContext.selectOldSynonyms(tc);
+                    Map<ITaxonConcept, IndicatorSpecies> conceptSpeciesMap = new LinkedHashMap<ITaxonConcept, IndicatorSpecies>();
+                    conceptSpeciesMap.put(tc, taxon);
+                    List<ITaxonConcept> hierarchy = new LinkedList<ITaxonConcept>();
+                    hierarchy.add(tc);
+                    for(ITaxonConcept child: tc.getChildren()){
+                        conceptSpeciesMap.put(child, getIndicatorSpecies(child));
+                    }
+                    while (tc.getParent()!= null){
+                        tc = temporalContext.getParent(tc);
+                        hierarchy.add(tc);
+                        conceptSpeciesMap.put(tc, getIndicatorSpecies(tc));
+                    }
+                    Collections.reverse(hierarchy);
+                    //Remove the root level element from the hierarchy
+                    if(hierarchy.size()>1){
+                        hierarchy.remove(0);
+                    }
+                    mv.addObject("hierarchy", hierarchy);
+                    for (ITaxonConcept newSynonym: newSynonyms){
+                        conceptSpeciesMap.put(newSynonym, getIndicatorSpecies(newSynonym));
+                    }
+                    mv.addObject("newSynonyms", newSynonyms);
+                    
+                    for (ITaxonConcept oldSynonym: oldSynonyms){
+                        conceptSpeciesMap.put(oldSynonym, getIndicatorSpecies(oldSynonym));
+                    }
+                    mv.addObject("oldSynonyms", oldSynonyms);
+                    mv.addObject("conceptSpeciesMap", conceptSpeciesMap);
+                }
+                
+            }
+            
+        }
         return mv;
     }
     
@@ -202,5 +277,9 @@ public class BDRSFieldGuideController  extends AbstractController {
 
     public String getTaxonOrderParamName() {
         return taxonListingParamEncoder.encodeParameterName(TableTagParameters.PARAMETER_ORDER);
+    }
+    
+    private IndicatorSpecies getIndicatorSpecies(ITaxonConcept tc){
+        return taxaDAO.getIndicatorSpeciesBySourceDataID(null, tc.getSource(), tc.getName().getId().toString());
     }
 }

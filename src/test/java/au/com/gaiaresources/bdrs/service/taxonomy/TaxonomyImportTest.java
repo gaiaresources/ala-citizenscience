@@ -1,16 +1,9 @@
 package au.com.gaiaresources.bdrs.service.taxonomy;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Scanner;
 
 import org.apache.log4j.Logger;
-import org.junit.After;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -21,42 +14,23 @@ public abstract class TaxonomyImportTest extends AbstractControllerTest {
 
     protected ITaxonLibSession taxonLibSession;
     
-    private Logger log = Logger.getLogger(TaxonomyImportTest.class);
+    private static Logger log = Logger.getLogger(TaxonomyImportTest.class);
     
     @Autowired
-    private TaxonLibSessionFactory taxonLibSessionFactory;
+    protected TaxonLibSessionFactory taxonLibSessionFactory;
 
     @Before
     public void taxonomyImportTestSetup() throws Exception {
-        taxonLibSession = taxonLibSessionFactory.getSession();
+        taxonLibSession = getRequestContext().getTaxonLibSession();
 
         // Flush the current session so that the un-flushed persistent objects such as Portal
         // get saved to the database before we begin importing. If you do not flush here,
         // the importer will fail because it cannot find the Portal.
         commit();
-
-        requestTaxonomyImportTestDropDatabase();
+        requestDropDatabase();
     }
 
-    @After
-    public void taxonomyImportTestTeardown() throws SQLException, IOException {
-    	
-    	if (dropDatabase) {
-			InputStream sqlStream = null;
-			try {
-				sqlStream = ITaxonLibSession.class.getResourceAsStream("taxonlib.sql");
-				importSQL(taxonLibSession.getConnection(), sqlStream);
-			} finally {
-				if (sqlStream != null) {
-					sqlStream.close();
-				}
-			}
-			taxonLibSession.commit();
-		} else {
-			taxonLibSession.rollback();
-		}
-    	taxonLibSession.close();
-    }
+    
 
     protected Date getDate(int year, int month, int day) {
         Calendar cal = Calendar.getInstance();
@@ -64,39 +38,4 @@ public abstract class TaxonomyImportTest extends AbstractControllerTest {
         cal.set(year, month, day);
         return cal.getTime();
     }
-    
-    private boolean dropDatabase = false;
-    
-    /**
-     * Drops the taxonlib AND the bdrs database
-     */
-    protected void requestTaxonomyImportTestDropDatabase() {
-    	dropDatabase = true;
-    	requestDropDatabase();
-    }
-    
-    private static void importSQL(Connection conn, InputStream in)
-			throws SQLException {
-		Scanner s = new Scanner(in);
-		s.useDelimiter("(;(\r)?\n)|(--\n)");
-		Statement st = null;
-		try {
-			st = conn.createStatement();
-			while (s.hasNext()) {
-				String line = s.next();
-				if (line.startsWith("/*!") && line.endsWith("*/")) {
-					int i = line.indexOf(' ');
-					line = line
-							.substring(i + 1, line.length() - " */".length());
-				}
-
-				if (line.trim().length() > 0) {
-					st.execute(line);
-				}
-			}
-		} finally {
-			if (st != null)
-				st.close();
-		}
-	}
 }

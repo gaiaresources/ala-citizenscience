@@ -111,7 +111,7 @@ public enum TaxonRank implements JSONEnum {
     FORM("Form","http://vocabularies.gbif.org/rank/Form","fm.","http://rs.tdwg.org/ontology/voc/TaxonRank"),
     INFRAFORM("infraform","http://vocabularies.gbif.org/rank/infraform","","http://www.ubio.org"),
     MUTANT("mutant","http://vocabularies.gbif.org/rank/mutant","","http://www.ubio.org"),
-    INCERTAE_SEDIE("incertae sedie","http://vocabularies.gbif.org/rank/incertae-sedie","","http://www.ubio.org"),
+    INCERTAE_SEDIE("incertae sedis","http://vocabularies.gbif.org/rank/incertae-sedis","","http://www.ubio.org"),
     NEAR("near","http://vocabularies.gbif.org/rank/near","","http://www.ubio.org"),
     RACE("race","http://vocabularies.gbif.org/rank/race","","http://www.ubio.org"),
     MORPH("morph","http://vocabularies.gbif.org/rank/morph","","http://www.ubio.org"),
@@ -194,5 +194,21 @@ public enum TaxonRank implements JSONEnum {
     @Override
     public String toJSONString() {
         return JSONEnumUtil.toJSONString(this);
+    }
+    /**
+     * Compares the string value for the current rank to the {@link au.com.gaiaresources.taxonlib.model.TaxonRank}
+     * @param taxonLibRank
+     * @return true when the toString of each rank returns the same value
+     */
+    public boolean isEquivalentRank(au.com.gaiaresources.taxonlib.model.TaxonRank taxonLibRank){
+        return taxonLibRank.toString().equals(this.toString());
+    }
+    /**
+     * Fetches a TaxonLib TaxonRank for the given TaxonRank
+     * @param taxonRank {@link TaxonRank}
+     * @return equivalent TaxonLib {@link au.com.gaiaresources.taxonlib.model.TaxonRank}
+     */
+    public au.com.gaiaresources.taxonlib.model.TaxonRank getEquivalentTaxonLibTaxonRank(){
+        return au.com.gaiaresources.taxonlib.model.TaxonRank.findByIdentifier(this.identifier);
     }
 }

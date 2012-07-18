@@ -7,6 +7,9 @@ import au.com.gaiaresources.bdrs.model.index.IndexingConstants;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.region.Region;
 import au.com.gaiaresources.bdrs.util.CollectionUtils;
+import au.com.gaiaresources.taxonlib.TaxonLib;
+import au.com.gaiaresources.taxonlib.model.ITaxonName;
+
 import org.hibernate.annotations.*;
 import org.hibernate.annotations.Index;
 //import org.hibernate.annotations.Table;
@@ -220,6 +223,8 @@ public class IndicatorSpecies extends PortalPersistentImpl implements Attributab
      * locally unique within the data source of this taxon, see get/setSource()
      * If the identifier is locally unique within the data source - it is highly
      * recommended that the source for this taxon is non null!
+     * {@link TaxonLib} {@link ITaxonName} taxon_name_id (int) is stored as a String in this field if this
+     * taxon comes from TaxonLib
      * 
      * @return identifier for this taxon
      */

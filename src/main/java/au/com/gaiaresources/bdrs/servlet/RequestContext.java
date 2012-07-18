@@ -1,5 +1,7 @@
 package au.com.gaiaresources.bdrs.servlet;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -7,9 +9,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import au.com.gaiaresources.bdrs.util.TransactionHelper;
 import org.apache.log4j.Logger;
-import org.hibernate.AssertionFailure;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.context.ApplicationContext;
@@ -26,6 +26,11 @@ import au.com.gaiaresources.bdrs.model.portal.Portal;
 import au.com.gaiaresources.bdrs.model.theme.Theme;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.property.PropertyService;
+import au.com.gaiaresources.bdrs.service.taxonomy.BdrsTaxonLibException;
+import au.com.gaiaresources.bdrs.service.taxonomy.TaxonLibSessionFactory;
+import au.com.gaiaresources.bdrs.util.TransactionHelper;
+import au.com.gaiaresources.taxonlib.ITaxonLibSession;
+import au.com.gaiaresources.taxonlib.TaxonLibException;
 
 public class RequestContext {
 
@@ -47,6 +52,7 @@ public class RequestContext {
     private Session hibernate;
 
     private List<MenuItem> menu;
+    private TaxonLibSessionFactory taxonLibSessionFactory;
     
     public RequestContext() {
         // TODO Auto-generated constructor stub
@@ -285,5 +291,42 @@ public class RequestContext {
     public List<MenuItem> getMenu() {
         return menu;
     }
-
+    /**
+     * Set the {@link TaxonLibSessionFactory} for the request context
+     * @param taxonLibSessionFactory {@link TaxonLibSessionFactory}
+     */
+    public void setTaxonLibSessionFactory(
+            TaxonLibSessionFactory taxonLibSessionFactory) {
+        this.taxonLibSessionFactory = taxonLibSessionFactory;
+    }
+    /**
+     * Gets the {@link TaxonLibSessionFactory} associated with the RequestContext
+     * @return  {@link TaxonLibSessionFactory}
+     */
+    public TaxonLibSessionFactory getTaxonLibSessionFactory(){
+        return taxonLibSessionFactory;
+    }
+    /**
+     * Returns an {@link ITaxonLibSession} 
+     * @param create as to whether to try to create a session or just return the active session. 
+     * @return {@link ITaxonLibSession} or null
+     * @throws IllegalArgumentException
+     * @throws BdrsTaxonLibException
+     * @throws TaxonLibException
+     * @throws SQLException
+     */
+    public ITaxonLibSession getTaxonLibSession() throws IllegalArgumentException, BdrsTaxonLibException, TaxonLibException, SQLException{
+        //TODO Check why we need create
+        return taxonLibSessionFactory.getSession();
+    }
+    
+    /**
+     * Returns an {@link ITaxonLibSession} if it can create one or null if it fails. The reason this method exists is it is possible to have a portal which 
+     * does not have taxonLib set up and as such will not be able to create one without causing an exception. This method catches the exception and logs it
+     * @param create as to whether to try to create a session or just return the active session. 
+     * @return {@link ITaxonLibSession} or null
+     */
+    public ITaxonLibSession getTaxonLibSessionOrNull(boolean create){
+        return taxonLibSessionFactory.getSessionOrNull();
+    }
 }

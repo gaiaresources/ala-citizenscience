@@ -38,9 +38,8 @@ public class BdrsAfdImporterTest extends TaxonomyImportTest {
 	private SpeciesProfileDAO spDAO;
 	
 	@Before
-	public void setup() {
+	public void setupBdrsAfdImporterTest() {
 		temporalContext = taxonLibSession.getTemporalContext(now);
-		requestTaxonomyImportTestDropDatabase();
 	}
 	
 	@Test

@@ -1,26 +1,127 @@
 
 ## Macro for writing a row to the field guide table
 #macro(fieldGuideTaxonRankRow $taxon)
-#if(${taxon.parent})
-    #fieldGuideTaxonRankRow(${taxon.parent})
-#end
-
-<tr class="fieldguide_taxon_rank_row">
-    <th class="textright">${taxon.getTaxonRank().getIdentifier()}</th>
-    <td
-        #if(${TaxonRank.SPECIES} == ${taxon.getTaxonRank()})
-            class="scientificName"
-        #elseif(${TaxonRank.GENUS} == ${taxon.getTaxonRank()})
-            class="scientificName"
-        #end
-    >
-        <a href="${portalContextPath}/fieldguide/taxon.htm?id=${taxon.id}">
-            ${taxon.scientificName}
-        </a>
-    </td>
-</tr>
+    #if(${taxon.parent})
+        #fieldGuideTaxonRankRow(${taxon.parent})
+    #end
+    
+    <tr class="fieldguide_taxon_rank_row">
+        <th class="textright">${taxon.getTaxonRank().getIdentifier()}</th>
+        <td
+            #if(${TaxonRank.SPECIES} == ${taxon.getTaxonRank()})
+                class="scientificName"
+            #elseif(${TaxonRank.GENUS} == ${taxon.getTaxonRank()})
+                class="scientificName"
+            #end
+        >
+            <a href="${portalContextPath}/fieldguide/taxon.htm?id=${taxon.id}">
+                ${taxon.scientificName}
+            </a>
+        </td>
+    </tr>
 #end
 ## end fieldGuideTaxonRankRow macro
+
+
+#macro(scientificName $tc)
+    <span class="scientificNameAndAuthor"><span class="taxonName scientificName">
+        ##if(${au.com.gaiaresources.taxonlib.model.TaxonRank.SPECIES.equals($tc.name.rank)} 
+            ##|| ${au.com.gaiaresources.taxonlib.model.TaxonRank.GENUS.equals($tc.name.rank)})
+            ##scientificName
+        ##end
+        ##">
+        $esc.html($tc.name.displayName)
+    </span><span class="author">$esc.html($tc.author)</span></span>
+#end
+##end scientificName macro
+#macro(commonName $tc)
+    #if($tc)
+        #if ($temporalContext.getFirstCommonName($tc))
+        #set($name = $temporalContext.getFirstCommonName($tc))
+        <span class="commonName">
+            #set($commonDisplayName = $esc.html($name.displayName))
+            $commonDisplayName
+        </span>
+        #end
+    #end
+#end
+##end commonName
+#macro(name $tc)
+    #set($scientificName = "#scientificName($tc)")
+    #set($commonName = "#commonName($tc)")
+    $scientificName $commonName
+#end
+#macro (rank $tc)$tc.name.rank.identifier#end
+
+#macro(speciesProfileId $tc)
+#set ($id = $conceptSpeciesMap.get($tc).id)
+$id
+#end
+#macro(profileUrl $tc)
+    #set ($speciesProfileId = "#speciesProfileId($tc)")
+    #set ($profileUrl = "${profileBasePath}?id=${speciesProfileId}&timestamp=${date.time}")
+    $profileUrl
+#end
+#macro(profileLink $tc)
+    #set($url = "#profileUrl($tc)")
+    #set($name = "#name($tc)")
+    #set($rank = "#rank($tc)")
+    <a href='$url'#if ($tc.equals($currentConcept))class="active"#end title="$rank">$name</a>
+#end
+#macro(taxonLibTree)
+    <tr class="taxonomicHierarchy"><td colspan="2">
+    #set($root = true)
+    #foreach($tc in $hierarchy)
+        #set($href = "#profileLink($tc)")
+        <ul #if($root)class="hierarchy"#set($root=false)#end>
+            <li class="last">$href
+    #end
+    #if($temporalContext.getChildren($currentConcept))
+        <ul>
+        #set($count = 0)
+        #foreach($tc in $currentConcept.children)
+            #set($href = "#profileLink($tc)")
+            #set($count = $count + 1)
+            ##css class for the last element in the list so that our
+            ##tree doesn't fade into the distance
+            <li #if($count == $currentConcept.children.size())class="last"#end>$href</li>
+        #end
+        </ul>
+    #end
+    #foreach($tc in $hierarchy)
+    </li></ul>
+    #end
+    </td></tr>
+    #if(!$oldSynonyms.empty || !$newSynonyms.empty)
+        <tr>
+            <th>#if(!$oldSynonyms.empty)Earlier Synonyms#end</th>
+            <th>#if(!$newSynonyms.empty)Superceded By#end</th>
+        </tr>
+        <tr>
+            <td>
+                #if(!$oldSynonyms.isEmpty())
+                    <ul>
+                    #foreach($oldSynonym in $oldSynonyms)
+                        <li>#profileLink($oldSynonym)</li>
+                    #end
+                    </ul>
+                #end
+            </td>
+            <td>
+                #if(!$newSynonyms.isEmpty())
+                    <ul>
+                        #foreach($newSynonym in $newSynonyms)
+                            <li>#profileLink($newSynonym)</li>
+                        #end
+                    </ul>
+                #end
+            </td>
+        </tr>
+    #end
+#end
+## End taxonLibTree
+
+#set ($profileBasePath = "${portalContextPath}/fieldguide/taxon.htm")
 
 <h1>
     <span>
@@ -30,123 +131,129 @@
         ${taxon.scientificName}
     </span>
 </h1>
+<div class="leftCol">
 
-<h3 class="scientificClassificationHeader">Scientific Classification</h3>
-<table class="scientificClassification">
-    <tbody>
-        #fieldGuideTaxonRankRow(${taxon})
-    </tbody>
-</table>
 
-#if(!${taxon.attributes.isEmpty()})
-    <h3 class="field_guide_header">Identification</h3>
-    <table>
-        <tbody>
-            #foreach($taxonAttr in ${taxon.attributes})
-                #if(${taxonAttr.attribute.tag})
-                    <tr>
-                        <th class="textright">
-                            ${taxonAttr.attribute.description}
-                        </th>
-                        <td>
-                        #if('IMAGE' == ${taxonAttr.getAttribute().getType()})
-                            <a href="${portalContextPath}/files/download.htm?${taxonAttr.getFileURL()}">
-                                <img class="max_size_img" src="${portalContextPath}/files/download.htm?${taxonAttr.getFileURL()}" alt="${taxonAttr.stringValue}"/>
-                            </a>
-                        #elseif('FILE' == ${taxonAttr.getAttribute().getType()})
-                            <a href="${portalContextPath}/files/download.htm?${taxonAttr.getFileURL()}">
-                                ${taxonAttr.stringValue}
-                            </a>
-                        #elseif('AUDIO' == ${taxonAttr.getAttribute().getType()})
-                            <a href="${portalContextPath}/files/download.htm?${taxonAttr.getFileURL()}">
-                                ${taxonAttr.stringValue}
-                            </a>
-                        #elseif('CENSUS_METHOD_ROW' == ${taxonAttr.getAttribute().getType()} || 
-                                'CENSUS_METHOD_COL' == ${taxonAttr.getAttribute().getType()})
+    #if(${taxon.attributes} && !${taxon.attributes.isEmpty()})
+        <h3 class="field_guide_header">Identification</h3>
+        <table>
+            <tbody>
+                #foreach($taxonAttr in ${taxon.attributes})
+                    #if(${taxonAttr.attribute.tag})
+                        <tr>
+                            <th class="textright">
+                                $esc.html(${taxonAttr.attribute.description})
+                            </th>
+                            <td>
+                            #if(${AttributeType.IMAGE} == ${taxonAttr.getAttribute().getType()})
+                                <a href="${portalContextPath}/files/download.htm?${taxonAttr.getFileURL()}">
+                                    <img class="max_size_img" src="${portalContextPath}/files/download.htm?${taxonAttr.getFileURL()}" alt="${taxonAttr.stringValue}"/>
+                                </a>
+                            #elseif(${AttributeType.FILE} == ${taxonAttr.getAttribute().getType()})
+                                <a href="${portalContextPath}/files/download.htm?${taxonAttr.getFileURL()}">
+                                    ${taxonAttr.stringValue}
+                                </a>
+                            #elseif(${AttributeType.AUDIO} == ${taxonAttr.getAttribute().getType()})
+                                <a href="${portalContextPath}/files/download.htm?${taxonAttr.getFileURL()}">
+                                    ${taxonAttr.stringValue}
+                                </a>
+                            #elseif(${AttributeType.CENSUS_METHOD_ROW} == ${taxonAttr.getAttribute().getType()} || 
+                                ${AttributeType.CENSUS_METHOD_COL} == ${taxonAttr.getAttribute().getType()})
                             <div id="attribute_${taxonAttr.getAttribute().getId()}" />
-                        #else
-                            ${taxonAttr.stringValue}
-                        #end
-                        </td>
-                    </tr>
+                            #else
+                                $esc.html(${taxonAttr.stringValue})
+                            #end
+                            </td>
+                        </tr>
+                    #end
                 #end
-            #end
-        </tbody>
-    </table>
-#end
-
-<c:set var="profiledescription" value="" scope="page"></c:set>
-
-#foreach($profile in ${taxon.infoItems})
-    #if(${profile.content})
-        <div class="fieldguide_profile_item">
-            #if(${profile.description} != ${profiledescription})
-                <h3 class="field_guide_header">
-                    ${profile.description}
-                </h3>
-                #set($profiledescription=${profile.description})
-            #end
-            #if(${profile.isImgType()})
-                <a class="left" href="${portalContextPath}/files/downloadByUUID.htm?uuid=${profile.content}">
-                    <img class="max_size_img" src="${portalContextPath}/files/downloadByUUID.htm?uuid=${profile.content}"/>
-                </a>
-                
-                <cw:getManagedFile uuid="${profile.content}" var="managedFile"/>
-                <div class="right textright imageProperties">
-                    #if(${managedFile.credit})
+            </tbody>
+        </table>
+    #end
+    
+    #foreach($profile in ${taxon.infoItems})
+        #if(${profile.content})
+            <div class="fieldguide_profile_item">
+                #if(${profile.description} != ${profiledescription})
+                    <h3 class="field_guide_header">
+                        ${profile.description}
+                    </h3>
+                    #set($profiledescription=${profile.description})
+                #end
+                #if(${profile.isImgType()})
+                    <a class="left" href="${portalContextPath}/files/downloadByUUID.htm?uuid=${profile.content}">
+                        <img class="max_size_img" src="${portalContextPath}/files/downloadByUUID.htm?uuid=${profile.content}"/>
+                    </a>
+                    
+                    <cw:getManagedFile uuid="${profile.content}" var="managedFile"/>
+                    <div class="right textright imageProperties">
+                        #if(${managedFile.credit})
+                            <div>
+                                Credit:&nbsp;${managedFile.credit}
+                            </div>
+                        #end
+                        #if(${managedFile.license})
+                            <div>
+                                Permission:&nbsp;${managedFile.license}
+                            </div>
+                        #end
+                        #if(${managedFile.description})
+                            <div>
+                                Description:&nbsp;${managedFile.description}
+                            </div>
+                        #end
+                    </div>
+                    <div class="clear"></div>
+                #end
+                #if(${profile.isAudioType()})
+                    <audio src="${portalContextPath}/files/downloadByUUID.htm?uuid=${profile.content}"
+                        controls="controls" preload>
+                        ${profile.content}
+                    </audio>
+                    <cw:getManagedFile uuid="${profile.content}" var="managedFile"/>
+                    <div class="right textright">
                         <div>
                             Credit:&nbsp;${managedFile.credit}
                         </div>
-                    #end
-                    #if(${managedFile.license})
                         <div>
                             Permission:&nbsp;${managedFile.license}
                         </div>
-                    #end
-                    #if(${managedFile.description})
-                        <div>
-                            Description:&nbsp;${managedFile.description}
-                        </div>
-                    #end
-                </div>
-                <div class="clear"></div>
-            #end
-            #if(${profile.isAudioType()})
-                <audio src="${portalContextPath}/files/downloadByUUID.htm?uuid=${profile.content}"
-                    controls="controls" preload>
+                    </div>
+                    <div class="clear"></div>
+                #else
+                    <p><span class="profileContent 
+                        #if(${profile.isScientificNameType()})
+                            scientificName
+                        #end
+                        ">
                     ${profile.content}
-                </audio>
-                <cw:getManagedFile uuid="${profile.content}" var="managedFile"/>
-                <div class="right textright">
-                    <div>
-                        Credit:&nbsp;${managedFile.credit}
-                    </div>
-                    <div>
-                        Permission:&nbsp;${managedFile.license}
-                    </div>
-                </div>
-                <div class="clear"></div>
-            #else
-                <p><span class="profileContent 
-                    #if(${profile.isScientificNameType()})
-                        scientificName
-                    #end
-                    ">
-                ${profile.content}
-                #if(${profile.source})
-                    #if(${profile.isTextType()})
-                            <br></br>
-                    #else
-                        ,&nbsp;
+                    #if(${profile.source})
+                        #if(${profile.isTextType()})
+                                <br></br>
+                        #else
+                            ,&nbsp;
+                         #end
+                         <span class="profileSource">Source:&nbsp;${profile.source}</span>
                      #end
-                     <span class="profileSource">Source:&nbsp;${profile.source}</span>
-                 #end
-                 </p>
-            #end
-        </div>
+                     </p>
+                #end
+            </div>
+        #end
     #end
-#end
-
+</div> ##leftCol
+<div class="rightCol">
+    <table class="scientificClassification">
+        <caption>
+            <h3 class="scientificClassificationHeader">Taxonomic Classification</h3>
+        </caption>
+        <tbody>
+            #if(!$hierarchy)#fieldGuideTaxonRankRow(${taxon})
+            #else #taxonLibTree()
+            #end
+        </tbody>
+    </table>
+</div> ##rightCol
+<div class="clear"></div>
 <script type="text/javascript">
     html5media.configureFlowplayer = function (tag, element, config){
         if(tag === 'audio') {

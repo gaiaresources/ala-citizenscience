@@ -8,21 +8,18 @@ import java.util.Random;
 
 import junit.framework.Assert;
 
-import au.com.gaiaresources.bdrs.json.*;
-
 import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.test.web.ModelAndViewAssert;
 import org.springframework.web.servlet.ModelAndView;
 
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.controller.webservice.JqGridDataHelper;
-import au.com.gaiaresources.bdrs.model.index.IndexUtil;
+import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.portal.Portal;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile;
@@ -114,7 +111,7 @@ public class BDRSFieldGuideControllerTest extends AbstractControllerTest {
     
     private void testSearchInGroupsBy(String q, int expectedNumberOfSpecies, TaxonGroup expected) throws Exception {
         request.setMethod("GET");
-        request.setRequestURI(BDRSFieldGuideController.FIELGUIDE_LIST_TAXA_URL);
+        request.setRequestURI(BDRSFieldGuideController.FIELDGUIDE_LIST_TAXA_URL);
         request.setParameter("search_in_groups", q);
         // add this parameter to keep the paging from affecting the results if 
         // expectedNumberOfSpecies > pageSize
@@ -165,7 +162,7 @@ public class BDRSFieldGuideControllerTest extends AbstractControllerTest {
     
      private void testTaxonGroupIdSearchInResultBy(String searchInResult, int expectedNumberOfSpecies, TaxonGroup expected ) throws Exception {
          request.setMethod("GET");
-         request.setRequestURI(BDRSFieldGuideController.FIELGUIDE_LIST_TAXA_URL);
+         request.setRequestURI(BDRSFieldGuideController.FIELDGUIDE_LIST_TAXA_URL);
          request.setParameter("groupId", expected.getId().toString());
          request.setParameter("search_in_result", searchInResult);
          
@@ -218,7 +215,7 @@ public class BDRSFieldGuideControllerTest extends AbstractControllerTest {
     
     private void testQuerySearchInResultBy(String q, String subq, int expectedNumberOfSpecies, TaxonGroup expected ) throws Exception {
         request.setMethod("GET");
-        request.setRequestURI(BDRSFieldGuideController.FIELGUIDE_LIST_TAXA_URL);
+        request.setRequestURI(BDRSFieldGuideController.FIELDGUIDE_LIST_TAXA_URL);
         request.setParameter("search_in_groups", q);
         request.setParameter("search_in_result", subq);
         
@@ -260,7 +257,7 @@ public class BDRSFieldGuideControllerTest extends AbstractControllerTest {
     @Test
     public void testListGroups() throws Exception {
         request.setMethod("GET");
-        request.setRequestURI("/fieldguide/groups.htm");
+        request.setRequestURI(BDRSFieldGuideController.FIELDGUIDE_GROUPS_URL);
         
         ModelAndView mv = handle(request, response);
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "taxonGroups");
@@ -274,7 +271,7 @@ public class BDRSFieldGuideControllerTest extends AbstractControllerTest {
         IndicatorSpecies expected = taxaDAO.getIndicatorSpecies().get(0);
         
         request.setMethod("GET");
-        request.setRequestURI("/fieldguide/taxon.htm");
+        request.setRequestURI(BDRSFieldGuideController.FIELDGUIDE_TAXON_URL);
         request.setParameter("id", expected.getId().toString());
         
         ModelAndView mv = handle(request, response);
@@ -288,7 +285,6 @@ public class BDRSFieldGuideControllerTest extends AbstractControllerTest {
      */
     
     private void createTestData() throws Exception {
-        ApplicationContext appContext = getRequestContext().getApplicationContext();
         TaxonGroup group = new TaxonGroup();
         group.setName("Mammals");
         taxaDAO.save(group);

@@ -50,7 +50,7 @@ import au.com.gaiaresources.bdrs.python.model.PySurveyDAO;
 import au.com.gaiaresources.bdrs.python.model.PyTaxaDAO;
 import au.com.gaiaresources.bdrs.python.taxonlib.PyTemporalContext;
 import au.com.gaiaresources.bdrs.service.taxonomy.BdrsTaxonLibException;
-import au.com.gaiaresources.bdrs.service.taxonomy.TaxonLibSessionFactory;
+import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 import au.com.gaiaresources.bdrs.util.SpatialUtil;
 import au.com.gaiaresources.taxonlib.ITaxonLibSession;
 import au.com.gaiaresources.taxonlib.ITemporalContext;
@@ -85,9 +85,7 @@ public class PyBDRS {
     private PyMetadataDAO pyMetadataDAO;
 
     private FileService fileService;
-    private SpatialUtil spatialUtil;
 
-    private TaxonLibSessionFactory taxonLibSessionFactory;
     private ITaxonLibSession taxonLibSession;
     
     private TaxaDAO taxaDAO;
@@ -110,17 +108,16 @@ public class PyBDRS {
      * @param attributeValueDAO retrieves attribute value related data
      * @param metadataDAO       retrieves metadata related data
      * @param locationDAO       retrieves location related data.
-     * @param taxonLibSessionFactory provides access to taxonlib functionality.
+     * @param taxonLibSessionFactory provides access to taxonLib functionality.
      */
     public PyBDRS(HttpServletRequest request, SpatialUtil spatialUtil,
                   FileService fileService, AbstractPythonRenderable renderable, User user,
                   SurveyDAO surveyDAO, CensusMethodDAO censusMethodDAO,
                   TaxaDAO taxaDAO, RecordDAO recordDAO, PortalDAO portalDAO, AttributeDAO attributeDAO,
                   AttributeOptionDAO attributeOptionDAO, AttributeValueDAO attributeValueDAO,
-                  MetadataDAO metadataDAO, LocationDAO locationDAO, TaxonLibSessionFactory taxonLibSessionFactory) {
+                  MetadataDAO metadataDAO, LocationDAO locationDAO) {
         this.request = request;
         this.fileService = fileService;
-        this.spatialUtil = spatialUtil;
         this.renderable = renderable;
 
         this.user = user;
@@ -141,8 +138,6 @@ public class PyBDRS {
         this.pyAttributeOptionDAO = new PyAttributeOptionDAO(attributeOptionDAO);
         this.pyAttributeValueDAO = new PyAttributeValueDAO(attributeValueDAO);
         this.pyMetadataDAO = new PyMetadataDAO(metadataDAO);
-
-        this.taxonLibSessionFactory = taxonLibSessionFactory;
     }
 
     /**
@@ -347,7 +342,7 @@ public class PyBDRS {
     }
 
     /**
-     * Lazy initialises and returns taxonlib session
+     * Lazy initialises and returns taxonLib session
      *
      * @return
      * @throws BdrsTaxonLibException Error initialising taxon lib session
@@ -355,7 +350,7 @@ public class PyBDRS {
     private ITaxonLibSession getTaxonLibSession() throws BdrsTaxonLibException {
         if (taxonLibSession == null) {
             try {
-                taxonLibSession = taxonLibSessionFactory.getSession();
+                taxonLibSession = RequestContextHolder.getContext().getTaxonLibSession();
             } catch (Exception e) {
                 throw new BdrsTaxonLibException("Unable to initialise TaxonLib session : " + e.getMessage(), e);
             }

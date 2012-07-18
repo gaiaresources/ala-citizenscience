@@ -1264,6 +1264,15 @@ table.datatable td {
     padding: 1em;
 }
 
+div.rightCol{
+  width: 250px;
+  float: right;
+}
+div.leftCol{
+  width: 560px;
+  float: left;
+}
+
 h3.field_guide_header {
     border-bottom-width: 1px;
     border-bottom-style: dotted;
@@ -1271,6 +1280,55 @@ h3.field_guide_header {
 
 .imageProperties {
     width: 400px;
+}
+table.scientificClassification {
+  border: solid 1px;
+  background: #fff;
+  padding: 1em;
+}
+table.scientificClassification tr.taxonomicHierarchy td {
+  max-width: 250px;
+  overflow: auto;
+}
+table.scientificClassification caption {
+  border: solid 1px;
+  background: #fff;
+}
+ul.hierarchy, ul.hierarchy ul {
+    background: url(../../images/icons/taxontree/vline.png) repeat-y;
+    margin: 0;
+    padding: 0;
+}
+ul.hierarchy li,
+ul.hierarchy ul {
+  list-style: none;
+}
+ul.hierarchy a {
+  display: block;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+ul.hierarchy ul {
+    margin-left: 4px;
+}
+ul.hierarchy a.active,
+ul.hierarchy a:visited.active{
+  color: black;
+}
+ul.hierarchy li {
+    margin: 0;
+    padding: 0 12px;
+    line-height: 20px;
+    background: url(../../images/icons/taxontree/node.png) no-repeat;
+    font-weight: bold;
+}
+ul.hierarchy li .commonName {
+  font-weight: normal;
+}
+
+ul.hierarchy li.last {
+    background: #fff url(../../images/icons/taxontree/lastnode.png) no-repeat;
 }
 
 /*************************************/
