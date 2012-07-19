@@ -69,7 +69,7 @@
 				</tr>
 		        <tr id="managedFileRow" title="A managed file UUID. Depending on the layer source it may be a KML file or a shapefile.">
 		            <th><label for="fileId">File Identifier (UUID):</label></th>
-		            <td><input id="fileId" type="text" class="long_input" name="mfuuid" value="<c:out value="${geoMapLayer.managedFileUUID}" />" size="40" autocomplete="off" onchange="setWriteFileToDatabase();" />
+		            <td><input id="fileId" type="text" class="long_input" name="mfuuid" value="<c:out value="${geoMapLayer.managedFileUUID}" />" size="40" autocomplete="off" onchange="setWriteFileToDatabase();" onfocus="showFileSelector(this);" />
 					     <div>Upload and browse your files in the <a href="${portalContextPath}/bdrs/user/managedfile/listing.htm" target="_blank">managed file interface. (Opens in new window)</a></div>
 					     <div id="shapefile_instructions">The uploaded file must be a zipped up shapefile containing a minimum of the .shp, .dbf, .shx and .prj files.</div>
 					</td>
@@ -114,6 +114,8 @@
 	     </div>
 	</form>
 </div>
+
+<jsp:include page="/WEB-INF/jsp/bdrs/dialog/attachFileDialog.jsp"/>
 
 <script type="text/javascript">
 

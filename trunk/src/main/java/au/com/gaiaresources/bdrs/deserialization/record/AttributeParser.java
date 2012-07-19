@@ -316,10 +316,10 @@ public abstract class AttributeParser {
                     addOrUpdateAttribute = true;
                     break;
                 default:
-                    log.warn("Unknown Attribute Type: " + attribute.getType());
+                    log.warn("Unknown Attribute Type: " + attrType);
                     break;
             }
-        } else if (AttributeType.isCensusMethodType(attribute.getType())) {
+        } else if (AttributeType.isCensusMethodType(attrType)) {
             // census method types do not have a string value, but should be added or updated
             addOrUpdateAttribute = true;
         } else {

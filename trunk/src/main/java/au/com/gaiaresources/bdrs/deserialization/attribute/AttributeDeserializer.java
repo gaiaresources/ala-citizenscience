@@ -298,7 +298,7 @@ public class AttributeDeserializer {
                 }
             }
         } else if (AttributeUtil.isModifiableByScopeAndUser(attribute, currentUser)) {
-            if (attributeParser.isAddOrUpdateAttribute()) {
+            if (isAddOrUpdate) {
                 if (save) {
                     recAttr = attributeDAO.save(recAttr);
                     

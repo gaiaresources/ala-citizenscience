@@ -229,8 +229,11 @@ bdrs.util.createColorPicker = function(jqueryElement) {
     });
 };
 
-bdrs.util.printElement = function(selector) {
-	$(selector).jqprint({
+bdrs.util.printElement = function(headerSelector, bodySelector) {
+	var printElem = jQuery("<div></div>");
+	printElem.append(jQuery(headerSelector).clone());
+	printElem.append(jQuery(bodySelector).clone());
+	printElem.jqprint({
 		importCSS: true
 	});
 };

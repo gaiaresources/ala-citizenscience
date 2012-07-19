@@ -127,24 +127,26 @@
            <input type="button" class="form_action" value="Retrieve Profile from ALA" onclick="importALAProfile();"/>
            <input type="button" class="form_action" value="Add Profile" onclick="bdrs.taxonomy.addNewProfile('#newProfileIndex', '#taxonProfileTable');"/>
         </div>
-        <table id="taxonProfileTable" class="datatable textcenter">
-            <thead>
-                <tr>
-                    <th>&nbsp;</th>
-                    <th>Type</th>
-                    <th>Database Name</th>
-                    <th>Title</th>
-                    <th>Content</th>
-                    <th>Delete</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tiles:insertDefinition name="profileTableBody">
-                    <tiles:putAttribute name="taxonProfileList" value="${ taxonProfileList }"/>
-                    <tiles:putAttribute name="newProfileIndex" value="${ newProfileIndex }"/>
-                </tiles:insertDefinition>
-            </tbody>
-        </table>
+        <div class="scrollable">
+            <table id="taxonProfileTable" class="datatable textcenter">
+                <thead>
+                    <tr>
+                        <th>&nbsp;</th>
+                        <th>Type</th>
+                        <th>Database Name</th>
+                        <th>Title</th>
+                        <th>Content</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tiles:insertDefinition name="profileTableBody">
+                        <tiles:putAttribute name="taxonProfileList" value="${ taxonProfileList }"/>
+                        <tiles:putAttribute name="newProfileIndex" value="${ newProfileIndex }"/>
+                    </tiles:insertDefinition>
+                </tbody>
+            </table>
+        </div>
        <input id="newProfileIndex" type="hidden" value="<%= taxonProfileList.size() + 1 %>"/>
         <div class="textright buttonpanel">
             <a id="maximiseLink" class="text-left" href="javascript:bdrs.util.maximise('#maximiseLink', '#editTaxonomyContainer', 'Enlarge Table', 'Shrink Table')">Enlarge Table</a>
@@ -176,8 +178,10 @@
     </table>
 </div>
 
-
-<jsp:include page="/WEB-INF/jsp/bdrs/admin/taxonomy/editTaxonDialogs.jsp"/>
+<jsp:include page="/WEB-INF/jsp/bdrs/dialog/attachFileDialog.jsp"/>
+    
+<jsp:include page="/WEB-INF/jsp/bdrs/dialog/htmlEditorDialog.jsp"/>
+    
 
 <cw:speciesProfileType/>
 <script type="text/javascript">
@@ -188,80 +192,19 @@
                                     "#taxonProfileTable", "#newProfileIndex",
                                     ".secondaryGroupSearch");
 
-        // Render the html editor using a jquery dialog.
-        $( "#htmlEditorDialog" ).dialog({
-            width: 'auto',
-            modal: true,
-            autoOpen: false,
-            buttons: {
-                Cancel: function() {
-                	bdrs.attribute.closeHtmlEditor($(this));
-                },
-                "Clear": function() {
-                    $('#markItUp')[0].value = "";
-                },
-                "OK": function() {
-                	bdrs.attribute.saveAndUpdateContent(jQuery("#markItUp")[0]);
-                    bdrs.attribute.closeHtmlEditor(jQuery(this));
-                }
-            },
-            zIndex: bdrs.MODAL_DIALOG_Z_INDEX
-        });
-
-       /**
-        * Closes the attach file dialog and updates the position of the
-        * row in the species profile table if the "make this the default profile
-        * iamge" checkbox was selected.
-        * @param dialog the dialog to close.
-        * @param checkBoxSelector a jQuery selector that can be used to locate the
-        * correct checkbox.
-        */
-        var closeAndUpdateRowPosition = function(dialog, checkBoxSelector) {
-            jQuery(dialog).dialog('close');
-            if (jQuery(checkBoxSelector).is(":checked")) {
-                var row = jQuery(contentFieldBeingEdited).parents('tr:first');
-                bdrs.taxonomy.moveRowToTop(row);
-            }
-        };
-
-        /**
-         * Callback when the OK button on the file selection dialog is pressed.
-         * Checks if the selection is valid and performs the appropriate action
-         * depending on whether a file was selected or a new file was added.
-         */
-        var fileSelectionDialogOkPressed = function() {
-
-            var selected = jQuery('#attachFileDialog').accordion("option", "active");
-
-            if (selected === ACCORDION_EXISTING_FILE_TAB) {
-                var selectedUuid = jQuery('#selectedUuid').val();
-                if (selectedUuid != null && selectedUuid.length > 0) {
-                    jQuery(contentFieldBeingEdited).attr("value", selectedUuid);
-                    closeAndUpdateRowPosition(this, "#selectPreferred");
-                }
-                else {
-                    jQuery('#selectionError').show();
-                }
-            }
-            else {
-
-                if (isAddManagedFileFormValid()) {
-
-                    var options = {
-                        success: function(data){jQuery(contentFieldBeingEdited).attr("value", data.data.uuid);},
-                        dataType : 'json'
-                    };
-                    jQuery("#saveManagedFile").ajaxSubmit(options);
-                    closeAndUpdateRowPosition(this, '#addNewPreferred');
-                }
-            }
-        };
-
-        // Attach the event handler for when the OK button is selected on the file selection dialog.
-        jQuery('#attachFileDialog').dialog("option", "buttons")[1].click = fileSelectionDialogOkPressed;
-       
-        $('#markItUp').markItUp(bdrs.admin.myHtmlSettings);
-
+        // Add the preferred image selector to the attach file dialog
+        var tbody = jQuery('#attachFileDialog').find('form table tbody');
+        tbody.first().append(jQuery('<tr>\
+                <th>Make this the preferred profile image</th>\
+                <td>\
+                    <input type="checkbox" name="addNewPreferred" id="addNewPreferred"/>\
+                </td>\
+            </tr>'));
+        tbody.last().append(jQuery('<tr>\
+                <td class="formLabel">Make this the preferred profile image</td>\
+                <td><input type="checkbox" name="selectPreferred" id="selectPreferred"/></td>\
+            </tr>'));
+        
         // Attach focus event handlers to the text fields in the Content column of the profile table.
         // New rows in the table have different values for the name attribute, hence the requirement for
         // two event handlers.
@@ -294,12 +237,6 @@
     };
 
     /**
-     * Tracks the text field that is being updated via the #attachFileDialog dialog. This is so it's
-     * value can be updated when the dialog is closed.
-     */
-    var contentFieldBeingEdited;
-
-    /**
      * Responds to focus events fired by the text field in the Content column of the Species profile table.
      * @param event event.data must contain the prefix used by the name attribute of the select element in the
      * same row as the text field that fired this event.
@@ -312,16 +249,7 @@
             showHtmlEditor(this);
         }
         else if (bdrs.taxonomy.speciesProfileType.isFileType(type) || bdrs.taxonomy.speciesProfileType.isImageType(type)) {
-            contentFieldBeingEdited = this;
-            showFileSelector();
+            showFileSelector(this);
         }
     };
-
-    var showFileSelector = function() {
-        jQuery('#attachFileDialog').dialog('option', 'height', getHeight());
-        jQuery( "#attachFileDialog" ).dialog('open');
-    };
-
-
-
 </script>
