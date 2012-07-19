@@ -32,7 +32,7 @@ public class BdrsPluginFacadeTest extends AbstractControllerTest {
     
     @Test
     public void testGetContentTokenReplace() {
-        BdrsPluginFacade facade = new BdrsPluginFacade(sesh, defaultPortal, "http://www.mybdrs.com/contextpath/home.htm", currentUser);
+        BdrsPluginFacade facade = new BdrsPluginFacade(getSession(), defaultPortal, "http://www.mybdrs.com/contextpath/home.htm", currentUser);
         String result = facade.getContent(TEST_CONTENT_KEY);
         Assert.assertEquals("expect test to be replaced correctly", defaultPortal.getName() + " /contextpath" + " http://www.mybdrs.com/contextpath/portal/" + defaultPortal.getId() + " jimmy jojo", result);
     }
@@ -40,7 +40,7 @@ public class BdrsPluginFacadeTest extends AbstractControllerTest {
     @Test
     public void testGetPreference() {
         // get one of the default preferences - see preference.json
-        BdrsPluginFacade facade = new BdrsPluginFacade(sesh, defaultPortal, "http://www.mybdrs.com/contextpath/home.htm", currentUser);
+        BdrsPluginFacade facade = new BdrsPluginFacade(getSession(), defaultPortal, "http://www.mybdrs.com/contextpath/home.htm", currentUser);
         String value = facade.getPreferenceValue("taxon.showScientificName");
         Assert.assertEquals("String does not match expected value", "true", value);
     }
@@ -48,7 +48,7 @@ public class BdrsPluginFacadeTest extends AbstractControllerTest {
     @Test
     public void testGetPreferenceBooleanValue() {
         // get one of the default preferences - see preference.json
-        BdrsPluginFacade facade = new BdrsPluginFacade(sesh, defaultPortal, "http://www.mybdrs.com/contextpath/home.htm", currentUser);
+        BdrsPluginFacade facade = new BdrsPluginFacade(getSession(), defaultPortal, "http://www.mybdrs.com/contextpath/home.htm", currentUser);
         boolean value = facade.getPreferenceBooleanValue("taxon.showScientificName");
         Assert.assertEquals("boolean does not match expected value", true, value);
     }

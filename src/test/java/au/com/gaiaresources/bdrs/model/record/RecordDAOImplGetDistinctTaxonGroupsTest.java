@@ -207,13 +207,13 @@ public class RecordDAOImplGetDistinctTaxonGroupsTest extends
 		recordDAO.save(r7);
 		
 		// Ensure flush before querying.
-		this.sesh.flush();
+		getSession().flush();
 	}
 	
 	@Test
 	public void testQueryAdmin() {
-		FilterManager.enableRecordFilter(sesh, admin);
-		List<Pair<TaxonGroup, Long>> pairList = recordDAO.getDistinctTaxonGroups(this.sesh);
+		FilterManager.enableRecordFilter(getSession(), admin);
+		List<Pair<TaxonGroup, Long>> pairList = recordDAO.getDistinctTaxonGroups(getSession());
 		
 		Pair<TaxonGroup, Long> p1 = getPair(pairList, g1);
 		Pair<TaxonGroup, Long> p2 = getPair(pairList, g2);
@@ -235,8 +235,8 @@ public class RecordDAOImplGetDistinctTaxonGroupsTest extends
 	
 	@Test
 	public void testQueryNormalUser() {
-		FilterManager.enableRecordFilter(sesh, normalUser);
-		List<Pair<TaxonGroup, Long>> pairList = recordDAO.getDistinctTaxonGroups(this.sesh);
+		FilterManager.enableRecordFilter(getSession(), normalUser);
+		List<Pair<TaxonGroup, Long>> pairList = recordDAO.getDistinctTaxonGroups(getSession());
 		
 		Pair<TaxonGroup, Long> p1 = getPair(pairList, g1);
 		Pair<TaxonGroup, Long> p2 = getPair(pairList, g2);

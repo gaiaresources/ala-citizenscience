@@ -257,7 +257,6 @@ public class ApplicationServiceUploadTest extends AbstractControllerTest {
             JSONObject data = json.getJSONObject("200");
             JSONArray syncResult = data.getJSONArray("sync_result");
             validate(JSONArray.fromString(updateSyncData), syncResult);
-            //System.err.println(data.toString());
         }
     }
     
@@ -299,13 +298,11 @@ public class ApplicationServiceUploadTest extends AbstractControllerTest {
             ModelAndViewAssert.assertModelAttributeAvailable(mv, "message");
             
             JSONObject json = JSONObject.fromStringToJSONObject(mv.getModel().get("message").toString());
-            //System.err.println(mv.getModel().get("message"));
             Assert.assertEquals(200, json.getInt("status"));
             
             JSONObject data = json.getJSONObject("200");
             JSONArray syncResult = data.getJSONArray("sync_result");
             validate(JSONArray.fromString(updateSyncData), syncResult);
-            //System.err.println(data.toString());
         }
     }
     

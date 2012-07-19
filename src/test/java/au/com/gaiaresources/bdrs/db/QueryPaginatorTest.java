@@ -75,10 +75,6 @@ public class QueryPaginatorTest extends AbstractControllerTest {
         return first.toLowerCase() + "@" + last.toLowerCase() + ".com.au";
     }
 
-    protected Session getSession() {
-        return sessionFactory.getCurrentSession();
-    }
-
     private PagedQueryResult<User> critSearch(String username, String email,
             String name, PaginationFilter filter) {
         Criteria crit = this.getSession().createCriteria(User.class);

@@ -29,6 +29,7 @@ import au.com.gaiaresources.bdrs.servlet.RequestContext;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 import au.com.gaiaresources.taxonlib.ITaxonLibSession;
 
+
 @Transactional
 public abstract class AbstractTransactionalTest extends
         AbstractSpringContextTest {
@@ -48,8 +49,6 @@ public abstract class AbstractTransactionalTest extends
     // a request object to instantiate properly.
     protected MockHttpServletRequest request;
 
-    protected Session sesh;
-
     @Autowired
     protected SessionFactory sessionFactory;
 
@@ -63,8 +62,9 @@ public abstract class AbstractTransactionalTest extends
     // @BeforeTransaction runs before @Before
     @BeforeTransaction
     public final void beginTransaction() throws Exception {
-    
-        sesh = sessionFactory.getCurrentSession();
+    	// create the session that we will use for the whole test unless
+    	// the test does its own session management in which case you need to be careful!
+    	Session sesh = sessionFactory.getCurrentSession();
         request = createMockHttpServletRequest();
         RequestContext c = new RequestContext(request, applicationContext);
         RequestContextHolder.set(c);
@@ -77,6 +77,7 @@ public abstract class AbstractTransactionalTest extends
     public void primeDatabase() {
         dropDatabase = false;
         try {
+        	Session sesh = getSession();
             Portal portal = new PortalInitialiser().initRootPortal(sesh, null);
             defaultPortal = portal;
             FilterManager.setPortalFilter(sesh, portal);
@@ -92,6 +93,7 @@ public abstract class AbstractTransactionalTest extends
 
     @AfterTransaction
     public final void rollbackTransaction() throws Exception {
+    	Session sesh = getSession();
         if(RequestContextHolder.getContext().getTaxonLibSessionFactory() == null){
             // In order to get around new requestContext being created
             RequestContextHolder.getContext().setTaxonLibSessionFactory(taxonLibSessionFactory);
@@ -135,6 +137,11 @@ public abstract class AbstractTransactionalTest extends
             // do normal rollback...
             sesh.getTransaction().rollback();
         }
+        
+    }
+    
+    public Session getSession() {
+    	return sessionFactory.getCurrentSession();
     }
     
     private void rollbackSession(Session sesh) {
@@ -155,7 +162,12 @@ public abstract class AbstractTransactionalTest extends
     }
 
     protected void commit() {
-        sesh.getTransaction().commit();
+    	Session sesh = getSession();
+    	if (sesh.isOpen()) {
+    		sesh.getTransaction().commit();	
+    	} else {
+    		log.warn("Session is already closed, cannot commit. The session was probably commited earlier which caused the session to close");
+    	}
 
         if (!sesh.isOpen()) {
             // should open a new session

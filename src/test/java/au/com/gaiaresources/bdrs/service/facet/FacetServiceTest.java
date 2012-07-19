@@ -62,7 +62,7 @@ public class FacetServiceTest extends AbstractTransactionalTest {
         }
         
         // Test that there are the right number of instances of each facet.
-        PreferenceCategory category = prefDAO.getPreferenceCategoryByName(sesh, FacetService.FACET_CATEGORY_NAME, defaultPortal);
+        PreferenceCategory category = prefDAO.getPreferenceCategoryByName(getSession(), FacetService.FACET_CATEGORY_NAME, defaultPortal);
         Map<Class<? extends Facet>, List<Facet>> facetTypes = createFacetTypeMapping(facetList);
         for(FacetBuilder bob : FacetService.FACET_BUILDER_REGISTRY) {
             Preference pref = bob.getDefaultPreference(defaultPortal, category);

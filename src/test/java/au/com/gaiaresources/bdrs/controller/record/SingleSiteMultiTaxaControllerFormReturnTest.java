@@ -218,7 +218,7 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
         request.setMethod("POST");
         request.setParameter(SingleSiteMultiTaxaController.PARAM_SURVEY_ID, refRecord1.getSurvey().getId().toString());
         
-        FilterManager.disablePartialRecordCountFilter(sesh);
+        FilterManager.disablePartialRecordCountFilter(getSession());
         int seed = 2;
         Map<Attribute, Object> newSurveyScopedAttributeValues = new HashMap<Attribute, Object>();
         Map<RecordPropertyType, String> newSurveyScopedRecPropValues = new HashMap<RecordPropertyType, String>();
@@ -237,7 +237,7 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
         this.addRecordScopedItemsToPostMap(refRecord2, request, index++, seed++, newRecordScopedAttributeValues2, newRecordScopedRecPropValues2, setLocation, RECORD_SCOPES);
         
         request.addParameter(SingleSiteMultiTaxaController.PARAM_SIGHTING_INDEX, Integer.toString(index));
-        FilterManager.setPartialRecordCountFilter(sesh);
+        FilterManager.setPartialRecordCountFilter(getSession());
         
         ModelAndView mv = this.handle(request, response);
         

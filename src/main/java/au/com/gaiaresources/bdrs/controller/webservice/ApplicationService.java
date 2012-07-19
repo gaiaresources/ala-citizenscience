@@ -97,8 +97,6 @@ public class ApplicationService extends AbstractController {
     @Autowired
     private FileService fileService;
     
-    private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
-    
     @Autowired
     private LocationDAO locationDAO;
     
@@ -266,6 +264,7 @@ public class ApplicationService extends AbstractController {
          * }
          */
         JSONObject jsonObj = new JSONObject();
+        SpatialUtilFactory spatialUtilFactory = new SpatialUtilFactory();
         try {
             String ident = request.getParameter("ident");
             if(ident == null) {
@@ -290,7 +289,7 @@ public class ApplicationService extends AbstractController {
                 JSONArray clientData = JSONArray.fromString(jsonData);
                 SoftValueHashMap attrCache = new SoftValueHashMap();
                 for(Object jsonLocationBean : clientData){
-                    syncLocation(syncResponseList, jsonLocationBean, user, attrCache);
+                    syncLocation(syncResponseList, jsonLocationBean, user, attrCache, spatialUtilFactory);
                 }
                 
                 status.put("sync_result", syncResponseList);
@@ -325,7 +324,6 @@ public class ApplicationService extends AbstractController {
         if (inFrame) {
             ModelAndView mv = new ModelAndView("postMessage");
             mv.addObject("message", jsonObj.toString());
-            log.debug(jsonObj.toString());
             return mv;
         } else {
             this.writeJson(request, response, jsonObj.toString());
@@ -334,7 +332,8 @@ public class ApplicationService extends AbstractController {
     }
     
     private void syncLocation(List<Map<String, Object>> syncResponseList,
-                              Object jsonLocationBean, User user, SoftValueHashMap attrCache)
+                              Object jsonLocationBean, User user, SoftValueHashMap attrCache, 
+                              SpatialUtilFactory spatialUtilFactory)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, IOException {
         
         String clientID = getJSONString(jsonLocationBean, "id", null);
@@ -367,6 +366,10 @@ public class ApplicationService extends AbstractController {
         // Geometry
         String locationWKT = getJSONString(jsonLocationBean, "location", null);
         if(locationWKT != null && !locationWKT.isEmpty()) {
+            String sridString = getJSONString(jsonLocationBean, "srid", "");
+            Integer srid = sridString.trim().isEmpty() ? null : Integer.valueOf(sridString.trim());
+            // default to lat/lon if no srid is specified.
+        	SpatialUtil spatialUtil = srid != null ? spatialUtilFactory.getLocationUtil(srid) : spatialUtilFactory.getLocationUtil();
             loc.setLocation(spatialUtil.createGeometryFromWKT(locationWKT));
         }
         
@@ -427,6 +430,7 @@ public class ApplicationService extends AbstractController {
 
         JSONObject jsonObj = new JSONObject();
         getRequestContext().getHibernate().setFlushMode(FlushMode.MANUAL);
+        SpatialUtilFactory spatialUtilFactory = new SpatialUtilFactory();
         try {
             String ident = request.getParameter("ident");
             if(ident == null) {
@@ -452,7 +456,7 @@ public class ApplicationService extends AbstractController {
 
                 SoftValueHashMap attrCache = new SoftValueHashMap();
                 for(Object jsonRecordBean : clientData) {
-                    syncRecord(syncResponseList, jsonRecordBean, user, attrCache);
+                    syncRecord(syncResponseList, jsonRecordBean, user, attrCache, spatialUtilFactory);
                 }
                 
                 status.put("sync_result", syncResponseList);
@@ -505,7 +509,8 @@ public class ApplicationService extends AbstractController {
         }
     }
     
-    private void syncRecord(List<Map<String, Object>> syncResponseList, Object jsonRecordBean, User user, SoftValueHashMap attrCache)
+    private void syncRecord(List<Map<String, Object>> syncResponseList, Object jsonRecordBean, User user, SoftValueHashMap attrCache,
+    		SpatialUtilFactory spatialUtilFactory)
         throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, IOException {
 
         String clientID = getJSONString(jsonRecordBean, "id", null);
@@ -528,7 +533,12 @@ public class ApplicationService extends AbstractController {
         Double latitude = latitudeString.trim().isEmpty() ? null : Double.parseDouble(latitudeString);
         String longitudeString = getJSONString(jsonRecordBean, "longitude", "");
         Double longitude = longitudeString.trim().isEmpty() ? null : Double.parseDouble(longitudeString);
+        String sridString = getJSONString(jsonRecordBean, "srid", "");
+        Integer srid = sridString.trim().isEmpty() ? null : Integer.valueOf(sridString.trim());
+        
         if (latitude != null && longitude != null) {
+        	// default to lat/lon if no srid specified.
+        	SpatialUtil spatialUtil = srid != null ? spatialUtilFactory.getLocationUtil(srid) : spatialUtilFactory.getLocationUtil();
             rec.setPoint(spatialUtil.createPoint(latitude, longitude));
         }
 
