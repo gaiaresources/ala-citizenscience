@@ -42,7 +42,9 @@
         <put-attribute name="content" value="/WEB-INF/jsp/bdrs/root/theme/edit.jsp"/>
         <put-attribute name="maps" value="false"/>
         <put-list-attribute name="customCss"></put-list-attribute>
-        <put-list-attribute name="customJavaScript"></put-list-attribute>
+        <put-list-attribute name="customJavaScript">
+            <add-attribute>jquery.form.js</add-attribute>
+        </put-list-attribute>
     </definition>
     
     <definition name="themeFileEdit" extends="admin-template">
@@ -423,6 +425,9 @@
         <put-attribute name="title" value="Edit Map Layer"/>
         <put-attribute name="content" value="/WEB-INF/jsp/bdrs/admin/mapLayer/edit.jsp"/>
         <put-attribute name="maps" value="false"/>
+        <put-list-attribute name="customJavaScript">
+            <add-attribute>jquery.form.js</add-attribute>
+        </put-list-attribute>
     </definition>
 	
 	<!-- gallery management -->

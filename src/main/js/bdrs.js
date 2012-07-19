@@ -1179,7 +1179,7 @@ bdrs.map.addWMSHighlightLayer = function(map, layername, url, options){
     };
     options = jQuery.extend(defaultOptions, options);
     
-    var layer = new OpenLayers.Layer.WMS(layername ? layername : "highlightLayer", url ? url : bdrs.map.getBdrsMapServerUrl(), {
+    var layer = new OpenLayers.Layer.WMS.Post(layername ? layername : "highlightLayer", url ? url : bdrs.map.getBdrsMapServerUrl(), {
         'layers': options.wmsLayer,
         'transparent': 'true'
     }, {
@@ -1224,15 +1224,12 @@ bdrs.map.addBdrsWMSLayer = function(map, layerName, url, options){
         tileSize: options.tileSize,
         buffer: options.buffer,
         minZoomLevel: options.lowerZoomLimit,
-        maxZoomLevel: options.upperZoomLimit
+        maxZoomLevel: options.upperZoomLimit,
+        'sld_body':sld
     });
     
     // See notes for bdrs.map.calculateInRangeByZoomLevel
     wmsLayer.calculateInRange = bdrs.map.calculateInRangeByZoomLevel;
-    
-    wmsLayer.mergeNewParams({
-        "sld_body": sld
-    });
     
     // duck punch!
     wmsLayer.bdrsLayerId = options.bdrsLayerId;
@@ -1713,7 +1710,7 @@ bdrs.map.addSingleFeatureDrawLayer = function(map, layerName, options){
         longSelector: "",
 		crsSelector: "",
         wktSelector: "",
-        initialDrawTool: bdrs.map.control.DRAW_POINT,
+        initialDrawTool: bdrs.map.control.DRAW_POINT
     };
     
     options = jQuery.extend(defaultOptions, options);

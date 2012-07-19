@@ -1,16 +1,10 @@
-<!--  DIALOGS -->
-<div id="htmlEditorDialog" title="HTML Editor">
-    <label>Edit the HTML content that you want to display in the editor below: </label>
-    <textarea id="markItUp"></textarea>
-</div>
-
-<div id="attachFileDialog" title="Attach File to Taxon Profile">
+<div id="attachFileDialog" title="Upload/Select File">
 
     <h3><a href="#">Upload New File</a></h3>
     <div>
         <form id="saveManagedFile" method="POST" enctype="multipart/form-data" action="${portalContextPath}/bdrs/user/managedfile/service/edit.htm">
 
-            A file attached here will be added to the managed files interface and be associated with the selected Taxon Profile Element.
+            A file attached here will be added to the managed files interface and be associated with the selected element.
 
             <table class="form_table">
                 <tbody>
@@ -40,13 +34,6 @@
                         <input type="text" name="license" value=""/>
                     </td>
                 </tr>
-                <tr>
-                    <th>Make this the preferred profile image</th>
-                    <td>
-                        <input type="checkbox" name="addNewPreferred" id="addNewPreferred"/>
-                    </td>
-                </tr>
-
                 </tbody>
             </table>
 
@@ -71,10 +58,7 @@
                     <td> <input type="checkbox" name="imagesOnly" value="True"/></td>
                     <td colspan="2" align="right" style="align:right"><input type="button" id="managedFileSearch" class="form_action" value="Search"/></td>
                 </tr>
-                <tr>
-                    <td class="formLabel">Make this the preferred profile image</td>
-                    <td><input type="checkbox" name="selectPreferred" id="selectPreferred"/></td>
-                </tr>
+                
             </table>
 
             <input id="selectedUuid" type="text" title="A single file selection is required." style="visibility:hidden;height:0em;width:0em;" name="selectedUuid" value=""/>
@@ -109,6 +93,8 @@
     var filenameFormatter = function(cellvalue, options, rowObject) {
         return "<a href='"+downloadURL(rowObject.fileURL)+"'>"+rowObject.filename+"</a>";
     };
+    
+    jQuery(function() {
     jQuery("#managedFilesList").jqGrid({
         datatype: "json",
         mtype: "GET",
@@ -142,95 +128,16 @@
     });
 
     jQuery("#managedFilesList").jqGrid('navGrid','#pager2',{edit:false,add:false,del:false});
-
-    var SEARCH_USER_URL = '${portalContextPath}/bdrs/user/managedfile/service/search.htm';
-
-    function getUserSearchUrl() {
-        var params = jQuery("#searchForm").serialize();
-        return SEARCH_USER_URL + '?' + params;
-    };
-
-    function gridReload(){
-        jQuery("#managedFilesList").jqGrid('setGridParam',{
-            url:getUserSearchUrl(),
-            page:1}).trigger("reloadGrid");
-    };
+    
 
     jQuery("#managedFileSearch").click(gridReload);
-
-    // ************************************************************
-    // Wrap the content in an accordian then turn it into a dialog
-    // ************************************************************
-    var ACCORDION_NEW_FILE_TAB = 0;
-    var ACCORDION_EXISTING_FILE_TAB = 1;
-
-    // Resizes the search results table when the dialog is resized.
-    var handleDialogResize = function(event, ui) {
-        var grid =  jQuery("#managedFilesList").jqGrid();
-        grid.setGridWidth(jQuery("#searchResults").width());
-    };
-
-    // A version of the ketchup error container positioning function that works correctly inside
-    // the dialog.
-    var positionContainerInDialog = function(errorContainer, field) {
-        var fOffset = field.position();
-        errorContainer.css({
-            left: fOffset.left + field.width() - 10,
-            top: fOffset.top - errorContainer.height()
-        });
-    };
-
-
-    // Callback for when the dialog opens.  Configures ketchup to position errors properly inside the dialog.
-    var dialogOpen = function(event, ui) {
-
-        jQuery('#saveManagedFile').find('.hasKetchup').unbind();
-        jQuery('#saveManagedFile').find('.hasKetchup').removeClass('hasKetchup');
-        jQuery('#saveManagedFile').ketchup({positionContainer:positionContainerInDialog, initialPositionContainer:positionContainerInDialog});
-        resetDialogContents(event, ui);
-    };
-
-    // Callback when the dialog is closed.  Resets ketchup back to the defaults.
-    var dialogClose = function(event, ui) {
-        jQuery('#searchForm').ketchup();
-    };
-
-    // Clears form fields and search results when the dialog is opened.
-    var resetDialogContents = function(event, ui) {
-        selectedUuid = "";
-        jQuery('#saveManagedFile').resetForm();
-        jQuery('#saveManagedFile .ketchup-error-container').hide();
-
-        jQuery('#searchForm').resetForm();
-        jQuery('#selectionError').hide();
-        jQuery('#managedFilesList').jqGrid().clearGridData();
-
-    };
 
     // Don't allow the form to be submitted as we need to do it via ajax, but we need to trigger the submit
     // function to make ketchup validate.
     jQuery('#saveManagedFile').submit(function() {
         return false;
     });
-
-    /**
-     * Returns true if the form is valid.
-     * This is done by checking if there are any visible ketchup dialogs....yuck.
-     */
-    var isAddManagedFileFormValid = function() {
-        // Submit the form so ketchup does its thing.
-        jQuery('#saveManagedFile').submit();
-
-        var valid = true;
-        jQuery('#saveManagedFile .ketchup-error-container').each(function(index, el) {
-            valid = valid && (jQuery(el).css('display') === 'none');
-        });
-        return valid;
-    }
-
-    var getHeight = function() {
-        return windowHeight =  jQuery(window).height()-50;
-    }
+    
 
     jQuery("#attachFileDialog").accordion({
         clearStyle: true,
@@ -260,5 +167,151 @@
 
             });
 
+    // Attach the event handler for when the OK button is selected on the file selection dialog.
+    jQuery('#attachFileDialog').dialog("option", "buttons")[1].click = fileSelectionDialogOkPressed;
+   
+   
+    
+
+    });
+    var SEARCH_USER_URL = '${portalContextPath}/bdrs/user/managedfile/service/search.htm';
+
+    function getUserSearchUrl() {
+        var params = jQuery("#searchForm").serialize();
+        return SEARCH_USER_URL + '?' + params;
+    };
+
+    function gridReload(){
+        jQuery("#managedFilesList").jqGrid('setGridParam',{
+            url:getUserSearchUrl(),
+            page:1}).trigger("reloadGrid");
+    };
+
+    // ************************************************************
+    // Wrap the content in an accordian then turn it into a dialog
+    // ************************************************************
+    var ACCORDION_NEW_FILE_TAB = 0;
+    var ACCORDION_EXISTING_FILE_TAB = 1;
+
+    // Resizes the search results table when the dialog is resized.
+    var handleDialogResize = function(event, ui) {
+        var grid =  jQuery("#managedFilesList").jqGrid();
+        grid.setGridWidth(jQuery("#searchResults").width());
+    };
+
+    // A version of the ketchup error container positioning function that works correctly inside
+    // the dialog.
+    var positionContainerInDialog = function(errorContainer, field) {
+        var fOffset = field.position();
+        errorContainer.css({
+            left: fOffset.left + field.width() - 10,
+            top: fOffset.top - errorContainer.height()
+        });
+    };
+
+
+    // Callback for when the dialog opens.  Configures ketchup to position errors properly inside the dialog.
+    var dialogOpen = function(event, ui) {
+        var form = jQuery('#saveManagedFile');
+        form.find('.hasKetchup').unbind();
+        form.find('.hasKetchup').removeClass('hasKetchup');
+        form.ketchup({positionContainer:positionContainerInDialog, initialPositionContainer:positionContainerInDialog});
+        resetDialogContents(event, ui);
+    };
+
+    // Callback when the dialog is closed.  Resets ketchup back to the defaults.
+    var dialogClose = function(event, ui) {
+        jQuery('#searchForm').ketchup();
+    };
+
+    // Clears form fields and search results when the dialog is opened.
+    var resetDialogContents = function(event, ui) {
+        selectedUuid = "";
+        var form = jQuery('#saveManagedFile');
+        form.resetForm();
+        jQuery('#saveManagedFile .ketchup-error-container').hide();
+
+        jQuery('#searchForm').resetForm();
+        jQuery('#selectionError').hide();
+        jQuery('#managedFilesList').jqGrid().clearGridData();
+
+    };
+
+    /**
+     * Returns true if the form is valid.
+     * This is done by checking if there are any visible ketchup dialogs....yuck.
+     */
+    var isAddManagedFileFormValid = function() {
+        // Submit the form so ketchup does its thing.
+        jQuery('#saveManagedFile').submit();
+
+        var valid = true;
+        jQuery('#saveManagedFile .ketchup-error-container').each(function(index, el) {
+            valid = valid && (jQuery(el).css('display') === 'none');
+        });
+        return valid;
+    }
+
+    var getHeight = function() {
+        return windowHeight =  jQuery(window).height()-50;
+    }
+
+    /**
+     * Closes the attach file dialog and updates the position of the
+     * row in the species profile table if the "make this the default profile
+     * iamge" checkbox was selected.
+     * @param dialog the dialog to close.
+     * @param checkBoxSelector a jQuery selector that can be used to locate the
+     * correct checkbox.
+     */
+     var closeAndUpdateRowPosition = function(dialog, checkBoxSelector) {
+         jQuery(dialog).dialog('close');
+         if (jQuery(checkBoxSelector).is(":checked")) {
+             var row = jQuery(contentFieldBeingEdited).parents('tr:first');
+             bdrs.taxonomy.moveRowToTop(row);
+         }
+     };
+
+     /**
+      * Callback when the OK button on the file selection dialog is pressed.
+      * Checks if the selection is valid and performs the appropriate action
+      * depending on whether a file was selected or a new file was added.
+      */
+     var fileSelectionDialogOkPressed = function() {
+         var selected = jQuery('#attachFileDialog').accordion("option", "active");
+
+         if (selected === ACCORDION_EXISTING_FILE_TAB) {
+             var selectedUuid = jQuery('#selectedUuid').val();
+             if (selectedUuid != null && selectedUuid.length > 0) {
+                 //jQuery(contentFieldBeingEdited).attr("value", selectedUuid);
+                 jQuery(contentFieldBeingEdited).val(selectedUuid);
+                 closeAndUpdateRowPosition(this, "#selectPreferred");
+             }
+             else {
+                 jQuery('#selectionError').show();
+             }
+         }
+         else {
+             if (isAddManagedFileFormValid()) {
+                 var options = {
+                     success: function(data){
+                    	 jQuery(contentFieldBeingEdited).val(data.data.uuid);
+                     },
+                     error: function(msg){
+                    	console.log(msg); 
+                     },
+                     dataType : 'json'
+                 };
+                 jQuery("#saveManagedFile").ajaxSubmit(options);
+                 closeAndUpdateRowPosition(this, '#addNewPreferred');
+             }
+         }
+     };
+
+     var showFileSelector = function(element) {
+        contentFieldBeingEdited = element;
+        jQuery('#attachFileDialog').dialog('option', 'height', getHeight());
+        jQuery( "#attachFileDialog" ).dialog('open');
+    };
 
 </script>

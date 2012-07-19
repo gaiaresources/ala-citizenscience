@@ -29,7 +29,7 @@
             <tr>
                 <th><label for="themeFileUUID">Managed File UUID:</label></th>
                 <td>
-                    <input id="themeFileUUID" name="themeFileUUID" class="validate(required)" type="text" value="<c:out value="${ editTheme.themeFileUUID }"/>"/>
+                    <input id="themeFileUUID" name="themeFileUUID" class="validate(required)" type="text" value="<c:out value="${ editTheme.themeFileUUID }"/>" onfocus="showFileSelector(this);"/>
                 </td>
             </tr>
             <tr>
@@ -125,6 +125,8 @@
     </div>
 </form>
 
+<jsp:include page="/WEB-INF/jsp/bdrs/dialog/attachFileDialog.jsp"/>
+    
 <script>
     var downloadFile = function() {
         
