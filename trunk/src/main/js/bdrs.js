@@ -1211,12 +1211,13 @@ bdrs.map.addBdrsWMSLayer = function(map, layerName, url, options){
     options = jQuery.extend(defaultOptions, options);
     var sld = bdrs.map.generateLayerSLD(options);
     
-    var wmsLayer = new OpenLayers.Layer.WMS(layerName, url, {
+    var wmsLayer = new OpenLayers.Layer.WMS.Post(layerName, url, {
         'layers': options.wmsLayer,
         'transparent': 'true',
         'geo_map_layer_id': options.bdrsLayerId,
         'user_id': options.userId,
-        'is_admin': options.isAdmin
+        'is_admin': options.isAdmin,
+        'sld_body':sld
     }, {
         isBaseLayer: false,
         visibility: options.visible,
@@ -1224,8 +1225,7 @@ bdrs.map.addBdrsWMSLayer = function(map, layerName, url, options){
         tileSize: options.tileSize,
         buffer: options.buffer,
         minZoomLevel: options.lowerZoomLimit,
-        maxZoomLevel: options.upperZoomLimit,
-        'sld_body':sld
+        maxZoomLevel: options.upperZoomLimit
     });
     
     // See notes for bdrs.map.calculateInRangeByZoomLevel
