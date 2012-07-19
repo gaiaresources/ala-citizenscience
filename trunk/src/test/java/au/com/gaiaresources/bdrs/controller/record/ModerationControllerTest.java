@@ -92,7 +92,7 @@ public class ModerationControllerTest extends AbstractGridControllerTest {
         
         Assert.assertEquals("Mismatch email count", 1, mockEmailService.getMockEmailList().size());
         MockEmail mockEmail = mockEmailService.getMockEmailList().get(0);
-        Assert.assertEquals("Template mismatch", contentService.getContent(sesh, "email/RecordReleased"), mockEmail.getMessage());
+        Assert.assertEquals("Template mismatch", contentService.getContent(getSession(), "email/RecordReleased"), mockEmail.getMessage());
         Assert.assertEquals("Email 'to' mismatch", refRecord1.getUser().getEmailAddress(), mockEmail.getTo());
         Assert.assertEquals("Email 'from' mismatch'", moderator.getEmailAddress(), mockEmail.getFrom());
         

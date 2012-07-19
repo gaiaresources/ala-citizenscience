@@ -23,7 +23,7 @@ public class RecordCommentTest extends AbstractGridControllerTest {
 
         String commentText = "This is my first comment!";
         
-        Record rec = (Record)sesh.get(Record.class, r1.getId());
+        Record rec = (Record)getSession().get(Record.class, r1.getId());
         
         Comment comment = new Comment();
         comment.setCommentText(commentText);
@@ -42,7 +42,7 @@ public class RecordCommentTest extends AbstractGridControllerTest {
      * @return a new instance of the Record, reloaded from the database.
      */
     private Record reload(Record record) {
-
+    	Session sesh = getSession();
         sesh.flush();
         sesh.evict(record);
 
@@ -56,7 +56,7 @@ public class RecordCommentTest extends AbstractGridControllerTest {
     @Test
     public void testEditComment() throws Exception {
 
-        Record rec = (Record)sesh.get(Record.class, r1.getId());
+        Record rec = (Record)getSession().get(Record.class, r1.getId());
         String commentText = "This is my first comment!";
 
         rec.addComment(commentText);
@@ -80,7 +80,7 @@ public class RecordCommentTest extends AbstractGridControllerTest {
     @Test
     public void testCommentOrder() {
 
-        Record rec = (Record)sesh.get(Record.class, r1.getId());
+        Record rec = (Record)getSession().get(Record.class, r1.getId());
         int numComments=10;
         String commentPrefix = "Comment ";
         for (int i=0; i<numComments; i++) {
@@ -103,7 +103,7 @@ public class RecordCommentTest extends AbstractGridControllerTest {
      */
     @Test
     public void testNestedComments() {
-        Record rec = (Record)sesh.get(Record.class, r1.getId());
+        Record rec = (Record)getSession().get(Record.class, r1.getId());
         rec.addComment("Comment 1");
 
         rec = reload(rec);
@@ -159,7 +159,7 @@ public class RecordCommentTest extends AbstractGridControllerTest {
      */
     private void deleteRecordAndAssert(Deleter deleter) {
 
-        Record rec = (Record)sesh.get(Record.class, r1.getId());
+        Record rec = (Record)getSession().get(Record.class, r1.getId());
         Comment c1 = rec.addComment("Comment 1");
         rec.addComment("Comment 2");
         c1.reply("Comment 3");

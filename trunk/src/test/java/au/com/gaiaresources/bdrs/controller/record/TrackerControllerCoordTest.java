@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.hibernate.Session;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -261,6 +262,7 @@ public class TrackerControllerCoordTest extends AbstractControllerTest {
     // Simulates the controller running in it's own transaction.
     @Override
     protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    	Session sesh = getSession();
     	sesh.flush();
     	sesh.clear();
     	ModelAndView mv = super.handle(request, response);

@@ -78,8 +78,8 @@ public class BDRSFieldGuideControllerTest extends AbstractControllerTest {
         createTestData();
         Portal p = getRequestContext().getPortal();
         // delete the indexes to make sure they are not saved from last time
-        searchService.deleteIndexes(sesh, p);
-        searchService.createIndexes(sesh, p);
+        searchService.deleteIndexes(getSession(), p);
+        searchService.createIndexes(getSession(), p);
     }
     
     @After
@@ -324,7 +324,7 @@ public class BDRSFieldGuideControllerTest extends AbstractControllerTest {
         IndicatorSpecies greenMonkey = taxaDAO.getIndicatorSpeciesByCommonName("Green Monkey").get(0);
         greenMonkey.addSecondaryGroup(group);
 
-        sesh.flush();
+        getSession().flush();
     }
 
     /**

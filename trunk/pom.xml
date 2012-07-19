@@ -1018,7 +1018,7 @@
                 <bdrs.recaptcha.public.key>6LfbwwQAAAAAAEiDp_pgbdLzIOgVLpTpA3kqUfXF</bdrs.recaptcha.public.key>
                 <bdrs.recaptcha.private.key>6LfbwwQAAAAAAF5wVuk8nLcOanKCwvA_-rmtvNIL</bdrs.recaptcha.private.key>
                 <!-- File storage location -->
-                <bdrs.file.store.location>/home/kehan/workspace/bdrs_filestore</bdrs.file.store.location>
+                <bdrs.file.store.location>/tmp</bdrs.file.store.location>
                 <!-- Taxonlib test properties -->
                 <taxonlib.db.username>postgres</taxonlib.db.username>
                 <taxonlib.db.password>postgres</taxonlib.db.password>

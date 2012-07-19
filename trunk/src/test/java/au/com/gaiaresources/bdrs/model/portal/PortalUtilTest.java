@@ -38,7 +38,7 @@ public class PortalUtilTest extends AbstractControllerTest {
     @Before
     public void setup() throws Exception {        
         
-        FilterManager.disablePortalFilter(sesh);
+        FilterManager.disablePortalFilter(getSession());
         
         p1 = new Portal();
         p1.setName("portal 1");
@@ -47,13 +47,13 @@ public class PortalUtilTest extends AbstractControllerTest {
         p2.setName("portal 2");
                 
         // to avoid the saving logic inside of portalDAO.
-        sesh.save(p1);
-        sesh.save(p2);
+        getSession().save(p1);
+        getSession().save(p2);
     }
     
     @After
     public void teardown() {
-        FilterManager.setPortalFilter(sesh, defaultPortal);
+        FilterManager.setPortalFilter(getSession(), defaultPortal);
     }
     
     /*
@@ -64,56 +64,56 @@ public class PortalUtilTest extends AbstractControllerTest {
     @Test
     public void testPortalPreferenceLazyInit() throws IOException {
         
-        Preference fileStorePref = prefDAO.getPreferenceByKey(sesh, FileService.FILE_STORE_LOCATION_PREFERENCE_KEY, defaultPortal);
+        Preference fileStorePref = prefDAO.getPreferenceByKey(getSession(), FileService.FILE_STORE_LOCATION_PREFERENCE_KEY, defaultPortal);
         
         PreferenceCategory prefCatToDelete = fileStorePref.getPreferenceCategory();
         
         Assert.assertNotNull("pref should exist", fileStorePref);
         prefDAO.delete(fileStorePref);
-        Assert.assertNull("pref should now be deleted", prefDAO.getPreferenceByKey(sesh, FileService.FILE_STORE_LOCATION_PREFERENCE_KEY, defaultPortal));
+        Assert.assertNull("pref should now be deleted", prefDAO.getPreferenceByKey(getSession(), FileService.FILE_STORE_LOCATION_PREFERENCE_KEY, defaultPortal));
         
         String lsidAuthority = "lsidwoooo";
-        Preference lsidPref = prefDAO.getPreferenceByKey(sesh, "lsid.authority", defaultPortal);
+        Preference lsidPref = prefDAO.getPreferenceByKey(getSession(), "lsid.authority", defaultPortal);
         lsidPref.setValue(lsidAuthority);
         prefDAO.save(lsidPref);
         
-        prefDAO.delete(sesh, prefCatToDelete);
-        Assert.assertNull("pref cat should be deleted", prefDAO.getPreferenceCategoryByName(sesh, prefCatToDelete.getName(), defaultPortal));
+        prefDAO.delete(getSession(), prefCatToDelete);
+        Assert.assertNull("pref cat should be deleted", prefDAO.getPreferenceCategoryByName(getSession(), prefCatToDelete.getName(), defaultPortal));
         
         String prefCatDesc = "pref cat desc woooo";
-        PreferenceCategory prefCatToEdit = prefDAO.getPreferenceCategoryByName(sesh, "category.apikey", defaultPortal);
+        PreferenceCategory prefCatToEdit = prefDAO.getPreferenceCategoryByName(getSession(), "category.apikey", defaultPortal);
         prefCatToEdit.setDescription(prefCatDesc);
-        prefDAO.save(sesh, prefCatToEdit);
+        prefDAO.save(getSession(), prefCatToEdit);
         
         Assert.assertNotNull("portal 1 should exist", p1.getId());
         Assert.assertNotNull("portal 2 should exist", p2.getId());
         
-        Assert.assertNull("pref does not exist yet", prefDAO.getPreferenceByKey(sesh, FileService.FILE_STORE_LOCATION_PREFERENCE_KEY, p1));
-        Assert.assertNull("pref cat does not exist yet", prefDAO.getPreferenceCategoryByName(sesh, "category.userManagement", p1));
+        Assert.assertNull("pref does not exist yet", prefDAO.getPreferenceByKey(getSession(), FileService.FILE_STORE_LOCATION_PREFERENCE_KEY, p1));
+        Assert.assertNull("pref cat does not exist yet", prefDAO.getPreferenceCategoryByName(getSession(), "category.userManagement", p1));
         
-        Assert.assertNull("pref does not exist yet", prefDAO.getPreferenceByKey(sesh, FileService.FILE_STORE_LOCATION_PREFERENCE_KEY, p2));
-        Assert.assertNull("pref cat does not exist yet", prefDAO.getPreferenceCategoryByName(sesh, "category.userManagement", p2));
+        Assert.assertNull("pref does not exist yet", prefDAO.getPreferenceByKey(getSession(), FileService.FILE_STORE_LOCATION_PREFERENCE_KEY, p2));
+        Assert.assertNull("pref cat does not exist yet", prefDAO.getPreferenceCategoryByName(getSession(), "category.userManagement", p2));
         
-        PortalUtil.initPortalPreferences(sesh, p1, true);
-        PortalUtil.initPortalPreferences(sesh, p2, false);
-        PortalUtil.initPortalPreferences(sesh, defaultPortal, true);
+        PortalUtil.initPortalPreferences(getSession(), p1, true);
+        PortalUtil.initPortalPreferences(getSession(), p2, false);
+        PortalUtil.initPortalPreferences(getSession(), defaultPortal, true);
         
-        Assert.assertNotNull("pref should be initialised", prefDAO.getPreferenceByKey(sesh, FileService.FILE_STORE_LOCATION_PREFERENCE_KEY, p1));
-        Assert.assertNotNull("pref cat should be initialised", prefDAO.getPreferenceCategoryByName(sesh, "category.userManagement", p1));
+        Assert.assertNotNull("pref should be initialised", prefDAO.getPreferenceByKey(getSession(), FileService.FILE_STORE_LOCATION_PREFERENCE_KEY, p1));
+        Assert.assertNotNull("pref cat should be initialised", prefDAO.getPreferenceCategoryByName(getSession(), "category.userManagement", p1));
         
-        Assert.assertNotNull("pref should be initialised", prefDAO.getPreferenceByKey(sesh, FileService.FILE_STORE_LOCATION_PREFERENCE_KEY, p2));
-        Assert.assertNotNull("pref cat should be initialised", prefDAO.getPreferenceCategoryByName(sesh, "category.userManagement", p2));
+        Assert.assertNotNull("pref should be initialised", prefDAO.getPreferenceByKey(getSession(), FileService.FILE_STORE_LOCATION_PREFERENCE_KEY, p2));
+        Assert.assertNotNull("pref cat should be initialised", prefDAO.getPreferenceCategoryByName(getSession(), "category.userManagement", p2));
         
         // make sure lazy init has occured for the default portal
-        Assert.assertNotNull("pref should be lazy initialised", prefDAO.getPreferenceByKey(sesh, FileService.FILE_STORE_LOCATION_PREFERENCE_KEY, defaultPortal));
+        Assert.assertNotNull("pref should be lazy initialised", prefDAO.getPreferenceByKey(getSession(), FileService.FILE_STORE_LOCATION_PREFERENCE_KEY, defaultPortal));
         
-        Preference lsidPref2 = prefDAO.getPreferenceByKey(sesh, "lsid.authority", defaultPortal);
+        Preference lsidPref2 = prefDAO.getPreferenceByKey(getSession(), "lsid.authority", defaultPortal);
         Assert.assertEquals("pref value should not be changed by lazy init", lsidAuthority, lsidPref2.getValue());
         
         Assert.assertFalse("pref cat desc should be changed by lazy init", prefCatDesc.equals(
-                            prefDAO.getPreferenceCategoryByName(sesh, prefCatToEdit.getName(), defaultPortal).getDescription()));
+                            prefDAO.getPreferenceCategoryByName(getSession(), prefCatToEdit.getName(), defaultPortal).getDescription()));
    
-        Assert.assertNotNull("pref cat should be lazy init", prefDAO.getPreferenceCategoryByName(sesh, prefCatToDelete.getName(), defaultPortal));                                                                                                          
+        Assert.assertNotNull("pref cat should be lazy init", prefDAO.getPreferenceCategoryByName(getSession(), prefCatToDelete.getName(), defaultPortal));                                                                                                          
     }
     
     /**
@@ -121,10 +121,10 @@ public class PortalUtilTest extends AbstractControllerTest {
      */
     @Test
     public void testCreateModerationThreshold() {
-        List<Threshold> defaultTholds = thresholdDAO.getThresholdsByName(sesh, ModerationUtil.MODERATION_THRESHOLD_NAME, p1);
+        List<Threshold> defaultTholds = thresholdDAO.getThresholdsByName(getSession(), ModerationUtil.MODERATION_THRESHOLD_NAME, p1);
         Assert.assertTrue("There shouldn't be any default thresholds!", defaultTholds.isEmpty());
-        PortalUtil.initModerationThreshold(sesh, p1);
-        defaultTholds = thresholdDAO.getThresholdsByName(sesh, ModerationUtil.MODERATION_THRESHOLD_NAME, p1);
+        PortalUtil.initModerationThreshold(getSession(), p1);
+        defaultTholds = thresholdDAO.getThresholdsByName(getSession(), ModerationUtil.MODERATION_THRESHOLD_NAME, p1);
         Assert.assertFalse("There should be a default threshold!", defaultTholds.isEmpty());
         Assert.assertEquals("There can be only 1 default threshold", 1, defaultTholds.size());
         Assert.assertEquals("The default threshold does not have the default name!", ModerationUtil.MODERATION_THRESHOLD_NAME, defaultTholds.get(0).getName());

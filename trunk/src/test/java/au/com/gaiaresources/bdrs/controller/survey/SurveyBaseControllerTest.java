@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FilenameUtils;
+import org.hibernate.Session;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -187,6 +188,7 @@ public class SurveyBaseControllerTest extends AbstractGridControllerTest {
     // Simulates the controller running in it's own transaction.
     @Override
     protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    	Session sesh = getSession();
     	sesh.flush();
     	sesh.clear();
     	ModelAndView mv = super.handle(request, response);

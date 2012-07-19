@@ -43,6 +43,6 @@ public class EditReviewMapControllerTest extends AbstractEditMapControllerTest {
 
 	@Override
 	protected GeoMap getMap() {
-		return geoMapDAO.getForOwner(sesh, MapOwner.REVIEW);
+		return geoMapDAO.getForOwner(getSession(), MapOwner.REVIEW);
 	}
 }

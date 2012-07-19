@@ -909,13 +909,13 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
         condition.setValue(values);
         condition.setPortal(portal);
         
-        condition = thresholdDAO.save(sesh, condition);
+        condition = thresholdDAO.save(getSession(), condition);
         conditionList.add(condition);
         threshold.setConditions(conditionList);
         
         // don't need to set threshold actions as only conditions are used 
         // for testing if a threshold is present on an attribute
         
-        return thresholdDAO.save(sesh, threshold);
+        return thresholdDAO.save(getSession(), threshold);
     }
 }

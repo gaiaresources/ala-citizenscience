@@ -144,7 +144,7 @@ public class AdvancedReviewSightingsControllerSearchTextTest extends
 		
 		// must flush or subsequent tests will return 0 results
 		// in their queries
-		this.sesh.flush();
+		getSession().flush();
 	}
 	
 	@Test

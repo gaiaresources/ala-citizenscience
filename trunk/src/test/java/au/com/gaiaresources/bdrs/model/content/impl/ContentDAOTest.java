@@ -23,7 +23,7 @@ public class ContentDAOTest extends AbstractControllerTest {
     @Before
     public void setup() throws Exception {
         for (String s : KEYS) {
-            contentDAO.saveContent(sesh, s, "randomcontentwedontcare");
+            contentDAO.saveContent(getSession(), s, "randomcontentwedontcare");
         }
     }
 

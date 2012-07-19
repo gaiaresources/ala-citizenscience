@@ -18,6 +18,8 @@ public class SurveyImportHandler extends SimpleImportHandler {
 
 	private GeoMapService geoMapService;
 	private Logger log = Logger.getLogger(getClass());
+	
+	private static final String JSON_CRS_KEY = "crs";
 
     public SurveyImportHandler(SpatialUtilFactory spatialUtilFactory, Class<?> klazz, GeoMapService geoMapService) {
         super(spatialUtilFactory, klazz);
@@ -42,7 +44,11 @@ public class SurveyImportHandler extends SimpleImportHandler {
         sesh.save(newSurvey);
         
         GeoMap map = geoMapService.getForSurvey(sesh, newSurvey);
-        map.setCrs(BdrsCoordReferenceSystem.valueOf(jsonPersistent.getString("crs")));
+        // for backwards compatibility, default to lat/lon
+        BdrsCoordReferenceSystem crs = jsonPersistent.containsKey(JSON_CRS_KEY) ?
+        		BdrsCoordReferenceSystem.valueOf(jsonPersistent.getString(JSON_CRS_KEY)) :
+        			BdrsCoordReferenceSystem.getBySRID(BdrsCoordReferenceSystem.DEFAULT_SRID);
+        map.setCrs(crs);
         
         addToPersistentLookup(persistentLookup, jsonPersistent, newSurvey);
 

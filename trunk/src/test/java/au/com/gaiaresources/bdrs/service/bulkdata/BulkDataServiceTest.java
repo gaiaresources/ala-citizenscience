@@ -316,7 +316,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
         FileOutputStream outStream = new FileOutputStream(spreadSheetTmp);
         registerStream(outStream);
 
-        bulkDataService.exportSurveyTemplate(sesh, survey, outStream);
+        bulkDataService.exportSurveyTemplate(getSession(), survey, outStream);
 
         InputStream inStream = new FileInputStream(spreadSheetTmp);
         registerStream(inStream);
@@ -446,7 +446,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
         FileOutputStream outStream = new FileOutputStream(spreadSheetTmp);
         registerStream(outStream);
 
-        bulkDataService.exportSurveyTemplate(sesh, survey, outStream);
+        bulkDataService.exportSurveyTemplate(getSession(), survey, outStream);
 
         InputStream inStream = new FileInputStream(spreadSheetTmp);
         registerStream(inStream);
@@ -529,7 +529,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
         FileOutputStream outStream = new FileOutputStream(spreadSheetTmp);
         registerStream(outStream);
 
-        bulkDataService.exportSurveyTemplate(sesh, survey, outStream);
+        bulkDataService.exportSurveyTemplate(getSession(), survey, outStream);
 
         InputStream inStream = new FileInputStream(spreadSheetTmp);
         registerStream(inStream);
@@ -613,7 +613,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 
         ByteArrayOutputStream outStream = new ByteArrayOutputStream();
         registerStream(outStream);
-        bulkDataService.exportSurveyTemplate(sesh, survey, outStream);
+        bulkDataService.exportSurveyTemplate(getSession(), survey, outStream);
         ByteArrayInputStream inStream = new ByteArrayInputStream(outStream
                 .toByteArray());
         registerStream(inStream);
@@ -683,7 +683,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
         FileOutputStream outStream = new FileOutputStream(spreadSheetTmp);
         registerStream(outStream);
 
-        bulkDataService.exportSurveyTemplate(sesh, survey, outStream);
+        bulkDataService.exportSurveyTemplate(getSession(), survey, outStream);
 
         InputStream inStream = new FileInputStream(spreadSheetTmp);
         registerStream(inStream);
@@ -847,7 +847,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
         FileOutputStream outStream = new FileOutputStream(spreadSheetTmp);
         registerStream(outStream);
 
-        bulkDataService.exportSurveyTemplate(sesh, survey, outStream);
+        bulkDataService.exportSurveyTemplate(getSession(), survey, outStream);
 
         InputStream inStream = new FileInputStream(spreadSheetTmp);
         registerStream(inStream);
@@ -1180,7 +1180,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
                         "BulkDataServiceTest.testImportSurveyCensusMethodRecordInRecord",
                         ".xls");
         FileOutputStream outStream = new FileOutputStream(spreadSheetTmp);
-        bulkDataService.exportSurveyTemplate(sesh, survey, outStream);
+        bulkDataService.exportSurveyTemplate(getSession(), survey, outStream);
         registerStream(outStream);
 
         InputStream inStream = new FileInputStream(spreadSheetTmp);
@@ -1363,7 +1363,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
         setRequired(survey, false);
         File spreadSheetTmp = File.createTempFile("BulkDataServiceTest.testImportRecordAndMissingLocation", ".xls");
         FileOutputStream outStream = new FileOutputStream(spreadSheetTmp);
-        bulkDataService.exportSurveyTemplate(sesh, survey, outStream);
+        bulkDataService.exportSurveyTemplate(getSession(), survey, outStream);
         registerStream(outStream);
 
         InputStream inStream = new FileInputStream(spreadSheetTmp);
@@ -1431,7 +1431,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
         File spreadSheetTmp = File.createTempFile(
                 "BulkDataServiceTest.testImportRecordDateTime", ".xls");
         FileOutputStream outStream = new FileOutputStream(spreadSheetTmp);
-        bulkDataService.exportSurveyTemplate(sesh, survey, outStream);
+        bulkDataService.exportSurveyTemplate(getSession(), survey, outStream);
         registerStream(outStream);
 
         InputStream inStream = new FileInputStream(spreadSheetTmp);
@@ -1510,7 +1510,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
         File spreadSheetTmp = File.createTempFile(
                 "BulkDataServiceTest.testAmbiguousDataImport", ".xls");
         FileOutputStream outStream = new FileOutputStream(spreadSheetTmp);
-        bulkDataService.exportSurveyTemplate(sesh, survey, outStream);
+        bulkDataService.exportSurveyTemplate(getSession(), survey, outStream);
         registerStream(outStream);
 
         InputStream inStream = new FileInputStream(spreadSheetTmp);
@@ -1565,7 +1565,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
         File spreadSheetTmp = File.createTempFile(
                 "BulkDataServiceTest.testNonMandatoryTaxonomicImport", ".xls");
         FileOutputStream outStream = new FileOutputStream(spreadSheetTmp);
-        bulkDataService.exportSurveyTemplate(sesh, survey, outStream);
+        bulkDataService.exportSurveyTemplate(getSession(), survey, outStream);
         registerStream(outStream);
 
         InputStream inStream = new FileInputStream(spreadSheetTmp);
@@ -1681,7 +1681,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
         File spreadSheetTmp = File.createTempFile(
                 "BulkDataServiceTest.testImportSpeciesAttribute", ".xls");
         FileOutputStream outStream = new FileOutputStream(spreadSheetTmp);
-        bulkDataService.exportSurveyTemplate(sesh, survey, outStream);
+        bulkDataService.exportSurveyTemplate(getSession(), survey, outStream);
         registerStream(outStream);
 
         InputStream inStream = new FileInputStream(spreadSheetTmp);

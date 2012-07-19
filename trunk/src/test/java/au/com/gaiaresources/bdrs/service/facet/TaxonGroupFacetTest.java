@@ -163,7 +163,7 @@ public class TaxonGroupFacetTest extends AbstractTransactionalTest {
 		facet.applyCustomJoins(hqlQuery);
 		hqlQuery.and(facetPredicate);
 		
-		Query q = toHibernateQuery(hqlQuery, this.sesh);
+		Query q = toHibernateQuery(hqlQuery, getSession());
 		
 		List<Object[]> result = (List<Object[]>)q.list();
 		

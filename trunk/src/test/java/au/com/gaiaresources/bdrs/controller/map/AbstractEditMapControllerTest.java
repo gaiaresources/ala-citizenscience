@@ -82,7 +82,7 @@ public abstract class AbstractEditMapControllerTest extends AbstractControllerTe
         editAssignedLayer.setMap(geoMap);
         geoMapLayerDAO.save(editAssignedLayer);
         
-        sesh.flush();
+        getSession().flush();
         
         geoMapDAO.refresh(geoMap);
     }

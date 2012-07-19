@@ -62,7 +62,7 @@ public class TaxaDAOImplTest extends AbstractGridControllerTest {
         
         taxaDAO.save(species);
         
-        IndicatorSpecies result = taxaDAO.getIndicatorSpeciesBySourceDataID(this.sesh, testSourceId);
+        IndicatorSpecies result = taxaDAO.getIndicatorSpeciesBySourceDataID(getSession(), testSourceId);
         Assert.assertNotNull(result);
         Assert.assertEquals("source id mismatch", testSourceId, result.getSourceId());
     }
