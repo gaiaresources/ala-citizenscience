@@ -50,8 +50,7 @@ public abstract class AbstractTypedAttributeValue extends PortalPersistentImpl i
             return this.getNumericValue() != null ? Integer.toString(this.getNumericValue().intValue()) : "NaN";
             
         case DECIMAL:
-            return this.getNumericValue() != null ? this.getNumericValue().toString() : "NaN";
-
+            return this.getNumericValue() != null ? this.getNumericValue().stripTrailingZeros().toPlainString() : "NaN";
         case DATE:
             return this.getDateValue() != null ? DateFormatter.format(this.getDateValue(), DateFormatter.DAY_MONTH_YEAR) : "";
         

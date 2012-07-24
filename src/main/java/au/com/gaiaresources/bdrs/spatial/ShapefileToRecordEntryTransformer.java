@@ -14,9 +14,7 @@ import org.opengis.feature.simple.SimpleFeature;
 
 import au.com.gaiaresources.bdrs.deserialization.record.RecordEntry;
 import au.com.gaiaresources.bdrs.deserialization.record.RecordKeyLookup;
-import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
-import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.util.DateFormatter;
 
 import com.vividsolutions.jts.geom.Geometry;

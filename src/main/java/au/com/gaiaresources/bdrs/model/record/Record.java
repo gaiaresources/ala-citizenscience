@@ -69,9 +69,9 @@ import com.vividsolutions.jts.geom.Point;
 })
 @Filters({
         @Filter(name = PortalPersistentImpl.PORTAL_FILTER_NAME, condition = ":portalId = PORTAL_ID"),
-        @Filter(name = Record.ANONYMOUS_RECORD_ACCESS_FILTER, condition = "RECORD_VISIBILITY = 'PUBLIC' and not HELD"),
-        @Filter(name = Record.USER_ACCESS_FILTER, condition = "(INDICATOR_USER_ID = :userId or (RECORD_VISIBILITY = 'PUBLIC' and not HELD))"),
-        @Filter(name = Record.MODERATOR_ACCESS_FILTER, condition = "(INDICATOR_USER_ID = :userId or RECORD_VISIBILITY = 'PUBLIC')"),
+        @Filter(name = Record.ANONYMOUS_RECORD_ACCESS_FILTER, condition = "RECORD_VISIBILITY IN ('PUBLIC','CONTROLLED') and not HELD"),
+        @Filter(name = Record.USER_ACCESS_FILTER, condition = "(INDICATOR_USER_ID = :userId or (RECORD_VISIBILITY IN ('PUBLIC','CONTROLLED') and not HELD))"),
+        @Filter(name = Record.MODERATOR_ACCESS_FILTER, condition = "(INDICATOR_USER_ID = :userId or RECORD_VISIBILITY IN ('PUBLIC','CONTROLLED'))"),
         @Filter(name = Record.IMAGE_FILTER, condition = "RECORD_ID in "+
                 "(select r.RECORD_ID from RECORD r " +
                     "inner join RECORD_ATTRIBUTE_VALUE av on av.RECORD_RECORD_ID=r.RECORD_ID " +
