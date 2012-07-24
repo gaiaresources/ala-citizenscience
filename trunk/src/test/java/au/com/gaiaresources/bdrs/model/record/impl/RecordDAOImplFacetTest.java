@@ -109,8 +109,12 @@ public class RecordDAOImplFacetTest extends AbstractControllerTest {
 
         FilterManager.enableRecordFilter(RequestContextHolder.getContext().getHibernate(), null);
         List<Pair<RecordVisibility, Long>> results = recordDAO.getDistinctRecordVisibilities();
-        Assert.assertEquals(1, results.size());
+        Assert.assertEquals(2, results.size());
         Pair<RecordVisibility, Long> result = results.get(0);
+        Assert.assertEquals(RecordVisibility.CONTROLLED, result.getFirst());
+        Assert.assertEquals(Long.valueOf(1), result.getSecond());
+
+        result = results.get(1);
         Assert.assertEquals(RecordVisibility.PUBLIC, result.getFirst());
         Assert.assertEquals(Long.valueOf(3), result.getSecond());
     }
@@ -175,11 +179,14 @@ public class RecordDAOImplFacetTest extends AbstractControllerTest {
         FilterManager.enableRecordFilter(RequestContextHolder.getContext().getHibernate(), normalUser);
         List<Pair<RecordVisibility, Long>> results = recordDAO.getDistinctRecordVisibilities();
 
-        Assert.assertEquals(2, results.size());
+        Assert.assertEquals(3, results.size());
         Pair<RecordVisibility, Long> result = getByVisibility(results, RecordVisibility.PUBLIC);
         Assert.assertEquals(Long.valueOf(4), result.getSecond());
 
         result = getByVisibility(results, RecordVisibility.OWNER_ONLY);
+        Assert.assertEquals(Long.valueOf(1), result.getSecond());
+        
+        result = getByVisibility(results, RecordVisibility.CONTROLLED);
         Assert.assertEquals(Long.valueOf(1), result.getSecond());
     }
 }
