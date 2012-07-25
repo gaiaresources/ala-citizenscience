@@ -316,7 +316,7 @@ public class RequestContext {
      * @throws SQLException
      */
     public ITaxonLibSession getTaxonLibSession() throws IllegalArgumentException, BdrsTaxonLibException, TaxonLibException, SQLException{
-        //TODO Check why we need create
+        
         return taxonLibSessionFactory.getSession();
     }
     
@@ -327,6 +327,9 @@ public class RequestContext {
      * @return {@link ITaxonLibSession} or null
      */
     public ITaxonLibSession getTaxonLibSessionOrNull(boolean create){
-        return taxonLibSessionFactory.getSessionOrNull();
+        if(taxonLibSessionFactory != null){
+            taxonLibSessionFactory.getSessionOrNull();
+        }
+        return null;
     }
 }
