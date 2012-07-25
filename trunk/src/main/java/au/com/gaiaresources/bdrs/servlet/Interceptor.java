@@ -1,6 +1,7 @@
 package au.com.gaiaresources.bdrs.servlet;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -336,7 +337,19 @@ public class Interceptor implements HandlerInterceptor {
         if(requestRollback != null && requestRollback instanceof Boolean && ((Boolean) requestRollback) == true){
             rollback = true;
         }
-        
+
+        // We now deal with any open taxonLib sessions.
+        ITaxonLibSession taxonLibSession = RequestContextHolder.getContext().getTaxonLibSessionOrNull(false);
+        if (taxonLibSession!= null
+                && taxonLibSession.getConnection()
+                        .isClosed()) {
+            if (rollback) {
+                log.info("rollback for taxonLib requested");
+                taxonLibSession.rollback();
+            } else {
+                taxonLibSession.commit();
+            }
+        }
         if (RequestContextHolder.getContext().getHibernate() != null
                 && (RequestContextHolder.getContext().getHibernate().isOpen())
                 && (RequestContextHolder.getContext().getHibernate()
@@ -349,20 +362,7 @@ public class Interceptor implements HandlerInterceptor {
                 TransactionHelper.commit(session);
             }
         }
-        // We now deal with any open taxonLib sessions.
-        if (RequestContextHolder.getContext().getTaxonLibSessionOrNull(false) != null
-                && !RequestContextHolder.getContext()
-                        .getTaxonLibSessionOrNull(false).getConnection()
-                        .isClosed()) {
-            ITaxonLibSession session = RequestContextHolder.getContext()
-                    .getTaxonLibSessionOrNull(false);
-            if (rollback) {
-                log.info("rollback for taxonLib requested");
-                session.rollback();
-            } else {
-                session.commit();
-            }
-        }
+        
 
         RequestContextHolder.clear();
     }
