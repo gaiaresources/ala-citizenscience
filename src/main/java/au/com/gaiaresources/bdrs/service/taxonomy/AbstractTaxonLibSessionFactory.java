@@ -18,7 +18,7 @@ import au.com.gaiaresources.taxonlib.TaxonLibException;
 public abstract class AbstractTaxonLibSessionFactory implements TaxonLibSessionFactory {
 
     private Logger log = Logger.getLogger(getClass());
-    private static ITaxonLibSession currentSession = null;
+    private ITaxonLibSession currentSession = null;
 
     /**
      * Get a TaxonLib session

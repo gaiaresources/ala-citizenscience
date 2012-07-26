@@ -5,7 +5,6 @@ import java.util.Date;
 
 import org.apache.log4j.Logger;
 import org.junit.Before;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.taxonlib.ITaxonLibSession;
@@ -16,9 +15,6 @@ public abstract class TaxonomyImportTest extends AbstractControllerTest {
     
     private static Logger log = Logger.getLogger(TaxonomyImportTest.class);
     
-    @Autowired
-    protected TaxonLibSessionFactory taxonLibSessionFactory;
-
     @Before
     public void taxonomyImportTestSetup() throws Exception {
         taxonLibSession = getRequestContext().getTaxonLibSession();

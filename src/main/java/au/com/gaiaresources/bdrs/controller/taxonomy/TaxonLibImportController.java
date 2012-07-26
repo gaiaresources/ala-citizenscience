@@ -74,8 +74,6 @@ public class TaxonLibImportController extends AbstractController {
 	@Autowired
     private SessionFactory sessionFactory;
 	@Autowired
-	private TaxonLibSessionFactory taxonLibSessionFactory;
-	@Autowired
 	private EmailService emailService;
     @Autowired
     private ApplicationModeService applicationModeService;
