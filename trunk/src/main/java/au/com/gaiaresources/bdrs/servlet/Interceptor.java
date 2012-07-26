@@ -1,7 +1,6 @@
 package au.com.gaiaresources.bdrs.servlet;
 
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +31,7 @@ import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.menu.MenuItem;
 import au.com.gaiaresources.bdrs.model.portal.Portal;
 import au.com.gaiaresources.bdrs.model.portal.PortalDAO;
+import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
 import au.com.gaiaresources.bdrs.model.theme.Theme;
 import au.com.gaiaresources.bdrs.model.theme.ThemeDAO;
 import au.com.gaiaresources.bdrs.model.theme.ThemeElement;
@@ -44,7 +44,7 @@ import au.com.gaiaresources.bdrs.service.menu.MenuService;
 import au.com.gaiaresources.bdrs.service.mode.AbstractApplicationMode;
 import au.com.gaiaresources.bdrs.service.mode.ApplicationModeService;
 import au.com.gaiaresources.bdrs.service.property.PropertyService;
-import au.com.gaiaresources.bdrs.service.taxonomy.TaxonLibSessionFactory;
+import au.com.gaiaresources.bdrs.service.taxonomy.PreferenceTaxonLibSessionFactory;
 import au.com.gaiaresources.bdrs.service.web.GoogleKeyService;
 import au.com.gaiaresources.bdrs.servlet.view.FileView;
 import au.com.gaiaresources.bdrs.util.StringUtils;
@@ -60,8 +60,8 @@ public class Interceptor implements HandlerInterceptor {
     SessionFactory sessionFactory;
 
     @Autowired
-    TaxonLibSessionFactory taxonLibSessionFactory;
-
+    PreferenceDAO prefDAO;
+    
     @Autowired
     UserDAO userDAO;
 
@@ -166,7 +166,7 @@ public class Interceptor implements HandlerInterceptor {
 
         c.setHibernate(sessionFactory.getCurrentSession());
         sessionFactory.getCurrentSession().beginTransaction();
-        c.setTaxonLibSessionFactory(taxonLibSessionFactory);
+        c.setTaxonLibSessionFactory(new PreferenceTaxonLibSessionFactory(prefDAO));
 
         if (c.getUser() != null) {
             // rebind the user in the context to the current session.

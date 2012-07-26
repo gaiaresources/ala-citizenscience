@@ -37,7 +37,6 @@ import au.com.gaiaresources.bdrs.python.PyResponse;
 import au.com.gaiaresources.bdrs.python.model.PyScrollableRecords;
 import au.com.gaiaresources.bdrs.service.python.PythonService;
 import au.com.gaiaresources.bdrs.service.taxonomy.BdrsTaxonLibException;
-import au.com.gaiaresources.bdrs.service.taxonomy.TaxonLibSessionFactory;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 import au.com.gaiaresources.bdrs.util.SpatialUtil;
@@ -101,8 +100,6 @@ public class ReportService extends PythonService {
     private AttributeValueDAO attributeValueDAO;
     @Autowired
     private MetadataDAO metadataDAO;
-    @Autowired
-    private TaxonLibSessionFactory taxonLibSessionFactory;
     
     private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
 

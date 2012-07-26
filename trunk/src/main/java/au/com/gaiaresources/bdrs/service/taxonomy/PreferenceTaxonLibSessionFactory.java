@@ -2,9 +2,6 @@ package au.com.gaiaresources.bdrs.service.taxonomy;
 
 import java.sql.SQLException;
 
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.StringUtils;
 
 import au.com.gaiaresources.bdrs.model.preference.Preference;
@@ -17,7 +14,7 @@ import au.com.gaiaresources.taxonlib.TaxonLibException;
  * preference table.
  */
 public class PreferenceTaxonLibSessionFactory extends
-        AbstractTaxonLibSessionFactory implements ApplicationContextAware {
+        AbstractTaxonLibSessionFactory {
 
     /**
      * Preference key
@@ -32,8 +29,13 @@ public class PreferenceTaxonLibSessionFactory extends
      */
     private static final String TAXON_LIB_DB_PASS_KEY = "taxonlib.database.password";
 
-    private ApplicationContext appContext;
-
+    private PreferenceDAO prefDAO = null;
+    
+    public PreferenceTaxonLibSessionFactory(PreferenceDAO prefDAO) {
+        super();
+        this.prefDAO = prefDAO;
+    }
+    
     /**
      * Gets a taxon lib session using database properties found in the
      * preference table. Use this when providing a TaxonLibSession to client
@@ -49,7 +51,6 @@ public class PreferenceTaxonLibSessionFactory extends
     @Override
     public ITaxonLibSession getSession() throws IllegalArgumentException,
             BdrsTaxonLibException, TaxonLibException, SQLException {
-        PreferenceDAO prefDAO = appContext.getBean(PreferenceDAO.class);
         if (prefDAO == null) {
             throw new IllegalArgumentException("PreferenceDAO cannot be null");
         }
@@ -75,11 +76,5 @@ public class PreferenceTaxonLibSessionFactory extends
         String password = passPref.getValue().trim();
 
         return getSession(url, username, password);
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext)
-            throws BeansException {
-        appContext = applicationContext;
     }
 }

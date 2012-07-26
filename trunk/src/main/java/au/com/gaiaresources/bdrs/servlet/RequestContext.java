@@ -1,6 +1,5 @@
 package au.com.gaiaresources.bdrs.servlet;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -328,7 +327,7 @@ public class RequestContext {
      */
     public ITaxonLibSession getTaxonLibSessionOrNull(boolean create){
         if(taxonLibSessionFactory != null){
-            taxonLibSessionFactory.getSessionOrNull();
+            return taxonLibSessionFactory.getSessionOrNull();
         }
         return null;
     }
