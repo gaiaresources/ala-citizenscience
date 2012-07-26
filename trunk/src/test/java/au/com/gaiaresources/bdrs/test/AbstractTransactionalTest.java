@@ -24,6 +24,7 @@ import au.com.gaiaresources.bdrs.controller.BdrsMockHttpServletRequest;
 import au.com.gaiaresources.bdrs.db.FilterManager;
 import au.com.gaiaresources.bdrs.model.portal.Portal;
 import au.com.gaiaresources.bdrs.model.portal.impl.PortalInitialiser;
+import au.com.gaiaresources.bdrs.service.taxonomy.FileTaxonLibSessionFactory;
 import au.com.gaiaresources.bdrs.service.taxonomy.TaxonLibSessionFactory;
 import au.com.gaiaresources.bdrs.servlet.RequestContext;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
@@ -51,10 +52,6 @@ public abstract class AbstractTransactionalTest extends
 
     @Autowired
     protected SessionFactory sessionFactory;
-
-    @Autowired
-    protected TaxonLibSessionFactory taxonLibSessionFactory;
-
     protected Portal defaultPortal;
 
     private boolean dropDatabase = false;
@@ -69,7 +66,7 @@ public abstract class AbstractTransactionalTest extends
         RequestContext c = new RequestContext(request, applicationContext);
         RequestContextHolder.set(c);
         c.setHibernate(sesh);
-        c.setTaxonLibSessionFactory(taxonLibSessionFactory);
+        c.setTaxonLibSessionFactory(new FileTaxonLibSessionFactory());
         sesh.beginTransaction();
     }
     
