@@ -93,7 +93,7 @@ public abstract class AbstractTransactionalTest extends
     	Session sesh = getSession();
         if(RequestContextHolder.getContext().getTaxonLibSessionFactory() == null){
             // In order to get around new requestContext being created
-            RequestContextHolder.getContext().setTaxonLibSessionFactory(taxonLibSessionFactory);
+            RequestContextHolder.getContext().setTaxonLibSessionFactory(new FileTaxonLibSessionFactory());
         }
         ITaxonLibSession taxonLibSession = RequestContextHolder
                 .getContext().getTaxonLibSession();
