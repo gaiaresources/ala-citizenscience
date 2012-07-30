@@ -18,7 +18,7 @@
 		<c:choose>
 			<c:when test="${ recordWebFormContext.existingRecord }">
 	                <div class="buttonpanel textright">
-                        <input class="form_action" type="submit" name="submit" value="Save Changes"/>
+                        <input id="saveButton" class="form_action" type="submit" name="submit" value="Save Changes"/>
                     </div>
                 </form>
 	        </c:when>

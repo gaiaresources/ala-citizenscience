@@ -2968,6 +2968,24 @@ bdrs.survey.location.updateLocation = function(pk, surveyId, options) {
     }
 };
 
+bdrs.survey.location.updateLocationAttributes = function(pk, surveyId, options) {
+    if(pk > 0) {
+        var params = {id: pk, surveyId: surveyId, displayAttributes: true};
+        jQuery.get(bdrs.portalContextPath+"/webservice/location/getLocationById.htm", params, function(data) {
+            // show the location attributes in the locationAttributesContainer
+            if (options) {
+                bdrs.attribute.createAttributeDisplayDiv(data.orderedAttributes, options.attributeSelector);
+            }
+        });
+    }
+    else {
+        // clear the location attributes in the locationAttributesContainer
+        if (options) {
+            bdrs.attribute.createAttributeDisplayDiv(null, options.attributeSelector);
+        }
+    }
+};
+
 bdrs.getDatePickerParams = function() {
     // This blur prevents the ketchup validator from indicating the
     // field is required when it is already filled in

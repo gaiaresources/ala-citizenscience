@@ -141,7 +141,10 @@
             point = new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat);
             layer.addFeatures(new OpenLayers.Feature.Vector(point));
             
-            bdrs.map.centerMap(bdrs.map.baseMap, lonLat, 10);
+            var geobounds = point.getBounds();
+            var zoom = bdrs.map.baseMap.getZoomForExtent(geobounds);
+            zoom = zoom > bdrs.map.DEFAULT_POINT_ZOOM_LEVEL ? bdrs.map.DEFAULT_POINT_ZOOM_LEVEL : zoom;
+            bdrs.map.baseMap.setCenter(geobounds.getCenterLonLat(), zoom);
         } else if (loc && loc.val() > 0) {
             // add the location on initial screen render
             jQuery.ajax({

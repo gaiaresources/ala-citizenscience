@@ -2,8 +2,6 @@ package au.com.gaiaresources.bdrs.deserialization.attribute;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -16,7 +14,6 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.springframework.web.multipart.MultipartFile;
 
-import au.com.gaiaresources.bdrs.attribute.AttributeDictionaryFactory;
 import au.com.gaiaresources.bdrs.config.AppContext;
 import au.com.gaiaresources.bdrs.controller.record.RecordFormValidator;
 import au.com.gaiaresources.bdrs.controller.record.WebFormAttributeParser;
@@ -234,7 +231,6 @@ public class AttributeDeserializer {
                             newRecords.add(thisRecord.getId());
                         }
                         rec.setParentRecord(thisRecord);
-                        rec.setAttributeValue((AttributeValue)recAttr);
                         rec.setUser(currentUser);
                     } else {
                         rec = recordDAO.getRecord(integer);
@@ -254,7 +250,7 @@ public class AttributeDeserializer {
                     
                     prefix = rowPrefix + String.format(AttributeParser.ATTRIBUTE_RECORD_NAME_FORMAT, 
                                                        (integer == 0 ? "" : integer+"_"));
-
+                    
                     boolean saved = deserializeAttributes(cm.getAttributes(), attrValuesToDelete, 
                                           rec.getAttributes(), prefix, 
                                           (Map<Attribute,Object>)attrNameMap.get(attribute), 
@@ -269,7 +265,7 @@ public class AttributeDeserializer {
                             if (isAddOrUpdate) {
                                 if (save) {
                                     recAttr = attributeDAO.save(recAttr);
-                                    
+                                    rec.setAttributeValue((AttributeValue)recAttr);
                                     rec = recordDAO.save(rec);
                                 }
                                 if (integer == 0) {
@@ -295,6 +291,12 @@ public class AttributeDeserializer {
                             rowIds.put(rec.getParentRecord() != null ? rec.getParentRecord().getId() : NULL_PARENT_ID, rowId);
                         }
                     }
+                    
+                    // if we've saved the record, but not the attribute value,
+                    // we should delete the record
+                    if (rec.getId() != null && recAttr.getId() == null) {
+                        recordDAO.delete(rec);
+                    }
                 }
             }
         } else if (AttributeUtil.isModifiableByScopeAndUser(attribute, currentUser)) {
@@ -306,6 +308,7 @@ public class AttributeDeserializer {
                         fileService.createFile(recAttr, attributeParser.getAttrFile());
                     }
                 }
+                
                 recAtts.add(recAttr);
                 savedOne = true;
             } else if (!moderationOnly) {
@@ -313,8 +316,9 @@ public class AttributeDeserializer {
                 recAtts.remove(recAttr);
                 attrValuesToDelete.add(recAttr);
             }
+            
         }
-        
+
         return savedOne;
     }
 
