@@ -908,8 +908,8 @@ public class TrackerController extends RecordController {
                          request.getParameter("taxonSearch"),
                          0,
                          request.getParameter("guid"),
-                         cmId == null ? 0 : cmId,
-                         speciesId == null ? 0 : speciesId,
+                         cmId == null ? Integer.valueOf(0) : cmId,
+                         speciesId == null ? Integer.valueOf(0) : speciesId,
                          parentRecId,
                          request.getParameter(PARAM_SELECTED_TAB));
     }
