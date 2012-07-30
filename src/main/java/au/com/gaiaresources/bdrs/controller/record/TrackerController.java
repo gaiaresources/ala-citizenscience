@@ -847,7 +847,7 @@ public class TrackerController extends RecordController {
                                     @RequestParam(value=BdrsWebConstants.PARAM_RECORD_ID, required=true) Integer recordId) {
         
         Record record = recordDAO.getRecord(recordId);
-        int surveyId = record.getSurvey().getId();
+        Integer surveyId = record.getSurvey().getId();
         Integer cmId = getIntFromParam(request.getParameter(PARAM_CENSUS_METHOD_ID));
         Integer speciesId = getIntFromParam(request.getParameter("speciesId"));
         Integer parentRecId = getIntFromParam(request.getParameter(PARAM_PARENT_RECORD_ID));
