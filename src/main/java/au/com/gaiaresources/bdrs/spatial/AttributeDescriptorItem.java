@@ -4,7 +4,11 @@ import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 
-public class AttributeDescriptorItem {        
+public class AttributeDescriptorItem {
+    private static final String NUMBER_STRING = "A number%s";
+    private static final String DATE_STRING = "A date in %s format";
+    private static final String TIME_STRING = "A time in 24-hour format HH:mm";
+    
     private String key;
     private Attribute attr;
     private String desc;
@@ -50,5 +54,28 @@ public class AttributeDescriptorItem {
             return "N/A";
         }
         return censusMethod.getName();
+    }
+
+    public String getAttributeOptionsString() {
+        String optionsString = "";
+        if (attr == null) {
+            return optionsString;
+        }
+        switch (attr.getType()) {
+        case INTEGER:
+        case DECIMAL:
+        case INTEGER_WITH_RANGE:
+            optionsString = String.format(NUMBER_STRING, (attr.getOptionString().length() == 2 ? " between " : " "));
+            break;
+        case DATE:
+            optionsString = String.format(DATE_STRING, Attribute.DATE_FORMAT_PATTERN);;
+            break;
+        case TIME:
+            optionsString = TIME_STRING;
+            break;
+        default:
+            break;
+        }
+        return optionsString + attr.getOptionString();
     }
 }

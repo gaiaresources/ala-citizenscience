@@ -71,7 +71,7 @@
                               the hidden input is only present to support ketchup validation.
                             --%>
                             jQuery(window).load(function() {
-                                bdrs.survey.location.updateLocation(${ location.id }, ${ formField.survey.id }, { 
+                                bdrs.survey.location.updateLocationAttributes(${ location.id }, ${ formField.survey.id }, { 
                                 	attributeSelector: '#attributesContainer',
                                 	crsSelector: '${ crsSelector }'
                                 });
@@ -88,7 +88,7 @@
                               the hidden input is only present to support ketchup validation.
                             --%>
                             jQuery(window).load(function() {
-                                bdrs.survey.location.updateLocation(${ location.id }, ${ formField.survey.id }, { attributeSelector: '#attributesContainer', crsSelector: '${ crsSelector }' });
+                                bdrs.survey.location.updateLocationAttributes(${ location.id }, ${ formField.survey.id }, { attributeSelector: '#attributesContainer', crsSelector: '${ crsSelector }' });
                             });
                         </script>
                         </c:if>
@@ -107,7 +107,7 @@
                           the hidden input is only present to support ketchup validation.
                         --%>
                         jQuery(window).load(function() {
-                            bdrs.survey.location.updateLocation(${ formField.record.location.id }, ${ formField.survey.id }, { attributeSelector: '#attributesContainer', crsSelector: '${ crsSelector }' });
+                            bdrs.survey.location.updateLocationAttributes(${ formField.record.location.id }, ${ formField.survey.id }, { attributeSelector: '#attributesContainer', crsSelector: '${ crsSelector }' });
                         });
                         
                     </script>

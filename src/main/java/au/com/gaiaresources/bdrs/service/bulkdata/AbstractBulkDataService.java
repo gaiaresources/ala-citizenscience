@@ -443,10 +443,14 @@ public abstract class AbstractBulkDataService {
         Cell descriptionHeaderCell = row.createCell(colIndex++);
         descriptionHeaderCell.setCellValue("Description");
 
+        Cell valuesHeaderCell = row.createCell(colIndex++);
+        valuesHeaderCell.setCellValue("Possible Values");
+
         if (helpHeaderStyle != null) {
             columnHeaderCell.setCellStyle(helpHeaderStyle);
             descriptionHeaderCell.setCellStyle(helpHeaderStyle);
             scopeHeaderCell.setCellStyle(helpHeaderStyle);
+            valuesHeaderCell.setCellStyle(helpHeaderStyle);
         }
 
         // Precanned Darwin Core Values
@@ -463,6 +467,8 @@ public abstract class AbstractBulkDataService {
             row.createCell(colIndex++).setCellValue(scopeName);
 
             row.createCell(colIndex++).setCellValue(attr.getDescription());
+
+            row.createCell(colIndex++).setCellValue(attr.getOptionString("|"));
         }
     }
 

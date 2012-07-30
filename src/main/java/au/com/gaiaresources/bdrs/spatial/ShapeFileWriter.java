@@ -412,6 +412,8 @@ public class ShapeFileWriter {
                     sb.append(adi.getCensusMethodDescription());
                     sb.append(FIELD_DESCRIPTION_FILE_DELIM);
                     sb.append(adi.getDescription());
+                    sb.append(FIELD_DESCRIPTION_FILE_DELIM);
+                    sb.append(adi.getAttributeOptionsString());
                     sb.append(newline);
                     descFileWriter.write(sb.toString());
                 }
@@ -920,7 +922,8 @@ public class ShapeFileWriter {
             
             descFileWriter.write("Shapefile attribute name" + FIELD_DESCRIPTION_FILE_DELIM + 
                                  "Database name" + FIELD_DESCRIPTION_FILE_DELIM + 
-                                 "Description");
+                                 "Description"  + FIELD_DESCRIPTION_FILE_DELIM + 
+                                 "Possible Values");
             
             descFileWriter.write(newline);
             descFileWriter.write(newline);
@@ -937,6 +940,8 @@ public class ShapeFileWriter {
                     sb.append(adi.getCensusMethodDescription());
                     sb.append(FIELD_DESCRIPTION_FILE_DELIM);
                     sb.append(adi.getDescription());
+                    sb.append(FIELD_DESCRIPTION_FILE_DELIM);
+                    sb.append(adi.getAttributeOptionsString());
                     sb.append(newline);
                     descFileWriter.write(sb.toString());
                 }

@@ -5,6 +5,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -232,6 +233,10 @@ public class TrackerController extends RecordController {
      */
     public static final String MV_ERROR_MAP = "errorMap";
     /**
+     * Model key - value map of the record data that was just posted.
+     */
+    public static final String MV_VALUE_MAP = "valueMap";
+    /**
      * Model key - parent record ID
      */
     public static final String MV_PARENT_RECORD_ID = "parentRecordId";
@@ -313,8 +318,8 @@ public class TrackerController extends RecordController {
         }
 
         IndicatorSpecies species = determineSpecies(surveyId, taxonSearch, guid, speciesId, record);
-        Map<String, String> valueMap = (Map<String, String>)getRequestContext().getSessionAttribute("valueMap");
-        getRequestContext().removeSessionAttribute("valueMap");
+        Map<String, String> valueMap = (Map<String, String>)getRequestContext().getSessionAttribute(MV_VALUE_MAP);
+        getRequestContext().removeSessionAttribute(MV_VALUE_MAP);
         
         if (valueMap != null) {
             // mock save record with value map results to populate form on server error
@@ -324,7 +329,8 @@ public class TrackerController extends RecordController {
             AttributeParser parser = new WebFormAttributeParser(taxaDAO);
             
             RecordDeserializer rds = new RecordDeserializer(lookup, adf, parser);
-            List<RecordEntry> entries = transformer.httpRequestParamToRecordMap(convertMap(valueMap), Collections.EMPTY_MAP);
+            Map<String,String[]> convertedMap = convertMap(valueMap);
+            List<RecordEntry> entries = transformer.httpRequestParamToRecordMap(convertedMap, Collections.EMPTY_MAP);
             List<RecordDeserializerResult> results;
             try {
                 results = rds.deserialize(getRequestContext().getUser(), entries, false, false);
@@ -440,15 +446,15 @@ public class TrackerController extends RecordController {
             }
         }
 
-    	Taxonomic taxonomic;
-    	if(censusMethod != null && censusMethod.getTaxonomic() != null) {
-    		taxonomic = censusMethod.getTaxonomic();
-    	}
-    	else {
-    		taxonomic = Taxonomic.OPTIONALLYTAXONOMIC;
-    	}
-    	
-    	RecordPropertyType[] recordProperties;
+        Taxonomic taxonomic;
+        if(censusMethod != null && censusMethod.getTaxonomic() != null) {
+            taxonomic = censusMethod.getTaxonomic();
+        }
+        else {
+            taxonomic = Taxonomic.OPTIONALLYTAXONOMIC;
+        }
+        
+        RecordPropertyType[] recordProperties;
         if(Taxonomic.OPTIONALLYTAXONOMIC.equals(taxonomic) || Taxonomic.TAXONOMIC.equals(taxonomic)) {
             recordProperties = RecordPropertyType.values();
         } else {
@@ -462,7 +468,7 @@ public class TrackerController extends RecordController {
             RecordProperty recordProperty = new RecordProperty(survey, type, metadataDAO);
             //showMap if location or point fields are hidden.
             if(!showMap && (type.equals(RecordPropertyType.LOCATION) || type.equals(RecordPropertyType.POINT))){
-            	showMap = !recordProperty.isHidden();
+                showMap = !recordProperty.isHidden();
             }
             surveyFormFieldList.add(formFieldFactory.createRecordFormField(record, recordProperty, species, taxonomic));
         }
@@ -516,7 +522,7 @@ public class TrackerController extends RecordController {
         }
         
         mv.addObject(MV_ERROR_MAP, errorMap);
-        mv.addObject("valueMap", valueMap);
+        mv.addObject(MV_VALUE_MAP, valueMap);
         mv.addObject("displayMap", showMap);
         
         return super.addRecord(mv, loggedInUser);
@@ -643,7 +649,7 @@ public class TrackerController extends RecordController {
             }
             
             getRequestContext().setSessionAttribute(MV_ERROR_MAP, res.getErrorMap());
-            getRequestContext().setSessionAttribute("valueMap", valueMap);
+            getRequestContext().setSessionAttribute(MV_VALUE_MAP, valueMap);
             getRequestContext().setSessionAttribute(MV_WKT, request.getParameter(PARAM_WKT));
             
             String redirectURL = request.getRequestURI().replace(ContentService.getContextPath(request.getRequestURL().toString()), "");
@@ -823,5 +829,104 @@ public class TrackerController extends RecordController {
                                     @RequestParam(value="speciesId", required=false) Integer speciesId) {
         
         return ajaxGetAttributeTable(request, response, surveyId, speciesId, rowIndex, "attributeRecordRow", attributeId);
+    }
+    
+    /**
+     * Handler for duplicating a Record on a form.  This method populates the 
+     * value map with the request parameters to reload on the form and calls 
+     * addRecords with the valueMap added to the request context.
+     * 
+     * @param request the browser request
+     * @param response the server response
+     * @param recordId the id of the record to duplicate
+     * @return the addRecord view populated with the values from the Record with id recordId
+     */
+    @RequestMapping(value = "/bdrs/user/contribute/duplicateRecord.htm", method = RequestMethod.POST)
+    public ModelAndView duplicateRecord(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    @RequestParam(value=BdrsWebConstants.PARAM_RECORD_ID, required=true) Integer recordId) {
+        
+        Record record = recordDAO.getRecord(recordId);
+        int surveyId = record.getSurvey().getId();
+        Integer cmId = getIntFromParam(request.getParameter(PARAM_CENSUS_METHOD_ID));
+        Integer speciesId = getIntFromParam(request.getParameter("speciesId"));
+        Integer parentRecId = getIntFromParam(request.getParameter(PARAM_PARENT_RECORD_ID));
+        
+        Set<String> recIdParams = new HashSet<String>();
+        
+        // populate the valueMap from the request parameters which will fill out the form as if an error had occurred
+        Map<String, String[]> params = request.getParameterMap();
+        Map<String, String> valueMap = new HashMap<String, String>();
+        for(Map.Entry<String, String[]> paramEntry : params.entrySet()) {
+            String paramKey = paramEntry.getKey();
+            String[] paramVal = paramEntry.getValue();
+            if(paramVal != null && paramVal.length > 0) {
+                if (paramKey.matches(".*attribute_\\d+_record.*")) {
+                    // this is a data matrix attribute
+                    // need to strip record ids from parameter name
+                    paramKey = paramKey.replaceAll("record_\\d+_", "record_");
+                }
+                
+                // add all recordId parameters to the list of ones to convert to value 0
+                if (paramKey.endsWith("recordId")) {
+                    recIdParams.add(paramKey);
+                }
+                
+                if (paramKey.endsWith("_rowPrefix")) {
+                    // remove the record id from the row prefix
+                    for (int i = 0; i < paramVal.length; i++) {
+                        paramVal[i] = paramVal[i].replaceAll("attribute_\\d+_record_\\d+_", "");
+                    }
+                }
+                
+                if (paramVal.length == 1) {
+                    valueMap.put(paramKey, paramVal[0]);
+                } else {
+                    // Not bothering with a csv writer here because the
+                    // jsp template does a simple String.contains to check
+                    // if the the multi select or multi combo should be picked.
+                    StringBuilder b = new StringBuilder();
+                    for(int q = 0; q<paramVal.length; q++) {
+                        b.append(paramVal[q]);
+                        b.append(',');
+                    }
+                    valueMap.put(paramKey, b.toString());
+                }
+            }
+        }
+        
+        for (String string : recIdParams) {
+            valueMap.put(string, "0");
+        }
+        
+        // remove the record id from the valueMap
+        valueMap.remove(PARAM_RECORD_ID);
+        
+        getRequestContext().setSessionAttribute(MV_VALUE_MAP, valueMap);
+        
+        return addRecord(request, response, surveyId, 
+                         request.getParameter("taxonSearch"),
+                         0,
+                         request.getParameter("guid"),
+                         cmId == null ? 0 : cmId,
+                         speciesId == null ? 0 : speciesId,
+                         parentRecId,
+                         request.getParameter(PARAM_SELECTED_TAB));
+    }
+
+    /**
+     * Helper method to safely get an Integer from a String or null if the 
+     * String is not an Integer.
+     * @param parameter the String to parse to an Integer
+     * @return an Integer representation of the String or null if it cannot be parsed
+     */
+    private Integer getIntFromParam(String parameter) {
+        Integer intVal = null;
+        try {
+            intVal = Integer.parseInt(parameter);
+        } catch (NumberFormatException e) {
+            // if the number cannot be parsed, it is a null parameter value
+        }
+        return intVal;
     }
 }

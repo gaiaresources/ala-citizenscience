@@ -56,9 +56,12 @@ public abstract class AbstractTransactionalTest extends
 
     private boolean dropDatabase = false;
     
+    private TaxonLibSessionFactory tlSeshFactory;
+    
     // @BeforeTransaction runs before @Before
     @BeforeTransaction
     public final void beginTransaction() throws Exception {
+    	tlSeshFactory = new FileTaxonLibSessionFactory();
     	// create the session that we will use for the whole test unless
     	// the test does its own session management in which case you need to be careful!
     	Session sesh = sessionFactory.getCurrentSession();
@@ -66,7 +69,7 @@ public abstract class AbstractTransactionalTest extends
         RequestContext c = new RequestContext(request, applicationContext);
         RequestContextHolder.set(c);
         c.setHibernate(sesh);
-        c.setTaxonLibSessionFactory(new FileTaxonLibSessionFactory());
+        c.setTaxonLibSessionFactory(tlSeshFactory);
         sesh.beginTransaction();
     }
     
@@ -93,7 +96,7 @@ public abstract class AbstractTransactionalTest extends
     	Session sesh = getSession();
         if(RequestContextHolder.getContext().getTaxonLibSessionFactory() == null){
             // In order to get around new requestContext being created
-            RequestContextHolder.getContext().setTaxonLibSessionFactory(new FileTaxonLibSessionFactory());
+            RequestContextHolder.getContext().setTaxonLibSessionFactory(tlSeshFactory);
         }
         ITaxonLibSession taxonLibSession = RequestContextHolder
                 .getContext().getTaxonLibSession();

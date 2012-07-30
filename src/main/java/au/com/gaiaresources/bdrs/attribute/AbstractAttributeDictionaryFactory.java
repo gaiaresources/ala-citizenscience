@@ -288,7 +288,13 @@ public abstract class AbstractAttributeDictionaryFactory implements
                                 paramKey = getParamKey(prefix+preRemove, attribute, false);
                             }
                         } else {
-                            paramKey = getParamKey(prefix+getRowPrefix(attribute.getType(), rowIndex++), attribute, isFileDictionary)+String.format(AttributeParser.ATTRIBUTE_RECORD_NAME_FORMAT, rec.getId()+"_");
+                            paramKey = getParamKey(prefix+getRowPrefix(attribute.getType(), rowIndex++), 
+                                        attribute, isFileDictionary);
+                            // don't add the record_ for new records in the records
+                            // list, this only happens for record duplication
+                            if (rec.getId() != null && rec.getId() != 0) {
+                                paramKey = paramKey + String.format(AttributeParser.ATTRIBUTE_RECORD_NAME_FORMAT, rec.getId()+"_");
+                            }
                         }
                         addAttributesToMap(childMap, recAttrValMap, cm.getAttributes(), scope, check, 
                                            paramKey, 
@@ -304,9 +310,14 @@ public abstract class AbstractAttributeDictionaryFactory implements
                     } else {
                         paramKey = getParamKey(prefix+rowPrefix, attribute, false);
                     }
+                    // attach the record bit to the end, this only applies to 
+                    // duplicated records
+                    if (!paramKey.endsWith("record_")) {
+                        paramKey += String.format(AttributeParser.ATTRIBUTE_RECORD_NAME_FORMAT, (recId != 0 ? recId+"_" : ""));
+                    }
                     addAttributesToMap(childMap, new HashMap<Attribute, AttributeValue>(), 
                                        cm.getAttributes(), scope, check, 
-                                       paramKey+String.format(AttributeParser.ATTRIBUTE_RECORD_NAME_FORMAT, (recId != 0 ? recId+"_" : "")), 
+                                       paramKey, 
                                        "Census method", dataMap, new HashSet<Integer>(existingCMs), isFileDictionary);
                 }
             }
