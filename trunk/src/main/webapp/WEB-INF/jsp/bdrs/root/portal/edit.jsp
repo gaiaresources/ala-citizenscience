@@ -144,11 +144,11 @@
 </form>
 <script>
     <c:choose>
-        <c:when test="empty ${portal.id}">
+        <c:when test="${portal.id == null}">
             var portalId = 0;
         </c:when>
         <c:otherwise>
-            var portalId = ${portal.id}
+            var portalId = ${portal.id};
         </c:otherwise>
     </c:choose>
     jQuery.fn.ketchup.validation('portalPrefix', function(element, value) {
