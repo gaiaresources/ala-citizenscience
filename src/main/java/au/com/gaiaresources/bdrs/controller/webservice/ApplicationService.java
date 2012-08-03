@@ -68,6 +68,8 @@ public class ApplicationService extends AbstractController {
      */
     public static final String JSON_KEY_TAXON_ID = "taxon_id";
     
+    public static final String JSON_KEY_SERVER_RECORDS_FOR_USER = "serverRecordCount";
+    
     private Logger log = Logger.getLogger(getClass());
 
     @Autowired
@@ -460,6 +462,8 @@ public class ApplicationService extends AbstractController {
                 }
                 
                 status.put("sync_result", syncResponseList);
+                int recordsForUser = recordDAO.countRecords(user);
+                status.put(JSON_KEY_SERVER_RECORDS_FOR_USER, recordsForUser);
                 jsonObj.put(CLIENT_SYNC_STATUS_KEY, HttpServletResponse.SC_OK);
                 jsonObj.put(HttpServletResponse.SC_OK, status);
             } else {
@@ -602,7 +606,9 @@ public class ApplicationService extends AbstractController {
 
         rec.setUser(user);
         if(surveyPk != null) {
-            rec.setSurvey(surveyDAO.getSurvey(surveyPk));
+        	Survey s = surveyDAO.getSurvey(surveyPk);
+            rec.setSurvey(s);
+            rec.setRecordVisibility(s.getDefaultRecordVisibility());
         }
 
         rec = recordDAO.saveRecord(rec);
