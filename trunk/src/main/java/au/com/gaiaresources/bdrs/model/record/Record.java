@@ -82,7 +82,7 @@ import com.vividsolutions.jts.geom.Point;
                 + "inner join ATTRIBUTE_VALUE v on av.ATTRIBUTES_ATTRIBUTE_VALUE_ID=v.ATTRIBUTE_VALUE_ID "
                 + "inner join ATTRIBUTE a on v.ATTRIBUTE_ID=a.ATTRIBUTE_ID "
                 + "where a.TYPE_CODE='IM' and v.STRING_VALUE is not null)"),
-        @Filter(name = Record.PARTIAL_RECORD_COUNT_FILTER, condition = "PARENT_ATTRIBUTE_VALUE is null"), })
+        @Filter(name = Record.PARTIAL_RECORD_COUNT_FILTER, condition = "PARENT_ATTRIBUTE_VALUE is null") })
 @Table(name = "RECORD")
 @AttributeOverride(name = "id", column = @Column(name = "RECORD_ID"))
 public class Record extends PortalPersistentImpl implements ReadOnlyRecord,
