@@ -922,6 +922,10 @@ table.surveyOptionTable td {
     padding-left: 0.5em;
 }
 
+.public_read_access_section {
+	padding-left: 4em;
+}
+
 /* Taxonomy */
 #add_species_wrapper {
     padding-left: 33%;

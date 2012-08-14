@@ -45,7 +45,6 @@ import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
 import au.com.gaiaresources.bdrs.model.report.Report;
 import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
-import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
@@ -76,6 +75,8 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
     
     @Autowired
     private IndexScheduleDAO indexDAO;
+    
+    public static final String GET_LOCATIONS_JSON_URL = "/review/sightings/advancedReviewJSONLocations.htm";
     
     private static final String KML_FILENAME = "Locations.kml";
     private static final String SHAPEFILE_ZIP_ENTRY_FORMAT = "shp/Locations.zip";
@@ -295,7 +296,7 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
      * Returns a JSON array of records matching the {@link Facet} criteria.
      */
     @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR, Role.USER})
-    @RequestMapping(value = "/review/sightings/advancedReviewJSONLocations.htm", method = {RequestMethod.GET, RequestMethod.POST})
+    @RequestMapping(value = GET_LOCATIONS_JSON_URL, method = {RequestMethod.GET, RequestMethod.POST})
     public void advancedReviewJSONSightings(HttpServletRequest request, 
                                             HttpServletResponse response,
                                             @RequestParam(value=RESULTS_PER_PAGE_QUERY_PARAM_NAME, required=false, defaultValue=DEFAULT_RESULTS_PER_PAGE) Integer resultsPerPage,

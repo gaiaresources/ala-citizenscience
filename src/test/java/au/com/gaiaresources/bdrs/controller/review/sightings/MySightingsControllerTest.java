@@ -877,7 +877,7 @@ public class MySightingsControllerTest extends AbstractGridControllerTest {
         {
             User u = RequestContextHolder.getContext().getUser(); 
             List<Survey> actualSurveyList = (List<Survey>)modelMap.get("survey_list");
-            Assert.assertEquals(surveyDAO.getActiveSurveysForUser(u), actualSurveyList);
+            Assert.assertEquals(surveyDAO.getReadableSurveys(u), actualSurveyList);
         }
         
         // ------------------

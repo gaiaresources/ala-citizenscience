@@ -28,6 +28,8 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.FilterDefs;
+import org.hibernate.annotations.Filters;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.ParamDef;
 import org.hibernate.annotations.Type;
@@ -43,10 +45,12 @@ import org.hibernate.search.annotations.TokenFilterDef;
 import org.hibernate.search.annotations.TokenizerDef;
 
 import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
+import au.com.gaiaresources.bdrs.db.FilterManager;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
 import au.com.gaiaresources.bdrs.model.attribute.Attributable;
 import au.com.gaiaresources.bdrs.model.index.IndexingConstants;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
+import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.region.Region;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
@@ -63,8 +67,19 @@ import com.vividsolutions.jts.geom.Point;
  *
  */
 @Entity
-@FilterDef(name=PortalPersistentImpl.PORTAL_FILTER_NAME, parameters=@ParamDef( name="portalId", type="integer" ) )
-@Filter(name=PortalPersistentImpl.PORTAL_FILTER_NAME, condition=":portalId = PORTAL_ID")
+
+@FilterDefs({
+    @FilterDef(name=PortalPersistentImpl.PORTAL_FILTER_NAME, parameters=@ParamDef( name="portalId", type="integer" )),
+    @FilterDef(name=FilterManager.LOCATION_USER_ACCESS_FILTER, parameters=@ParamDef( name=FilterManager.USER_ID, type="integer" ))
+})
+
+@Filters({
+    @Filter(name=PortalPersistentImpl.PORTAL_FILTER_NAME, condition=":portalId = PORTAL_ID"),
+    @Filter(name=FilterManager.LOCATION_USER_ACCESS_FILTER, condition="(:userId = user_id or (user_id is null and (" +
+                " location_id in (select sl1.locations_location_id from survey_location sl1 join survey_user_definition sud1 on sl1.survey_survey_id=sud1.survey_survey_id where sud1.users_user_definition_id = :userId) or" +
+                " location_id in (select sl2.locations_location_id from survey_location sl2 join survey_usergroup sg2 on sl2.survey_survey_id=sg2.survey_survey_id join group_users gu2 on sg2.groups_group_id=gu2.usergroup_group_id where gu2.users_user_definition_id = :userId) or" +
+                " location_id in (select sl3.locations_location_id from survey_location sl3 join survey surv3 on sl3.survey_survey_id=surv3.survey_id where surv3.public_read_access or surv3.public))))")
+})
 @Table(name = "LOCATION")
 @AttributeOverride(name = "id", column = @Column(name = "LOCATION_ID"))
 @Indexed

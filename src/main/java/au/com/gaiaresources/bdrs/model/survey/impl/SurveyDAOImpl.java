@@ -200,6 +200,24 @@ public class SurveyDAOImpl extends AbstractDAOImpl implements SurveyDAO {
         }
         return q.list();
     }
+    
+    public List<Survey> getReadableSurveys(User user) {
+        StringBuilder sb = new StringBuilder("select distinct s from Survey s");
+        if (user == null || !user.isAdmin()) {
+            sb.append(" where s.public is true");
+            sb.append(" or s.publicReadAccess is true");
+            if (user != null) {
+                sb.append(" or s.id in (select s2.id from Survey s2 join s2.users u2 where u2 = :user )");
+                sb.append(" or s.id in (select s3.id from Survey s3 join s3.groups g3 join g3.users u3 where u3 = :user)");
+            }
+        }
+
+        Query q = getSession().createQuery(sb.toString());
+        if (user != null && !user.isAdmin()) {
+            q.setParameter("user", user);    
+        }
+        return q.list();
+    }
 
     public Survey getLastSurveyForUser(User user) {
         List<Survey> surveys = getSurveys(user);

@@ -59,30 +59,34 @@ import com.vividsolutions.jts.geom.Point;
 @Entity
 @FilterDefs({
         @FilterDef(name = PortalPersistentImpl.PORTAL_FILTER_NAME, parameters = @ParamDef(name = "portalId", type = "integer")),
-        // The following filters define the visibility of Records based on the users role.
+        // The following filters define the visibility of Records based on the
+        // users role.
         @FilterDef(name = Record.ANONYMOUS_RECORD_ACCESS_FILTER),
         @FilterDef(name = Record.USER_ACCESS_FILTER, parameters = @ParamDef(name = "userId", type = "integer")),
         @FilterDef(name = Record.MODERATOR_ACCESS_FILTER, parameters = @ParamDef(name = "userId", type = "integer")),
-        // This filter is to restrict queries to records that have attached images.
+        // This filter is to restrict queries to records that have attached
+        // images.
         @FilterDef(name = Record.IMAGE_FILTER),
-        @FilterDef(name = Record.PARTIAL_RECORD_COUNT_FILTER)
-})
+        @FilterDef(name = Record.PARTIAL_RECORD_COUNT_FILTER) })
 @Filters({
         @Filter(name = PortalPersistentImpl.PORTAL_FILTER_NAME, condition = ":portalId = PORTAL_ID"),
-        @Filter(name = Record.ANONYMOUS_RECORD_ACCESS_FILTER, condition = "RECORD_VISIBILITY IN ('PUBLIC','CONTROLLED') and not HELD"),
-        @Filter(name = Record.USER_ACCESS_FILTER, condition = "(INDICATOR_USER_ID = :userId or (RECORD_VISIBILITY IN ('PUBLIC','CONTROLLED') and not HELD))"),
+        @Filter(name = Record.USER_ACCESS_FILTER, condition = "(INDICATOR_USER_ID = :userId OR ((("
+                + " INDICATOR_SURVEY_ID in (select surv2.survey_id from survey surv2 where surv2.public or surv2.public_read_access)"
+                + " or INDICATOR_SURVEY_ID in (select sud2.survey_survey_id from survey_user_definition sud2 where sud2.users_user_definition_id = :userId)"
+                + " or INDICATOR_SURVEY_ID in (select sg3.survey_survey_id from survey_usergroup sg3 join group_users gu3 on sg3.groups_group_id=gu3.usergroup_group_id where gu3.users_user_definition_id = :userId ))"
+                + " and RECORD_VISIBILITY IN ('PUBLIC','CONTROLLED') and not HELD)))"),
         @Filter(name = Record.MODERATOR_ACCESS_FILTER, condition = "(INDICATOR_USER_ID = :userId or RECORD_VISIBILITY IN ('PUBLIC','CONTROLLED'))"),
-        @Filter(name = Record.IMAGE_FILTER, condition = "RECORD_ID in "+
-                "(select r.RECORD_ID from RECORD r " +
-                    "inner join RECORD_ATTRIBUTE_VALUE av on av.RECORD_RECORD_ID=r.RECORD_ID " +
-                    "inner join ATTRIBUTE_VALUE v on av.ATTRIBUTES_ATTRIBUTE_VALUE_ID=v.ATTRIBUTE_VALUE_ID " +
-                    "inner join ATTRIBUTE a on v.ATTRIBUTE_ID=a.ATTRIBUTE_ID " +
-                  "where a.TYPE_CODE='IM' and v.STRING_VALUE is not null)"),
-        @Filter(name = Record.PARTIAL_RECORD_COUNT_FILTER, condition = "PARENT_ATTRIBUTE_VALUE is null")
-})
+        @Filter(name = Record.IMAGE_FILTER, condition = "RECORD_ID in "
+                + "(select r.RECORD_ID from RECORD r "
+                + "inner join RECORD_ATTRIBUTE_VALUE av on av.RECORD_RECORD_ID=r.RECORD_ID "
+                + "inner join ATTRIBUTE_VALUE v on av.ATTRIBUTES_ATTRIBUTE_VALUE_ID=v.ATTRIBUTE_VALUE_ID "
+                + "inner join ATTRIBUTE a on v.ATTRIBUTE_ID=a.ATTRIBUTE_ID "
+                + "where a.TYPE_CODE='IM' and v.STRING_VALUE is not null)"),
+        @Filter(name = Record.PARTIAL_RECORD_COUNT_FILTER, condition = "PARENT_ATTRIBUTE_VALUE is null"), })
 @Table(name = "RECORD")
 @AttributeOverride(name = "id", column = @Column(name = "RECORD_ID"))
-public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attributable<AttributeValue> {
+public class Record extends PortalPersistentImpl implements ReadOnlyRecord,
+        Attributable<AttributeValue> {
 
     public static final String ANONYMOUS_RECORD_ACCESS_FILTER = "anonymousRecordAccessFilter";
     public static final String USER_ACCESS_FILTER = "userRecordAccessFilter";
@@ -95,7 +99,8 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     public static final List<RecordPropertyType> NON_TAXONOMIC_RECORD_PROPERTY_NAMES;
 
     static {
-        ArrayList<RecordPropertyType> list = new ArrayList<RecordPropertyType>(6);
+        ArrayList<RecordPropertyType> list = new ArrayList<RecordPropertyType>(
+                6);
         list.add(RecordPropertyType.LOCATION);
         list.add(RecordPropertyType.POINT);
         list.add(RecordPropertyType.ACCURACY);
@@ -138,10 +143,13 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     private Set<ReviewRequest> reviewRequests = new HashSet<ReviewRequest>();
 
     private Set<Metadata> metadata = new HashSet<Metadata>();
-    
-    /** Reference to an attribute value which holds this record as one of its values */
+
+    /**
+     * Reference to an attribute value which holds this record as one of its
+     * values
+     */
     private AttributeValue attributeValue;
-    
+
     /**
      * Contains the Comments that have been made on this Record
      */
@@ -180,9 +188,9 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
 
     /**
      * DO NO UPDATE THIS LIST! the relationship is managed by the
-     * get/setParentRecord! Any changes to the list will be ignored
-     * See RecordDAOImplTest.java
-     *
+     * get/setParentRecord! Any changes to the list will be ignored See
+     * RecordDAOImplTest.java
+     * 
      * @return
      */
     @OneToMany(mappedBy = "parentRecord", fetch = FetchType.LAZY)
@@ -192,19 +200,19 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
 
     /**
      * DO NO UPDATE THIS LIST! the relationship is managed by the
-     * get/setParentRecord! Any changes to the list will be ignored
-     * See RecordDAOImplTest.java
-     *
+     * get/setParentRecord! Any changes to the list will be ignored See
+     * RecordDAOImplTest.java
+     * 
      * @param value
      */
     public void setChildRecords(Set<Record> value) {
         childRecords = value;
     }
-    
+
     /**
-     * Gets the attribute value that the record belongs to.
-     * This is for census method attribute types where each attribute value
-     * is a collection of records with attributes.
+     * Gets the attribute value that the record belongs to. This is for census
+     * method attribute types where each attribute value is a collection of
+     * records with attributes.
      */
     @CompactAttribute
     @ManyToOne(fetch = FetchType.LAZY)
@@ -213,11 +221,11 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     public AttributeValue getAttributeValue() {
         return attributeValue;
     }
-    
+
     public void setAttributeValue(AttributeValue recAttr) {
         this.attributeValue = recAttr;
     }
-    
+
     /**
      * Gets the survey that the record belongs to
      * <p/>
@@ -265,10 +273,9 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
         this.user = user;
     }
 
-
     /**
      * Get the location that the user saw the species.
-     *
+     * 
      * @return {@link Location}
      */
     @CompactAttribute
@@ -282,7 +289,6 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     public void setLocation(Location location) {
         this.location = location;
     }
-
 
     @Transient
     public Point getPoint() {
@@ -469,14 +475,13 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
 
     /**
      * Get the set of attributes that were recorded for the species.
-     *
+     * 
      * @return {@link Set} of {@link AttributeValue}
      */
     @CompactAttribute
     @OneToMany
     @Override
-    @JoinTable(name="record_attribute_value", joinColumns={@JoinColumn(name="record_record_id")}, 
-               inverseJoinColumns={@JoinColumn(name="attributes_attribute_value_id")})
+    @JoinTable(name = "record_attribute_value", joinColumns = { @JoinColumn(name = "record_record_id") }, inverseJoinColumns = { @JoinColumn(name = "attributes_attribute_value_id") })
     public Set<AttributeValue> getAttributes() {
         return attributes;
     }
@@ -487,7 +492,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
 
     /**
      * Any notes that the user might have about the sighting.
-     *
+     * 
      * @return {@link String}
      */
     @CompactAttribute
@@ -584,7 +589,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
 
     /**
      * The visibility level of the record. Defaults to 'owner only'
-     *
+     * 
      * @return
      */
     @CompactAttribute
@@ -610,9 +615,10 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     }
 
     /**
-     * @return the List of Comments made about this Record.  The List is sorted by newest Comment first.
+     * @return the List of Comments made about this Record. The List is sorted
+     *         by newest Comment first.
      */
-    @OneToMany(cascade = {CascadeType.ALL}, fetch = FetchType.LAZY, mappedBy = "record")
+    @OneToMany(cascade = { CascadeType.ALL }, fetch = FetchType.LAZY, mappedBy = "record")
     @Cascade(org.hibernate.annotations.CascadeType.DELETE_ORPHAN)
     @OrderBy("createdAt desc")
     public List<Comment> getComments() {
@@ -620,9 +626,11 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     }
 
     /**
-     * Sets the List of comments on this Record.  This is a framework method, clients should use "addComment" instead.
-     *
-     * @param comments the List of Comments that are replies to this Comment.
+     * Sets the List of comments on this Record. This is a framework method,
+     * clients should use "addComment" instead.
+     * 
+     * @param comments
+     *            the List of Comments that are replies to this Comment.
      */
     void setComments(List<Comment> comments) {
         this.comments = comments;
@@ -630,21 +638,24 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
 
     /**
      * Adds a Comment to his Record.
-     *
-     * @param comment the Comment to add.
+     * 
+     * @param comment
+     *            the Comment to add.
      */
     @Transient
     public void addComment(Comment comment) {
         comment.setRecord(this);
-        // Insert the comment into the start of the list for consistency - when retrieved from the
+        // Insert the comment into the start of the list for consistency - when
+        // retrieved from the
         // database comments are returned in descending date created order.
         comments.add(0, comment);
     }
 
     /**
      * Convenience method to add a comment as a string to a Record.
-     *
-     * @param commentText the text of the comment to add.
+     * 
+     * @param commentText
+     *            the text of the comment to add.
      * @return the newly created Comment
      */
     @Transient
@@ -655,7 +666,6 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
 
         return comment;
     }
-
 
     @Transient
     public String getMetadataValue(String key) {
@@ -713,7 +723,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
 
     /**
      * Returns a list of the AttributeValues ordered by Attribute weight
-     *
+     * 
      * @return
      */
     @Transient
@@ -722,9 +732,9 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     }
 
     /**
-     * Whether or not the details of this record should be hidden when outputing to json,
-     * or any other means.
-     *
+     * Whether or not the details of this record should be hidden when outputing
+     * to json, or any other means.
+     * 
      * @param accessor
      * @return
      */
@@ -732,35 +742,41 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     public boolean hideDetails(User accessor) {
         boolean isPublic = this.getRecordVisibility() == RecordVisibility.PUBLIC;
         if (accessor == null) {
-            // ignore accessing user and show only public records that aren't held
+            // ignore accessing user and show only public records that aren't
+            // held
             return !isPublic || isHeld();
         }
         if (accessor.getId() == null) {
             log.warn("Attempting to access record with a non null user with a null id. This _probably_ should not happen");
-            // ignore accessing user and show only public records that aren't held
+            // ignore accessing user and show only public records that aren't
+            // held
             return !isPublic || isHeld();
         }
         if (this.getUser() == null || this.getUser().getId() == null) {
-            // record is not yet properly created (user field cannot be null in database).
+            // record is not yet properly created (user field cannot be null in
+            // database).
             log.warn("Attempting to determine whether a record should have hidden details but the record has no owner");
             return false;
         }
 
         boolean isOwner = accessor.getId().intValue() == this.getUser().getId().intValue();
-        // if you aren't the owner or admin and the record isn't public or is held, hide the details
+        // if you aren't the owner or admin and the record isn't public or is
+        // held, hide the details
         if (isOwner || accessor.isAdmin()) {
             // the owner and the admin can always see their records
             return false;
         }
-        // everyone besided the owner and admin can only see public and unheld records
+        // everyone besided the owner and admin can only see public and unheld
+        // records
         return !isPublic || isHeld();
     }
 
     /**
      * Whether or not the user attempting to write to this record actually has
      * write access
-     *
-     * @param writer - the user attempting to write to this record
+     * 
+     * @param writer
+     *            - the user attempting to write to this record
      * @return true if writing allowed, false otherwise
      */
     @Transient
@@ -779,10 +795,12 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
             // this is a new record. anyone should be able to write to it.
             return true;
         }
-        // at this point we know the record already exists in the database (non null record id).
+        // at this point we know the record already exists in the database (non
+        // null record id).
 
         if (this.getUser() == null || this.getUser().getId() == null) {
-            // record is not yet properly created (user field cannot be null in database).
+            // record is not yet properly created (user field cannot be null in
+            // database).
             log.warn("Attempting to determine whether a record should have hidden details but the record has no owner");
             return false;
         }
@@ -790,15 +808,16 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
         boolean canWriteSurvey = this.survey.canWriteSurvey(writer);
         // only the owner, admins, and moderators can write a record
         // they also must have access to the survey in order to write to it
-        return canWriteSurvey && 
-                (isOwner || writer.isAdmin() || 
-                        (writer.isModerator() && isAtLeastOneModerationAttribute()));
+        return canWriteSurvey
+                && (isOwner || writer.isAdmin() || (writer.isModerator() && isAtLeastOneModerationAttribute()));
     }
 
     /**
-     * Checks all of the {@link Attribute Attributes} for one with a moderation scope.
-     *
-     * @return true if the record has at least one moderation attribute, false otherwise
+     * Checks all of the {@link Attribute Attributes} for one with a moderation
+     * scope.
+     * 
+     * @return true if the record has at least one moderation attribute, false
+     *         otherwise
      */
     @Transient
     public boolean isAtLeastOneModerationAttribute() {
@@ -817,49 +836,63 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
 
     /**
      * Contains the logic for if a user can view (not edit) this record
-     *
-     * @param viewer - the user attempting to view this record. can be null (i.e. not logged in)
+     * 
+     * @param viewer
+     *            - the user attempting to view this record. can be null (i.e.
+     *            not logged in)
      * @return true if viewing allowed, false otherwise
      */
     @Transient
     public boolean canView(User viewer) {
 
         if (viewer != null && viewer.getId() == null) {
-            throw new IllegalStateException("viewer does not have an id - the user object is not persisted");
+            throw new IllegalStateException(
+                    "viewer does not have an id - the user object is not persisted");
         }
         if (this.getId() == null) {
-            // we probably should not be attempting to view a non persisted record. throw an exception
+            // we probably should not be attempting to view a non persisted
+            // record. throw an exception
             throw new IllegalStateException("Cannot view non persisted record");
         }
-        // at this point we know the record already exists in the database (non null record id).
+        // at this point we know the record already exists in the database (non
+        // null record id).
         if (this.getUser() == null || this.getUser().getId() == null) {
-            throw new IllegalStateException("The owner of the record is invalid");
+            throw new IllegalStateException(
+                    "The owner of the record is invalid");
         }
 
-        boolean hasPrivilege = viewer != null ? viewer.isAdmin() || (viewer.isModerator() && isAtLeastOneModerationAttribute()) : false;
-        boolean isOwner = viewer != null ? viewer.getId().equals(this.getUser().getId()) : false;
+        boolean hasPrivilege = viewer != null ? viewer.isAdmin()
+                || (viewer.isModerator() && isAtLeastOneModerationAttribute())
+                : false;
+        boolean isOwner = viewer != null ? viewer.getId().equals(this.getUser().getId())
+                : false;
 
         switch (this.recordVisibility) {
-            // only the owner or admin can view an OWNER_ONLY record
-            case OWNER_ONLY:
-                // CONTROLLED records are a bit strange. alot of the information is hidden so rendering
-                // forms could be a little tricky. For now handle controlled records the same as
-                // owner only records
-            case CONTROLLED:
-                return isOwner || hasPrivilege;
-            case PUBLIC:
-                // public records are only viewable publicly if they are not held
-                // owner and privileged can always view public held records too
-                return !isHeld() || isOwner || hasPrivilege;
-            default:
-                throw new IllegalStateException("record visibility type not handled : " + this.recordVisibility);
+        // only the owner or admin can view an OWNER_ONLY record
+        case OWNER_ONLY:
+            // CONTROLLED records are a bit strange. alot of the information is
+            // hidden so rendering
+            // forms could be a little tricky. For now handle controlled records
+            // the same as
+            // owner only records
+        case CONTROLLED:
+            return isOwner || hasPrivilege;
+        case PUBLIC:
+            // public records are only viewable publicly if they are not held
+            // owner and privileged can always view public held records too
+            return !isHeld() || isOwner || hasPrivilege;
+        default:
+            throw new IllegalStateException(
+                    "record visibility type not handled : "
+                            + this.recordVisibility);
         }
     }
 
     /**
      * Returns true if the supplied User is allowed to comment on this Record.
-     *
-     * @param commentingUser the user to check.
+     * 
+     * @param commentingUser
+     *            the user to check.
      * @return true if the supplied user can comment on this Record.
      */
     @Transient
@@ -875,10 +908,11 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
     }
 
     /**
-     * Returns the Comment with the specified id.  If no such Comment exists, an IllegalArgumentException will
-     * be thrown.
-     *
-     * @param commentId the ID of the Comment to return.
+     * Returns the Comment with the specified id. If no such Comment exists, an
+     * IllegalArgumentException will be thrown.
+     * 
+     * @param commentId
+     *            the ID of the Comment to return.
      * @return the Comment with the supplied ID.
      */
     @Transient
@@ -898,25 +932,28 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord, Attr
         }
 
         if (comment == null) {
-            throw new IllegalArgumentException("No comment has been made on this Record with ID=" + commentId);
+            throw new IllegalArgumentException(
+                    "No comment has been made on this Record with ID="
+                            + commentId);
         }
 
         return comment;
     }
-    
+
     @Transient
     public BdrsCoordReferenceSystem getCrs() {
-    	Integer srid = getSrid();
-    	return srid != null ? BdrsCoordReferenceSystem.getBySRID(srid) : null;
+        Integer srid = getSrid();
+        return srid != null ? BdrsCoordReferenceSystem.getBySRID(srid) : null;
     }
-    
+
     /**
-     * Get the SRID for the geometry contained in this record.
-     * If geometry is null this method will return null.
+     * Get the SRID for the geometry contained in this record. If geometry is
+     * null this method will return null.
+     * 
      * @return SRID for the contained geometry.
      */
     @Transient
     public Integer getSrid() {
-    	return this.geometry != null ? this.geometry.getSRID() : null;
+        return this.geometry != null ? this.geometry.getSRID() : null;
     }
 }

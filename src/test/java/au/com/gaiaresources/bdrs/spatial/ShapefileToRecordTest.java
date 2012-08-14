@@ -60,6 +60,7 @@ import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.test.AbstractTransactionalTest;
+import au.com.gaiaresources.bdrs.test.TestUtil;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.MultiPolygon;
@@ -220,24 +221,130 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
     
     @Test
     public void testShapefileWithSurveyAttributes_Point() throws Exception {
-        testShapefileWithSurveyAttributes(ShapefileType.POINT);
+        Date dateOnly = TestUtil.getDate(2011, 6, 22, 00, 00);
+        Date expected = TestUtil.getDate(2011, 6, 22, 14, 30);
+        String time = "14:30";
+        testShapefileWithSurveyAttributes(ShapefileType.POINT, dateOnly, time, expected);
     }
     
     @Test
     public void testShapefileWithSurveyAttributes_MultiPolygon() throws Exception {
-        testShapefileWithSurveyAttributes(ShapefileType.MULTI_POLYGON);
+        Date dateOnly = TestUtil.getDate(2011, 6, 22, 00, 00);
+        Date expected = TestUtil.getDate(2011, 6, 22, 14, 30);
+        String time = "14:30";
+        testShapefileWithSurveyAttributes(ShapefileType.MULTI_POLYGON, dateOnly, time, expected);
     }
     
-    private void testShapefileWithSurveyAttributes(ShapefileType shpType) throws Exception {
+    @Test
+    public void testShapefileNullDateNullTime() throws Exception {
+        RecordProperty whenRp = new RecordProperty(survey, RecordPropertyType.WHEN, metaDAO);
+        RecordProperty timeRp = new RecordProperty(survey, RecordPropertyType.TIME, metaDAO);
+        whenRp.setRequired(false);
+        timeRp.setRequired(false);
+        testShapefileWithSurveyAttributes(ShapefileType.MULTI_POLYGON, null, null, null);
+    }
+    
+    @Test
+    public void testShapefileNullDate() throws Exception {
+        RecordProperty whenRp = new RecordProperty(survey, RecordPropertyType.WHEN, metaDAO);
+        whenRp.setRequired(false);
+        Date expected = TestUtil.getDate(1970, 0, 1, 14, 30);
+        testShapefileWithSurveyAttributes(ShapefileType.MULTI_POLYGON, null, "14:30", expected);
+    }
+    
+    @Test
+    public void testShapefileNullTime() throws Exception {
+        RecordProperty timeRp = new RecordProperty(survey, RecordPropertyType.TIME, metaDAO);
+        timeRp.setRequired(false);
+        Date dateOnly = TestUtil.getDate(2011, 6, 22, 00, 00);
+        testShapefileWithSurveyAttributes(ShapefileType.MULTI_POLYGON, dateOnly, null, dateOnly);
+    }
+    
+    /**
+     * Test with all record properties hidden and not required.
+     * @throws Exception
+     */
+    @Test
+    public void testShapefileNullEverything() throws Exception {
+        for (RecordPropertyType rpType : RecordPropertyType.values()) {
+            RecordProperty rp = new RecordProperty(survey, rpType, metaDAO);
+            rp.setRequired(false);
+            rp.setHidden(false);
+        }
+        for (Attribute a : survey.getAttributes()) {
+            a.setRequired(false);
+        }
+        
+        getSession().flush();
+        
+        RecordKeyLookup klu = new ShapefileRecordKeyLookup();
+        ShapefileToRecordEntryTransformer transformer = new ShapefileToRecordEntryTransformer(klu);
+        
+        // create the template:
+        ShapeFileWriter writer = new ShapeFileWriter();
+        File file = writer.createZipShapefile(survey, null, ShapefileType.POINT);
+        
+        ShapeFileReader reader = new ShapeFileReader(file);
+        
+        Assert.assertEquals(1, reader.getSurveyIdList().size());
+        Assert.assertEquals(survey.getId(), reader.getSurveyIdList().get(0));
+        
+        Assert.assertEquals(1, reader.getCensusMethodIdList().size());
+        Assert.assertEquals(0, reader.getCensusMethodIdList().get(0).intValue());
+        
+        // manipulate the template:
+        GeometryBuilder gb = new GeometryBuilder();
+        ShapefileDataStore ds = reader.getDataStore();
+        
+        List<ShapefileFeature> featureList = new LinkedList<ShapefileFeature>();
+        
+        {
+            Map<String, Object> featureAttr = new HashMap<String, Object>();
+            
+            // we can't blank this one out. shapefiles can't have null
+            // number fields - 0 is inserted instead.
+            featureAttr.put("sattr_1", 6);
+            Geometry geomToWrite = gb.createPoint(10, 5);
+            geomToWrite = gb.createPoint(10, 5);
+            Assert.assertNotNull(geomToWrite);
+            featureList.add(new ShapefileFeature(geomToWrite, featureAttr));
+        }
+        
+        writeFeatures(ds, featureList);
+        
+        List<RecordEntry> entries = transformer.shapefileFeatureToRecordEntries(reader.getFeatureIterator(), reader.getSurveyIdList(), reader.getCensusMethodIdList());
+        
+        Assert.assertNotNull(entries);
+        Assert.assertEquals(1, entries.size());
+        
+        AttributeDictionaryFactory adf = new ShapefileAttributeDictionaryFactory();
+        AttributeParser parser = new ShapefileAttributeParser(taxaDAO);
+        RecordDeserializer rds = new RecordDeserializer(klu, adf, parser);
+        List<RecordDeserializerResult> dsResult = rds.deserialize(currentUser, entries);
+        
+        Assert.assertNotNull(dsResult);
+        Assert.assertEquals(1, dsResult.size());
+        
+        Assert.assertTrue("Should be an empty error map", dsResult.get(0).getErrorMap().isEmpty());
+        
+        Assert.assertEquals(1, recordDAO.countAllRecords().intValue());
+        
+        Record record = recordDAO.search(null, null, null).getList().get(0);
+        
+        Geometry geom = record.getGeometry();
+        
+        Assert.assertEquals(4326, geom.getSRID());
+        
+        Assert.assertTrue(geom instanceof Point);
+        Point point = (Point)geom;
+        Assert.assertEquals(10d, point.getX());
+        Assert.assertEquals(5d, point.getY());
+    }
+    
+    private void testShapefileWithSurveyAttributes(ShapefileType shpType, Date date, String time, Date expectedDate) throws Exception {
+        
         Calendar cal = Calendar.getInstance();
-        cal.clear();
-        cal.set(2011, 6, 22, 14, 30, 00);
-        Date recordWhen = cal.getTime();
-        
-        cal.clear();
-        cal.set(2011, 6, 22, 00, 00, 00);
-        Date dateOnly = cal.getTime();
-        
+
         cal.clear();
         cal.set(2000, 1, 1);
         Date sattrDate = cal.getTime();
@@ -266,9 +373,14 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         {
             Map<String, Object> featureAttr = new HashMap<String, Object>();
             featureAttr.put(klu.getNotesKey(), "comments");
-            featureAttr.put(klu.getDateKey(), shpDateFormat.format(dateOnly));
+            if (date != null) {
+                featureAttr.put(klu.getDateKey(), shpDateFormat.format(date));    
+            }
+            
             featureAttr.put(klu.getSpeciesNameKey(), species.getScientificName().toLowerCase());
-            featureAttr.put(klu.getTimeKey(), "14:30");
+            if (time != null) {
+                featureAttr.put(klu.getTimeKey(), time);
+            }
             featureAttr.put("sattr_0", 100);
             featureAttr.put("sattr_1", 6);
             featureAttr.put("sattr_2", 6.7d);
@@ -323,7 +435,12 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         Assert.assertNotNull("record species should not be null", record.getSpecies());
         Assert.assertEquals(species.getScientificName(), record.getSpecies().getScientificName());
         
-        Assert.assertEquals(recordWhen, record.getWhen());
+        if (expectedDate != null) {
+            Assert.assertEquals("wrong date", expectedDate, record.getWhen());    
+        } else {
+            Assert.assertNull("record.when should be null", record.getWhen());
+        }
+        
         
         Geometry geom = record.getGeometry();
         
@@ -978,10 +1095,12 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         ShapefileFeatureStore featureStore = new ShapefileFeatureStore(ds, Collections.EMPTY_SET, ds.getSchema());
 
         FeatureCollection<SimpleFeatureType, SimpleFeature> collection = FeatureCollections.newCollection();
+        log.debug("asdfasfa");
         for (ShapefileFeature f : featureList) {
             Map<String, Object> attributes = f.getAttributes();
             featureBuilder.reset();
             for (Entry<String, Object> entry : attributes.entrySet()) {
+                log.debug("in test ..... " + entry.getKey() + " : " + entry.getValue());
                 featureBuilder.set(entry.getKey(), entry.getValue());
                 
             }

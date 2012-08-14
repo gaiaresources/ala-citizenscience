@@ -65,22 +65,26 @@ public class ShapefileToRecordEntryTransformer {
                 String key = prop.getName().toString();
                 
                 if (dmap.get(key) == null) {
-                    if (prop.getType().getBinding() == String.class) {
-                        String[] value = new String[] { ((String)(prop.getValue())).trim() };
-                        dmap.put(key, value);
-                    } else if (prop.getType().getBinding() == Integer.class) {
-                        String[] value = new String[] { ((Integer)(prop.getValue())).toString().trim() };
-                        dmap.put(key, value);
-                    } else if (prop.getType().getBinding() == Date.class) {
-                        Date date = (Date)prop.getValue();
-                        String[] value = new String[] { DateFormatter.format(date, DateFormatter.DAY_MONTH_YEAR) };
-                        dmap.put(key, value);
-                    } else if (prop.getType().getBinding() == Double.class) {
-                        String[] value = new String[] { ((Double)(prop.getValue())).toString().trim() };
-                        dmap.put(key, value);
+                    if (prop.getValue() == null) {
+                        dmap.put(key, new String[] { null });
                     } else {
-                        log.error("unrecognized type, ignoring");
-                        continue;
+                        if (prop.getType().getBinding() == String.class) {
+                            String[] value = new String[] { ((String)(prop.getValue())).trim() };
+                            dmap.put(key, value);
+                        } else if (prop.getType().getBinding() == Integer.class) {
+                            String[] value = new String[] { ((Integer)(prop.getValue())).toString().trim() };
+                            dmap.put(key, value);
+                        } else if (prop.getType().getBinding() == Date.class) {
+                            Date date = (Date)prop.getValue();
+                            String[] value = new String[] { DateFormatter.format(date, DateFormatter.DAY_MONTH_YEAR) };
+                            dmap.put(key, value);
+                        } else if (prop.getType().getBinding() == Double.class) {
+                            String[] value = new String[] { ((Double)(prop.getValue())).toString().trim() };
+                            dmap.put(key, value);
+                        } else {
+                            log.error("unrecognized type, ignoring");
+                            continue;
+                        }   
                     }
                 } else {
                     log.warn("key: " + key + " already exists in data map. Ignoring new value.");

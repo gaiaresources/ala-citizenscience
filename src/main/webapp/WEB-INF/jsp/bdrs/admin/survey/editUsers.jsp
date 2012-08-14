@@ -14,7 +14,7 @@
     <div>
         <p>
             The following groups and users will be able to log a record in
-            this survey.
+            this project.
         </p>
 
         <fieldset id="userSelectionTypeFieldSet">
@@ -60,6 +60,17 @@
             style="display:none"
         </c:if>
     >
+    
+    	<div>
+	        <p>
+	        	Users not in the 'Selected Users' list will have read access to all records in this project.
+	        </p>
+	        <div class="public_read_access_section">
+	           		<input id="publicReadAccess" type="checkbox" name="public_read_access" value="true" <c:if test="${survey.publicReadAccess}">checked="checked"</c:if> />
+	           		<label for="publicReadAccess">Public Read Access</label>
+	        </div>
+        </div>
+    
         <h2>Selected Users</h2>
         <div class="userSelectionChoice">
             <label for="user_search">User or Group: </label>
