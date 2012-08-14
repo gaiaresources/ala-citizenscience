@@ -50,7 +50,7 @@ import au.com.gaiaresources.bdrs.util.DateUtils;
     @FilterDef(name=PortalPersistentImpl.PORTAL_FILTER_NAME, parameters=@ParamDef( name="portalId", type="integer" ) )
 })
 @Filters({
-    @Filter(name=PortalPersistentImpl.PORTAL_FILTER_NAME, condition=":portalId = PORTAL_ID"),
+    @Filter(name=PortalPersistentImpl.PORTAL_FILTER_NAME, condition=":portalId = PORTAL_ID")
 })
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Table(name = "SURVEY")
