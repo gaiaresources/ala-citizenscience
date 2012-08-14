@@ -13,6 +13,7 @@ import javax.annotation.PostConstruct;
 import org.apache.log4j.Logger;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.velocity.VelocityEngineUtils;
@@ -58,7 +59,12 @@ public class TemplateService {
     public String transformToString(String fileName, Class<?> resource, Map<String, Object> subsitutionParams) {
         String resourcePath = resource.getPackage().getName();
         resourcePath = resourcePath.replace('.', '/') + "/" + fileName;
-        return VelocityEngineUtils.mergeTemplateIntoString(templateEngine, resourcePath, subsitutionParams);
+        try {
+            return VelocityEngineUtils.mergeTemplateIntoString(templateEngine, resourcePath, subsitutionParams);
+        } catch (ResourceNotFoundException rnfe) {
+            log.info("Could not find template resource : " + resourcePath);
+            return "";
+        }
     }
     
     public String evaluate(String value, Map<String, Object> params) {

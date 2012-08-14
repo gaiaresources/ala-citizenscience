@@ -129,7 +129,7 @@
                 </tr>
                 <tr>
                     <th class="interrogative" colspan="2">
-                        <sec:authorize ifAnyGranted="ROLE_ADMIN,ROLE_SUPERVISOR,ROLE_POWER_USER">Who</sec:authorize>
+                        Who
                     </th>
                     <th class="interrogative" colspan="2">
                         Order
@@ -137,34 +137,30 @@
                 </tr>
                 <tr>
                     <th>
-                        <sec:authorize ifAnyGranted="ROLE_ADMIN,ROLE_SUPERVISOR,ROLE_POWER_USER">
-                            <label for="my_records">
-                                Owner
-                            </label>
-                        </sec:authorize>
+                         <label for="my_records">
+                             Owner
+                         </label>
                     </th>
                     <td>
-                        <sec:authorize ifAnyGranted="ROLE_ADMIN,ROLE_SUPERVISOR,ROLE_POWER_USER">
-                            <fieldset>
+                        <fieldset>
+                            <div>
+                                <input id="my_records" type="radio" name="user_records_only" checked="checked" value="true"/>
+                                <label for="my_records">
+                                    Only for me
+                                </label>
+                            </div>
+                            
                                 <div>
-                                    <input id="my_records" type="radio" name="user_records_only" checked="checked" value="true"/>
-                                    <label for="my_records">
-                                        Only for me
+                                    <input type="radio" id="all_records" name="user_records_only" value="false"
+                                    <c:if test="${ not user_records_only }">
+                                        checked="checked"
+                                    </c:if>
+                                    />
+                                    <label for="all_records">
+                                        All public records
                                     </label>
                                 </div>
-                                
-                                    <div>
-                                        <input type="radio" id="all_records" name="user_records_only" value="false"
-                                        <c:if test="${ not user_records_only }">
-                                            checked="checked"
-                                        </c:if>
-                                        />
-                                        <label for="all_records">
-                                            All public records
-                                        </label>
-                                    </div>
-                            </fieldset>
-                        </sec:authorize>
+                        </fieldset>
                     </td>
                     <th>
                         <label for="sort_by">

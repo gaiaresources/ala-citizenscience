@@ -2,6 +2,7 @@ package au.com.gaiaresources.bdrs.service.taxonomy;
 
 import java.sql.SQLException;
 
+import org.hibernate.HibernateException;
 import org.springframework.util.StringUtils;
 
 import au.com.gaiaresources.bdrs.model.preference.Preference;
@@ -55,26 +56,30 @@ public class PreferenceTaxonLibSessionFactory extends
             throw new IllegalArgumentException("PreferenceDAO cannot be null");
         }
 
-        Preference urlPref = prefDAO.getPreferenceByKey(TAXON_LIB_DB_URL_KEY);
-        Preference userPref = prefDAO.getPreferenceByKey(TAXON_LIB_DB_USER_KEY);
-        Preference passPref = prefDAO.getPreferenceByKey(TAXON_LIB_DB_PASS_KEY);
+        try {
+            Preference urlPref = prefDAO.getPreferenceByKey(TAXON_LIB_DB_URL_KEY);
+            Preference userPref = prefDAO.getPreferenceByKey(TAXON_LIB_DB_USER_KEY);
+            Preference passPref = prefDAO.getPreferenceByKey(TAXON_LIB_DB_PASS_KEY);
 
-        if (urlPref == null || userPref == null || passPref == null) {
-            throw new BdrsTaxonLibException(
-                    "TaxonLib preferences have not been configured correctly.");
+            if (urlPref == null || userPref == null || passPref == null) {
+                throw new BdrsTaxonLibException(
+                        "TaxonLib preferences have not been configured correctly.");
+            }
+            if (!StringUtils.hasLength(urlPref.getValue().trim())
+                    || !StringUtils.hasLength(userPref.getValue().trim())
+                    || !StringUtils.hasLength(passPref.getValue().trim())) {
+                throw new BdrsTaxonLibException(
+                        "TaxonLib preferences have not been configured correctly.");
+            }
+            // looks ok, lets go!
+
+            String url = urlPref.getValue().trim();
+            String username = userPref.getValue().trim();
+            String password = passPref.getValue().trim();
+
+            return getSession(url, username, password);
+        } catch (HibernateException he) {
+            throw new BdrsTaxonLibException("Hibernate transaction not available. Cannot query for taxonlib database details.");
         }
-        if (!StringUtils.hasLength(urlPref.getValue().trim())
-                || !StringUtils.hasLength(userPref.getValue().trim())
-                || !StringUtils.hasLength(passPref.getValue().trim())) {
-            throw new BdrsTaxonLibException(
-                    "TaxonLib preferences have not been configured correctly.");
-        }
-        // looks ok, lets go!
-
-        String url = urlPref.getValue().trim();
-        String username = userPref.getValue().trim();
-        String password = passPref.getValue().trim();
-
-        return getSession(url, username, password);
     }
 }

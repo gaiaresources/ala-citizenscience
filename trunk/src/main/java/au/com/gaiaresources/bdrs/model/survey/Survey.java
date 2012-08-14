@@ -25,6 +25,8 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.FilterDefs;
+import org.hibernate.annotations.Filters;
 import org.hibernate.annotations.IndexColumn;
 import org.hibernate.annotations.ParamDef;
 
@@ -44,8 +46,12 @@ import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.util.DateUtils;
 
 @Entity
-@FilterDef(name=PortalPersistentImpl.PORTAL_FILTER_NAME, parameters=@ParamDef( name="portalId", type="integer" ) )
-@Filter(name=PortalPersistentImpl.PORTAL_FILTER_NAME, condition=":portalId = PORTAL_ID")
+@FilterDefs({
+    @FilterDef(name=PortalPersistentImpl.PORTAL_FILTER_NAME, parameters=@ParamDef( name="portalId", type="integer" ) )
+})
+@Filters({
+    @Filter(name=PortalPersistentImpl.PORTAL_FILTER_NAME, condition=":portalId = PORTAL_ID"),
+})
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Table(name = "SURVEY")
 @AttributeOverride(name = "id", column = @Column(name = "SURVEY_ID"))
@@ -74,6 +80,8 @@ public class Survey extends PortalPersistentImpl implements Comparable<Survey> {
     private Map<String, Metadata> metadataLookup = null;
     
     private GeoMap geoMap;
+    
+    private boolean publicReadAccess = true;
     
     // the default record publish level
     // Whatever this is set to will by the default settings of all new records
@@ -282,7 +290,7 @@ public class Survey extends PortalPersistentImpl implements Comparable<Survey> {
     }
 
     /**
-     * Is the survey publically viewable
+     * Is the survey publically writable (still requires login to create a record)
      * @return boolean
      */
     @Column(name = "PUBLIC")
@@ -291,7 +299,7 @@ public class Survey extends PortalPersistentImpl implements Comparable<Survey> {
     }
 
     /**
-     * Set if the survey is publically viewable
+     * Set if the survey is publically writable (still requires login to create a record)
      * @param publik boolean
      */
     public void setPublic(boolean publik) {
@@ -759,6 +767,29 @@ public class Survey extends PortalPersistentImpl implements Comparable<Survey> {
     public void setCustomForm(CustomForm customForm) {
         this.customForm = customForm;
     }
+    
+    /**
+     * When true records for this survey will always be readable by
+     * anonymous users.
+     * When false only users with appropriate survey privileges will
+     * be able to read records.
+     * @return public read access.
+     */
+    @Column(name = "public_read_access", nullable = false)
+	public boolean isPublicReadAccess() {
+		return publicReadAccess;
+	}
+
+    /**
+     * When true records for this survey will always be readable by
+     * anonymous users.
+     * When false only users with appropriate survey privileges will
+     * be able to read records.
+     * @param publicReadAccess public read access.
+     */
+	public void setPublicReadAccess(boolean publicReadAccess) {
+		this.publicReadAccess = publicReadAccess;
+	}
     
     /**
      * Returns true if the user can contribute to the survey/edit records in the survey.

@@ -24,11 +24,11 @@
             <table>
                 <tr>
                 <c:forEach items="${allowedRoles}" var="aRole">
-                <jsp:useBean id="aRole" type="java.lang.String"/>
-                <td><input type="checkbox" value="on" <c:if test="<%= assignedRoles.contains(aRole) %>">CHECKED</c:if> name="${aRole}"
-                 <c:if test="${aRole=='ROLE_USER'}"> DISABLED </c:if>
-                 /><label>${aRole}</label></td>
-                </c:forEach>
+	                <jsp:useBean id="aRole" type="java.lang.String"/>
+	                <td><input type="checkbox" value="on" <c:if test="<%= assignedRoles.contains(aRole) %>">CHECKED</c:if> name="${ aRole }" id="${ aRole }"
+	                 <c:if test="${aRole=='ROLE_USER'}"> DISABLED </c:if>
+	                 /><label for="${ aRole }">${aRole}</label></td>
+	                </c:forEach>
                 </tr>
             </table>
         </c:if>

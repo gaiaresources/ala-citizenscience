@@ -95,7 +95,11 @@ public abstract class SightingsController extends RecordController {
                             zos.putNextEntry(shpEntry);
 
                             // The writer impl will flush the session and disconnect the survey.
-                            survey = (Survey) sesh.merge(survey);
+                            // There's something strange going on with the sessions here. Make sure the 
+                            // survey object we are using belongs to the correct session. If the survey
+                            // already belongs to the correct session this will have no effect.
+                            survey = surveyDAO.getSurvey(sesh, survey.getId());
+                            
                             downloadWriter.write(bulkDataService, rdf, zos, sesh, contextPath, survey, user, sc);
                             zos.closeEntry();
                         }
@@ -112,7 +116,11 @@ public abstract class SightingsController extends RecordController {
                             zos.putNextEntry(shpEntry);
 
                             // The writer impl will flush the session and disconnect the survey.
-                            survey = (Survey) sesh.merge(survey);
+                            // There's something strange going on with the sessions here. Make sure the 
+                            // survey object we are using belongs to the correct session. If the survey
+                            // already belongs to the correct session this will have no effect.
+                            survey = surveyDAO.getSurvey(sesh, survey.getId());
+                            
                             downloadWriter.write(bulkDataService, rdf, zos, sesh, contextPath, survey, user, sc);
                             zos.closeEntry();
                         }

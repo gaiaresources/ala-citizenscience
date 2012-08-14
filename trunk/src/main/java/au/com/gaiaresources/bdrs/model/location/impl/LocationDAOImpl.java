@@ -22,13 +22,11 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import au.com.gaiaresources.bdrs.db.QueryOperation;
 import au.com.gaiaresources.bdrs.db.impl.AbstractDAOImpl;
 import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
 import au.com.gaiaresources.bdrs.db.impl.PaginationFilter;
 import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.db.impl.QueryPaginator;
-import au.com.gaiaresources.bdrs.geometry.GeometryBuilder;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
@@ -42,12 +40,8 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.db.DeleteCascadeHandler;
 import au.com.gaiaresources.bdrs.service.db.DeletionService;
-import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.util.Pair;
-import au.com.gaiaresources.bdrs.util.SpatialUtil;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 
 import edu.emory.mathcs.backport.java.util.Collections;
@@ -303,7 +297,7 @@ public class LocationDAOImpl extends AbstractDAOImpl implements LocationDAO {
     @Override
     public List<Pair<Survey, Long>> getDistinctSurveys(Session sesh) {
         StringBuilder b = new StringBuilder();
-        b.append(" select s, count(loc)");
+        b.append(" select s, count(distinct loc)");
         b.append(" from Location as loc join loc.surveys as s");
 
         b.append(" group by s.id");
@@ -321,7 +315,6 @@ public class LocationDAOImpl extends AbstractDAOImpl implements LocationDAO {
             sesh = super.getSessionFactory().getCurrentSession();
         }
         Query q = sesh.createQuery(b.toString());
-
         // Should get back a list of Object[]
         // Each Object[] has 2 items. Object[0] == taxon group, Object[1] == record count
         List<Pair<Survey, Long>> results = 

@@ -132,6 +132,8 @@ public class SurveyBaseController extends AbstractEditMapController {
      * The query parameter for the coordinate reference system
      */
     public static final String PARAM_CRS = "crs";
+    
+    public static final String PARAM_SURVEY_PUBLIC_READ_ACCESS = "public_read_access";
 
     private Logger log = Logger.getLogger(getClass());
 
@@ -414,11 +416,14 @@ public class SurveyBaseController extends AbstractEditMapController {
 
     @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR})
     @RequestMapping(value = "/bdrs/admin/survey/editUsers.htm", method = RequestMethod.POST)
-    public ModelAndView submitSurveyUsers(HttpServletRequest request, HttpServletResponse response) {
+    public ModelAndView submitSurveyUsers(HttpServletRequest request, HttpServletResponse response,
+    		@RequestParam(value=PARAM_SURVEY_PUBLIC_READ_ACCESS, defaultValue="false") boolean publicReadAccess) {
         Survey survey = getSurvey(request.getParameter(BdrsWebConstants.PARAM_SURVEY_ID));
         if (survey == null) {
             return SurveyBaseController.nullSurveyRedirect(getRequestContext());
         }
+        
+        survey.setPublicReadAccess(publicReadAccess);
 
         UserSelectionType selectionType =
             UserSelectionType.valueOf(request.getParameter("userSelectionType"));

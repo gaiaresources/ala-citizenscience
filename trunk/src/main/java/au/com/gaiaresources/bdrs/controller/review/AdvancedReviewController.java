@@ -272,6 +272,7 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
 
         // Enabling this filter users from seeing results not allowed by their current role.
         FilterManager.enableRecordFilter(requestContext.getHibernate(), user);
+        FilterManager.enableLocationFilter(requestContext.getHibernate(), user);
     }
 
     /**

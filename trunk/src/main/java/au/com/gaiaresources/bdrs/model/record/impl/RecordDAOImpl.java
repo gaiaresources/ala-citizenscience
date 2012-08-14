@@ -860,7 +860,7 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
     @Override
     public List<Pair<Survey, Long>> getDistinctSurveys(Session sesh) {
         StringBuilder b = new StringBuilder();
-        b.append(" select s, count(r)");
+        b.append(" select s, count(distinct r)");
         b.append(" from Record as r join r.survey as s");
 
         b.append(" group by s.id");

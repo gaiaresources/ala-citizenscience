@@ -265,4 +265,11 @@ public interface SurveyDAO extends TransactionDAO {
      * @return a {@link List} of {@link Survey Surveys} that the {@link User} can edit
      */
     public List<Survey> getSurveyListing(User user);
+    
+    /**
+     * Returns a listing of surveys that the user can read. User can be null
+     * @param user User accessing surveys.
+     * @return List of surveys the user can read.
+     */
+    public List<Survey> getReadableSurveys(User user);
 }

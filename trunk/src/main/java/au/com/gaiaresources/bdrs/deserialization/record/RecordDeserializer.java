@@ -55,6 +55,8 @@ import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.operation.valid.IsValidOp;
+import com.vividsolutions.jts.operation.valid.TopologyValidationError;
 
 public class RecordDeserializer {
 
@@ -82,7 +84,7 @@ public class RecordDeserializer {
     public static final String TAXON_NOT_IN_SURVEY_KEY_DEFAULT_MESSAGE = "This species is not valid for the survey.";
     
     public static final String GEOM_INVALID_KEY = "Tracker.GeometryInvalid";
-    public static final String GEOM_INVALID_DEFAULT_MESSAGE = "The geometry is invalid. Self intersecting polygons are not allowed";
+    public static final String GEOM_INVALID_DEFAULT_MESSAGE = "The geometry is invalid. %s";
     
     /**
      * Create a new record deserializer.
@@ -334,18 +336,23 @@ public class RecordDeserializer {
                             }
                         } else {
                             // make sure the geometry is valid !
-                            boolean geomValid = entry.getGeometry().isValid();
+                            
+                            IsValidOp isValidOp = new IsValidOp(entry.getGeometry());
+                            TopologyValidationError geomError = isValidOp.getValidationError();
+                            
+                            boolean geomValid = geomError == null;
+                            
                             if (!geomValid) {
                                 Map<String, String> errorMap = validator.getErrorMap();
                                 String errMsg = propertyService.getMessage(
                                                 GEOM_INVALID_KEY, 
                                                 GEOM_INVALID_DEFAULT_MESSAGE);
-                                errorMap.put(klu.getLatitudeKey(), errMsg);
-                                errorMap.put(klu.getLongitudeKey(), errMsg);
+                                errorMap.put(klu.getLatitudeKey(), String.format(errMsg, geomError.getMessage()));
+                                errorMap.put(klu.getLongitudeKey(), String.format(errMsg, geomError.getMessage()));
                             } else {
                                 // attempt to do geometry conversion as we only support multiline, multipolygon and singlepoint
                                 try {
-                                	SpatialUtil spatialUtil = spatialUtilFactory.getLocationUtil(entry.getGeometry().getSRID());
+                                    SpatialUtil spatialUtil = spatialUtilFactory.getLocationUtil(entry.getGeometry().getSRID());
                                     Geometry geom = spatialUtil.convertToMultiGeom(entry.getGeometry());
                                     entry.setGeometry(geom);
                                 } catch (IllegalArgumentException iae) {

@@ -346,7 +346,7 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
         // In the case that no surveys are selected to filter by - we will use
         // all the surveys available for the accessing user
         if (surveyList.isEmpty()) {
-            surveyList = surveyDAO.getActiveSurveysForUser(currentUser);
+            surveyList = surveyDAO.getReadableSurveys(currentUser);
         }
         
         // I think 'surveyId' is not used for AdvancedReview but is used for MySightings

@@ -28,6 +28,7 @@ import org.springframework.web.servlet.ModelAndView;
 import au.com.gaiaresources.bdrs.controller.map.RecordDownloadFormat;
 import au.com.gaiaresources.bdrs.controller.map.RecordDownloadWriter;
 import au.com.gaiaresources.bdrs.controller.map.WebMap;
+import au.com.gaiaresources.bdrs.db.FilterManager;
 import au.com.gaiaresources.bdrs.db.ScrollableResults;
 import au.com.gaiaresources.bdrs.db.impl.SortOrder;
 import au.com.gaiaresources.bdrs.db.impl.SortingCriteria;
@@ -100,6 +101,9 @@ public class MySightingsController extends SightingsController {
     public static final String QUERY_PARAM_SORT_ORDER = "sort_order";
     public static final String QUERY_PARAM_PAGE_NUMBER = "page_number";
     
+    // Model and view key
+    public static final String MV_SURVEY_LIST = "survey_list";
+    
     @Autowired
     private RecordDAO recordDAO;
     @Autowired
@@ -158,7 +162,7 @@ public class MySightingsController extends SightingsController {
                                         @RequestParam(defaultValue = DEFAULT_PAGE_NUM, value = QUERY_PARAM_PAGE_NUMBER, required = false) int pageNumber) {
         
         User user = getRequestContext().getUser();
-        List<Survey> surveyList = surveyDAO.getActiveSurveysForUser(user);
+        List<Survey> surveyList = surveyDAO.getReadableSurveys(user);
         Survey selectedSurvey = surveyDAO.getSurvey(selectedSurveyId);
 
         List<? extends TaxonGroup> groupList;
@@ -189,7 +193,7 @@ public class MySightingsController extends SightingsController {
         
         ModelAndView mv = new ModelAndView("mySightings");
         
-        mv.addObject("survey_list", surveyList);
+        mv.addObject(MV_SURVEY_LIST, surveyList);
         mv.addObject("selected_survey", selectedSurvey);
         mv.addObject("group_list", groupList);
         mv.addObject("start_date", startDate);
@@ -449,7 +453,7 @@ public class MySightingsController extends SightingsController {
         
         List<Survey> surveyList;
         if (surveyId == 0) {
-            surveyList = surveyDAO.getActiveSurveysForUser(user);
+            surveyList = surveyDAO.getReadableSurveys(user);
         } else {
             surveyList = new ArrayList<Survey>();
             surveyList.add(surveyDAO.get(surveyId));
@@ -499,6 +503,10 @@ public class MySightingsController extends SightingsController {
             filter.setUser(accessor);
         } else {
             filter.setAccessor(accessor);
+        }
+        
+        if (!userRecordsOnly) {
+            FilterManager.enableRecordFilter(getRequestContext().getHibernate(), accessor);
         }
 
         if(limit > 0) {
