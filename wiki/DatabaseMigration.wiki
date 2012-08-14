@@ -740,3 +740,14 @@ alter table geo_map alter crs set not null;
 
 rollback;
 </code>
+
+
+= r390 =
+<code language="sql">
+
+begin;
+
+alter table survey add column public_read_access boolean not null default true;
+
+rollback;
+</code>
