@@ -340,12 +340,12 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
         return opt;
     }
 
-    public TypedAttributeValue createIndicatorSpeciesAttribute(
+    public TypedAttributeValue createAttributeValue(
             IndicatorSpecies species, Attribute attr, String value) {
-        return createIndicatorSpeciesAttribute(species, attr, value, null);
+        return createAttributeValue(species, attr, value, null);
     }
 
-    public TypedAttributeValue createIndicatorSpeciesAttribute(
+    public TypedAttributeValue createAttributeValue(
             IndicatorSpecies species, Attribute attr, String value, String desc) {
         AttributeValue impl = new AttributeValue();
         impl.setDescription(desc);

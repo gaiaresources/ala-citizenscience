@@ -86,8 +86,8 @@ public interface TaxaDAO extends TransactionDAO {
      */
     AttributeOption createAttributeOption(Attribute attribute, String option);
 
-    TypedAttributeValue createIndicatorSpeciesAttribute(IndicatorSpecies species, Attribute attr, String value);
-    TypedAttributeValue createIndicatorSpeciesAttribute(IndicatorSpecies species, Attribute attr, String value, String desc);
+    TypedAttributeValue createAttributeValue(IndicatorSpecies species, Attribute attr, String value);
+    TypedAttributeValue createAttributeValue(IndicatorSpecies species, Attribute attr, String value, String desc);
 
     /**
      * Deletes a given option.
