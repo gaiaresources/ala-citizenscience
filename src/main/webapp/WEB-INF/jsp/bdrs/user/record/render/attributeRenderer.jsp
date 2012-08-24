@@ -622,6 +622,7 @@
         <c:set var="id" value="${formPrefix}attribute_${formField.attribute.id}"></c:set>
         <c:if test="${recordWebFormContext.namedFormFields[id] != null && fn:length(recordWebFormContext.namedFormFields[id]) > 0}">
              <div name="${ formPrefix }">
+                <div class="table_caption"><cw:validateHtml html="${formField.attribute.description}"/></div>
                 <div class="scrollable" align="center">
                 <!-- hidden field for preventing the same census method from being added more than once 
                      (resulting in infinite recursion)-->
@@ -638,7 +639,6 @@
                     <!-- hidden field to keep the record id associated with this set of parameters -->
                     <input name="${formPrefix}attribute_${ formField.attribute.id }_recordId" type="hidden" value="${rowRecordId}" />
                     <table id="${formPrefix}attribute_${ formField.attribute.id }_table" class="censusMethodAttributeTable">
-                        <caption><c:out value="<%= formField.getAttribute().getDescription() %>"/></caption>
                         <tbody>
                             <c:forEach items="${recordWebFormContext.namedFormFields[id]}" var="subField">
                                 <tr>
@@ -665,10 +665,10 @@
         <c:set var="id" value="${formPrefix}attribute_${formField.attribute.id}"></c:set>
         <c:if test="${recordWebFormContext.namedFormFields[id] != null && fn:length(recordWebFormContext.namedFormFields[id]) > 0}">
             <div name="${ formPrefix }">
+                <div class="table_caption"><cw:validateHtml html="${formField.attribute.description}"/></div>
                 <div class="scrollable" align="center">
                     <input type="hidden" name="censusMethodTableId" value="${formField.attribute.censusMethod.id}"/>
                     <table id="${formPrefix}attribute_${ formField.attribute.id }_table" class="datatable censusMethodAttributeTable">
-                        <caption><c:out value="<%= formField.getAttribute().getDescription() %>"/></caption>
                         <thead>
                             <tr>
                             <c:forEach items="${recordWebFormContext.namedFormFields[id]}" var="subField">

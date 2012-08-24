@@ -2149,7 +2149,14 @@ table.censusMethodAttributeTable thead th {
     text-align: center;
 }
 
-table table table caption {
+.table_caption {
+    font-weight: bold;
+    margin-bottom: .5em;
+    text-align: center;
+}
+
+table table table caption,
+table table .table_caption {
     display: none;
 }
 
