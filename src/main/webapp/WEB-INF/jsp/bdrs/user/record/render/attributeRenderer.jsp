@@ -642,7 +642,7 @@
                         <tbody>
                             <c:forEach items="${recordWebFormContext.namedFormFields[id]}" var="subField">
                                 <tr>
-                                <th class="censusMethodAttributeRowHeader"><c:out value="${ subField.attribute.description }"/></th>
+                                <th class="censusMethodAttributeRowHeader"><cw:validateHtml html="${subField.attribute.description}"/></th>
                                 <td>
                                 <tiles:insertDefinition name="attributeRenderer">
                                    <tiles:putAttribute name="formField" value="${ subField }"/>
@@ -672,7 +672,7 @@
                         <thead>
                             <tr>
                             <c:forEach items="${recordWebFormContext.namedFormFields[id]}" var="subField">
-                                <th class="censusMethodAttributeColumnHeader"><c:out value="${ subField.attribute.description }"/></th>
+                                <th class="censusMethodAttributeColumnHeader"><cw:validateHtml html="${subField.attribute.description}"/></th>
                             </c:forEach>
                             <c:if test="${ not preview and recordWebFormContext.editable and not recordWebFormContext.moderateOnly }">
                                 <th class="censusMethodAttributeColumnHeader deleteColumn">Delete</th>
