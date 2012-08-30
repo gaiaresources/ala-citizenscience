@@ -32,12 +32,14 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 public class ApplicationServiceTest extends AbstractControllerTest {
     
     private Logger log = Logger.getLogger(getClass());
-    private Survey frogSurveyInDb, birdAndFrogSurveyInDb;
+    private Survey frogSurveyInDb, birdAndFrogSurveyInDb, allSurvey;
     
+    private IndicatorSpecies frog1, frog2, bird1, bird2, bird3;
     
     @Autowired
     private SurveyDAO surveyDAO;
@@ -79,11 +81,11 @@ public class ApplicationServiceTest extends AbstractControllerTest {
          //create species
          Set<IndicatorSpecies> frogSet = new HashSet<IndicatorSpecies>();
          Set<IndicatorSpecies> birdSet = new HashSet<IndicatorSpecies>();
-         IndicatorSpecies frog1 = new IndicatorSpecies();
-         IndicatorSpecies frog2 = new IndicatorSpecies();
-         IndicatorSpecies bird1 = new IndicatorSpecies();
-         IndicatorSpecies bird2 = new IndicatorSpecies();
-         IndicatorSpecies bird3 = new IndicatorSpecies();
+         frog1 = new IndicatorSpecies();
+         frog2 = new IndicatorSpecies();
+         bird1 = new IndicatorSpecies();
+         bird2 = new IndicatorSpecies();
+         bird3 = new IndicatorSpecies();
          frog1.setCommonName("commonNameFrog1");
          frog2.setCommonName("commonNameFrog2");
          bird1.setCommonName("commonNamebird1");
@@ -156,6 +158,7 @@ public class ApplicationServiceTest extends AbstractControllerTest {
          //create surveys
          Survey frogSurvey = new Survey();
          Survey birdAndFrogSurvey = new Survey();
+         
          frogSurvey.setActive(true);
          birdAndFrogSurvey.setActive(true);
          frogSurvey.setName("frogSurvey");
@@ -182,23 +185,25 @@ public class ApplicationServiceTest extends AbstractControllerTest {
          //save the survey
          frogSurveyInDb = surveyDAO.save(frogSurvey);
          birdAndFrogSurveyInDb = surveyDAO.save(birdAndFrogSurvey);
+         
+         allSurvey = new Survey();
+         allSurvey.setActive(true);
+         allSurvey.setName("All survey");
+         allSurvey.setDescription("This survey has all the species");
+         surveyDAO.save(allSurvey);
     }
     
-/*  @Test
-    public void testGetApplicationData() throws Exception{
-        //Portal portal = portalDAO.getPortal(true);
-        
-    }*/
+    
+    
     
     /**
      * Tests getting survey related data from a particular survey.
      * There is no survey on the device yet.
      * @throws Exception
      */
-    @Test
-    public void testGetSurvey() throws Exception{
+    private void testGetSurvey(boolean includeSpecies) throws Exception{
         request.setMethod("GET");
-        request.setRequestURI("/webservice/application/survey.htm");
+        request.setRequestURI(this.getDownloadSurveyUrl(includeSpecies));
         request.setParameter("ident", userDAO.getUser("user").getRegistrationKey());
         request.setParameter("sid", frogSurveyInDb.getId().toString());
         
@@ -218,10 +223,12 @@ public class ApplicationServiceTest extends AbstractControllerTest {
         //count the survey locations
         JSONArray locations = JSONArray.fromString(responseContent.get("locations").toString());
         Assert.assertEquals("Expected the locations size to be " + locations.size() + " but it was " + frogSurveyInDb.getLocations().size() , locations.size(), frogSurveyInDb.getLocations().size());
-        //count the species in the survey
-        JSONArray indicatorSpecies = JSONArray.fromString(responseContent.get("indicatorSpecies").toString());
-        Assert.assertEquals("Expected the indicatorSpecies size to be " + indicatorSpecies.size() + " but it was " + frogSurveyInDb.getSpecies().size() , indicatorSpecies.size(), frogSurveyInDb.getSpecies().size());
         
+        if (includeSpecies) {
+            //count the species in the survey
+            JSONArray indicatorSpecies = JSONArray.fromString(responseContent.get("indicatorSpecies").toString());
+            Assert.assertEquals("Expected the indicatorSpecies size to be " + indicatorSpecies.size() + " but it was " + frogSurveyInDb.getSpecies().size() , indicatorSpecies.size(), frogSurveyInDb.getSpecies().size());            
+        }
     }
     
     /**
@@ -229,15 +236,16 @@ public class ApplicationServiceTest extends AbstractControllerTest {
      * There is already a survey on the device
      * @throws Exception
      */
-    @Test
-    public void testGetSurvey1() throws Exception{
+    private void testGetSurveyHasSurveyOnDevice(boolean includeSpecies) throws Exception{
         request.setMethod("GET");
-        request.setRequestURI("/webservice/application/survey.htm");
+        request.setRequestURI(this.getDownloadSurveyUrl(includeSpecies));
         request.addParameter("ident", userDAO.getUser("user").getRegistrationKey());
         request.addParameter("sid", birdAndFrogSurveyInDb.getId().toString());
-        JSONArray surveysOnDevice = new JSONArray();
-        surveysOnDevice.add(frogSurveyInDb.getId());
-        request.addParameter("surveysOnDevice", surveysOnDevice.toString());
+        if (includeSpecies) {
+            JSONArray surveysOnDevice = new JSONArray();
+            surveysOnDevice.add(frogSurveyInDb.getId());
+            request.addParameter("surveysOnDevice", surveysOnDevice.toString());    
+        }
         
         handle(request, response);
         
@@ -255,9 +263,13 @@ public class ApplicationServiceTest extends AbstractControllerTest {
         //count the survey locations
         JSONArray locations = JSONArray.fromString(responseContent.get("locations").toString());
         Assert.assertEquals("Expected the locations size to be " + locations.size(), locations.size(), birdAndFrogSurveyInDb.getLocations().size());
-        //count the species in the survey
-        JSONArray indicatorSpecies = JSONArray.fromString(responseContent.get("indicatorSpecies").toString());
-        Assert.assertEquals("IndicatorSpecies size does not match", indicatorSpecies.size(), (birdAndFrogSurveyInDb.getSpecies().size() - frogSurveyInDb.getSpecies().size()));
+        
+        if (includeSpecies) {
+            //count the species in the survey
+            JSONArray indicatorSpecies = JSONArray.fromString(responseContent.get("indicatorSpecies").toString());
+            Assert.assertEquals("IndicatorSpecies size does not match", indicatorSpecies.size(), (birdAndFrogSurveyInDb.getSpecies().size() - frogSurveyInDb.getSpecies().size()));            
+        }
+
     }
     
     /**
@@ -265,15 +277,16 @@ public class ApplicationServiceTest extends AbstractControllerTest {
      * Default settings for recordProperties.
      * @throws Exception
      */
-    @Test
-    public void testGetSurveyCheckRecordProperties() throws Exception {
-    	request.setMethod("GET");
-        request.setRequestURI("/webservice/application/survey.htm");
+    private void testGetSurveyCheckRecordProperties(boolean includeSpecies) throws Exception {
+        request.setMethod("GET");
+        request.setRequestURI(this.getDownloadSurveyUrl(includeSpecies));
         request.addParameter("ident", userDAO.getUser("user").getRegistrationKey());
         request.addParameter("sid", birdAndFrogSurveyInDb.getId().toString());
         JSONArray surveysOnDevice = new JSONArray();
-        surveysOnDevice.add(frogSurveyInDb.getId());
-        request.addParameter("surveysOnDevice", surveysOnDevice.toString());
+        if (includeSpecies) {
+            surveysOnDevice.add(frogSurveyInDb.getId());
+            request.addParameter("surveysOnDevice", surveysOnDevice.toString());
+        }
         
         handle(request, response);
         
@@ -291,16 +304,15 @@ public class ApplicationServiceTest extends AbstractControllerTest {
      * Two recordProperties are set to hidden in the survey.
      * @throws Exception
      */
-    @Test
-    public void testGetSurveyCheckRecordProperties1() throws Exception {
-    	
-    	RecordProperty speciesProperty = new RecordProperty(birdAndFrogSurveyInDb, RecordPropertyType.SPECIES, metadataDAO);
-    	speciesProperty.setHidden(true);
-    	RecordProperty locationProperty = new RecordProperty(birdAndFrogSurveyInDb, RecordPropertyType.LOCATION, metadataDAO);
-    	locationProperty.setHidden(true);
-    	
-    	request.setMethod("GET");
-        request.setRequestURI("/webservice/application/survey.htm");
+    private void testGetSurveyCheckRecordPropertiesHiddenFields(boolean includeSpecies) throws Exception {
+        
+        RecordProperty speciesProperty = new RecordProperty(birdAndFrogSurveyInDb, RecordPropertyType.SPECIES, metadataDAO);
+        speciesProperty.setHidden(true);
+        RecordProperty locationProperty = new RecordProperty(birdAndFrogSurveyInDb, RecordPropertyType.LOCATION, metadataDAO);
+        locationProperty.setHidden(true);
+        
+        request.setMethod("GET");
+        request.setRequestURI(getDownloadSurveyUrl(includeSpecies));
         request.addParameter("ident", userDAO.getUser("user").getRegistrationKey());
         request.addParameter("sid", birdAndFrogSurveyInDb.getId().toString());
         JSONArray surveysOnDevice = new JSONArray();
@@ -317,5 +329,163 @@ public class ApplicationServiceTest extends AbstractControllerTest {
         JSONArray recordProperties = JSONArray.fromString(responseContent.get("recordProperties").toString());
         Assert.assertEquals("Expected the recordProperties size to be " + expectedRecordPropertiesCount, expectedRecordPropertiesCount, recordProperties.size());
     }
+    
+    private String getDownloadSurveyUrl(boolean includeSpecies) {
+        return includeSpecies ? ApplicationService.LEGACY_DOWNLOAD_SURVEY_URL : ApplicationService.DOWNLOAD_SURVEY_NO_SPECIES_URL;
+    }
 
+    
+    /**
+     * Tests getting survey related data from a particular survey.
+     * There is no survey on the device yet.
+     * @throws Exception
+     */
+    @Test
+    public void testGetSurveyWithSpecies() throws Exception {
+        this.testGetSurvey(true);
+    }
+    
+    @Test
+    public void testGetSurveyNoSpecies() throws Exception {
+        this.testGetSurvey(false);
+    }
+    
+    /**
+     * Tests getting survey related data from a particular survey.
+     * There is already a survey on the device
+     * @throws Exception
+     */
+    @Test
+    public void testGetSurveyHasSurveyOnDeviceIncludeSpecies() throws Exception{
+        this.testGetSurveyHasSurveyOnDevice(true);
+    }
+    
+    @Test
+    public void testGetSurveyHasSurveyOnDeviceExcludeSpecies() throws Exception {
+        this.testGetSurveyHasSurveyOnDevice(false);
+    }
+    
+    /**
+     * Test getting recordProperties from survey.
+     * Default settings for recordProperties.
+     * @throws Exception
+     */
+    @Test
+    public void testGetSurveyCheckRecordPropertiesIncludeSpecies() throws Exception {
+    	this.testGetSurveyCheckRecordProperties(true);
+    }
+    
+    @Test
+    public void testGetSurveyCheckRecordPropertiesExcludeSpecies() throws Exception {
+        this.testGetSurveyCheckRecordProperties(false);
+    }
+    
+    /**
+     * Test getting recordProperties from survey.
+     * Two recordProperties are set to hidden in the survey.
+     * @throws Exception
+     */
+    @Test
+    public void testGetSurveyCheckRecordPropertiesHiddenFieldIncludeSpecies() throws Exception {
+    	this.testGetSurveyCheckRecordPropertiesHiddenFields(true);
+    }
+    
+    @Test
+    public void testGetSurveyCheckRecordPropertiesHiddenFieldExcludeSpecies() throws Exception {
+        this.testGetSurveyCheckRecordPropertiesHiddenFields(false);
+    }
+
+    @Test
+    public void testGetSpeciesForSurveyWithSetSpecies() throws Exception {
+        request.setMethod("GET");
+        request.setRequestURI(ApplicationService.DOWNLOAD_SURVEY_SPECIES_URL);
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, frogSurveyInDb.getId().toString());
+        request.setParameter(ApplicationService.PARAM_FIRST, "1");
+        request.setParameter(ApplicationService.PARAM_MAX_RESULTS, "1");
+        
+        this.handle(request, response);
+        
+        JSONObject json = JSONObject.fromStringToJSONObject(response.getContentAsString());
+        
+        Assert.assertEquals("wrong count in json", 2, json.getInt("count"));
+        JSONArray jsonSpeciesArray = json.getJSONArray("list");
+        Assert.assertEquals("wrong list size", 1, jsonSpeciesArray.size());
+        JSONObject jsonSpecies = jsonSpeciesArray.getJSONObject(0);
+        Assert.assertEquals("wrong species id", frog2.getId().intValue(), jsonSpecies.getInt("server_id"));
+    }
+    
+    @Test
+    public void testGetSpeciesForSurveyWithAllSpecies() throws Exception {
+        request.setMethod("GET");
+        request.setRequestURI(ApplicationService.DOWNLOAD_SURVEY_SPECIES_URL);
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, allSurvey.getId().toString());
+        request.setParameter(ApplicationService.PARAM_FIRST, "1");
+        request.setParameter(ApplicationService.PARAM_MAX_RESULTS, "1");
+        
+        this.handle(request, response);
+        
+        JSONObject json = JSONObject.fromStringToJSONObject(response.getContentAsString());
+        
+        Assert.assertEquals("wrong count in json", 5, json.getInt("count"));
+        JSONArray jsonSpeciesArray = json.getJSONArray("list");
+        Assert.assertEquals("wrong list size", 1, jsonSpeciesArray.size());
+        JSONObject jsonSpecies = jsonSpeciesArray.getJSONObject(0);
+        Assert.assertEquals("wrong species id", frog2.getId().intValue(), jsonSpecies.getInt("server_id"));
+    }
+    
+    @Test
+    public void testGetSpeciesExcludeSelf() throws Exception {
+        request.setMethod("GET");
+        request.setRequestURI(ApplicationService.DOWNLOAD_SURVEY_SPECIES_URL);
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, frogSurveyInDb.getId().toString());
+        request.setParameter(ApplicationService.PARAM_FIRST, "1");
+        request.setParameter(ApplicationService.PARAM_MAX_RESULTS, "1");
+        request.setParameter(ApplicationService.PARAM_SURVEYS_ON_DEVICE, "["+this.birdAndFrogSurveyInDb.getId().toString()+"]");
+        
+        this.handle(request, response);
+        
+        JSONObject json = JSONObject.fromStringToJSONObject(response.getContentAsString());
+        
+        Assert.assertEquals("wrong count in json", 0, json.getInt("count"));
+        JSONArray jsonSpeciesArray = json.getJSONArray("list");
+        Assert.assertEquals("wrong list size", 0, jsonSpeciesArray.size());
+    }
+    
+    @Test
+    public void testGetSpeciesExcludeSurveyWithAllSpecies() throws Exception {
+        request.setMethod("GET");
+        request.setRequestURI(ApplicationService.DOWNLOAD_SURVEY_SPECIES_URL);
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, frogSurveyInDb.getId().toString());
+        request.setParameter(ApplicationService.PARAM_FIRST, "1");
+        request.setParameter(ApplicationService.PARAM_MAX_RESULTS, "1");
+        request.setParameter(ApplicationService.PARAM_SURVEYS_ON_DEVICE, "["+allSurvey.getId().toString()+"]");
+        
+        this.handle(request, response);
+        
+        JSONObject json = JSONObject.fromStringToJSONObject(response.getContentAsString());
+        
+        Assert.assertEquals("wrong count in json", 0, json.getInt("count"));
+        JSONArray jsonSpeciesArray = json.getJSONArray("list");
+        Assert.assertEquals("wrong list size", 0, jsonSpeciesArray.size());
+    }
+    
+    @Test
+    public void testGetSpeciesForSurveyWithAllExcludeSurveyWithSome() throws Exception {
+        request.setMethod("GET");
+        request.setRequestURI(ApplicationService.DOWNLOAD_SURVEY_SPECIES_URL);
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, allSurvey.getId().toString());
+        request.setParameter(ApplicationService.PARAM_FIRST, "1");
+        request.setParameter(ApplicationService.PARAM_MAX_RESULTS, "1");
+        request.setParameter(ApplicationService.PARAM_SURVEYS_ON_DEVICE, "["+frogSurveyInDb.getId().toString()+"]");
+        
+        this.handle(request, response);
+        
+        JSONObject json = JSONObject.fromStringToJSONObject(response.getContentAsString());
+        
+        Assert.assertEquals("wrong count in json", 3, json.getInt("count"));
+        JSONArray jsonSpeciesArray = json.getJSONArray("list");
+        Assert.assertEquals("wrong list size", 1, jsonSpeciesArray.size());
+        JSONObject jsonSpecies = jsonSpeciesArray.getJSONObject(0);
+        Assert.assertEquals("wrong species id", bird2.getId().intValue(), jsonSpecies.getInt("server_id"));
+    }
 }
