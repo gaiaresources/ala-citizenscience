@@ -49,6 +49,33 @@ import java.util.Set;
 @SuppressWarnings("unchecked")
 @Repository
 public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
+    
+    // Leaving this here incase we want to turn on left join fetch for the hibernate query.
+    // Note this does slow down the query quite alot.
+    //private static final String LEFT_JOIN_FETCH = " left join fetch sp.taxonGroup left join fetch sp.attributes left join fetch sp.infoItems";
+    
+    // Use a minimal left fetch join.
+    private static final String LEFT_JOIN_FETCH = " left join fetch sp.taxonGroup";
+    /**
+     * Partial query string
+     */
+    private static final String GET_SPECIES_BASE_QUERY = " from IndicatorSpecies sp" + LEFT_JOIN_FETCH;
+    /**
+     * Partial query string
+     */
+    private static final String GET_SPECIES_BY_SURVEY_BASE_QUERY = 
+            " from Survey surv join surv.species sp " + LEFT_JOIN_FETCH + " where surv = :survey";
+    /**
+     * Partial query string
+     */
+    private static final String GET_SPECIES_EXCLUDE_SURVEY_CLAUSE = 
+            " sp.id not in (select survey_sp.id from Survey s2 join s2.species survey_sp where s2 in (:notIds))";
+    
+    /**
+     * Partial query string
+     */
+    private static final String ORDER_SPECIES_BY_ID = " order by sp.id";
+    
 
     private Logger log = Logger.getLogger(getClass());
     
@@ -558,31 +585,48 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
     
     @Override
     public List<IndicatorSpecies> getIndicatorSpeciesBySurvey(Session sesh, Survey survey, int start, int maxResults) {
-        Query q;
-        String query = "select count(t) from Survey s join s.species t where s = :survey";
-        if(sesh == null) {
-            q = getSession().createQuery(query);
-        } else {
-            q = sesh.createQuery(query);
-        }
-        q.setParameter("survey", survey);
-        int count = Integer.parseInt(q.list().get(0).toString(), 10);
+        return getIndicatorSpeciesBySurvey(sesh, survey, start, maxResults, null);
+    }
+    
+    @Override
+    public List<IndicatorSpecies> getIndicatorSpeciesBySurvey(Session sesh, Survey survey, int start, int maxResults, List<Survey> excludeSpeciesInSurvey) {
         
-        if(count == 0) {
-            query = "select t from IndicatorSpecies t left join fetch t.taxonGroup";
-            if(sesh == null) {
-                q = getSession().createQuery(query);
-            } else {
-                q = sesh.createQuery(query);
+        if (sesh == null) {
+            sesh = getSession();
+        }
+        boolean excludeSurvey = excludeSpeciesInSurvey != null && !excludeSpeciesInSurvey.isEmpty();
+        if (excludeSurvey) {
+            for (Survey s : excludeSpeciesInSurvey) {
+                if (countSpeciesForSurvey(s) == 0) {
+                        // Device already has all species, so let's get outta here.
+                        return new ArrayList<IndicatorSpecies>();
+                }
             }
+        }
+        // Check whether survey has all species.
+        boolean hasAllSpecies = countSpeciesForSurvey(survey) == 0;
+        String query;
+        Query q;
+        if(hasAllSpecies) {
+            query = "select sp" + GET_SPECIES_BASE_QUERY;
+            if (excludeSurvey) {
+                query += " where ";
+                query += GET_SPECIES_EXCLUDE_SURVEY_CLAUSE;
+            }
+            query += ORDER_SPECIES_BY_ID;
+            q = sesh.createQuery(query);
         } else {
-            query = "select t from Survey s join s.species t left join fetch t.taxonGroup where s = :survey";
-            if(sesh == null) {
-                q = getSession().createQuery(query);
-            } else {
-                q = sesh.createQuery(query);
+            query = "select sp" + GET_SPECIES_BY_SURVEY_BASE_QUERY;
+            if (excludeSurvey) {
+                query += " and ";
+                query += GET_SPECIES_EXCLUDE_SURVEY_CLAUSE;
             }
+            query += ORDER_SPECIES_BY_ID;
+            q = sesh.createQuery(query);
             q.setParameter("survey", survey);
+        }
+        if (excludeSurvey) {
+            q.setParameterList("notIds", excludeSpeciesInSurvey);
         }
         q.setFirstResult(start);
         q.setMaxResults(maxResults);
@@ -836,6 +880,10 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
         return s;
     }
 
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.taxa.TaxaDAO#countAllSpecies()
+     */
     @Override
     public Integer countAllSpecies() {
         Query q = getSession().createQuery(
@@ -844,16 +892,66 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
         return count;
     }
 
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.taxa.TaxaDAO#countSpeciesForSurvey(au.com.gaiaresources.bdrs.model.survey.Survey)
+     */
     @Override
     public int countSpeciesForSurvey(Survey survey) {
-        Query q = getSession()
-                .createQuery(
-                        "select count(t) from Survey s left join s.species t where s = :survey");
+        Query q = getSession().createQuery("select count(t) from Survey s left join s.species t where s = :survey");
         q.setParameter("survey", survey);
         Integer count = Integer.parseInt(q.list().get(0).toString(), 10);
         return count;
     }
     
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.taxa.TaxaDAO#countActualSpeciesForSurvey(au.com.gaiaresources.bdrs.model.survey.Survey, java.util.List)
+     */
+    @Override
+    public int countActualSpeciesForSurvey(Survey survey,
+            List<Survey> notTheseSurveys) {
+
+        boolean exclude = notTheseSurveys != null && !notTheseSurveys.isEmpty();
+        boolean hasAllSpecies = countSpeciesForSurvey(survey) == 0;
+        if (exclude) {
+            for (Survey s : notTheseSurveys) {
+                if (countSpeciesForSurvey(s) == 0) {
+                    // one of the excluded surveys has all of the species.
+                    // Thus we can never have anything but 0 for the count.
+                    return 0;
+                }
+            }
+        }
+        String queryString;
+        if (hasAllSpecies) {
+            queryString = "select count(sp) from IndicatorSpecies sp";
+        } else {
+            queryString = "select count(sp) from Survey s join s.species sp where s = :survey";
+        }
+        if (exclude) {
+            if (hasAllSpecies) {
+                queryString += " where ";
+            } else {
+                queryString += " and ";
+            }
+            queryString += GET_SPECIES_EXCLUDE_SURVEY_CLAUSE;
+        }
+        Query q = getSession().createQuery(queryString);
+        if (exclude) {
+            q.setParameterList("notIds", notTheseSurveys);
+        }
+        if (!hasAllSpecies) {
+            q.setParameter("survey", survey);   
+        }
+        Integer count = Integer.parseInt(q.list().get(0).toString(), 10);
+        return count;
+    }
+    
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.taxa.TaxaDAO#getTopSpecies(int, int)
+     */
     public List<Pair<IndicatorSpecies, Integer>> getTopSpecies(int userPk, int limit) {
         List<Pair<IndicatorSpecies, Integer>> list = new ArrayList<Pair<IndicatorSpecies, Integer>>();
 

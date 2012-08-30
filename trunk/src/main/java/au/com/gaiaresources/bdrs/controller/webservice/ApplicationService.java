@@ -55,11 +55,17 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxaService;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.util.SpatialUtil;
 import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 @Controller
 public class ApplicationService extends AbstractController {
+    
+    public static final String DOWNLOAD_SURVEY_SPECIES_URL = "/webservice/application/surveySpeciesDownload.htm";
+    public static final String DOWNLOAD_SURVEY_NO_SPECIES_URL = "/webservice/application/surveyDownload.htm";
+    
+    public static final String LEGACY_DOWNLOAD_SURVEY_URL = "/webservice/application/survey.htm";
     
     public static final String CLIENT_SYNC_STATUS_KEY = "status";
     
@@ -69,6 +75,21 @@ public class ApplicationService extends AbstractController {
     public static final String JSON_KEY_TAXON_ID = "taxon_id";
     
     public static final String JSON_KEY_SERVER_RECORDS_FOR_USER = "serverRecordCount";
+    
+    /**
+     * Query param, what index to start the get species request. starts at 0
+     */
+    public static final String PARAM_FIRST = "first";
+    
+    /**
+     * Query param, json format array with ids of surveys on device.
+     */
+    public static final String PARAM_SURVEYS_ON_DEVICE = "surveysOnDevice";
+    
+    /**
+     * Query param, max results per get species request
+     */
+    public static final String PARAM_MAX_RESULTS = "maxResults";
     
     private Logger log = Logger.getLogger(getClass());
 
@@ -104,7 +125,15 @@ public class ApplicationService extends AbstractController {
     
     private SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy");
     
-    @RequestMapping(value = "/webservice/application/survey.htm", method = RequestMethod.GET)
+    /**
+     * Download a survey and all of its species.
+     * @param request HttpRequest
+     * @param response HttpResponse
+     * @param ident Ident of user
+     * @param surveyRequested Id of survey
+     * @throws IOException Error writing to output stream.
+     */
+    @RequestMapping(value = LEGACY_DOWNLOAD_SURVEY_URL, method = RequestMethod.GET)
     public void getSurvey( HttpServletRequest request, HttpServletResponse response,
                            @RequestParam(value = "ident", defaultValue = "") String ident,
                            @RequestParam(value = "sid", defaultValue = "-1") int surveyRequested) throws IOException {
@@ -143,8 +172,8 @@ public class ApplicationService extends AbstractController {
             List<Survey> surveysOnDevice = new ArrayList<Survey>();
             for (int i=0; i<surveysOnDeviceArray.size(); i++) {
                 int sid = surveysOnDeviceArray.getInt(i);
-            	Survey s = surveyDAO.getSurvey(sid);
-            	surveysOnDevice.add(s);
+                Survey s = surveyDAO.getSurvey(sid);
+                surveysOnDevice.add(s);
                 //remove species
                 //species.removeAll(surveyDAO.getSurveyData((Integer) sid).getSpecies());
                 //remove taxonGroups
@@ -247,6 +276,162 @@ public class ApplicationService extends AbstractController {
             response.getWriter().write(");");
         }
         log.debug("Wrote out data in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
+    }
+    
+    // There is quite alot of duplicated code from getSurvey() here. Leave it this way as
+    // someone may want to change the legacy web service and we would like to keep it separate
+    // from this version.
+    /**
+     * Download a survey and none of its species.
+     * @param request HttpRequest
+     * @param response HttpResponse
+     * @param ident Ident of user
+     * @param surveyRequested Id of survey
+     * @throws IOException Error writing to output stream.
+     */
+    @RequestMapping(value = DOWNLOAD_SURVEY_NO_SPECIES_URL, method = RequestMethod.GET)
+    public void downloadSurveyNoSpecies( HttpServletRequest request, HttpServletResponse response,
+                           @RequestParam(value = "ident", defaultValue = "") String ident,
+                           @RequestParam(value = "sid", defaultValue = "-1") int surveyRequested) throws IOException {
+
+        long now = System.currentTimeMillis();
+        // Checks if a user exists with the provided ident. If not a response error is returned.
+        if (userDAO.getUserByRegistrationKey(ident) == null) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+        
+        if(surveyRequested < 1) {
+            // The survey that you want cannot exist.
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+        log.debug("Authenticated in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
+        
+        //retrieve requested survey
+        Survey survey = surveyDAO.getSurvey(surveyRequested);
+        log.debug("Retrieved Survey in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
+        
+        // Retrieve taxon groups.
+        List<TaxonGroup> taxonGroups = taxaDAO.getTaxonGroup(survey);
+        log.debug("Got groups  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
+        
+        // Restructure survey data
+        JSONArray attArray = new JSONArray();
+        JSONArray locArray = new JSONArray();
+        JSONArray censusMethodArray = new JSONArray();
+        JSONArray recordPropertiesArray = new JSONArray();
+        for (Attribute a : survey.getAttributes()) {
+            // Not sending any location scoped attributes because they do not get populated by the recording form.
+            if(!AttributeScope.LOCATION.equals(a.getScope())) {
+                attArray.add(a.flatten(1, true, true));
+            }
+        }
+        log.debug("Flattened attributes in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
+        
+        for (Location l : survey.getLocations()) {
+            locArray.add(l.flatten(1, true, true));
+        }
+        log.debug("Flatted locations in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
+        
+        for(CensusMethod method : survey.getCensusMethods()) {
+            censusMethodArray.add(recurseFlattenCensusMethod(method));
+        }
+        log.debug("Flatted Census Methods in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
+        
+        for (RecordPropertyType recordPropertyType : RecordPropertyType.values()) {
+            RecordProperty recordProperty = new RecordProperty(survey, recordPropertyType, metadataDAO);
+            if (!recordProperty.isHidden()) {
+                recordPropertiesArray.add(recordProperty.flatten(true, false));
+            }
+        }
+        log.debug("Flatted RecordProperties in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
+        
+        // Store restructured survey data in JSONObject
+        JSONObject surveyData = new JSONObject();
+        surveyData.put("attributesAndOptions", attArray);
+        surveyData.put("locations", locArray);
+        surveyData.put("survey", survey.flatten());
+        surveyData.put("censusMethods", censusMethodArray);
+        surveyData.put("recordProperties", recordPropertiesArray);
+
+        // support for JSONP
+        if (request.getParameter("callback") != null) {
+            response.setContentType("application/javascript");
+            response.getWriter().write(request.getParameter("callback")
+                    + "(");
+        } else {
+            response.setContentType("application/json");
+        }
+
+        response.getWriter().write(surveyData.toString());
+        if (request.getParameter("callback") != null) {
+            response.getWriter().write(");");
+        }
+        log.debug("Wrote out data in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
+    }
+    
+    /**
+     * Download species for a survey
+     * 
+     * @param request HttpRequest
+     * @param response HttpResponse
+     * @param surveyId Survey that owns species
+     * @param first The index of the first result to be returned, starts at 0.
+     * @param maxResults The max number of results to return.
+     * @throws IOException Error writing to output stream
+     */
+    @RequestMapping(value = DOWNLOAD_SURVEY_SPECIES_URL, method = RequestMethod.GET)
+    public void surveySpeciesDownload(HttpServletRequest request, HttpServletResponse response,
+            @RequestParam(value=BdrsWebConstants.PARAM_SURVEY_ID, required=true) Integer surveyId,
+            @RequestParam(value=PARAM_FIRST, required=true) Integer first,
+            @RequestParam(value=PARAM_MAX_RESULTS, required=true) Integer maxResults) throws IOException {
+        
+        Survey s = surveyDAO.get(surveyId);
+        JSONObject result = new JSONObject();
+        if (s == null) {
+            result.put("errorMessage", "Survey could not be found for id = " + surveyId);
+        } else {
+            // Remove data from the requested survey that already exists on the device.
+            JSONArray surveysOnDeviceArray = null;
+            List<Survey> surveysOnDevice = new ArrayList<Survey>();
+            if(request.getParameter(PARAM_SURVEYS_ON_DEVICE) != null) {
+                surveysOnDeviceArray = JSONArray.fromString(request.getParameter(PARAM_SURVEYS_ON_DEVICE));
+            }
+            if ((surveysOnDeviceArray != null) && (!surveysOnDeviceArray.isEmpty())) {
+                for (int i=0; i<surveysOnDeviceArray.size(); i++) {
+                    int sid = surveysOnDeviceArray.getInt(i);
+                    Survey survey = surveyDAO.getSurvey(sid);
+                    if (survey != null) {
+                        surveysOnDevice.add(survey);    
+                    }
+                }
+            }
+            
+            int speciesDownloadCount = taxaDAO.countActualSpeciesForSurvey(s, surveysOnDevice);
+            List<IndicatorSpecies> list = taxaDAO.getIndicatorSpeciesBySurvey(null, s, first, maxResults, surveysOnDevice);
+            result.put("count", speciesDownloadCount);
+            JSONArray jsonSpeciesArray = new JSONArray();
+            Map<String, Object> speciesMap = null;
+            for (IndicatorSpecies sp : list) {
+                // handcraft map for json
+                // if we need taxon group, other items that require table joins we need to look at
+                // going back to adding left fetch join to the hibernate query for performance.
+                // As things are now, accessing any of the child relations will cause a lazy load
+                // for every access, i.e. it's slow.
+                speciesMap = new HashMap<String, Object>();
+                speciesMap.put("server_id", sp.getId());
+                speciesMap.put("scientificNameAndAuthor", sp.getScientificNameAndAuthor());
+                speciesMap.put("scientificName", sp.getScientificName());
+                speciesMap.put("commonName", sp.getCommonName());
+                speciesMap.put("author", sp.getAuthor());
+                speciesMap.put("year", sp.getYear());
+                
+                jsonSpeciesArray.add(speciesMap);
+            }
+            result.put("list", jsonSpeciesArray);
+        }
+        this.writeJson(response, result.toString());
     }
     
     @RequestMapping(value = "/webservice/application/clientSyncLocations.htm", method = RequestMethod.POST)

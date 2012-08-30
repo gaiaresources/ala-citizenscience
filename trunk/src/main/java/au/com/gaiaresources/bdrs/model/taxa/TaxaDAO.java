@@ -362,12 +362,22 @@ public interface TaxaDAO extends TransactionDAO {
     IndicatorSpecies updateIndicatorSpecies(IndicatorSpecies is);
 
     /**
-     * Count the species assigned to a survey.
+     * Count the species assigned to a survey. Will return the same as
+     * survey.getSpecies().size()
      * @param survey Survey to search for.
      * @return Count of species assigned to the survey.
      */
     int countSpeciesForSurvey(Survey survey);
 
+    /**
+     * Count the species associated with a survey. Takes into account the fact that
+     * when survey.getSpecies().size() = 0, the survey actually has all species.
+     * @param survey Survey to search for.
+     * @param notTheseSurveys Exclude species from these surveys in the count. Nullable.
+     * @return Count of species assigned to the survey.
+     */
+    int countActualSpeciesForSurvey(Survey survey, List<Survey> notTheseSurveys);
+    
     /**
      * Get IndicatorSpecies by common name. Search is case sensitive.
      * Wild cards not allowed. Search requires exact match.
@@ -432,6 +442,19 @@ public interface TaxaDAO extends TransactionDAO {
      * @return the indicator species associated with the specified survey.
      */
     List<IndicatorSpecies> getIndicatorSpeciesBySurvey(Session sesh, Survey survey, int start, int maxSize);
+    
+    /**
+     * Returns the indicator species for the specified survey. If the survey
+     * does not have any attached indicator species, this function will return
+     * all indicator species.
+     * @param sesh the session to use to retrieve the IndicatorSpecies
+     * @param survey the survey associated with the indicator species.
+     * @param start the first indicator species.
+     * @param count the maximum number of indicator species to return.
+     * @param excludeSpeciesInSurveys exclude all species in the list of surveys, can be null.
+     * @return the indicator species associated with the specified survey.
+     */
+    List<IndicatorSpecies> getIndicatorSpeciesBySurvey(Session sesh, Survey survey, int start, int maxSize, List<Survey> excludeSpeciesInSurveys);
 
     /**
      * Get IndicatorSpecies by scientific name. Case sensitive.
@@ -460,7 +483,7 @@ public interface TaxaDAO extends TransactionDAO {
      * Get Paginated IndicatorSpecies
      * @param taxonGroup TaxonGroup to filter by.
      * @param filter Pagination details.
-     * @return Paginated seach result.
+     * @return Paginated search result.
      */
     PagedQueryResult<IndicatorSpecies> getIndicatorSpecies(
             TaxonGroup taxonGroup, PaginationFilter filter);
