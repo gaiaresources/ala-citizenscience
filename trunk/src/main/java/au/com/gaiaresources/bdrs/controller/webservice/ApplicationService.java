@@ -263,7 +263,7 @@ public class ApplicationService extends AbstractController {
         surveyData.put("recordProperties", recordPropertiesArray);
 
         // support for JSONP
-        String callback = request.getParameter("callback");
+        String callback = validateCallback(request.getParameter("callback"));
         if (callback != null) {
             response.setContentType("application/javascript");
             response.getWriter().write(callback
@@ -313,10 +313,6 @@ public class ApplicationService extends AbstractController {
         Survey survey = surveyDAO.getSurvey(surveyRequested);
         log.debug("Retrieved Survey in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
         
-        // Retrieve taxon groups.
-        List<TaxonGroup> taxonGroups = taxaDAO.getTaxonGroup(survey);
-        log.debug("Got groups  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
-        
         // Restructure survey data
         JSONArray attArray = new JSONArray();
         JSONArray locArray = new JSONArray();
@@ -357,7 +353,7 @@ public class ApplicationService extends AbstractController {
         surveyData.put("recordProperties", recordPropertiesArray);
 
         // support for JSONP
-        String callback = request.getParameter("callback");
+        String callback = validateCallback(request.getParameter("callback"));
         if (callback != null) {
             response.setContentType("application/javascript");
             response.getWriter().write(callback
@@ -366,11 +362,29 @@ public class ApplicationService extends AbstractController {
             response.setContentType("application/json");
         }
 
+        writeJson(response, surveyData.toString());
+        
         response.getWriter().write(surveyData.toString());
         if (callback != null) {
             response.getWriter().write(");");
         }
         log.debug("Wrote out data in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
+    }
+    
+    /**
+     * Basic check for XSS security. We only allow a js function name.
+     * @param callback
+     * @return Callback string if valid, else null.
+     */
+    private String validateCallback(String callback) {
+        if (callback == null) {
+            return null;
+        }
+        if (callback.contains(";")) {
+            log.error("Possible cross site scripting attack. callback param : " + callback);
+            return null;
+        }
+        return callback;
     }
     
     /**
@@ -693,7 +707,7 @@ public class ApplicationService extends AbstractController {
     @RequestMapping(value = "/webservice/application/ping.htm", method = RequestMethod.GET)
     public void ping(HttpServletRequest request, HttpServletResponse response) throws IOException {
         // support for JSONP
-        String callback = request.getParameter("callback");
+        String callback = validateCallback(request.getParameter("callback"));
         if (callback != null) {
             response.setContentType("application/javascript");
             response.getWriter().write(callback
