@@ -361,8 +361,6 @@ public class ApplicationService extends AbstractController {
         } else {
             response.setContentType("application/json");
         }
-
-        writeJson(response, surveyData.toString());
         
         response.getWriter().write(surveyData.toString());
         if (callback != null) {
