@@ -263,16 +263,17 @@ public class ApplicationService extends AbstractController {
         surveyData.put("recordProperties", recordPropertiesArray);
 
         // support for JSONP
-        if (request.getParameter("callback") != null) {
+        String callback = request.getParameter("callback");
+        if (callback != null) {
             response.setContentType("application/javascript");
-            response.getWriter().write(request.getParameter("callback")
+            response.getWriter().write(callback
                     + "(");
         } else {
             response.setContentType("application/json");
         }
 
         response.getWriter().write(surveyData.toString());
-        if (request.getParameter("callback") != null) {
+        if (callback != null) {
             response.getWriter().write(");");
         }
         log.debug("Wrote out data in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
@@ -356,16 +357,17 @@ public class ApplicationService extends AbstractController {
         surveyData.put("recordProperties", recordPropertiesArray);
 
         // support for JSONP
-        if (request.getParameter("callback") != null) {
+        String callback = request.getParameter("callback");
+        if (callback != null) {
             response.setContentType("application/javascript");
-            response.getWriter().write(request.getParameter("callback")
+            response.getWriter().write(callback
                     + "(");
         } else {
             response.setContentType("application/json");
         }
 
         response.getWriter().write(surveyData.toString());
-        if (request.getParameter("callback") != null) {
+        if (callback != null) {
             response.getWriter().write(");");
         }
         log.debug("Wrote out data in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
@@ -691,9 +693,10 @@ public class ApplicationService extends AbstractController {
     @RequestMapping(value = "/webservice/application/ping.htm", method = RequestMethod.GET)
     public void ping(HttpServletRequest request, HttpServletResponse response) throws IOException {
         // support for JSONP
-        if (request.getParameter("callback") != null) {
+        String callback = request.getParameter("callback");
+        if (callback != null) {
             response.setContentType("application/javascript");
-            response.getWriter().write(request.getParameter("callback")
+            response.getWriter().write(callback
                     + "();");
         }
     }
