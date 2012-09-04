@@ -285,6 +285,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         File file = writer.createZipShapefile(survey, null, ShapefileType.POINT);
         
         ShapeFileReader reader = new ShapeFileReader(file);
+        Assert.assertTrue("shapefile should be empty", reader.isEmpty());
         
         Assert.assertEquals(1, reader.getSurveyIdList().size());
         Assert.assertEquals(survey.getId(), reader.getSurveyIdList().get(0));
@@ -311,6 +312,10 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         }
         
         writeFeatures(ds, featureList);
+        
+        reader.checkShapefile();
+        Assert.assertFalse("shapefile should NOT be empty", reader.isEmpty());
+        Assert.assertTrue("crs must be supported", reader.isCrsSupported());
         
         List<RecordEntry> entries = transformer.shapefileFeatureToRecordEntries(reader.getFeatureIterator(), reader.getSurveyIdList(), reader.getCensusMethodIdList());
         
@@ -357,6 +362,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         File file = writer.createZipShapefile(survey, null, shpType);
         
         ShapeFileReader reader = new ShapeFileReader(file);
+        Assert.assertTrue("shapefile should be empty", reader.isEmpty());
         
         Assert.assertEquals(1, reader.getSurveyIdList().size());
         Assert.assertEquals(survey.getId(), reader.getSurveyIdList().get(0));
@@ -411,6 +417,10 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         }
         
         writeFeatures(ds, featureList);
+        
+        reader.checkShapefile();
+        Assert.assertFalse("shapefile should NOT be empty", reader.isEmpty());
+        Assert.assertTrue("crs must be supported", reader.isCrsSupported());
         
         List<RecordEntry> entries = transformer.shapefileFeatureToRecordEntries(reader.getFeatureIterator(), reader.getSurveyIdList(), reader.getCensusMethodIdList());
         
@@ -504,6 +514,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         File file = writer.createZipShapefile(survey, cm, ShapefileType.POINT);
         
         ShapeFileReader reader = new ShapeFileReader(file);
+        Assert.assertTrue("shapefile should be empty", reader.isEmpty());
         
         Assert.assertEquals(1, reader.getSurveyIdList().size());
         Assert.assertEquals(survey.getId().intValue(), reader.getSurveyIdList().get(0).intValue());
@@ -551,6 +562,10 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         }
         
         writeFeatures(ds, featureList);
+        
+        reader.checkShapefile();
+        Assert.assertFalse("shapefile should NOT be empty", reader.isEmpty());
+        Assert.assertTrue("crs must be supported", reader.isCrsSupported());
         
         List<RecordEntry> entries = transformer.shapefileFeatureToRecordEntries(reader.getFeatureIterator(), reader.getSurveyIdList(), reader.getCensusMethodIdList());
         
@@ -649,6 +664,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         File file = writer.createZipShapefile(survey, taxaCm, ShapefileType.POINT);
         
         ShapeFileReader reader = new ShapeFileReader(file);
+        Assert.assertTrue("shapefile should be empty", reader.isEmpty());
         
         Assert.assertEquals(1, reader.getSurveyIdList().size());
         Assert.assertEquals(survey.getId().intValue(), reader.getSurveyIdList().get(0).intValue());
@@ -696,6 +712,10 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         }
         
         writeFeatures(ds, featureList);
+        
+        reader.checkShapefile();
+        Assert.assertFalse("shapefile should NOT be empty", reader.isEmpty());
+        Assert.assertTrue("crs must be supported", reader.isCrsSupported());
         
         List<RecordEntry> entries = transformer.shapefileFeatureToRecordEntries(reader.getFeatureIterator(), reader.getSurveyIdList(), reader.getCensusMethodIdList());
         
@@ -791,6 +811,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         File file = writer.createZipShapefile(survey, null, ShapefileType.POINT);
         
         ShapeFileReader reader = new ShapeFileReader(file);
+        Assert.assertTrue("shapefile should be empty", reader.isEmpty());
         
         Assert.assertEquals(1, reader.getSurveyIdList().size());
         Assert.assertEquals(survey.getId(), reader.getSurveyIdList().get(0));
@@ -825,6 +846,10 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         }
         
         writeFeatures(ds, featureList);
+        
+        reader.checkShapefile();
+        Assert.assertFalse("shapefile should NOT be empty", reader.isEmpty());
+        Assert.assertTrue("crs must be supported", reader.isCrsSupported());
         
         List<RecordEntry> entries = transformer.shapefileFeatureToRecordEntries(reader.getFeatureIterator(), reader.getSurveyIdList(), reader.getCensusMethodIdList());
         
@@ -874,6 +899,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         File file = writer.createZipShapefile(survey, null, ShapefileType.POINT);
         
         ShapeFileReader reader = new ShapeFileReader(file);
+        Assert.assertTrue("shapefile should be empty", reader.isEmpty());
         
         Assert.assertEquals(1, reader.getSurveyIdList().size());
         Assert.assertEquals(survey.getId(), reader.getSurveyIdList().get(0));
@@ -908,6 +934,10 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         }
         
         writeFeatures(ds, featureList);
+        
+        reader.checkShapefile();
+        Assert.assertFalse("shapefile should NOT be empty", reader.isEmpty());
+        Assert.assertTrue("crs must be supported", reader.isCrsSupported());
         
         List<RecordEntry> entries = transformer.shapefileFeatureToRecordEntries(reader.getFeatureIterator(), reader.getSurveyIdList(), reader.getCensusMethodIdList());
         
@@ -981,6 +1011,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         File file = writer.createZipShapefile(basicSurvey, null, ShapefileType.POINT);
         
         ShapeFileReader reader = new ShapeFileReader(file);
+        Assert.assertTrue("shapefile should be empty", reader.isEmpty());
         
         Assert.assertEquals(1, reader.getSurveyIdList().size());
         Assert.assertEquals(basicSurvey.getId(), reader.getSurveyIdList().get(0));
@@ -1009,6 +1040,10 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         }
         
         writeFeatures(ds, featureList);
+        
+        reader.checkShapefile();
+        Assert.assertFalse("shapefile should NOT be empty", reader.isEmpty());
+        Assert.assertTrue("crs must be supported", reader.isCrsSupported());
         
         List<RecordEntry> entries = transformer.shapefileFeatureToRecordEntries(reader.getFeatureIterator(), reader.getSurveyIdList(), reader.getCensusMethodIdList());
         

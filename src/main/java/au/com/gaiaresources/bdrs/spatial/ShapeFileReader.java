@@ -43,7 +43,14 @@ import com.vividsolutions.jts.geom.Geometry;
 
 public class ShapeFileReader {
     
+    /**
+     * The first CRS id string to check for.
+     */
     private static final String WGS84 = "GCS_WGS_1984";
+    /**
+     * The second CRS id string to check for.
+     */
+    private static final String WGS84_ALT = "WGS84(DD)";
     private static final int WGS84_EPSG = 4326;
     public static final String UNKNOWN_CRS_CODE = "Unknown CRS code";
     
@@ -67,6 +74,10 @@ public class ShapeFileReader {
     private static final Pattern attrPattern = Pattern.compile("attr:([\\d]+),(.*)");
     private static final Pattern surveyPattern = Pattern.compile("survey_id=([0-9]+)(,[0-9]+)*");
     private static final Pattern censusMethodPattern = Pattern.compile("census_method_id=([0-9]+)(,[0-9]+)*");
+    
+    private List<String> supportedCrsCodes = null;
+    
+    private boolean isEmpty = true;
     
     /**
      * if there are multiple shapefiles in the zip file, should we try and read from
@@ -269,9 +280,15 @@ public class ShapeFileReader {
         return targetDir;
     }
     
-    private void checkShapefile() throws IOException {
+    /**
+     * Force the shapefile reader to run checks on the shapefile data store. Used when
+     * doing inplace editing of the shapefile data store.
+     * @throws IOException Error reading features from shapefile.
+     */
+    public void checkShapefile() throws IOException {
         this.crsCode = UNKNOWN_CRS_CODE;
         this.geometryValid = true;
+        this.isEmpty = true;
         
         Iterator<SimpleFeature> iter = getFeatureIterator();
        
@@ -280,8 +297,8 @@ public class ShapeFileReader {
             SimpleFeature feature = iter.next();
             CoordinateReferenceSystem crs = feature.getFeatureType().getCoordinateReferenceSystem();
             this.crsCode = crs.getName().getCode();
-            
             this.geometryValid = this.geometryValid && ((Geometry)feature.getDefaultGeometry()).isValid();
+            this.isEmpty = false;
         }
         // get to the end of the iterator so the file lock is released
         // and check the geoms on the way...
@@ -289,6 +306,14 @@ public class ShapeFileReader {
             SimpleFeature feature = iter.next();
             this.geometryValid = this.geometryValid && ((Geometry)feature.getDefaultGeometry()).isValid();
         }
+    }
+    
+    /**
+     * Does this shapefile contain any features
+     * @return true is the shapefile is empty.
+     */
+    public boolean isEmpty() {
+        return isEmpty;
     }
     
     /**
@@ -366,7 +391,7 @@ public class ShapeFileReader {
      * @return
      */
     public boolean isCrsSupported() {
-        return WGS84.equals(getCrsCode());
+        return getSupportedCrsCodes().contains(getCrsCode());
     }
     
     /**
@@ -376,12 +401,24 @@ public class ShapeFileReader {
      * 
      * Often the CRS are so similar, especially at non extreme longitudes (i.e. not near the
      * poles) that the user can get away with uploading their non supported shapefile anyway.
-     * @return
+     * 
+     * We have had a problem where the WGS84 identifer string has changed without our knowledge.
+     * At least now the unit tests should pick up the changes but if the problem occurs again
+     * you will need to add the new identifier string to the supported CRS codes.
+     * 
+     * The 'true' way to fix this issue would be to parse the projection configuration string
+     * and make sure it falls within a specified tolerance since the user can actually specify
+     * *anything* inside the projection configuration string.
+     * 
+     * @return List of strings identifying CRS types.
      */
     public List<String> getSupportedCrsCodes() {
-        List<String> result = new ArrayList<String>();
-        result.add(WGS84);
-        return result;
+        if (supportedCrsCodes == null) {
+            supportedCrsCodes = new ArrayList<String>();
+            supportedCrsCodes.add(WGS84);
+            supportedCrsCodes.add(WGS84_ALT);
+        }
+        return supportedCrsCodes;
     }
     
     /**
