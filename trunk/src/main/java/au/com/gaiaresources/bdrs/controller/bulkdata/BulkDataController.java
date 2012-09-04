@@ -74,6 +74,7 @@ public class BulkDataController extends AbstractController {
     
     public static final String MSG_KEY_SHAPEFILE_UPLOAD_BAD_ZIP = "bdrs.bulkdata.shapefile.uploadBadZip";
     public static final String MSG_KEY_SHAPEFILE_UNSUPPORTED_CRS = "bdrs.bulkdata.shapefile.unsupportedCrs";
+    public static final String MSG_KEY_SHAPEFILE_EMPTY = "bdrs.bulkdata.shapefile.emptyShapefile";
     
     private Logger log = Logger.getLogger(getClass());
 
@@ -343,8 +344,12 @@ public class BulkDataController extends AbstractController {
         ShapeFileReader reader;
         try {
             reader = new ShapeFileReader(tempFile);
-            if (!reader.isCrsSupported()) {
+            if (reader.isEmpty()) {
+                getRequestContext().addMessage(MSG_KEY_SHAPEFILE_EMPTY);
+                return redirect(BULK_DATA_URL);
+            } else if (!reader.isCrsSupported()) {
             	getRequestContext().addMessage(MSG_KEY_SHAPEFILE_UNSUPPORTED_CRS);
+            	return redirect(BULK_DATA_URL);
             }
         } catch (IOException ioe) {
             getRequestContext().addMessage(MSG_KEY_SHAPEFILE_UPLOAD_BAD_ZIP);
