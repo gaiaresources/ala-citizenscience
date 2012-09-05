@@ -122,7 +122,7 @@ public class RecordPropertyFormField extends AbstractRecordFormField implements 
      */
     @Override
     public boolean isModerationFormField() {
-        return AttributeScope.isModerationScope(recordProperty.getScope()) || recordProperty.getRecordPropertyType().equals(RecordPropertyType.SPECIES);
+        return AttributeScope.isModerationScope(recordProperty.getScope());
     }
 
     /**
