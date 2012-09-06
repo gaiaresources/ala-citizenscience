@@ -22,17 +22,22 @@ public enum SurveyFormRendererType implements JSONEnum {
 	
     // Order the enum in alphabetical order so it is displayed properly
     // on the survey editing page.
-    ATLAS("Atlas of Living Australia"),
-    DEFAULT("Default"),
-    SINGLE_SITE_ALL_TAXA("Single-Site All Species"),
-    SINGLE_SITE_MULTI_TAXA("Single-Site Multi-Species"),
-    YEARLY_SIGHTINGS("Yearly Sightings");
+    ATLAS("Atlas of Living Australia", false),
+    DEFAULT("Default", false),
+    SINGLE_SITE_ALL_TAXA("Single-Site All Species", false),
+    SINGLE_SITE_MULTI_TAXA("Single-Site Multi-Species", false),
+    YEARLY_SIGHTINGS("Yearly Sightings", false),
+    DEFAULT_CSS_LAYOUT("Default - CSS Layout", true),
+    SINGLE_SITE_ALL_TAXA_CSS_LAYOUT("Single-Site All Species - CSS Layout", true),
+    SINGLE_SITE_MULTI_TAXA_CSS_LAYOUT("Single-Site Multi-Species - CSS Layout", true);
     
     Logger log = Logger.getLogger(getClass());
     private String name;
+    private boolean cssLayout;
 
-    private SurveyFormRendererType(String name) {
+    private SurveyFormRendererType(String name, boolean isCssLayout) {
         this.name = name;
+        this.cssLayout = isCssLayout;
     }
 
     public String getName() {
@@ -51,6 +56,7 @@ public enum SurveyFormRendererType implements JSONEnum {
         switch(this) {
             case DEFAULT:
             case ATLAS:
+            case DEFAULT_CSS_LAYOUT:
                 isEligible = true;
                 break;
             case YEARLY_SIGHTINGS:
@@ -62,6 +68,7 @@ public enum SurveyFormRendererType implements JSONEnum {
                 }
                 break;
             case SINGLE_SITE_MULTI_TAXA:
+            case SINGLE_SITE_MULTI_TAXA_CSS_LAYOUT:
                 // single site multi taxa are only eligible if something will appear in the sightings table
                 // (i.e. if species or number is not hidden or if there is at least one Record attribute)
                 if (survey.getId() == null) {
@@ -81,6 +88,7 @@ public enum SurveyFormRendererType implements JSONEnum {
                 }
                 break;
             case SINGLE_SITE_ALL_TAXA:
+            case SINGLE_SITE_ALL_TAXA_CSS_LAYOUT:
                 // single site all taxa is only eligible for surveys that do not have the 
                 // species field and at least one other record scoped attribute hidden
                 if (survey.getId() == null) {
@@ -187,6 +195,9 @@ public enum SurveyFormRendererType implements JSONEnum {
             case ATLAS:
             case SINGLE_SITE_MULTI_TAXA:
             case SINGLE_SITE_ALL_TAXA:
+            case DEFAULT_CSS_LAYOUT:
+            case SINGLE_SITE_ALL_TAXA_CSS_LAYOUT:
+            case SINGLE_SITE_MULTI_TAXA_CSS_LAYOUT:
             default:
                 return startDate;
         }
@@ -213,6 +224,9 @@ public enum SurveyFormRendererType implements JSONEnum {
             case ATLAS:
             case SINGLE_SITE_MULTI_TAXA:
             case SINGLE_SITE_ALL_TAXA:
+            case DEFAULT_CSS_LAYOUT:
+            case SINGLE_SITE_ALL_TAXA_CSS_LAYOUT:
+            case SINGLE_SITE_MULTI_TAXA_CSS_LAYOUT:
             default:
                 Date endDate = survey.getEndDate();
                 return endDate != null ? endDate : new Date();
@@ -238,9 +252,19 @@ public enum SurveyFormRendererType implements JSONEnum {
             return propService.getMessage("SurveyFormRendererType.ssmtDescription");
         case SINGLE_SITE_ALL_TAXA:
             return propService.getMessage("SurveyFormRendererType.ssatDescription");
+        case DEFAULT_CSS_LAYOUT:
+            return propService.getMessage("SurveyFormRendererType.trackerFormCssLayoutDescription");
+        case SINGLE_SITE_ALL_TAXA_CSS_LAYOUT:
+            return propService.getMessage("SurveyFormRendererType.ssatCssLayoutDescription");
+        case SINGLE_SITE_MULTI_TAXA_CSS_LAYOUT:
+            return propService.getMessage("SurveyFormRendererType.ssmtCssLayoutDescription");
         default:
             return "";
         }
+    }
+    
+    public boolean isCssLayout() {
+        return this.cssLayout;
     }
 
     /**

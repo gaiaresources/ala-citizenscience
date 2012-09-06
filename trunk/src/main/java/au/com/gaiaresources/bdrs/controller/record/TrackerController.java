@@ -525,7 +525,7 @@ public class TrackerController extends RecordController {
         mv.addObject(MV_VALUE_MAP, valueMap);
         mv.addObject("displayMap", showMap);
         
-        return super.addRecord(mv, loggedInUser);
+        return super.addRecord(mv, loggedInUser, survey);
     }
     /**
      * Determines the IndicatorSpecies to use when displaying the form.

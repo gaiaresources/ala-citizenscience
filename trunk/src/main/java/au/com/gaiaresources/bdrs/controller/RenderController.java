@@ -118,15 +118,18 @@ public class RenderController extends AbstractController {
                     redirectURL = YearlySightingsController.YEARLY_SIGHTINGS_URL;
                     break;
                 case SINGLE_SITE_MULTI_TAXA:
+                case SINGLE_SITE_MULTI_TAXA_CSS_LAYOUT:
                     redirectURL = SingleSiteMultiTaxaController.SINGLE_SITE_MULTI_TAXA_URL;
                     break;
                 case SINGLE_SITE_ALL_TAXA:
+                case SINGLE_SITE_ALL_TAXA_CSS_LAYOUT:
                     redirectURL = SingleSiteAllTaxaController.SINGLE_SITE_ALL_TAXA_URL;
                     break;
                 case ATLAS:
                     redirectURL = AtlasController.ATLAS_URL;
                     break;
                 case DEFAULT:
+                case DEFAULT_CSS_LAYOUT:
                     // Fall through
                 default:
                     redirectURL = TrackerController.EDIT_URL;

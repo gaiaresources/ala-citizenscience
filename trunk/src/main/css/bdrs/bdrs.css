@@ -943,6 +943,15 @@ ul.ui-menu li.ui-menu-item {
     list-style-type: none;
 }
 
+.cssLayoutFileActionLink {
+    padding: 0 0 0 0.5em
+}
+
+.formFieldLayoutExample {
+    padding: 1em 1em 1em 1em;
+    font-weight: bold;
+}
+
 /************************************/
 /* Location Table                   */
 /************************************/
@@ -2128,10 +2137,10 @@ table.datatable tbody table.censusMethodAttributeTable tbody tr th {
     width: auto;
 }
 
-.form_table table.censusMethodAttributeTable tbody td,
-.form_table table.censusMethodAttributeTable thead td,
-.form_table table.censusMethodAttributeTable tbody th,
-.form_table table.censusMethodAttributeTable thead th {
+table.censusMethodAttributeTable tbody td,
+table.censusMethodAttributeTable thead td,
+table.censusMethodAttributeTable tbody th,
+table.censusMethodAttributeTable thead th {
     border: collapse;
     border: 1px solid #C0C0C0;
     margin: 0;
@@ -2140,8 +2149,9 @@ table.datatable tbody table.censusMethodAttributeTable tbody tr th {
     width: auto;
 }
 
-table.form_table table.censusMethodAttributeTable tbody tr th {
-    min-width: 150px;
+table.censusMethodAttributeTable tbody tr th,
+table.censusMethodAttributeTable tbody tr td {
+    min-width: 100px;
 }
 
 table.censusMethodAttributeTable tbody td,
@@ -2239,7 +2249,7 @@ table.censusMethodAttributeTable textarea {
     border-width:0;
 }
 table.form_table tbody tr th.deleteColumn, 
-table.form_table table.censusMethodAttributeTable thead tr th.deleteColumn {
+table.censusMethodAttributeTable thead tr th.deleteColumn {
     width: auto;
 }
 

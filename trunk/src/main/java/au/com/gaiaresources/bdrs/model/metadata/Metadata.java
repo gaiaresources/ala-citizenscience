@@ -72,6 +72,10 @@ public class Metadata extends PortalPersistentImpl {
      */
     public static final String SURVEY_LOGO = "SurveyLogo";
     /**
+     * CUSTOM css file for the survey form(s)
+     */
+    public static final String SURVEY_CSS = "SurveyCss";
+    /**
      * Can the survey only have pre defined locations
      */
     public static final String PREDEFINED_LOCATIONS_ONLY = "PredefinedLocationsOnly";

@@ -6,10 +6,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 
 import au.com.gaiaresources.bdrs.json.JSON;
@@ -24,9 +27,9 @@ import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.sax.BodyContentHandler;
+import org.w3c.css.sac.InputSource;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
-
 
 public class FileUtils {
     
@@ -77,6 +80,15 @@ public class FileUtils {
                 log.error(ioe.getMessage(), ioe);
             }
         }
+    }
+    
+    /**
+     * Check whether the content type is text.
+     * @param contentType Content type.
+     * @return True if content type is text.
+     */
+    public static boolean isTextContent(String contentType) {
+        return contentType.startsWith("text");
     }
     
     /**
@@ -228,5 +240,27 @@ public class FileUtils {
             }
         }
         return sb.toString();
+    }
+    
+    /**
+     * An efficient way to read a file to a string.
+     * @param path Path to file to be read.
+     * @return Contents of file as a string.
+     * @throws IOException Error during reading.
+     */
+    public static String readFile(String path) throws IOException {
+        FileInputStream stream = new FileInputStream(new File(path));
+        try {
+            FileChannel fc = stream.getChannel();
+            MappedByteBuffer bb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
+            /* Instead of using default, pass in a decoder. */
+            return Charset.defaultCharset().decode(bb).toString();
+        } finally {
+            try {
+                stream.close();
+            } catch (IOException ioe) {
+                log.error("Could not close stream", ioe);
+            }
+        }
     }
 }
