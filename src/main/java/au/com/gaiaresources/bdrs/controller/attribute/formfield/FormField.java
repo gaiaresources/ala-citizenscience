@@ -56,4 +56,10 @@ public interface FormField extends Comparable<FormField> {
      * @return true if this FormField should be visible, false otherwise.
      */
     public boolean isVisible(DisplayContext context);
+    
+    /**
+     * Gets a name that uniquely identifies this form field on the form.
+     * @return Unique name within the form.
+     */
+    public String getName();
 }

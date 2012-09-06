@@ -450,8 +450,8 @@ public abstract class SingleSiteController extends RecordController {
         mv.addObject(BdrsWebConstants.MV_ERROR_MAP, errorMap);
         mv.addObject(BdrsWebConstants.MV_VALUE_MAP, valueMap);
         mv.addObject("displayMap", showMap);
-        
-        return super.addRecord(mv, accessor);
+
+        return super.addRecord(mv, accessor, survey);
     }
 
     /**

@@ -8,8 +8,11 @@ import java.io.FileInputStream;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
+import javax.activation.FileDataSource;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -26,18 +29,26 @@ import org.springframework.test.web.ModelAndViewAssert;
 import org.springframework.web.servlet.ModelAndView;
 
 import au.com.gaiaresources.bdrs.controller.AbstractGridControllerTest;
+import au.com.gaiaresources.bdrs.file.FileService;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
+import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
 import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormSubmitAction;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import au.com.gaiaresources.bdrs.util.FileUtils;
 
 public class SurveyBaseControllerTest extends AbstractGridControllerTest {
     
     @Autowired
     private SurveyDAO surveyDAO;
+    @Autowired
+    private MetadataDAO mdDAO;
+    @Autowired
+    private FileService fileService;
 
     @Test
     public void testListSurveys() throws Exception {
@@ -178,6 +189,53 @@ public class SurveyBaseControllerTest extends AbstractGridControllerTest {
         Assert.assertEquals(true, survey.isRecordVisibilityModifiable());
         Assert.assertEquals("form submit action mismatch", SurveyFormSubmitAction.MY_SIGHTINGS, survey.getFormSubmitAction());
         Assert.assertEquals("wrong crs", BdrsCoordReferenceSystem.WGS84, survey.getMap().getCrs());
+    }
+    
+    @Test
+    public void saveCssFile() throws Exception {
+        
+        this.login("admin", "password", new String[] { Role.ADMIN });
+        
+        Survey survey = new Survey();
+        survey.setName("my survey");
+        survey.setDescription("my survey desc");
+        
+        String filename = "empty.css";
+        String testCss = ".hello {\nwidth:100px;\n}";
+        
+        Metadata md = new Metadata();
+        md.setKey(Metadata.SURVEY_CSS);
+        md.setValue(filename);
+        mdDAO.save(md);
+        
+        Set<Metadata> mdList = new HashSet<Metadata>();
+        mdList.add(md);
+        survey.setMetadata(mdList);
+        
+        surveyDAO.save(survey);
+        
+        MockMultipartFile testFile = new MockMultipartFile("file", filename, "text/css", "blah".getBytes());
+        fileService.createFile(md, testFile);
+        
+        request.setRequestURI(SurveyBaseController.SURVEY_EDIT_CSS_LAYOUT_URL);
+        request.setMethod("POST");
+        request.setParameter(SurveyBaseController.PARAM_TEXT, testCss);
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
+        request.setParameter("Save", "true");
+        
+        this.handle(request, response);
+        
+        // should have returned success!
+        this.assertMessageCode(SurveyBaseController.MSG_KEY_FILE_WRITE_SUCCESS);
+        
+        FileDataSource fileDataSource = fileService.getFile(md, filename);
+        Assert.assertNotNull("file data source cannot be null", fileDataSource);
+        File file = fileDataSource.getFile();
+        Assert.assertNotNull("file cannot be null", file);
+        
+        String contents = FileUtils.readFile(file.getAbsolutePath());
+        Assert.assertNotNull("Contents cannot be null", contents);
+        Assert.assertEquals("Wrong contents", testCss, contents);
     }
 
     @Override

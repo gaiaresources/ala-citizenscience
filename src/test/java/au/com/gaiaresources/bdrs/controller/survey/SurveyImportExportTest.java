@@ -8,6 +8,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.activation.FileDataSource;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +40,7 @@ import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.servlet.RequestContext;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
+import au.com.gaiaresources.bdrs.util.FileUtils;
 import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 import au.com.gaiaresources.bdrs.util.ZipUtils;
 
@@ -105,6 +108,26 @@ public class SurveyImportExportTest extends AbstractGridControllerTest {
         sessionFactory.getCurrentSession().flush();
         testSurveyImportExport(survey1);
     }
+    
+    @Test
+    public void testSurveyExportWithCss() throws Exception {
+        requestDropDatabase();
+        String filename = "testfile.css";
+        String fileContents = "blah";
+        Metadata md = survey1.addMetadata(Metadata.SURVEY_CSS, filename);
+        metaDAO.save(md);
+        
+        MockMultipartFile testFile = new MockMultipartFile("file", filename, "text/css", fileContents.getBytes());
+        fileService.createFile(md, testFile);
+        
+        Survey s = testSurveyImportExport(survey1);
+        
+        Metadata cssMeta = s.getMetadataByKey(Metadata.SURVEY_CSS);
+        Assert.assertNotNull("Metadata for survey css should not be null", cssMeta);
+        FileDataSource fds = fileService.getFile(cssMeta, cssMeta.getValue());
+        Assert.assertNotNull("file data source cannot be null", fds);
+        Assert.assertEquals("wrong contents", fileContents, FileUtils.readFile(fds.getFile().getAbsolutePath()));
+    }
 
     private void createNewRequest() {
         request = createMockHttpServletRequest();
@@ -112,7 +135,7 @@ public class SurveyImportExportTest extends AbstractGridControllerTest {
         getRequestContext().setHibernate(sessionFactory.getCurrentSession());
     }
 
-    private void testSurveyImportExport(Survey survey) throws Exception {
+    private Survey testSurveyImportExport(Survey survey) throws Exception {
     	
     	// create default map
     	geoMapService.getForSurvey(survey);
@@ -184,6 +207,8 @@ public class SurveyImportExportTest extends AbstractGridControllerTest {
         sessionFactory.getCurrentSession().beginTransaction();
         RequestContextHolder.set(new RequestContext(request, applicationContext));
         getRequestContext().setHibernate(sessionFactory.getCurrentSession());
+        
+        return actualSurvey;
     }
 
     private void assertLocations(Collection<Location> expected, Collection<Location> actual) {

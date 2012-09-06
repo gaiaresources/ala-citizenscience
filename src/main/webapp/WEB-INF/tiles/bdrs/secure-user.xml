@@ -139,6 +139,13 @@
         <put-attribute name="errorMap" type="object"/>
         <put-attribute name="valueMap" type="object"/>
     </definition>
+	
+	<definition name="divLayoutformFieldRenderer" template="/WEB-INF/jsp/bdrs/user/record/render/divLayoutFormFieldRenderer.jsp">
+        <put-attribute name="formField" type="object"/>
+        <put-attribute name="locations" type="object"/>
+        <put-attribute name="errorMap" type="object"/>
+        <put-attribute name="valueMap" type="object"/>
+    </definition>
     
     <definition name="formFieldVerticalRenderer" template="/WEB-INF/jsp/bdrs/user/record/render/formFieldVerticalRenderer.jsp">
         <put-attribute name="formField" type="object"/>
@@ -264,6 +271,10 @@
         <put-list-attribute name="customJavaScript">
             
         </put-list-attribute>
+    </definition>
+    
+    <!-- Single site survey scoped fields -->
+    <definition name="singleSiteSurveyScopeFields" template="/WEB-INF/jsp/bdrs/user/record/render/singleSiteMultiTaxa/singleSiteSurveyScopeFields.jsp">
     </definition>
 
     <!-- Record Comments -->

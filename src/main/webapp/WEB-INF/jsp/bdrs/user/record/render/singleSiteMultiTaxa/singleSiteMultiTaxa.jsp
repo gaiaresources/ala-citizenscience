@@ -47,38 +47,10 @@
     </tiles:insertDefinition>
     
     <div id="tableContainer">
-    <table class="form_table">
-        <tbody>
-            <c:forEach items="${recordWebFormContext.namedFormFields['formFieldList']}" var="formField">
-             <jsp:useBean id="formField" type="au.com.gaiaresources.bdrs.controller.attribute.formfield.AbstractRecordFormField" />
-                 <c:if test="<%= formField.isPropertyFormField() %>">
-                     <c:if test="${ formField.scope == 'SURVEY'}">
-                        <tiles:insertDefinition name="formFieldRenderer">
-                            <tiles:putAttribute name="formField" value="${formField}"/>
-                            <tiles:putAttribute name="locations" value="${locations}"/>
-                            <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
-                            <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
-                            <tiles:putAttribute name="editEnabled" value="${recordWebFormContext.editable}"/>
-                        <tiles:putAttribute name="isModerationOnly" value="${ recordWebFormContext.moderateOnly }"/>
-                        </tiles:insertDefinition>
-                    </c:if>
-                 </c:if>
-                 <c:if test="<%= formField.isAttributeFormField() %>">
-                     <c:if test="${ formField.attribute.scope == 'SURVEY' || formField.attribute.scope == 'SURVEY_MODERATION'}">
-                        <tiles:insertDefinition name="formFieldRenderer">
-                            <tiles:putAttribute name="formField" value="${formField}"/>
-                            <tiles:putAttribute name="locations" value="${locations}"/>
-                            <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
-                            <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
-                            <tiles:putAttribute name="editEnabled" value="${recordWebFormContext.editable}"/>
-                        <tiles:putAttribute name="isModerationOnly" value="${ recordWebFormContext.moderateOnly }"/>
-                        </tiles:insertDefinition>
-                    </c:if>
-                 </c:if>
-            </c:forEach>
-        </tbody>
-    </table>
     
+    <%-- Just a tile to help avoid DRY between SSMT and SSAT forms --%>
+    <tiles:insertDefinition name="singleSiteSurveyScopeFields">
+    </tiles:insertDefinition>
     
     <div id="sightingsContainer">
         

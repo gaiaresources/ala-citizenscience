@@ -55,4 +55,9 @@ public class BdrsWebConstants {
      * Constant for adding a WebMap object to the ModelAndView
      */
     public static final String MV_WEB_MAP = "webMap";
+    /**
+     * Constant for adding the css form layout download url to the ModelAndView.
+     * Used in foundation.jsp
+     */
+    public static final String MV_CSS_FORM_LAYOUT_URL = "cssFormLayoutUrl";
 }

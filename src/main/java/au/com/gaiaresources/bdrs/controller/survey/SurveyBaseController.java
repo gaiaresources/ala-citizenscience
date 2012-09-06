@@ -3,7 +3,15 @@ package au.com.gaiaresources.bdrs.controller.survey;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
@@ -14,6 +22,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import javax.activation.FileDataSource;
 import javax.annotation.security.RolesAllowed;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
@@ -34,6 +43,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 
+import au.com.gaiaresources.bdrs.controller.HomePageController;
 import au.com.gaiaresources.bdrs.controller.map.AbstractEditMapController;
 import au.com.gaiaresources.bdrs.db.FilterManager;
 import au.com.gaiaresources.bdrs.file.FileService;
@@ -43,7 +53,6 @@ import au.com.gaiaresources.bdrs.model.form.CustomForm;
 import au.com.gaiaresources.bdrs.model.form.CustomFormDAO;
 import au.com.gaiaresources.bdrs.model.group.Group;
 import au.com.gaiaresources.bdrs.model.group.GroupDAO;
-import au.com.gaiaresources.bdrs.model.map.BaseMapLayerDAO;
 import au.com.gaiaresources.bdrs.model.map.GeoMap;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
@@ -64,11 +73,17 @@ import au.com.gaiaresources.bdrs.service.survey.SurveyImportExportService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.servlet.RequestContext;
 import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
+import au.com.gaiaresources.bdrs.util.FileUtils;
 import au.com.gaiaresources.bdrs.util.ImageUtil;
 import au.com.gaiaresources.bdrs.util.ZipUtils;
 
 @Controller
 public class SurveyBaseController extends AbstractEditMapController {
+    
+    /**
+     * URL of the first page of survey editing
+     */
+    public static final String SURVEY_EDIT_URL_INITIAL_PAGE = "/bdrs/admin/survey/edit.htm";
     /**
      * The URL of the handler to retrieve an exported survey.
      */
@@ -78,6 +93,11 @@ public class SurveyBaseController extends AbstractEditMapController {
      * The URL of the handler to parse an imported survey.
      */
     public static final String SURVEY_IMPORT_URL = "/bdrs/admin/survey/import.htm";
+    
+    /**
+     * Edit the CSS layout for the survey form
+     */
+    public static final String SURVEY_EDIT_CSS_LAYOUT_URL = "/bdrs/admin/survey/editCssLayout.htm";
 
     /**
      * The POST dictionary key name of the survey import file.
@@ -133,7 +153,46 @@ public class SurveyBaseController extends AbstractEditMapController {
      */
     public static final String PARAM_CRS = "crs";
     
+    /**
+     * Query param for whether survey has public read access
+     */
     public static final String PARAM_SURVEY_PUBLIC_READ_ACCESS = "public_read_access";
+    /**
+     * Query param for post - posting action (i.e. action to take after posting)
+     */
+    public static final String PARAM_SAVE_AND_CONTINUE_EDITING = "saveAndContinueEditing";
+    /**
+     * Query param for text to save when editing a CSS layout
+     */
+    public static final String PARAM_TEXT = "text_to_save";
+    
+    /**
+     * see bdrs-errors.properties
+     */
+    public static final String MSG_KEY_FILE_MISSING = "bdrs.survey.cssLayout.missing";
+    /**
+     * see bdrs-errors.properties
+     */
+    public static final String MSG_KEY_FILE_READ_ERROR = "bdrs.survey.cssLayout.fileReadError";
+    /**
+     * see bdrs-errors.properties
+     */
+    public static final String MSG_KEY_NOT_TEXT_TYPE_FILE = "bdrs.survey.cssLayout.notTextType";
+    /**
+     * see bdrs-errors.properties
+     */
+    public static final String MSG_KEY_FILE_WRITE_ERROR = "bdrs.survey.cssLayout.fileWriteError";
+    /**
+     * see bdrs-errors.properties
+     */
+    public static final String MSG_KEY_FILE_WRITE_SUCCESS = "bdrs.survey.cssLayout.textFileSaved";
+    
+    /**
+     * Model and view key
+     */
+    public static final String MV_TEXT = "text";
+    
+    private static final String TEXT_ENCODING = "UTF-8";
 
     private Logger log = Logger.getLogger(getClass());
 
@@ -162,9 +221,6 @@ public class SurveyBaseController extends AbstractEditMapController {
     private FileService fileService;
     
     @Autowired
-    private BaseMapLayerDAO baseMapLayerDAO;
-    
-    @Autowired
     private GeoMapService geoMapService;
     
     /**
@@ -190,7 +246,7 @@ public class SurveyBaseController extends AbstractEditMapController {
     }
 
     @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR})
-    @RequestMapping(value = "/bdrs/admin/survey/edit.htm", method = RequestMethod.GET)
+    @RequestMapping(value = SURVEY_EDIT_URL_INITIAL_PAGE, method = RequestMethod.GET)
     public ModelAndView editSurvey(
             HttpServletRequest request,
             HttpServletResponse response,
@@ -238,7 +294,7 @@ public class SurveyBaseController extends AbstractEditMapController {
      * @throws IOException
      */
     @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR})
-    @RequestMapping(value = "/bdrs/admin/survey/edit.htm", method = RequestMethod.POST)
+    @RequestMapping(value = SURVEY_EDIT_URL_INITIAL_PAGE, method = RequestMethod.POST)
     public ModelAndView submitSurveyEdit(
             MultipartHttpServletRequest request,
             HttpServletResponse response,
@@ -286,7 +342,10 @@ public class SurveyBaseController extends AbstractEditMapController {
         // the link between survey and metadata must be broken before the 
         // metadata can be deleted.
         List<Metadata> metadataToDelete = new ArrayList<Metadata>();
-
+        
+        // get the css file if it exists...
+        readCssFile(request, survey, metadataToDelete);
+        
         // ---- Form Renderer Type
         // Initially assume the renderer type is a CustomForm primary key.
         CustomForm form = null;
@@ -318,48 +377,7 @@ public class SurveyBaseController extends AbstractEditMapController {
         // ----------------------
         
         // Survey Logo
-        String logoFileStr = request.getParameter(Metadata.SURVEY_LOGO);
-        MultipartFile logoFile = request.getFile(Metadata.SURVEY_LOGO+"_file");
-        
-        // logoFile will always have size zero unless the file
-        // is changed. If there is already a file, but the
-        // record is updated, without changing the file input,
-        // logoFileStr will not be empty but logoFile will
-        // have size zero.
-        Metadata logo = survey.getMetadataByKey(Metadata.SURVEY_LOGO);
-        if(logoFileStr.isEmpty() && logo != null) {
-            // The file was intentionally cleared.
-            Set<Metadata> surveyMetadata = new HashSet<Metadata>(survey.getMetadata());
-            surveyMetadata.remove(logo);
-            survey.setMetadata(surveyMetadata);
-            
-            metadataToDelete.add(logo);
-        }
-        else if(!logoFileStr.isEmpty() && logoFile != null && logoFile.getSize() > 0) {
-            if (ImageUtil.isMimetypeSupported(logoFile.getContentType())) {
-                String targetBasename = FilenameUtils.getBaseName(logoFile.getOriginalFilename());
-                
-                String targetFilename = String.format("%s%s%s", targetBasename, FilenameUtils.EXTENSION_SEPARATOR, TARGET_LOGO_IMAGE_FORMAT);
-                
-                if(logo == null) {
-                    logo = new Metadata();
-                    logo.setKey(Metadata.SURVEY_LOGO);
-                }
-                logo.setValue(targetFilename);
-                metadataDAO.save(logo);
-                survey.getMetadata().add(logo);
-                
-                BufferedImage scaledImage = ImageUtil.resizeImage(logoFile.getInputStream(), TARGET_LOGO_DIMENSION.width, TARGET_LOGO_DIMENSION.height);
-
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                ImageIO.write(scaledImage, TARGET_LOGO_IMAGE_FORMAT, baos);
-                baos.flush();
-                fileService.createFile(logo.getClass(), logo.getId(), targetFilename, baos.toByteArray());
-            }
-            else {
-                log.warn("Unable to resize logo image with content type "+logoFile.getContentType());
-            }
-        } 
+        readLogoFile(request, survey, metadataToDelete);
         
         surveyDAO.save(survey);
         
@@ -377,6 +395,7 @@ public class SurveyBaseController extends AbstractEditMapController {
         }
 
         String messageKey;
+        
         if (!origPublishStatus && survey.isActive()) {
             messageKey = "bdrs.survey.publish.success";
         } else {
@@ -471,7 +490,7 @@ public class SurveyBaseController extends AbstractEditMapController {
 
         ModelAndView mv;
         if(request.getParameter(PARAM_SAVE_AND_CONTINUE) != null) {
-            mv = new ModelAndView(new PortalRedirectView("/bdrs/admin/survey/edit.htm", true));
+            mv = new ModelAndView(new PortalRedirectView(SURVEY_EDIT_URL_INITIAL_PAGE, true));
             mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
             mv.addObject("publish", "publish");
         }
@@ -773,6 +792,271 @@ public class SurveyBaseController extends AbstractEditMapController {
         } else {
             mv = new ModelAndView(new PortalRedirectView(SURVEY_LISTING_URL, true));
         }
+        return mv;
+    }
+    
+    @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR})
+    @RequestMapping(value = SURVEY_EDIT_CSS_LAYOUT_URL, method = RequestMethod.GET)
+    public ModelAndView editTextFile(HttpServletRequest request,
+            HttpServletResponse response) {
+
+        Survey survey = getSurvey(request.getParameter(BdrsWebConstants.PARAM_SURVEY_ID));
+        if (survey == null) {
+            return SurveyBaseController.nullSurveyRedirect(getRequestContext());
+        }
+        
+        OpenFileResult ofr = openCssLayoutFile(survey);
+        if (!ofr.isValid()) {
+            return ofr.modelAndView;
+        }
+
+        // see secure-admin.xml
+        ModelAndView mv = new ModelAndView("editSurveyCssLayout");
+        mv.addObject("survey", survey);
+        mv.addObject("filename", ofr.file.getName());
+
+        // get the contents of the text file.
+        String text = null;
+        try {
+            text = FileUtils.readFile(ofr.file.getAbsolutePath());
+        } catch (FileNotFoundException fnfe) {
+            getRequestContext().addMessage(MSG_KEY_FILE_MISSING, new Object[] { ofr.file.getName() });
+            return redirectToEdit(survey);
+        } catch (IOException ioe) {
+            getRequestContext().addMessage(MSG_KEY_FILE_READ_ERROR);
+            log.error("Could not read bytes from file. uuid = " + ofr.file.getAbsolutePath(), ioe);
+            return redirectToEdit(survey);
+        }
+        mv.addObject(MV_TEXT, text);
+        return mv;
+    }
+    
+    @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR})
+    @RequestMapping(value = SURVEY_EDIT_CSS_LAYOUT_URL, method = RequestMethod.POST)
+    public ModelAndView saveTextFile(HttpServletRequest request, HttpServletResponse response,
+            @RequestParam(value=PARAM_TEXT) String text) {
+        
+        Survey survey = getSurvey(request.getParameter(BdrsWebConstants.PARAM_SURVEY_ID));
+        if (survey == null) {
+            return SurveyBaseController.nullSurveyRedirect(getRequestContext());
+        }
+        
+        OpenFileResult ofr = openCssLayoutFile(survey);
+        if (!ofr.isValid()) {
+            return ofr.modelAndView;
+        }
+        if (ofr.file.exists()) {
+            if (!ofr.file.delete()) {
+                log.error("failed to delete file - potential file locking issue : " + ofr.file.getAbsolutePath());
+                getRequestContext().addMessage(MSG_KEY_FILE_WRITE_ERROR);
+                return redirectToEdit(survey);
+            }
+        }
+        try {
+            if (!ofr.file.createNewFile()) {
+                // really this shouldn't happen as we have already checked for an deleted the file
+                log.error("could not create new file - " + ofr.file.getAbsolutePath());
+                getRequestContext().addMessage(MSG_KEY_FILE_WRITE_ERROR);
+                return redirectToEdit(survey);
+            }
+        } catch (IOException e1) {
+            log.error("could not create new file, IOException - " + ofr.file.getAbsolutePath(), e1);
+            getRequestContext().addMessage(MSG_KEY_FILE_WRITE_ERROR);
+            return redirectToEdit(survey);
+        }
+        
+        FileOutputStream stream = null; 
+        OutputStreamWriter writer = null; 
+        
+        try {
+            stream = new FileOutputStream(ofr.file);
+            writer = new OutputStreamWriter(stream, TEXT_ENCODING);
+            
+            writer.write(text);
+            writer.flush();
+            
+        } catch (FileNotFoundException fnfe) {
+            getRequestContext().addMessage(MSG_KEY_FILE_MISSING, new Object[] { ofr.file.getName() });
+            return redirectToEdit(survey);
+        } catch (UnsupportedEncodingException uee) {
+            log.error("Unsupported encoding", uee);
+            getRequestContext().addMessage(MSG_KEY_FILE_WRITE_ERROR);
+            return redirectToEdit(survey);
+        } catch (IOException ioe) {
+            log.error("Error writing managed file, uuid " + ofr.file.getAbsolutePath(), ioe);
+            getRequestContext().addMessage(MSG_KEY_FILE_WRITE_ERROR);
+            return redirectToEdit(survey);
+        } finally {
+            if (stream != null) {
+                try {
+                    stream.close();
+                } catch (IOException e) {
+                    log.error("failed to close stream", e);
+                    getRequestContext().addMessage(MSG_KEY_FILE_WRITE_ERROR);
+                    return redirectToEdit(survey);
+                }
+            }
+        }
+
+        getRequestContext().addMessage(MSG_KEY_FILE_WRITE_SUCCESS);
+        
+        ModelAndView mv;
+        if (request.getParameter(PARAM_SAVE_AND_CONTINUE_EDITING) != null) {
+            // back to CSS layout editing screen
+            mv = new ModelAndView(new PortalRedirectView(SURVEY_EDIT_CSS_LAYOUT_URL, true));
+            mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
+        } else if (request.getParameter(PARAM_SAVE_AND_CONTINUE) != null) {
+            // back to first survey editing page
+            mv = new ModelAndView(new PortalRedirectView(SURVEY_EDIT_URL_INITIAL_PAGE, true));
+            mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
+        } else {
+            // back to URL listing
+            mv = new ModelAndView(new PortalRedirectView(
+                    SURVEY_LISTING_URL, true));
+        }
+        return mv;
+    }
+    
+    /**
+     * Opens a text managed file. 
+     * @param uuid managed file UUID
+     * @return OpenFileResult the result of the operation.
+     */
+    private OpenFileResult openCssLayoutFile(Survey survey) {
+        Metadata md = survey.getMetadataByKey(Metadata.SURVEY_CSS);
+        OpenFileResult result = new OpenFileResult();
+        if (md == null) {
+            return result;
+        }
+        FileDataSource fds = fileService.getFile(md, md.getValue());
+        
+        if (fds == null) {
+            getRequestContext().addMessage(MSG_KEY_FILE_MISSING, new Object[] { md.getValue() });
+            result.modelAndView = redirectToEdit(survey);
+            return result;
+        }
+        
+        File file = fds.getFile();
+        result.file = file;
+        
+        return result;
+    }
+    
+    /**
+     * Holder object for open file operation.
+     */
+    private static class OpenFileResult {
+        // will be null if successful.
+        public ModelAndView modelAndView = null;
+        // will be non null if successful
+        public File file = null;
+        
+        public boolean isValid() {
+            return modelAndView == null && file != null;
+        }
+    }
+    
+    /**
+     * Has the logic for working out whether a file has been updated or not.
+     * 
+     * @param request Http request.
+     * @param survey Survey to update.
+     * @param metaKey Metadata key to update.
+     * @param metadataToDelete If the metadata file has been removed, add the metadata object to this list.
+     * @return MultipartFile to be saved or null if no action needs to be taken.
+     */
+    private MultipartFile readMetaFile(MultipartHttpServletRequest request, Survey survey, String metaKey, List<Metadata> metadataToDelete) {
+        // Survey Logo
+        String fileStr = request.getParameter(metaKey);
+        MultipartFile file = request.getFile(metaKey+"_file");
+        // file will always have size zero unless the file
+        // is changed. If there is already a file, but the
+        // project is updated, without changing the file input,
+        // fileStr will not be empty but file will
+        // have size zero.
+        Metadata metadata = survey.getMetadataByKey(metaKey);
+        if (fileStr != null) {
+            if(fileStr.isEmpty() && metadata != null) {
+                // The file was intentionally cleared.
+                Set<Metadata> surveyMetadata = new HashSet<Metadata>(survey.getMetadata());
+                surveyMetadata.remove(metadata);
+                survey.setMetadata(surveyMetadata);
+                
+                metadataToDelete.add(metadata);
+            } else if(!fileStr.isEmpty() && file != null && file.getSize() > 0) {
+                return file;
+            }
+        }
+        return null;
+    }
+    
+    private void readCssFile(MultipartHttpServletRequest request, Survey survey, List<Metadata> metadataToDelete) {
+        String metaKey = Metadata.SURVEY_CSS;
+        MultipartFile file = readMetaFile(request, survey, metaKey, metadataToDelete);
+        if (file != null) {
+            String targetFilename = file.getOriginalFilename();
+            Metadata cssMetadata = survey.getMetadataByKey(metaKey);
+            if(cssMetadata == null) {
+                cssMetadata = new Metadata();
+                cssMetadata.setKey(metaKey);
+            }
+            cssMetadata.setValue(targetFilename);
+            metadataDAO.save(cssMetadata);
+            survey.getMetadata().add(cssMetadata);
+            
+            try {
+                fileService.createFile(cssMetadata, file);
+            } catch (IOException ioe) {
+                getRequestContext().addMessage("bdrs.survey.save.errorCssLayoutSave");
+                log.error("Error saving css layout", ioe);
+            }
+        }
+    }
+    
+    private void readLogoFile(MultipartHttpServletRequest request, Survey survey, List<Metadata> metadataToDelete) {
+        String metaKey = Metadata.SURVEY_LOGO;
+        MultipartFile logoFile = readMetaFile(request, survey, metaKey, metadataToDelete);
+        if (logoFile != null) {
+            if (ImageUtil.isMimetypeSupported(logoFile.getContentType())) {
+                String targetBasename = FilenameUtils.getBaseName(logoFile.getOriginalFilename());
+                
+                String targetFilename = String.format("%s%s%s", targetBasename, FilenameUtils.EXTENSION_SEPARATOR, TARGET_LOGO_IMAGE_FORMAT);
+                
+                Metadata logo = survey.getMetadataByKey(metaKey);
+                if(logo == null) {
+                    logo = new Metadata();
+                    logo.setKey(metaKey);
+                }
+                logo.setValue(targetFilename);
+                metadataDAO.save(logo);
+                survey.getMetadata().add(logo);
+                
+                try {
+                    BufferedImage scaledImage = ImageUtil.resizeImage(logoFile.getInputStream(), TARGET_LOGO_DIMENSION.width, TARGET_LOGO_DIMENSION.height);
+
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    ImageIO.write(scaledImage, TARGET_LOGO_IMAGE_FORMAT, baos);
+                    baos.flush();
+                    fileService.createFile(logo.getClass(), logo.getId(), targetFilename, baos.toByteArray());                    
+                } catch (IOException ioe) {
+                    getRequestContext().addMessage("bdrs.survey.save.errorLogoSave");
+                    log.error("Error saving logo", ioe);
+                }
+            } else {
+                getRequestContext().addMessage("bdrs.survey.save.errorLogoNotAnImage");
+                log.warn("Unable to resize logo image with content type "+logoFile.getContentType());
+            }
+        }
+    }
+    
+    /**
+     * Redirects to the first survey editing page in the edit survey wizard.
+     * @param survey Survey to edit.
+     * @return redirect view.
+     */
+    private ModelAndView redirectToEdit(Survey survey) {
+        ModelAndView mv = this.redirect(SURVEY_EDIT_URL_INITIAL_PAGE);
+        mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
         return mv;
     }
 }

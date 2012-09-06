@@ -141,4 +141,13 @@ public class LocationAttributeFormField extends AbstractFormField implements Typ
     public Survey getSurvey() {
         return this.survey;
     }
+    
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField#getName()
+     */
+    @Override
+    public String getName() {
+        return attribute != null? attribute.getName() : null;
+    }
 }

@@ -138,4 +138,13 @@ public class TaxonAttributeFormField extends AbstractFormField implements TypedA
         // taxon attributes will never have a survey.
         return null;
     }
+    
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField#getName()
+     */
+    @Override
+    public String getName() {
+        return attribute != null ? attribute.getName() : null;
+    }
 }

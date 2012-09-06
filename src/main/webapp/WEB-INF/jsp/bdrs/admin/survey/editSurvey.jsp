@@ -32,7 +32,7 @@
         <div class="buttonpanel sepBottom">
             <form method="POST" action="${portalContextPath}/bdrs/admin/survey/import.htm" enctype="multipart/form-data">
                 <input id="import_survey_file" name="survey_file" type="file" style="visibility:hidden"/>
-                <input id="import_survey_button" class="form_action right" type="button" value="Import Survey"/>
+                <input id="import_survey_button" class="form_action right" type="button" value="Import Project"/>
             </form>
             <div class="clear"></div>
         </div>
@@ -189,19 +189,59 @@
                                         />
                                         <label for="customform_${ customform.id }">${ customform.name }</label>
                                     </div>
-	                            </c:forEach>
-	                        </fieldset>
-	                    </td>
-	                </tr>
-					<tr>
-	                    <th title="The action the website will take after clicking the 'Submit' button on the recording form">Submit Action:</th>
-	                    <td>
-	                        <fieldset>
-	                            <c:forEach items="<%=SurveyFormSubmitAction.values()%>" var="formAction">
-	                                <jsp:useBean id="formAction" type="au.com.gaiaresources.bdrs.model.survey.SurveyFormSubmitAction" />
-	                                <div>
-	                                    <input type="radio" class="vertmiddle" name="formSubmitAction"
-	                                        id="<%= formAction.toString() %>"
+                                </c:forEach>
+                               </fieldset>
+                        </td>
+                    </tr>
+                    <tr>
+                       <th>CSS Layout File:</th>
+                       <td>
+                        <c:set var="css_md" value="<%= survey.getMetadataByKey(Metadata.SURVEY_CSS) %>" scope="page"/>
+                        <c:if test="${ css_md != null }">
+                            <jsp:useBean id="css_md" type="au.com.gaiaresources.bdrs.model.metadata.Metadata" scope="page"/>
+                            <div id="<%= Metadata.SURVEY_CSS %>_css">
+                                <a href="${portalContextPath}/files/download.htm?<%= css_md.getFileURL() %>">
+                                    <%-- filename here --%>
+                                    ${ css_md.value }
+                                </a>
+                            </div>
+                        </c:if>
+                        <div style="line-height: 0em;">
+                            <input type="text"
+                                id="<%= Metadata.SURVEY_CSS %>"
+                                name="<%= Metadata.SURVEY_CSS %>"
+                                style="visibility: hidden;height: 0em;"
+                                <c:if test="${css_md != null}">
+                                    value="<c:out value="${css_md.value}"/>"
+                                </c:if>
+                            />
+                        </div>
+                        <input type="file"
+                            accept="text/css"
+                            id="<%= Metadata.SURVEY_CSS %>_file"
+                            name="<%= Metadata.SURVEY_CSS %>_file"
+                            onchange="jQuery('#<%= Metadata.SURVEY_CSS %>').val(jQuery(this).val());jQuery('#<%= Metadata.SURVEY_CSS %>_css').remove();"
+                        />
+                        <div>
+                        <a href="javascript: void(0)"
+                            onclick="jQuery('#<%= Metadata.SURVEY_CSS %>, #<%= Metadata.SURVEY_CSS %>_file').attr('value','');jQuery('#<%= Metadata.SURVEY_CSS %>_css').remove();">
+                            Clear
+                        </a>
+                        <c:if test="${ survey.id != null }">
+                            <a href="javascript:editCssLayoutFile()" class="cssLayoutFileActionLink">Edit</a>
+                        </c:if>
+                        </div>
+                    </td>
+                    </tr>
+                    <tr>
+                        <th title="The action the website will take after clicking the 'Submit' button on the recording form">Submit Action:</th>
+                        <td>
+                            <fieldset>
+                                <c:forEach items="<%=SurveyFormSubmitAction.values()%>" var="formAction">
+                                    <jsp:useBean id="formAction" type="au.com.gaiaresources.bdrs.model.survey.SurveyFormSubmitAction" />
+                                    <div>
+                                        <input type="radio" class="vertmiddle" name="formSubmitAction"
+                                            id="<%= formAction.toString() %>"
 	                                        value="<%= formAction.toString() %>"
 	                                        <c:if test="<%= formAction.equals(survey.getFormSubmitAction()) %>">
 	                                            checked="checked"
@@ -248,7 +288,7 @@
 	                    </td>
 	                </tr>
                     <tr>
-                        <th title="Controls if users can add comments to records created using this survey">Comments on records allowed</th>
+                        <th title="Controls if users can add comments to records created using this survey">Comments on records allowed:</th>
                         <td>
                             <input type="checkbox" name="recordCommentsEnabled" value="True"
                                 <c:if test="${survey.recordCommentsEnabled}">
@@ -258,7 +298,7 @@
                         </td>
                     </tr>
                     <tr>
-                        <th title="The coordinate reference system to use for this project.">Coordinate Reference System</th>
+                        <th title="The coordinate reference system to use for this project.">Coordinate Reference System:</th>
                         <td>
                             <select name="crs">
                                 <c:forEach items="<%=BdrsCoordReferenceSystem.values()%>" var="crs">
@@ -282,7 +322,6 @@
         </div>
     </div>
 </form>
-
 
 <script type="text/javascript">
     editSurveyPage = {
@@ -341,4 +380,15 @@
 
         bdrs.survey.listing.init();
     });
+    
+    <c:if test="${ survey.id != null }">
+    var editCssLayoutFile = function() {
+    	var fileNode = jQuery('#<%= Metadata.SURVEY_CSS %>');
+        if (!fileNode.val()) {
+            alert('You must save a file before editing');
+        } else {
+        	window.location.href = bdrs.portalContextPath + "/bdrs/admin/survey/editCssLayout.htm?surveyId=" + ${ survey.id };
+        }
+    };
+    </c:if>
 </script>

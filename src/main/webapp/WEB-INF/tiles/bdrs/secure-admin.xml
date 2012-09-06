@@ -167,6 +167,18 @@
         <put-list-attribute name="customJavaScript">
         </put-list-attribute>
     </definition>
+	
+	<definition name="editSurveyCssLayout" extends="admin-template">
+        <put-attribute name="title" value="Edit CSS Layout File"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/admin/survey/editCssLayout.jsp"/>
+        <put-list-attribute name="customCss">
+            <add-attribute>../js/markitup/sets/html/style.css</add-attribute>
+            <add-attribute>../js/markitup/skins/markitup/style.css</add-attribute>
+        </put-list-attribute>
+        <put-list-attribute name="customJavaScript">
+            <add-attribute>markitup/jquery.markitup.js</add-attribute>
+        </put-list-attribute>
+    </definition>
 
     <definition name="locationListing" extends="admin-template">
         <put-attribute name="title" value="Survey"/>

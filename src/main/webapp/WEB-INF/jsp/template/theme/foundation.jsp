@@ -98,6 +98,12 @@
 	            <script type="text/javascript" src="${portalContextPath}/files/download.htm?className=au.com.gaiaresources.bdrs.model.theme.Theme&id=${ theme.id }&fileName=<%= Theme.THEME_DIR_PROCESSED %>/${ jsFile }"></script>
 	        </c:forEach>
         </c:if>
+        
+        <%-- If there is a survey specific CSS file... --%>
+        <c:if test="${ cssFormLayoutUrl != null }">
+            <!--  adding survey specific CSS file -->
+            <link rel="stylesheet" href="${portalContextPath}/files/download.htm?${ cssFormLayoutUrl }" type="text/css">
+        </c:if>
 		
 		<!-- IE7 specific styles and hard coded IE7 file in theme -->
         <!--[if IE 7]>

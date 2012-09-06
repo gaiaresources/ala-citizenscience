@@ -224,7 +224,7 @@ public class YearlySightingsController extends RecordController {
         mv.addObject("record", record);
         mv.addObject(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT, context);
 
-        return super.addRecord(mv, loggedInUser);
+        return super.addRecord(mv, loggedInUser, survey);
     }
 
     /**
