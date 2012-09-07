@@ -887,6 +887,13 @@ public class SurveyBaseController extends AbstractEditMapController {
             getRequestContext().addMessage(MSG_KEY_FILE_WRITE_ERROR);
             return redirectToEdit(survey);
         } finally {
+            if (writer != null) {
+                try {
+                    writer.close();
+                } catch (IOException e) {
+                    log.error("failed to close writer", e);
+                }
+            }
             if (stream != null) {
                 try {
                     stream.close();
