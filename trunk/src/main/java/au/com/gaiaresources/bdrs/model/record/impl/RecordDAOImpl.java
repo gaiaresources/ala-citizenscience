@@ -42,6 +42,7 @@ import au.com.gaiaresources.bdrs.db.impl.SortingCriteria;
 import au.com.gaiaresources.bdrs.geometry.GeometryBuilder;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
+import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
@@ -77,6 +78,9 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
     
     @Autowired
     private AttributeDAO attributeDAO;
+    
+    @Autowired
+    private MetadataDAO metaDAO;
     
     @PostConstruct
     public void init() throws Exception {
@@ -609,6 +613,16 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         for(AttributeValue recAttr : attributeList) {
             recAttr = saveAttributeValue(recAttr);
             cascadeHandler.deleteCascade(recAttr);
+        }
+        
+        // remove the metadata
+        Set<Metadata> mdSet = new HashSet<Metadata>(record.getMetadata());
+        record.getMetadata().clear();
+        DeleteCascadeHandler metadataCascadeHandler =
+                delService.getDeleteCascadeHandlerFor(Metadata.class);
+        for (Metadata md : mdSet) {
+            md = metaDAO.save(md);
+            metadataCascadeHandler.deleteCascade(md);
         }
         
         // Removing the comments in this way triggers the cascade delete setting on the association to delete

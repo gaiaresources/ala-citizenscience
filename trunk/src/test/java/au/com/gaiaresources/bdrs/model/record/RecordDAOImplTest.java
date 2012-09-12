@@ -1,6 +1,8 @@
 package au.com.gaiaresources.bdrs.model.record;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import junit.framework.Assert;
 
@@ -11,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
+import au.com.gaiaresources.bdrs.model.metadata.Metadata;
+import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
 import au.com.gaiaresources.bdrs.model.method.Taxonomic;
@@ -30,9 +34,9 @@ public class RecordDAOImplTest extends AbstractControllerTest {
     @Autowired
     private CensusMethodDAO cmDAO;
     @Autowired
-    private TaxaDAO taxaDAO;
+    private MetadataDAO metaDAO;
     
-    User u;
+    private User u;
     
     @Before
     public void setup() {
@@ -211,6 +215,32 @@ public class RecordDAOImplTest extends AbstractControllerTest {
             Assert.assertTrue("expected record not found", result.getList().contains(child2));
             Assert.assertTrue("expected record not found", result.getList().contains(child3));
         }
+    }
+    
+    @Test
+    public void testDeleteCascade() {
+        Record rec = new Record();
+        rec.setUser(u);
+        rec.setLastDate(new Date());
+        rec.setTime(1000L);
+        // made to be nullable...
+        rec.setNumber(null);
+        rec.setSpecies(null);
+        
+        Metadata md = new Metadata();
+        md.setKey("mkey");
+        md.setValue("mval");
+        
+        Set<Metadata> mdSet = new HashSet<Metadata>();
+        mdSet.add(md);
+        rec.setMetadata(mdSet);
+        
+        recDAO.saveRecord(rec);
+        
+        recDAO.delete(rec);
+        
+        Assert.assertNull("Record should no longer exist", recDAO.getRecord(rec.getId()));
+        Assert.assertNull("Metadata should no longer exist", metaDAO.get(md.getId()));
     }
     
     private CensusMethod createCensusMethod(String name) {
