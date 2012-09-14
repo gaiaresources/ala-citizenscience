@@ -3204,12 +3204,40 @@ bdrs.initDeferredKetchup = function() {
     });
 };
 
+bdrs.initPlaceholderIEFix = function() {
+    // create the options
+    var options = {
+            // custom wrapper to remove display:block; style to keep searchContainer span from wrapping
+            inputWrapper: '<span style="position:relative;"></span>',
+          
+            // more or less just emulating what webkit does here
+            // changed default top and color
+            placeholderCSS: {
+              'color':'#aaa', 
+              'position': 'absolute', 
+              'left':'4px',
+              'top':'-2px', 
+              'overflow-x': 'hidden',
+              'display': 'block'
+            },
+            // necessary to keep color working as options.color replaces options.placeholderCSS.color
+            color: '#aaa'
+          };
+    
+    if (bdrs.isIE7()) {
+        options.placeholderCSS['top'] = '6px';
+    }
+    
+    $('input[placeholder]').placeholder(options);
+};
+
 bdrs.init = function(){
     bdrs.initDatePicker();
     bdrs.initColorPicker();
     bdrs.initSubmitDisabler();
     bdrs.initDeferredKetchup();
-
+    bdrs.initPlaceholderIEFix();
+    
     // Changing blockUI defaults
     // this puts the block UI above all known items...
     jQuery.blockUI.defaults.baseZ = 1070;

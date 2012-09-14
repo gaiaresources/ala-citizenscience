@@ -60,7 +60,7 @@ public class MultiShapefileDataStoreFeatureIterator implements Iterator<SimpleFe
             // hasNext() has been called earlier. we are guaranteed to have another
             // iterator in the queue. The try/catch is to appease eclipse exception
             // thrown declaration checking
-            log.error("Should never reach here!");
+            log.error("Should never reach here!", e);
             return null;
         }
     }
