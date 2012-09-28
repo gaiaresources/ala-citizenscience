@@ -762,7 +762,10 @@ bdrs.map.maximiseMap = function(map, controlPanel, trigger, enlargeMapLabel, shr
             jQuery(window).scrollTop(map.scrollMemory.scrollTop).scrollLeft(map.scrollMemory.scrollLeft);
             delete map.scrollMemory;    
         }
-        
+        // This is a workaround for a chrome bug (see Issue 347) - OpenLayers 2.12. does the same thing however
+        // introduced problems with polygon drawing.
+        mapDiv.find('svg').css('display', 'block');
+
     } else {
         // Fix the scrollbar issue where the scrolling is not at the extreme top and left
         var win = jQuery(window);
