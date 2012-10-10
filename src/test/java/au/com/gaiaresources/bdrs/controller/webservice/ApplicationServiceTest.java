@@ -1,9 +1,13 @@
 package au.com.gaiaresources.bdrs.controller.webservice;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import javax.servlet.http.HttpServletResponse;
 
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
@@ -21,9 +25,11 @@ import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
+import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
+import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
@@ -32,6 +38,8 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
+import au.com.gaiaresources.bdrs.service.map.GeoMapService;
+import au.com.gaiaresources.bdrs.service.survey.SurveyImportExportService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 public class ApplicationServiceTest extends AbstractControllerTest {
@@ -58,6 +66,12 @@ public class ApplicationServiceTest extends AbstractControllerTest {
     
     @Autowired
     private MetadataDAO metadataDAO;
+    
+    @Autowired
+    private SurveyImportExportService surveyImportExportService;
+    
+    @Autowired
+    private GeoMapService geoMapService;
     
     @Before
     public void setup(){
@@ -182,9 +196,15 @@ public class ApplicationServiceTest extends AbstractControllerTest {
          frogSurvey.setSpecies(frogSet);
          birdAndFrogSurvey.setSpecies(birdSet);
          birdAndFrogSurvey.getSpecies().addAll(frogSet);
+
+         Metadata md = frogSurvey.setFormRendererType(SurveyFormRendererType.DEFAULT);
+         metadataDAO.save(md);
+         
          //save the survey
          frogSurveyInDb = surveyDAO.save(frogSurvey);
          birdAndFrogSurveyInDb = surveyDAO.save(birdAndFrogSurvey);
+         
+         geoMapService.getForSurvey(frogSurveyInDb);
          
          allSurvey = new Survey();
          allSurvey.setActive(true);
@@ -228,7 +248,14 @@ public class ApplicationServiceTest extends AbstractControllerTest {
             //count the species in the survey
             JSONArray indicatorSpecies = JSONArray.fromString(responseContent.get("indicatorSpecies").toString());
             Assert.assertEquals("Expected the indicatorSpecies size to be " + indicatorSpecies.size() + " but it was " + frogSurveyInDb.getSpecies().size() , indicatorSpecies.size(), frogSurveyInDb.getSpecies().size());            
-        }
+        } 
+
+        // Make sure the json export object is correctly returned
+        Assert.assertTrue("should contain survey template", responseContent.containsKey(ApplicationService.JSON_KEY_SURVEY_TEMPLATE));
+        JSONObject surveyTemplate = responseContent.getJSONObject(ApplicationService.JSON_KEY_SURVEY_TEMPLATE);
+        Assert.assertEquals("wrong survey template name", 
+                            frogSurveyInDb.getName(), 
+                            surveyTemplate.getJSONObject("Survey").getJSONObject(frogSurveyInDb.getId().toString()).getString("name"));
     }
     
     /**
@@ -487,5 +514,105 @@ public class ApplicationServiceTest extends AbstractControllerTest {
         Assert.assertEquals("wrong list size", 1, jsonSpeciesArray.size());
         JSONObject jsonSpecies = jsonSpeciesArray.getJSONObject(0);
         Assert.assertEquals("wrong species id", bird2.getId().intValue(), jsonSpecies.getInt("server_id"));
+    }
+    
+    @Test
+    public void testCreateSurveySetName() throws Exception {
+        User u = userDAO.getUser("user");
+        frogSurveyInDb.setPublic(true);
+        JSONObject importData = surveyImportExportService.exportObject(frogSurveyInDb);
+        String testname = "hello world survey";
+        
+        Survey s = surveyDAO.getSurveyByName(testname);
+        Assert.assertNull("survey should not exist", s);
+        
+        request.setMethod("POST");
+        request.setRequestURI(ApplicationService.CREATE_SURVEY_URL);
+        request.setParameter(ApplicationService.PARAM_NAME, testname);
+        request.setParameter(ApplicationService.PARAM_SURVEY_TEMPLATE, importData.toString());
+        request.setParameter(ApplicationService.PARAM_IDENT, u.getRegistrationKey());
+        
+        this.handle(request, response);
+        
+        JSONObject json = JSONObject.fromStringToJSONObject(response.getContentAsString());
+        Assert.assertTrue("expect success to be true", json.getBoolean(ApplicationService.JSON_KEY_SUCCESS));
+        
+        s = surveyDAO.getSurveyByName(testname);
+        Assert.assertNotNull("survey should exist", s);
+        
+        Assert.assertEquals("wrong name", testname, s.getName());
+        
+        Assert.assertTrue("user set should be empty", s.getUsers().isEmpty());
+    }
+    
+    @Test
+    public void testCreateSurveySetNameNonPublic() throws Exception {
+        User u = userDAO.getUser("user");
+        frogSurveyInDb.setPublic(false);
+        JSONObject importData = surveyImportExportService.exportObject(frogSurveyInDb);
+        String testname = "hello world survey";
+        
+        Survey s = surveyDAO.getSurveyByName(testname);
+        Assert.assertNull("survey should not exist", s);
+        
+        request.setMethod("POST");
+        request.setRequestURI(ApplicationService.CREATE_SURVEY_URL);
+        request.setParameter(ApplicationService.PARAM_NAME, testname);
+        request.setParameter(ApplicationService.PARAM_SURVEY_TEMPLATE, importData.toString());
+        request.setParameter(ApplicationService.PARAM_IDENT, u.getRegistrationKey());
+        
+        this.handle(request, response);
+        
+        JSONObject json = JSONObject.fromStringToJSONObject(response.getContentAsString());
+        Assert.assertTrue("expect success to be true", json.getBoolean(ApplicationService.JSON_KEY_SUCCESS));
+        
+        s = surveyDAO.getSurveyByName(testname);
+        Assert.assertNotNull("survey should exist", s);
+        
+        Assert.assertEquals("wrong name", testname, s.getName());
+        
+        Assert.assertEquals("wrong user set size", 1, s.getUsers().size());
+        Assert.assertEquals("wrong user id", u.getId(), s.getUsers().iterator().next().getId());
+    }
+    
+    @Test
+    public void testCreateSurveySetBadIdent() throws Exception {
+        User u = userDAO.getUser("user");
+        frogSurveyInDb.setPublic(false);
+        JSONObject importData = surveyImportExportService.exportObject(frogSurveyInDb);
+        String testname = "hello world survey";
+        
+        Survey s = surveyDAO.getSurveyByName(testname);
+        Assert.assertNull("survey should not exist", s);
+        
+        request.setMethod("POST");
+        request.setRequestURI(ApplicationService.CREATE_SURVEY_URL);
+        request.setParameter(ApplicationService.PARAM_NAME, testname);
+        request.setParameter(ApplicationService.PARAM_SURVEY_TEMPLATE, importData.toString());
+        request.setParameter(ApplicationService.PARAM_IDENT, "bogusident");
+        
+        this.handle(request, response);
+        
+        Assert.assertEquals("wrong response code", HttpServletResponse.SC_FORBIDDEN, response.getStatus());
+    }
+    
+    @Test
+    public void testCreateSurveySetNoIdent() throws Exception {
+        User u = userDAO.getUser("user");
+        frogSurveyInDb.setPublic(false);
+        JSONObject importData = surveyImportExportService.exportObject(frogSurveyInDb);
+        String testname = "hello world survey";
+        
+        Survey s = surveyDAO.getSurveyByName(testname);
+        Assert.assertNull("survey should not exist", s);
+        
+        request.setMethod("POST");
+        request.setRequestURI(ApplicationService.CREATE_SURVEY_URL);
+        request.setParameter(ApplicationService.PARAM_NAME, testname);
+        request.setParameter(ApplicationService.PARAM_SURVEY_TEMPLATE, importData.toString());
+        
+        this.handle(request, response);
+        
+        Assert.assertEquals("wrong response code", HttpServletResponse.SC_FORBIDDEN, response.getStatus());
     }
 }
