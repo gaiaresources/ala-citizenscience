@@ -1,36 +1,26 @@
 package au.com.gaiaresources.bdrs.controller;
 
-import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
-import au.com.gaiaresources.bdrs.message.Message;
-import au.com.gaiaresources.bdrs.model.method.CensusMethod;
-import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
-import au.com.gaiaresources.bdrs.model.method.Taxonomic;
-import au.com.gaiaresources.bdrs.model.portal.PortalDAO;
-import au.com.gaiaresources.bdrs.model.preference.Preference;
-import au.com.gaiaresources.bdrs.model.record.Record;
-import au.com.gaiaresources.bdrs.model.record.RecordDAO;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
-import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.model.user.UserDAO;
-import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.servlet.Interceptor;
-import au.com.gaiaresources.bdrs.servlet.RecaptchaInterceptor;
-import au.com.gaiaresources.bdrs.servlet.RequestContext;
-import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
-import au.com.gaiaresources.bdrs.test.AbstractTransactionalTest;
-import au.com.gaiaresources.bdrs.util.DateFormatter;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.junit.Assert;
-import org.junit.Before;
 import org.simpleframework.http.Form;
 import org.simpleframework.http.Part;
 import org.simpleframework.http.Request;
@@ -57,28 +47,41 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.transaction.AfterTransaction;
 import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.*;
+import org.springframework.web.servlet.HandlerAdapter;
+import org.springframework.web.servlet.HandlerExecutionChain;
+import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.HandlerMapping;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter;
 import org.springframework.web.servlet.view.RedirectView;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
+import au.com.gaiaresources.bdrs.message.Message;
+import au.com.gaiaresources.bdrs.model.method.CensusMethod;
+import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
+import au.com.gaiaresources.bdrs.model.method.Taxonomic;
+import au.com.gaiaresources.bdrs.model.portal.PortalDAO;
+import au.com.gaiaresources.bdrs.model.record.Record;
+import au.com.gaiaresources.bdrs.model.record.RecordDAO;
+import au.com.gaiaresources.bdrs.model.taxa.Attribute;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
+import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.model.user.UserDAO;
+import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.Interceptor;
+import au.com.gaiaresources.bdrs.servlet.RecaptchaInterceptor;
+import au.com.gaiaresources.bdrs.servlet.RequestContext;
+import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
+import au.com.gaiaresources.bdrs.servlet.view.FileView;
+import au.com.gaiaresources.bdrs.test.AbstractTransactionalTest;
+import au.com.gaiaresources.bdrs.util.DateFormatter;
 
 
 @Transactional
@@ -259,6 +262,15 @@ public abstract class AbstractControllerTest extends AbstractTransactionalTest {
     
     protected void assertRedirect(ModelAndView mav, String url) {
         assertRedirect(mav, url, true);
+    }
+    
+    protected void assertFileView(ModelAndView mav) {
+        Assert.assertTrue("Must be an instance of FileView", mav.getView() instanceof FileView);
+    }
+    protected void assertFileView(ModelAndView mav, String contentType) {
+        assertFileView(mav);
+        FileView fileView = (FileView) mav.getView();
+        Assert.assertEquals("Content types must be equal", contentType, fileView.getContentType());
     }
 
     protected void assertRedirect(ModelAndView mav, String url, boolean prependPortalToExpected) {

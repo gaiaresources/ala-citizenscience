@@ -270,9 +270,9 @@ public class BdrsNswFloraImporterTest extends TaxonomyImportTest {
 
             // make sure 101 and 102 share a common parent..
             IndicatorSpecies sp102 = taxaDAO.getIndicatorSpeciesByScientificName("Rhodanthe microglossa forma. Cowabunga");
-            Assert.assertNotNull("sp102 cant be null");
+            Assert.assertNotNull("sp102 cant be null", sp102);
             IndicatorSpecies sp102_species = sp102.getParent();
-            Assert.assertNotNull("sp102 species cant be null");
+            Assert.assertNotNull("sp102 species cant be null", sp102_species);
             Assert.assertEquals("wrong ids", sp102_species.getId(), sp101_species.getId());
         }
     }

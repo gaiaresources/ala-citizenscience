@@ -435,4 +435,14 @@ public class FileService {
 		return filePath.substring(filePath.lastIndexOf(pathDelimitor) + 1,
 				filePath.length());
 	}
+    public void deleteFile (Persistent p, String fileName) {
+        FileDataSource file = getFile(p, fileName);
+        try{
+            if(!file.getFile().delete()){
+                logger.error("Failed to delete file: " + fileName);
+            }
+        } catch (SecurityException e){
+            logger.error(e.getMessage(), e);
+        }
+    }
 }

@@ -24,5 +24,8 @@ public interface SpeciesProfileDAO {
     void delete(SpeciesProfile delProf);
 
     List<SpeciesProfile> getSpeciesProfileByType(String[] types);
+
+    List<SpeciesProfile> getSpeciesProfileByTypeAndContent(String type,
+            String content);
     
 }

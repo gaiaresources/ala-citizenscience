@@ -26,6 +26,9 @@ public class ContentDAOImpl extends AbstractDAOImpl implements ContentDAO {
     }
     
     public Content saveContent(Session sesh, String key, String value) {
+        if(sesh == null){
+            sesh = getSession();
+        }
         Content content = getContent(key);
         if(content == null){
             return saveNewContent(sesh, key, value);
