@@ -1637,6 +1637,10 @@ div.alaSightingsTableHeaderDoubleLineArrows {
     top:-38px;
 }
 
+select#survey_id {
+    width: 200px;
+}
+
 /***********************/
 /* open layers toolbar */
 /***********************/

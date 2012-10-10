@@ -163,19 +163,19 @@ public abstract class AbstractImportExportService<T extends PersistentImpl> impl
      * @see au.com.gaiaresources.bdrs.service.survey.ImportExportService#importSurvey(org.hibernate.classic.Session, au.com.gaiaresources.bdrs.json.JSONObject)
      */
     @Override
-    public boolean importObject(Session sesh, JSONObject importData)
+    public T importObject(Session sesh, JSONObject importData)
             throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, InstantiationException {
         // clear messages before beginning a new import
         clearMessages();
-        return this.importObjectInternal(sesh, importData);
+        return (T)this.importObjectInternal(sesh, importData);
     }
     
-    protected boolean importObjectInternal(Session sesh, JSONObject importData)
+    protected Object importObjectInternal(Session sesh, JSONObject importData)
             throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, InstantiationException {
         Map<Class, Map<Integer, PersistentImpl>> persistentLookup =
                 new HashMap<Class, Map<Integer, PersistentImpl>>(importHandlerRegistry.size());
 
-        boolean importedAll = true;
+        Object importedObj = null;
         while (!importData.isEmpty()) {
             String klazzName = importData.keySet().iterator().next().toString();
             JSONObject idToJsonPersistentLookup = importData.getJSONObject(klazzName);
@@ -183,15 +183,14 @@ public abstract class AbstractImportExportService<T extends PersistentImpl> impl
             Object id = idToJsonPersistentLookup.keySet().iterator().next();
             JSONObject jsonPersistent = idToJsonPersistentLookup.getJSONObject(id.toString());
 
-            Object importedObj = importHandlerRegistry.importData(sesh, importData, persistentLookup, jsonPersistent);
+            importedObj = importHandlerRegistry.importData(sesh, importData, persistentLookup, jsonPersistent);
             if (importedObj == null) {
                 // the object was not imported, add a message
-                importedAll = false;
                 messages.putAll(importHandlerRegistry.getMessages());
             }
         }
         
-        return importedAll;
+        return importedObj;
     }
     
     /*
@@ -221,7 +220,7 @@ public abstract class AbstractImportExportService<T extends PersistentImpl> impl
         clearMessages();
         int count = 0;
         for (Object object : importData) {
-            if (importObjectInternal(sesh, (JSONObject) object)) {
+            if (importObjectInternal(sesh, (JSONObject) object) != null) {
                 count++;
             }
         }

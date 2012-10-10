@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import javassist.scopedpool.SoftValueHashMap;
@@ -20,6 +21,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.log4j.Logger;
+import org.codehaus.plexus.util.StringUtils;
 import org.hibernate.FlushMode;
 import org.postgresql.util.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +36,7 @@ import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
 import au.com.gaiaresources.bdrs.file.FileService;
 import au.com.gaiaresources.bdrs.json.JSONArray;
+import au.com.gaiaresources.bdrs.json.JSONException;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
@@ -55,6 +58,7 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxaService;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
+import au.com.gaiaresources.bdrs.service.survey.SurveyImportExportService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.util.SpatialUtil;
 import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
@@ -64,17 +68,41 @@ public class ApplicationService extends AbstractController {
     
     public static final String DOWNLOAD_SURVEY_SPECIES_URL = "/webservice/application/surveySpeciesDownload.htm";
     public static final String DOWNLOAD_SURVEY_NO_SPECIES_URL = "/webservice/application/surveyDownload.htm";
+    public static final String CREATE_SURVEY_URL = "/webservice/application/createSurvey.htm";
     
     public static final String LEGACY_DOWNLOAD_SURVEY_URL = "/webservice/application/survey.htm";
     
     public static final String CLIENT_SYNC_STATUS_KEY = "status";
+    
+    public static final String JSON_KEY_SUCCESS = "success";
+    
+    public static final String JSON_KEY_MESSAGE = "message";
+    
+    public static final String JSON_KEY_ID = "id";
+    
+    public static final String JSON_KEY_SURVEY = "survey";
+    public static final String JSON_KEY_ATTR_AND_OPTS = "attributesAndOptions";
+    public static final String JSON_KEY_CENSUS_METHODS = "censusMethods";
+    public static final String JSON_KEY_RECORD_PROP = "recordProperties";
+    public static final String JSON_KEY_LOCATIONS = "locations";
+    
+    public static final String PARAM_IDENT = "ident";
     
     /**
      * JSON key for defining an IndicatorSpecies id.
      */
     public static final String JSON_KEY_TAXON_ID = "taxon_id";
     
+    /**
+     * JSON key for the number of records on the server for the user
+     * submitting the http request.
+     */
     public static final String JSON_KEY_SERVER_RECORDS_FOR_USER = "serverRecordCount";
+    
+    /**
+     * JSON key for the downloaded survey template
+     */
+    public static final String JSON_KEY_SURVEY_TEMPLATE = "survey_template";
     
     /**
      * Query param, what index to start the get species request. starts at 0
@@ -90,6 +118,10 @@ public class ApplicationService extends AbstractController {
      * Query param, max results per get species request
      */
     public static final String PARAM_MAX_RESULTS = "maxResults";
+    
+    public static final String PARAM_NAME = "name";
+    
+    public static final String PARAM_SURVEY_TEMPLATE = "survey_template";
     
     private Logger log = Logger.getLogger(getClass());
 
@@ -122,6 +154,9 @@ public class ApplicationService extends AbstractController {
     
     @Autowired
     private LocationDAO locationDAO;
+    
+    @Autowired
+    private SurveyImportExportService surveyImportExportService;
     
     private SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy");
     
@@ -254,13 +289,14 @@ public class ApplicationService extends AbstractController {
         
         // Store restructured survey data in JSONObject
         JSONObject surveyData = new JSONObject();
-        surveyData.put("attributesAndOptions", attArray);
-        surveyData.put("locations", locArray);
+        surveyData.put(JSON_KEY_ATTR_AND_OPTS, attArray);
+        surveyData.put(JSON_KEY_LOCATIONS, locArray);
         surveyData.put("indicatorSpecies_server_ids", survey.flatten());
         surveyData.put("indicatorSpecies", speciesArray);
         surveyData.put("taxonGroups", taxonGroupArray);
-        surveyData.put("censusMethods", censusMethodArray);
-        surveyData.put("recordProperties", recordPropertiesArray);
+        surveyData.put(JSON_KEY_CENSUS_METHODS, censusMethodArray);
+        surveyData.put(JSON_KEY_RECORD_PROP, recordPropertiesArray);
+        surveyData.put(JSON_KEY_SURVEY_TEMPLATE, surveyImportExportService.exportObject(survey));
 
         // support for JSONP
         String callback = validateCallback(request.getParameter("callback"));
@@ -346,11 +382,12 @@ public class ApplicationService extends AbstractController {
         
         // Store restructured survey data in JSONObject
         JSONObject surveyData = new JSONObject();
-        surveyData.put("attributesAndOptions", attArray);
-        surveyData.put("locations", locArray);
-        surveyData.put("survey", survey.flatten());
-        surveyData.put("censusMethods", censusMethodArray);
-        surveyData.put("recordProperties", recordPropertiesArray);
+        surveyData.put(JSON_KEY_ATTR_AND_OPTS, attArray);
+        surveyData.put(JSON_KEY_LOCATIONS, locArray);
+        surveyData.put(JSON_KEY_SURVEY, survey.flatten());
+        surveyData.put(JSON_KEY_CENSUS_METHODS, censusMethodArray);
+        surveyData.put(JSON_KEY_RECORD_PROP, recordPropertiesArray);
+        surveyData.put(JSON_KEY_SURVEY_TEMPLATE, surveyImportExportService.exportObject(survey));
 
         // support for JSONP
         String callback = validateCallback(request.getParameter("callback"));
@@ -700,6 +737,101 @@ public class ApplicationService extends AbstractController {
             this.writeJson(request, response, jsonObj.toString());
             return null;
         }
+    }
+    
+    @RequestMapping(value = CREATE_SURVEY_URL, method = RequestMethod.POST)
+    public void createSurvey(HttpServletRequest request, HttpServletResponse response,
+            @RequestParam(value=PARAM_NAME, required=false) String name,
+            @RequestParam(value=PARAM_SURVEY_TEMPLATE, required=true) String jsonTemplate) throws IOException {
+        
+        JSONObject result = new JSONObject();
+        
+        String ident = request.getParameter("ident");
+        if(StringUtils.isEmpty(ident)) {
+            result.put(JSON_KEY_SUCCESS, false);
+            result.put(JSON_KEY_MESSAGE, "Missing post parameter 'ident'");
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            this.writeJson(response, result.toString());
+            return;
+        }
+
+        User u = userDAO.getUserByRegistrationKey(ident);
+        if (u == null) {
+            result.put(JSON_KEY_SUCCESS, false);
+            result.put(JSON_KEY_MESSAGE, "Cannot find matching user for ident");
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            this.writeJson(response, result.toString());
+            return;
+        }
+        
+        try {
+            JSONObject importJson = JSONObject.fromStringToJSONObject(jsonTemplate);
+            if (importJson == null) {
+                result.put(JSON_KEY_SUCCESS, false);
+                result.put(JSON_KEY_MESSAGE, "Parameter survey_template is not a json object");
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                this.writeJson(response, result.toString());
+                return;
+            }
+            
+            // replace the name value in the json representation
+            if (name != null) {
+                JSONObject idToJsonPersistentLookup = importJson.getJSONObject(Survey.class.getSimpleName());
+                Object id = idToJsonPersistentLookup.keySet().iterator().next();
+                JSONObject surveyPersistent = idToJsonPersistentLookup.getJSONObject(id.toString());
+                surveyPersistent.put("name", name);
+            }
+            
+            Survey createdSurvey = null;
+            try {
+                createdSurvey = surveyImportExportService.importObject(getRequestContext().getHibernate(), importJson);
+                // all the following exceptions are thrown when there are problems introspecting the object
+            } catch (InvocationTargetException e) {
+                result.put(JSON_KEY_SUCCESS, false);
+                result.put(JSON_KEY_MESSAGE, "Parameter survey_template does not match expected format");
+                // 400
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            } catch (NoSuchMethodException e) {
+                result.put(JSON_KEY_SUCCESS, false);
+                result.put(JSON_KEY_MESSAGE, "Parameter survey_template does not match expected format");
+                // 400
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            } catch (IllegalAccessException e) {
+                result.put(JSON_KEY_SUCCESS, false);
+                result.put(JSON_KEY_MESSAGE, "Parameter survey_template does not match expected format");
+                // 400
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            } catch (InstantiationException e) {
+                result.put(JSON_KEY_SUCCESS, false);
+                result.put(JSON_KEY_MESSAGE, "Parameter survey_template does not match expected format");
+                // 400
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            }
+            
+            if (createdSurvey != null && createdSurvey.getId() != null) {
+                result.put(JSON_KEY_SUCCESS, true);
+                result.put(JSON_KEY_ID, createdSurvey.getId());
+                // 200
+                
+                // do some special survey settings since we don't port everything over...
+                if (!createdSurvey.isPublic()) {
+                    Set<User> userSet = new HashSet<User>();
+                    userSet.add(u);
+                    createdSurvey.setUsers(userSet);
+                }
+            } else {
+                result.put(JSON_KEY_SUCCESS, false);
+                result.put(JSON_KEY_MESSAGE, "Error importing survey");
+                // 500
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
+        } catch (JSONException je) {
+            result.put(JSON_KEY_SUCCESS, false);
+            result.put(JSON_KEY_MESSAGE, "Invalid json when parsing template");
+            // 400
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        }
+        this.writeJson(response, result.toString());
     }
     
     @RequestMapping(value = "/webservice/application/ping.htm", method = RequestMethod.GET)

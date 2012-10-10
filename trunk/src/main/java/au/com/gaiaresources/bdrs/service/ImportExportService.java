@@ -41,7 +41,7 @@ public interface ImportExportService<T extends PersistentImpl> {
      * @throws IllegalAccessException    thrown if there has been an error introspecting the object to be created.
      * @throws InstantiationException    thrown if there has been an error introspecting the object to be created.
      */
-    public boolean importObject(Session sesh, JSONObject importData)
+    public T importObject(Session sesh, JSONObject importData)
             throws InvocationTargetException, NoSuchMethodException,
             IllegalAccessException, InstantiationException;
 
