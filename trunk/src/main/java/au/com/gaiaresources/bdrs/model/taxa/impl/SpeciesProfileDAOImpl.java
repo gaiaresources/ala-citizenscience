@@ -58,6 +58,14 @@ public class SpeciesProfileDAOImpl extends AbstractDAOImpl implements
         return find("select i.infoItems from IndicatorSpecies i where i.id = ?", id);
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<SpeciesProfile> getSpeciesProfileByTypeAndContent(String type, String content){
+        Query q = getSession().createQuery("from SpeciesProfile s where s.type=:type and s.content=:content");
+        q.setParameter("type", type);
+        q.setParameter("content", content);
+        return q.list();
+    }
     @Override
     public SpeciesProfile save(Session sesh, SpeciesProfile profile) {
         return super.save(sesh, profile);
