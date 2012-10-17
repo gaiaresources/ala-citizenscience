@@ -32,7 +32,8 @@
         longSelector: "input[name=longitude]",
         wktSelector: "input[name=wkt]",
         locSelector: "select[name=location]",
-        crsSelector: "input[name=srid], select[name=srid]"
+        crsSelector: "input[name=srid], select[name=srid]",
+        areaSelector: "[name=featureArea]"
     };
     
     var toolActivatedHandler = function(toolId) {
@@ -71,6 +72,7 @@
                           longSelector: entryForm.longSelector,
                           wktSelector: entryForm.wktSelector,
                           crsSelector: entryForm.crsSelector,
+                          areaSelector: entryForm.areaSelector,
                           toolActivatedHandler: toolActivatedHandler,
                           initialDrawTool: ${not empty wkt ? 'bdrs.map.control.DRAG_FEATURE' : 'bdrs.map.control.DRAW_POINT'},
                           <c:choose>
@@ -130,6 +132,7 @@
                 var geobounds = feature.geometry.getBounds();
                 var zoom = bdrs.map.baseMap.getZoomForExtent(geobounds);
                 bdrs.map.baseMap.setCenter(geobounds.getCenterLonLat(), zoom);
+                bdrs.map.recordOriginalCenterZoom(bdrs.map.baseMap);
             }
         } else if((lat && lon && lat.val() && lon.val()) && (lat.val().length > 0 && lon.val().length > 0)) {
             // if there is a lat/lon point, but no wkt string, use them to 
@@ -145,6 +148,7 @@
             var zoom = bdrs.map.baseMap.getZoomForExtent(geobounds);
             zoom = zoom > bdrs.map.DEFAULT_POINT_ZOOM_LEVEL ? bdrs.map.DEFAULT_POINT_ZOOM_LEVEL : zoom;
             bdrs.map.baseMap.setCenter(geobounds.getCenterLonLat(), zoom);
+            bdrs.map.recordOriginalCenterZoom(bdrs.map.baseMap);
         } else if (loc && loc.val() > 0) {
             // add the location on initial screen render
             jQuery.ajax({
@@ -166,6 +170,7 @@
                     }
                     var zoom = bdrs.map.baseMap.getZoomForExtent(geobounds);
                     bdrs.map.baseMap.setCenter(geobounds.getCenterLonLat(), zoom);
+                    bdrs.map.recordOriginalCenterZoom(bdrs.map.baseMap);
                 },
                 async: false
             });
@@ -182,6 +187,7 @@
             }
 
             bdrs.map.centerMap(bdrs.map.baseMap);
+            bdrs.map.recordOriginalCenterZoom(bdrs.map.baseMap);
         }
     });
 

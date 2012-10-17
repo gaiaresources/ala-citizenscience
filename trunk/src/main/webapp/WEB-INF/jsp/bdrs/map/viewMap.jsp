@@ -91,6 +91,7 @@
                 layerArray.push(layer);
                 layer.events.register('loadend', layer, function(event) {
         	        bdrs.map.centerMapToLayerExtent(bdrs.map.baseMap, layerArray);
+        	        bdrs.map.recordOriginalCenterZoom(bdrs.map.baseMap);
         	    });
             }
         }
@@ -104,10 +105,23 @@
         }
         // Add select for KML stuff
         bdrs.map.addSelectHandler(bdrs.map.baseMap, layerArray);
-		
+        
 		// In order to force correct map centering in IE7
 	    jQuery("#view_base_map").removeClass("defaultmap");
 		jQuery("#view_base_map").addClass("defaultmap");
+		
+        // keep track of the original map center and zoom in case we want to 
+        // reset the page later
+        bdrs.map.recordOriginalCenterZoom(bdrs.map.baseMap);
+        
+        var layerSwitcherContainerSelector = '[id^="OpenLayers.Control.LayerSwitcher_"].layersDiv';
+        if (jQuery('#OpenLayers_Control_MinimizeDiv')) {
+            var layerSwitcherDiv = jQuery(layerSwitcherContainerSelector); 
+            
+            jQuery(layerSwitcherDiv).find('.dataLayersDiv').find('br').css("clear", "both");
+            console.log(jQuery(layerSwitcherDiv).find('.dataLayersDiv').find('br'));
+            
+        }
     });
 
 </script>

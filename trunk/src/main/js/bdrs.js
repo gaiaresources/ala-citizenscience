@@ -568,17 +568,37 @@ bdrs.map.defaultMapLayers = function() {
  * @param zoomLockAvailable [boolean]  true if the zoom lock control is available, false otherwise.
  */
 bdrs.map.addControlPanel = function(map, hideShowAvailable, enlargeMapAvailable, zoomLockAvailable) {
+    // Create a control panel that will sit above the map
+    var fullControlPanel = jQuery("<div id=\"mapControls\"></div>");
+    jQuery(map.div).parent().before(fullControlPanel);
+    // insert a clear to allow the floating to work
+    fullControlPanel.after(jQuery("<div class=\"clear\"></div>"));
+    
+    // create a right and left div for adding controls to
+    // Create the control panel that will house these options
+    var controlPanel = jQuery("<div id=\"rightMapControls\"></div>");
+    controlPanel.css({
+        "text-align" : "right",
+        "padding-top" : "0.5em",
+        "float" : "right",
+        "width" : "50%"
+    });
+    // Create the control panel that will house these options
+    var leftControlPanel = jQuery("<div id=\"leftMapControls\"></div>");
+    leftControlPanel.css({
+        "text-align" : "left",
+        "padding-top" : "0.5em",
+        "float" : "left",
+        "width" : "50%"
+    });
+
+    fullControlPanel.append(controlPanel);
+    fullControlPanel.append(leftControlPanel);
+    
     if(!hideShowAvailable && !enlargeMapAvailable && !zoomLockAvailable) {
         return;
     }
-    
-    // Create the control panel that will house these options
-    var controlPanel = jQuery("<div></div>");
-    controlPanel.css({
-        "text-align" : "right",
-        "padding-top" : "0.5em"
-    });
-    
+
     // Create each control
     var controlArray = [];
 
@@ -613,7 +633,31 @@ bdrs.map.addControlPanel = function(map, hideShowAvailable, enlargeMapAvailable,
             controlCount++;
         }
     }
-    jQuery(map.div).parent().before(controlPanel);
+};
+
+/**
+ * Keep track of the original center and zoom of the map so it can be reset later.
+ */
+bdrs.map.originalCenter = null;
+bdrs.map.originalZoom = null;
+bdrs.map.recordOriginalCenterZoom = function(map) {
+    // some global variables for resetting the zoom level later
+    bdrs.map.originalCenter = bdrs.map.baseMap.getCenter();
+    bdrs.map.originalZoom = bdrs.map.baseMap.getZoom();
+};
+
+/**
+ * Creates a 'control panel' above the map with control for zoom back to original extent.
+ * Can only be called after bdrs.map.addControlPanel to ensure the main controlPanel is already created!
+ * Can only be called after bdrs.map.recordOriginalCenterZoom has been called too.
+ *
+ * @param map [object] the open layers map instance
+ */
+bdrs.map.addZoomControlPanel = function(map) {
+    // Create the control panel that will house these options
+    var fullControlPanel = jQuery("#mapControls");
+    var controlPanel = jQuery('#leftMapControls')
+    controlPanel.append(bdrs.map.getOriginalZoomControl(controlPanel, map));
 };
 
 /**
@@ -644,6 +688,32 @@ bdrs.map.getEnlargeMapControl = function(controlPanel, available, map) {
         bdrs.map.maximiseMap(map, controlPanel, trigger, 
                             bdrs.map.ENLARGE_MAP_LABEL, bdrs.map.SHRINK_MAP_LABEL,
                             bdrs.map.ENLARGE_MAP_CLASS, bdrs.map.SHRINK_MAP_CLASS);
+    });
+    return control;
+};
+
+/**
+ * Creates the widget to zoom the map to its original extent.  For this to work, 
+ * you must have set bdrs.map.originalCenter and bdrs.map.originalZoom:
+ * (this is done in bdrs.map.initBaseMap so if you have used that function, this will work)
+ * 
+ * bdrs.map.originalCenter = bdrs.map.baseMap.getCenter();
+ * bdrs.map.originalZoom = bdrs.map.baseMap.getZoom();
+ * 
+ * @param controlPanel [jQuery element] the control panel where the widget will be inserted.
+ * @param available [boolean] true if this widget is required, false otherwise. 
+ * @param map [object] the openlayers map instance.
+ */
+bdrs.map.getOriginalZoomControl = function(controlPanel, map) {
+    var control = jQuery("<a></a>");
+    
+    control.attr({"id": "origZoomLink", "href": "javascript:void(0);"});
+    control.text("Reset Map Center/Zoom");
+    control.click(function(event) {
+        var trigger = jQuery(event.currentTarget);
+        if (bdrs.map.originalCenter && bdrs.map.originalZoom) {
+            bdrs.map.centerMap(bdrs.map.baseMap, bdrs.map.originalCenter, bdrs.map.originalZoom);
+        }
     });
     return control;
 };
@@ -1763,8 +1833,10 @@ bdrs.map.addSingleFeatureDrawLayer = function(map, layerName, options){
             if (shape instanceof OpenLayers.Geometry.MultiPolygon || 
                     shape instanceof OpenLayers.Geometry.Polygon) {
 				// round to a reasonable number...
+                jQuery(areaSelector).html(bdrs.map.roundNumber(shape.getArea()/10000, 2));
                 jQuery(areaSelector).val(bdrs.map.roundNumber(shape.getArea()/10000, 2));
             } else {
+                jQuery(areaSelector).html('');
                 jQuery(areaSelector).val('');
             }
         }
@@ -1797,8 +1869,11 @@ bdrs.map.addSingleFeatureDrawLayer = function(map, layerName, options){
             var shape = feature.geometry;
             if (shape instanceof OpenLayers.Geometry.MultiPolygon || 
                     shape instanceof OpenLayers.Geometry.Polygon) {
+				// round to a reasonable number...
+                jQuery(areaSelector).html(bdrs.map.roundNumber(shape.getArea()/10000, 2));
                 jQuery(areaSelector).val(bdrs.map.roundNumber(shape.getArea()/10000, 2));
             } else {
+                jQuery(areaSelector).html('');
                 jQuery(areaSelector).val('');
             }
         }
