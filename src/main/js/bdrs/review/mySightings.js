@@ -226,6 +226,8 @@ bdrs.review.mysightings.get_map_tab_display_change_handler = function(initLayers
 			}
 			
 		    bdrs.map.centerMap(bdrs.map.baseMap, null, 3);
+		    bdrs.map.recordOriginalCenterZoom(bdrs.map.baseMap);
+	        
 		    bdrs.map.baseMap.events.register('addlayer', null, bdrs.map.addFeaturePopUpHandler);
 		    bdrs.map.baseMap.events.register('removeLayer', null, bdrs.map.removeFeaturePopUpHandler);
 	    }
@@ -250,6 +252,8 @@ bdrs.review.mysightings.get_map_tab_display_change_handler = function(initLayers
 		    var layer = bdrs.map.addKmlLayer(bdrs.map.baseMap, "Sightings", kmlURL, layerOptions, selectedId);
 		    layer.events.register('loadend', layer, function(event) {
 		        bdrs.map.centerMapToLayerExtent(bdrs.map.baseMap, layer);
+		        bdrs.map.recordOriginalCenterZoom(bdrs.map.baseMap);
+		        
 		        if(on_complete_callback !== null && on_complete_callback !== undefined) {
 		            // Update the Record Count
 		            var count = 0;
@@ -293,6 +297,8 @@ bdrs.review.mysightings.map_tab_display_change_handler = function(event, is_sele
 		}
 		
 	    bdrs.map.centerMap(bdrs.map.baseMap, null, 3);
+	    bdrs.map.recordOriginalCenterZoom(bdrs.map.baseMap);
+        
 	    bdrs.map.baseMap.events.register('addlayer', null, bdrs.map.addFeaturePopUpHandler);
 	    bdrs.map.baseMap.events.register('removeLayer', null, bdrs.map.removeFeaturePopUpHandler);
     }
@@ -317,6 +323,7 @@ bdrs.review.mysightings.map_tab_display_change_handler = function(event, is_sele
 	    var layer = bdrs.map.addKmlLayer(bdrs.map.baseMap, "Sightings", kmlURL, layerOptions, selectedId);
 	    layer.events.register('loadend', layer, function(event) {
 	        bdrs.map.centerMapToLayerExtent(bdrs.map.baseMap, layer);
+	        bdrs.map.recordOriginalCenterZoom(bdrs.map.baseMap);
 	        if(on_complete_callback !== null && on_complete_callback !== undefined) {
 	            // Update the Record Count
 	            var count = 0;

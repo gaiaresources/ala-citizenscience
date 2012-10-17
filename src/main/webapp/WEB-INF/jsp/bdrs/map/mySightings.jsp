@@ -224,6 +224,7 @@
                                 <label for="ascending">
                                     Ascending
                                 </label>
+                                <br/>
                                 <input id="descending" type="radio" name="sort_order" value="DESCENDING"
                                 <c:if test="${ 'DESCENDING' == sort_order }">
                                     checked="checked"

@@ -260,6 +260,7 @@ bdrs.advancedReview.initMapView = function(formSelector, mapId, mapOptions, idSe
     var layer = bdrs.map.addKmlLayerWithPost(bdrs.map.baseMap, "Sightings", kmlURL, layerOptions, selectedId, queryParams);
     layer.events.register('loadend', layer, function(event) {
         bdrs.map.centerMapToLayerExtent(bdrs.map.baseMap, layer);
+        bdrs.map.recordOriginalCenterZoom(bdrs.map.baseMap);
     });
 };
 
