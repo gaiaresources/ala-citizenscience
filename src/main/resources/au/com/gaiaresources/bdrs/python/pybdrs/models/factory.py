@@ -10,7 +10,7 @@ class PersistentFactory:
 
     def __init__(self, bdrs):
         """Creates a new instance"""
-
+        
         self._bdrs = bdrs
         # { klazz : { pk: instance, ...}, ...}
         self._cache = {}
@@ -23,6 +23,8 @@ class PersistentFactory:
             Metadata: self.lazy_load_metadata,
             Record: self.lazy_load_record,
             Taxon: self.lazy_load_taxon,
+            SpeciesProfile : self.lazy_load_species_profile,
+            TaxonGroup: self.lazy_load_taxon_group,
         }
 
     def lazy_load_list(self, model_klazz, pk_list):
@@ -100,6 +102,14 @@ class PersistentFactory:
             data = self._bdrs.getRecordDAO().getById(pk)
             data = json.loads(data, strict=False)
         return Record(self, data)
+    
+    def lazy_load_taxon_group(self, pk, data=None):
+        """Lazy loads the taxon group with the specified primary key."""
+        if data is None:
+            pk = int(pk, 10) if type(pk) == str or type(pk) == unicode else pk
+            data = self._bdrs.getTaxaDAO().getTaxonGroupById(pk)
+            data = json.loads(data, strict=False)
+        return TaxonGroup(self, data)
 
     def lazy_load_taxon(self, pk, data=None):
         """Lazy loads the Taxon (Indicator Species) with the specified primary key."""
@@ -108,3 +118,10 @@ class PersistentFactory:
             data = self._bdrs.getTaxaDAO().getById(pk)
             data = json.loads(data, strict=False)
         return Taxon(self, data)
+    
+    def lazy_load_species_profile(self, pk, data=None):
+        if data is None:
+            pk = int(pk, 10) if type(pk) == str or type(pk) == unicode else pk
+            data = self._bdrs.getSpeciesProfileDAO().getById(pk)
+            data = json.loads(data, strict=False)
+        return SpeciesProfile(self, data)

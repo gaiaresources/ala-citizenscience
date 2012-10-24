@@ -1,6 +1,7 @@
 package au.com.gaiaresources.bdrs.model.taxa.impl;
 
 import au.com.gaiaresources.bdrs.db.QueryOperation;
+import au.com.gaiaresources.bdrs.db.ScrollableResults;
 import au.com.gaiaresources.bdrs.db.impl.AbstractDAOImpl;
 import au.com.gaiaresources.bdrs.db.impl.HqlQuery;
 import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
@@ -8,6 +9,7 @@ import au.com.gaiaresources.bdrs.db.impl.PaginationFilter;
 import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.db.impl.Predicate;
 import au.com.gaiaresources.bdrs.db.impl.QueryPaginator;
+import au.com.gaiaresources.bdrs.db.impl.ScrollableResultsImpl;
 import au.com.gaiaresources.bdrs.db.impl.SortOrder;
 import au.com.gaiaresources.bdrs.model.index.IndexingConstants;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
@@ -1278,6 +1280,10 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
         }
     }
     
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.taxa.TaxaDAO#getSpeciesForRecord(org.hibernate.Session, java.lang.Integer)
+     */
     @Override
     public List<IndicatorSpecies> getSpeciesForRecord(Session sesh, Integer recId) {
     	
@@ -1299,5 +1305,18 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
     	List<IndicatorSpecies> finalResult = new ArrayList<IndicatorSpecies>(speciesSet.size());
     	finalResult.addAll(speciesSet);
     	return finalResult;
+    }
+    
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.taxa.TaxaDAO#getAll(org.hibernate.Session)
+     */
+    @Override
+    public ScrollableResults<IndicatorSpecies> getAll(Session sesh) {
+        if (sesh == null) {
+            sesh = getSession();
+        }
+        Query q = sesh.createQuery("from IndicatorSpecies");
+        return new ScrollableResultsImpl<IndicatorSpecies>(q);
     }
 }

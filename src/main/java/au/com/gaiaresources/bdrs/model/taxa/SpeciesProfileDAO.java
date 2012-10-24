@@ -2,9 +2,11 @@ package au.com.gaiaresources.bdrs.model.taxa;
 
 import org.hibernate.Session;
 
+import au.com.gaiaresources.bdrs.db.TransactionDAO;
+
 import java.util.List;
 
-public interface SpeciesProfileDAO {
+public interface SpeciesProfileDAO extends TransactionDAO {
     SpeciesProfile createSpeciesProfile(String header, String content,
             String type);
 

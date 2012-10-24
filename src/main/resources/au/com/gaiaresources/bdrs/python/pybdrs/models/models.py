@@ -203,6 +203,26 @@ insert_accessors(Attribute, {
     'options': AttributeOption,
 })
 
+class SpeciesProfile(PortalPersistent):
+    def __init__(self, factory, data={}):
+        super(SpeciesProfile, self).__init__(factory, data)
+    
+insert_accessors(SpeciesProfile, {
+    'header' : str,
+    'description' : str,
+    'content' : str,
+    'type' : str,
+    #Set<Metadata>
+})
+
+class TaxonGroup(PortalPersistent):
+    def __init__(self, factory, data={}):
+        super(TaxonGroup, self).__init__(factory, data)
+    
+insert_accessors(TaxonGroup, {
+    'name' : str,
+    # add more as required
+})
 
 class Taxon(PortalPersistent):
     def __init__(self, factory, data={}):
@@ -218,13 +238,13 @@ insert_accessors(Taxon, {
     'scientificNameAndAuthor': str,
     'scientificName': str,
     'commonName': str,
-    #'taxonGroup': TaxonGroup,
+    'taxonGroup': TaxonGroup,
     #'regions': Set<Region>,
     #'regionNames': Set<String>,
     #'attributes': Set<IndicatorSpeciesAttribute>,
-    #'infoItems': List<SpeciesProfile>,
+    'infoItems': SpeciesProfile,
     'parent': Taxon,
-    #'rank': TaxonRank,
+    'taxonRank': str,
     'author': str,
     'year': str,
     'source': str,
@@ -389,7 +409,19 @@ class Record(PortalPersistent):
             attr_val_map = {}
             for attr_val in self.attributes():
                 attr_val_map[attr_val.attribute()] = attr_val
-        return attr_val_map.get(attribute, None)
+            setattr(self, '__attribute_value_map', attr_val_map)
+        return getattr(self, '__attribute_value_map').get(attribute, None)
+    
+    def get_attribute_value_by_name(self, attr_name):
+        if attr_name is None:
+            return None
+        
+        if not hasattr(self, '__attribute_name_value_map'):
+            name_map = {}
+            for attr_val in self.attributes():
+                name_map[attr_val.attribute().name()] = attr_val
+            setattr(self, '__attribute_name_value_map', name_map)
+        return getattr(self, '__attribute_name_value_map').get(attr_name, None)
 
 insert_accessors(Record, {
     'survey' : Survey,

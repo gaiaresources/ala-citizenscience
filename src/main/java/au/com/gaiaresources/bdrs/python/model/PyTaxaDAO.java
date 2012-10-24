@@ -42,9 +42,22 @@ public class PyTaxaDAO extends AbstractPyDAO {
         return PyDAOUtil.toJSON(taxaDAO.getIndicatorSpecies(id)).toString();
     }
 
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.python.model.AbstractPyDAO#getById(int)
+     */
     @Override
     public String getById(int pk) {
         return super.getById(taxaDAO, IndicatorSpecies.class, pk);
+    }
+    
+    /**
+     * Get TaxonGroup by pk
+     * @param pk TaxonGroup pk
+     * @return JSON serialized TaxonGroup
+     */
+    public String getTaxonGroupById(int pk) {
+        return PyDAOUtil.toJSON(taxaDAO.getTaxonGroup(pk)).toString();
     }
 
     /**

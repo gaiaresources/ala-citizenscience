@@ -249,6 +249,32 @@ public class PyRecordDAO extends AbstractPyDAO {
 
         return PyDAOUtil.toJSON(result).toString();
     }
+    
+    /**
+     * Get records for a survey with the matching species id.
+     * 
+     * @param surveyId Survey ID to query for.
+     * @param speciesId IndicatorSpecies ID to query for.
+     * @return List of records
+     */
+    public String getRecordsBySurveyAndSpecies(int surveyId, int speciesId) {
+        List<Record> result = recordDAO.getRecordBySurveySpecies(surveyId, speciesId);
+        return PyDAOUtil.toJSON(result).toString();
+    }
+    
+    /**
+     * Get records for a survey where the attribute for a given name matches a given value.
+     * Nulls not handled.
+     * 
+     * @param surveyId Survey ID to search for.
+     * @param attrName Attribute name to search for.
+     * @param attrVal AttributeValue.stringValue to search for.
+     * @return
+     */
+    public String getRecordsByAttributeValue(int surveyId, String attrName, String attrVal) {
+        List<Record> result = recordDAO.getRecordByAttributeValue(null, surveyId, attrName, attrVal);
+        return PyDAOUtil.toJSON(result).toString();
+    }
 
     /**
      * Builds a map of Attribute to AttributeValues where each attribute is either
