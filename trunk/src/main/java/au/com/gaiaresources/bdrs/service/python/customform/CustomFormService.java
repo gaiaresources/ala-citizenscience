@@ -30,6 +30,7 @@ import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeOptionDAO;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValueDAO;
+import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfileDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.python.PyBDRS;
 import au.com.gaiaresources.bdrs.python.PyResponse;
@@ -93,6 +94,8 @@ public class CustomFormService extends PythonService {
     private AttributeValueDAO attributeValueDAO;
     @Autowired
     private MetadataDAO metadataDAO;
+    @Autowired
+    private SpeciesProfileDAO speciesProfileDAO;
     
     private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
 
@@ -117,7 +120,7 @@ public class CustomFormService extends PythonService {
                     fileService, form, RequestContextHolder.getContext().getUser(),
                     surveyDAO, censusMethodDAO,
                     taxaDAO, recordDAO, portalDAO, attributeDAO, attributeOptionDAO, attributeValueDAO,
-                    metadataDAO, locationDAO);
+                    metadataDAO, locationDAO, speciesProfileDAO);
             JSONObject jsonParams = toJSONParams(request);
 
             // Fire up a new Python interpreter

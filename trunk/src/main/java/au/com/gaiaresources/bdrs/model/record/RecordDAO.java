@@ -50,6 +50,15 @@ public interface RecordDAO extends FacetDAO {
 	 * @return the records for the specified survey in the specified location.
 	 */
 	List<Record> getRecords(User user, Survey survey, Location location, Date startDate, Date endDate);
+	
+	/**
+	 * Retrieves the records for a survey where a certain species is recorded
+	 * 
+	 * @param surveyId id of the survey
+	 * @param speciesId id of the species
+	 * @return List of records.
+	 */
+	List<Record> getRecordBySurveySpecies(int surveyId, int speciesId);
 
 	List<Record> getRecords(Geometry withinGeom);
 
@@ -320,4 +329,16 @@ public interface RecordDAO extends FacetDAO {
      */
     List<Record> getRecordIntersect(Geometry intersectGeom,
             RecordVisibility visibility, boolean held);
+    
+    /**
+     * Query for records where an attribute value has an attribute name
+     * with a given string value.
+     * 
+     * @param sesh session - can be null.
+     * @param surveyId survey ID to limit search. Not nullable.
+     * @param attrName attribute name to limit search. Not Nullable or empty.
+     * @param attrVal attribute STRING value to limit search. Will not work for numeric values! Not nullable or empty.
+     * @return List of records that matches parameters.
+     */
+    List<Record> getRecordByAttributeValue(Session sesh, Integer surveyId, String attrName, String attrVal);
 }

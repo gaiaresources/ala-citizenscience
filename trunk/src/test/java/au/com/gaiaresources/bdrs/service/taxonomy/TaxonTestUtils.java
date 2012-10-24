@@ -35,6 +35,7 @@ public class TaxonTestUtils {
         if(expectedValue == null && sp == null) {
             return;
         } else {
+            Assert.assertNotNull("Could not find species profile for header : " + header, sp);
             Assert.assertEquals(expectedValue, sp.getContent());
         }
     }

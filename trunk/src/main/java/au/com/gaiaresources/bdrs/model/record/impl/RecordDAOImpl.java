@@ -154,6 +154,12 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
     }
     
     @Override
+    public List<Record> getRecordBySurveySpecies(int surveyId, int speciesId) {
+        return find("select distinct r from Record r where r.survey.id = ? and r.species.id = ?",
+                    new Object[] { surveyId, speciesId });
+    }
+    
+    @Override
     public List<Record> getRecords(Location userLocation) {
         return find("from Record r where r.location = ?", userLocation);
     }
@@ -1226,6 +1232,27 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         }
 
         return new QueryPaginator<Record>().page(this.getSession(), q.getQueryString(), q.getParametersValue(), filter, sortTargetAlias);
+    }
+    
+    @Override
+    public List<Record> getRecordByAttributeValue(Session sesh, Integer surveyId, String attrName, String attrVal) {
+        if (sesh == null) {
+            sesh = getSession();
+        }
+        if (surveyId == null) {
+            throw new IllegalArgumentException("Integer cannot be null");
+        }
+        if (StringUtils.nullOrEmpty(attrName)) {
+            throw new IllegalArgumentException("String cannot be null or empty");
+        }
+        if (StringUtils.nullOrEmpty(attrVal)) {
+            throw new IllegalArgumentException("String cannot be null or empty");
+        }
+        Query q = sesh.createQuery("select distinct r from Record r join r.attributes av where r.survey.id = ? and av.attribute.name = ? and av.stringValue = ?");
+        q.setParameter(0, surveyId);
+        q.setParameter(1, attrName);
+        q.setParameter(2, attrVal);
+        return q.list();
     }
 }
 

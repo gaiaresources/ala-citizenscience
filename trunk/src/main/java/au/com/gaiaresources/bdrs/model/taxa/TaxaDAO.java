@@ -1,5 +1,6 @@
 package au.com.gaiaresources.bdrs.model.taxa;
 
+import au.com.gaiaresources.bdrs.db.ScrollableResults;
 import au.com.gaiaresources.bdrs.db.TransactionDAO;
 import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
 import au.com.gaiaresources.bdrs.db.impl.PaginationFilter;
@@ -583,4 +584,12 @@ public interface TaxaDAO extends TransactionDAO {
      * @return distinct list of indicator species contained in the record.
      */
     List<IndicatorSpecies> getSpeciesForRecord(Session sesh, Integer recId);
+    
+    /**
+     * Get all the species in the database as a scrollable results
+     *
+     * @param sesh Hibernate session to use. Can be null. 
+     * @return Scrollable Results
+     */
+    ScrollableResults<IndicatorSpecies> getAll(Session sesh);
 }
