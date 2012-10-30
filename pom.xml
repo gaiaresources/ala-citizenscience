@@ -322,6 +322,14 @@
                  <groupId>org.apache.solr</groupId>
                  <artifactId>solr-lucene-spellchecker</artifactId>
                </exclusion>
+               <exclusion>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-io</artifactId>
+               </exclusion>
+               <exclusion>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+               </exclusion>
          </exclusions>
         </dependency>
         <!-- Try me if tests are failing when trying to access GIS database objects.
