@@ -44,7 +44,7 @@ public class HomePageController extends AbstractController {
     public static final String AUTHENTICATED_REDIRECT_URL = "/authenticated/redirect.htm";
     public static final String LOGIN_FAILED_URL = "/loginfailed.htm";
 
-    @RequestMapping(value = HOME_URL, method = RequestMethod.GET)
+    @RequestMapping(value = HOME_URL)
     public ModelAndView render(HttpServletRequest request,
             HttpServletResponse response) {
     	

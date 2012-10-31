@@ -67,6 +67,10 @@ public class CustomFormService extends PythonService {
         builder.append("    response.setError(True)\n");
         builder.append("    response.setErrorMsg(str(e))\n");
         builder.append("    response.setContent(traceback.format_exc())\n");
+        builder.append("finally:\n");
+        builder.append("    from django.db import connections\n");
+        builder.append("    for conn in connections.all():\n");
+        builder.append("        conn.close()\n");
 
         EXEC_TMPL = builder.toString();
     }
@@ -125,13 +129,21 @@ public class CustomFormService extends PythonService {
 
             // Fire up a new Python interpreter
             StringBuilder pythonPath = new StringBuilder();
-            pythonPath.append(getProvidedPythonContentDir());
-            pythonPath.append(File.pathSeparatorChar);
+            for(String providedContentDir : getProvidedPythonContentDirs()) {
+                pythonPath.append(providedContentDir);
+                pythonPath.append(File.pathSeparatorChar);
+            }
+
+            // If there are no content dirs, then the pythonpath is empty and you do not need a path separator,
+            // otherwise, it is not empty and it already ends with a path separator.
             pythonPath.append(formDir.getAbsolutePath());
 
             Jep jep = new Jep(false, pythonPath.toString(), Thread.currentThread().getContextClassLoader());
             // Set the Python bdrs global variable
             jep.set("bdrs", bdrs);
+
+            // Configure and import django into the python interpreter
+            super.loadDjango(jep, bdrs);
 
             // Create the map of named parameters that will be passed to the custom form.
             jep.eval("__bdrs_kwargs__ = {}");

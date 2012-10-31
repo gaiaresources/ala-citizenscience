@@ -20,7 +20,7 @@ public class PortalPersistentListener implements PreInsertEventListener {
 
     @Override
     public boolean onPreInsert(PreInsertEvent event) {
-        
+
         if(event.getEntity() instanceof PortalPersistentImpl) {
             PortalPersistentImpl ppi = (PortalPersistentImpl) event.getEntity();
             if(ppi.getId() == null && ppi.getPortal() == null) {

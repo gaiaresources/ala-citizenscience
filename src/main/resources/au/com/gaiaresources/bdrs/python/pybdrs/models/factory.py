@@ -15,7 +15,7 @@ class PersistentFactory:
         # { klazz : { pk: instance, ...}, ...}
         self._cache = {}
         self._lazy_load_handler_map = {
-            Survey : self.lazy_load_survey,
+            Survey: self.lazy_load_survey,
             Portal: self.lazy_load_portal,
             Attribute: self.lazy_load_attribute,
             AttributeOption: self.lazy_load_attribute_option,
@@ -23,7 +23,7 @@ class PersistentFactory:
             Metadata: self.lazy_load_metadata,
             Record: self.lazy_load_record,
             Taxon: self.lazy_load_taxon,
-            SpeciesProfile : self.lazy_load_species_profile,
+            SpeciesProfile: self.lazy_load_species_profile,
             TaxonGroup: self.lazy_load_taxon_group,
         }
 
@@ -38,13 +38,13 @@ class PersistentFactory:
         """Lazy loads the model with the specified type and primary key."""
         instance = self._cache.get(model_klazz, {}).get(pk)
         if instance is None:
-            try: 
+            try:
                 instance = self._lazy_load_handler_map[model_klazz](pk, data)
                 self._cache.setdefault(model_klazz, {})[pk] = instance
-            except KeyError, ke:
+            except KeyError:
                 msg = 'No lazy load handler available for %s' % model_klazz
                 self._bdrs.getLogger().error(msg)
-                raise KeyError, msg
+                raise KeyError
         return instance
 
     def lazy_load_survey(self, pk, data=None):

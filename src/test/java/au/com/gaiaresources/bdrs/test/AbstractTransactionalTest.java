@@ -79,9 +79,11 @@ public abstract class AbstractTransactionalTest extends
         try {
         	Session sesh = getSession();
             Portal portal = new PortalInitialiser().initRootPortal(sesh, null);
-            defaultPortal = portal;
-            FilterManager.setPortalFilter(sesh, portal);
+            defaultPortal = getDefaultPortal(sesh, portal);
+
+            FilterManager.setPortalFilter(sesh, defaultPortal);
             FilterManager.setPartialRecordCountFilter(sesh);
+
             RequestContext c = RequestContextHolder.getContext();
             c.setPortal(defaultPortal);
         } catch (Exception e) {
@@ -89,7 +91,16 @@ public abstract class AbstractTransactionalTest extends
         }
     }
 
-
+    /**
+     * This method exists to provide a hook for subclasses to override if the
+     * default portal is not the root portal.
+     * @param sesh the session to be used to retrieve the default portal if necessary.
+     * @param rootPortal the root portal that has been automatically initialised.
+     * @return the default portal to be set on the request context.
+     */
+    protected Portal getDefaultPortal(Session sesh, Portal rootPortal) {
+        return rootPortal;
+    }
 
     @AfterTransaction
     public final void rollbackTransaction() throws Exception {
