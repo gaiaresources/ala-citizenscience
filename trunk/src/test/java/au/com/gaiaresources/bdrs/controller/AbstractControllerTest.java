@@ -344,8 +344,7 @@ public abstract class AbstractControllerTest extends AbstractTransactionalTest {
      */
     protected void handleProxyRequest(MockHttpServletRequest request,
             MockHttpServletResponse response) throws Exception {
-
-        SimpleServerProxy container = new SimpleServerProxy();
+        SimpleServerProxy container = new SimpleServerProxy(getRequestContext().getPortal().getId());
         Connection connection = new SocketConnection(container);
         SocketAddress address = new InetSocketAddress(request.getServerPort());
 
@@ -394,6 +393,17 @@ public abstract class AbstractControllerTest extends AbstractTransactionalTest {
 
 
     private class SimpleServerProxy implements Container {
+
+        private int portalId;
+
+        /**
+         * Creates a new SimpleServerProxy.
+         * @param portalId the primary key of the portal to be used by the listening server.
+         */
+        public SimpleServerProxy(int portalId) {
+            this.portalId = portalId;
+        }
+
         @Override
         public void handle(Request simpleRequest, Response simpleResponse) {
             try {
@@ -403,6 +413,7 @@ public abstract class AbstractControllerTest extends AbstractTransactionalTest {
                     sessionFactory.getCurrentSession().getTransaction().commit();
                 }
                 beginTransaction();
+                getRequestContext().setPortal(portalDAO.getPortal(portalId));
                 // ---------------------------------
                 // SimpleRequest -> BDRS Request
                 // ---------------------------------

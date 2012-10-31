@@ -10,6 +10,7 @@ import java.io.*;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
@@ -96,20 +97,38 @@ public class PythonTestUtil {
     }
 
     public static void setupReports(PythonService service) throws IOException, URISyntaxException {
-        File temp = File.createTempFile("bdrs_provided_python_", String.valueOf(System.currentTimeMillis()));
-        temp.delete();
-        temp.mkdir();
-        temp.deleteOnExit();
+        File providedPythonResources = File.createTempFile("bdrs_provided_python_", String.valueOf(System.currentTimeMillis()));
+        providedPythonResources.delete();
+        providedPythonResources.mkdir();
+        providedPythonResources.deleteOnExit();
 
-        File pybdrs = new File(temp, "pybdrs");
-        pybdrs.mkdir();
+        ArrayList<String> providedPythonResourceDirs = new ArrayList<String>();
 
-        String[] resources = getResourceListing(PyBDRS.class, "au/com/gaiaresources/bdrs/python/pybdrs/");
-        for (String resource_path : resources) {
-            writeResource(temp, PyBDRS.class, String.format("pybdrs/%s", resource_path));
+        // PyBDRS
+        {
+            File pybdrs = new File(providedPythonResources, "pybdrs");
+            pybdrs.mkdir();
+
+            String[] resources = getResourceListing(PyBDRS.class, "au/com/gaiaresources/bdrs/python/pybdrs/");
+            for (String resource_path : resources) {
+                writeResource(providedPythonResources, PyBDRS.class, String.format("pybdrs/%s", resource_path));
+            }
+            providedPythonResourceDirs.add(providedPythonResources.getAbsolutePath());
         }
 
-        service.setProvidedPythonContentDir(temp.getAbsolutePath());
+        // Django
+        {
+            File django = new File(providedPythonResources, "django");
+            django.mkdir();
+
+            String[] resources = getResourceListing(PyBDRS.class, "au/com/gaiaresources/bdrs/python/django/");
+            for (String resource_path : resources) {
+                writeResource(providedPythonResources, PyBDRS.class, String.format("django/%s", resource_path));
+            }
+            providedPythonResourceDirs.add(django.getAbsolutePath());
+        }
+
+        service.setProvidedPythonContentDirs(providedPythonResourceDirs);
     }
 
     private static void writeResource(File parent, Class klazz, String resource_path) throws IOException {

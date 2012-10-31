@@ -343,7 +343,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord,
         return held;
     }
 
-    public void setHeld(boolean held) {
+    public void setHeld(Boolean held) {
         this.held = held;
     }
 

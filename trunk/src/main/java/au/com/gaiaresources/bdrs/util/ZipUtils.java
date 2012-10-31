@@ -67,10 +67,14 @@ public class ZipUtils {
             log.info("Zip Entry: " + entry.getName());
             file = new File(dir, entry.getName());
             if (entry.isDirectory()) {
-                boolean dirCreateSuccess = file.mkdirs();
-                if (!dirCreateSuccess) {
-                    throw new IOException("Unable to create directory path: "
-                            + file.getAbsolutePath());
+                if (!file.exists()) {
+                    boolean dirCreateSuccess = file.mkdirs();
+                    if (!dirCreateSuccess) {
+                        throw new IOException("Unable to create directory path: "
+                                + file.getAbsolutePath());
+                    }
+                } else if (file.exists() && file.isFile()) {
+                    throw new IOException("Unable to create directory path because a file is already present.");
                 }
             } else {
                 File parentFile = file.getParentFile();

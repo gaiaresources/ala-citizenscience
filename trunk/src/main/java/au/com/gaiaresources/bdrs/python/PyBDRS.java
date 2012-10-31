@@ -112,7 +112,6 @@ public class PyBDRS {
      * @param metadataDAO       retrieves metadata related data
      * @param locationDAO       retrieves location related data.
      * @param speciesProfileDAO retrieves species profile related data.
-     * @param taxonLibSessionFactory provides access to taxonLib functionality.
      */
     public PyBDRS(HttpServletRequest request, SpatialUtil spatialUtil,
                   FileService fileService, AbstractPythonRenderable renderable, User user,
