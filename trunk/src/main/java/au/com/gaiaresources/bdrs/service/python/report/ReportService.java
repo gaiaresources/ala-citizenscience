@@ -156,6 +156,7 @@ public class ReportService extends PythonService {
             // If there are no content dirs, then the pythonpath is empty and you do not need a path separator,
             // otherwise, it is not empty and it already ends with a path separator.
             pythonPath.append(reportDir.getAbsolutePath());
+            log.info("Python Path = "+pythonPath);
 
             Jep jep = new Jep(false, pythonPath.toString(), Thread.currentThread().getContextClassLoader());
             // Set the Python bdrs global variable
