@@ -138,6 +138,7 @@ public class CustomFormService extends PythonService {
             // otherwise, it is not empty and it already ends with a path separator.
             pythonPath.append(formDir.getAbsolutePath());
 
+            log.info("Python Path = "+pythonPath);
             Jep jep = new Jep(false, pythonPath.toString(), Thread.currentThread().getContextClassLoader());
             // Set the Python bdrs global variable
             jep.set("bdrs", bdrs);
