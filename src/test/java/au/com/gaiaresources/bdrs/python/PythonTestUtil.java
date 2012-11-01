@@ -3,6 +3,7 @@ package au.com.gaiaresources.bdrs.python;
 import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.service.python.PythonService;
+import au.com.gaiaresources.bdrs.util.Pair;
 import au.com.gaiaresources.bdrs.util.ZipUtils;
 import org.springframework.mock.web.MockMultipartFile;
 
@@ -10,10 +11,7 @@ import java.io.*;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -109,9 +107,11 @@ public class PythonTestUtil {
             File pybdrs = new File(providedPythonResources, "pybdrs");
             pybdrs.mkdir();
 
-            String[] resources = getResourceListing(PyBDRS.class, "au/com/gaiaresources/bdrs/python/pybdrs/");
-            for (String resource_path : resources) {
-                writeResource(providedPythonResources, PyBDRS.class, String.format("pybdrs/%s", resource_path));
+            List<Pair<String, Boolean>> resources = getResourceListing(PyBDRS.class, "au/com/gaiaresources/bdrs/python/pybdrs/");
+            for (Pair<String, Boolean> resource_pair : resources) {
+                String resource_path = resource_pair.getFirst();
+                Boolean is_directory = resource_pair.getSecond();
+                writeResource(providedPythonResources, PyBDRS.class, String.format("pybdrs/%s", resource_path), is_directory);
             }
             providedPythonResourceDirs.add(providedPythonResources.getAbsolutePath());
         }
@@ -121,9 +121,11 @@ public class PythonTestUtil {
             File django = new File(providedPythonResources, "django");
             django.mkdir();
 
-            String[] resources = getResourceListing(PyBDRS.class, "au/com/gaiaresources/bdrs/python/django/");
-            for (String resource_path : resources) {
-                writeResource(providedPythonResources, PyBDRS.class, String.format("django/%s", resource_path));
+            List<Pair<String, Boolean>> resources = getResourceListing(PyBDRS.class, "au/com/gaiaresources/bdrs/python/django/");
+            for (Pair<String, Boolean> resource_pair : resources) {
+                String resource_path = resource_pair.getFirst();
+                Boolean is_directory = resource_pair.getSecond();
+                writeResource(providedPythonResources, PyBDRS.class, String.format("django/%s", resource_path), is_directory);
             }
             providedPythonResourceDirs.add(django.getAbsolutePath());
         }
@@ -131,7 +133,7 @@ public class PythonTestUtil {
         service.setProvidedPythonContentDirs(providedPythonResourceDirs);
     }
 
-    private static void writeResource(File parent, Class klazz, String resource_path) throws IOException {
+    private static void writeResource(File parent, Class klazz, String resource_path, boolean is_directory) throws IOException {
         if (resource_path == null) {
             return;
         }
@@ -140,24 +142,27 @@ public class PythonTestUtil {
             return;
         }
         InputStream in = klazz.getResourceAsStream(resource_path);
-        if (in.available() > 0) {
-            File file = new File(parent, resource_path);
-            File subParent = file.getParentFile();
-            if (!subParent.exists()) {
-                subParent.mkdirs();
-            }
-
-            BufferedInputStream bis = new BufferedInputStream(in);
-            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
-
-            byte[] buffer = new byte[4096];
-            for (int read = bis.read(buffer); read > -1; read = bis.read(buffer)) {
-                bos.write(buffer, 0, read);
-            }
-            bos.flush();
-            bos.close();
-            bis.close();
+        File file = new File(parent, resource_path);
+        if(is_directory) {
+            file.mkdirs();
+            return;
         }
+
+        File subParent = file.getParentFile();
+        if (!subParent.exists()) {
+            subParent.mkdirs();
+        }
+
+        BufferedInputStream bis = new BufferedInputStream(in);
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
+
+        byte[] buffer = new byte[4096];
+        for (int read = bis.read(buffer); read > -1; read = bis.read(buffer)) {
+            bos.write(buffer, 0, read);
+        }
+        bos.flush();
+        bos.close();
+        bis.close();
     }
 
     /**
@@ -172,11 +177,15 @@ public class PythonTestUtil {
      * @throws IOException
      * @author Greg Briggs
      */
-    private static String[] getResourceListing(Class clazz, String path) throws URISyntaxException, IOException {
+    private static List<Pair<String, Boolean>> getResourceListing(Class clazz, String path) throws URISyntaxException, IOException {
         URL dirURL = clazz.getClassLoader().getResource(path);
+        ArrayList<Pair<String, Boolean>> resourceList = new ArrayList<Pair<String, Boolean>>();
         if (dirURL != null && dirURL.getProtocol().equals("file")) {
             /* A file path: easy enough */
-            return new File(dirURL.toURI()).list();
+            for(File f : new File(dirURL.toURI()).listFiles()) {
+                resourceList.add(new Pair<String, Boolean>(f.getName(), f.isDirectory()));
+            }
+            return resourceList;
         }
 
         if (dirURL == null) {
@@ -195,13 +204,16 @@ public class PythonTestUtil {
             Enumeration<JarEntry> entries = jar.entries(); //gives ALL entries in jar
             Set<String> result = new HashSet<String>(); //avoid duplicates in case it is a subdirectory
             while (entries.hasMoreElements()) {
-                String name = entries.nextElement().getName();
+                JarEntry jarEntry = entries.nextElement();
+                String name = jarEntry.getName();
                 if (name.startsWith(path)) { //filter according to the path
                     String entry = name.substring(path.length());
-                    result.add(entry);
+                    if(result.add(entry)) {
+                        resourceList.add(new Pair<String, Boolean>(entry, jarEntry.isDirectory()));
+                    }
                 }
             }
-            return result.toArray(new String[result.size()]);
+            return resourceList;
         }
         throw new UnsupportedOperationException("Cannot list files for URL " + dirURL);
     }
