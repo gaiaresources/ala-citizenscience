@@ -37,13 +37,13 @@ public class TaxaDAOImplTest extends AbstractGridControllerTest {
     @Test
     public void testHqlInjection() {
         // will error if search is not implemented properly
-        taxaDAO.getIndicatorSpeciesByNameSearch("%Lewin's%Honeyeater%");
+        taxaDAO.getIndicatorSpeciesByNameSearch("%Lewin's%Honeyeater%", false);
     }
     
     @Test
     public void testHqlInjectionSemiColon() {
         // will error if search is not implemented properly
-        taxaDAO.getIndicatorSpeciesByNameSearch("%Lewin's%Honey; select from User");
+        taxaDAO.getIndicatorSpeciesByNameSearch("%Lewin's%Honey; select from User", false);
     }
     
     @Test

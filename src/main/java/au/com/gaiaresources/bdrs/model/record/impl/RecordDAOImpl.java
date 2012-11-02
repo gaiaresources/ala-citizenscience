@@ -9,7 +9,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +28,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import au.com.gaiaresources.bdrs.db.QueryCriteria;
 import au.com.gaiaresources.bdrs.db.QueryOperation;
 import au.com.gaiaresources.bdrs.db.impl.AbstractDAOImpl;
 import au.com.gaiaresources.bdrs.db.impl.HqlQuery;
@@ -49,11 +47,12 @@ import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
 import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
 import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
+import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeValueDAO;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaService;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
@@ -69,7 +68,7 @@ import com.vividsolutions.jts.geom.Point;
 @Repository
 public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
     private Logger log = Logger.getLogger(getClass());
-    
+
     @Autowired
     private GeometryBuilder geometryBuilder;
     
@@ -1253,6 +1252,70 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         q.setParameter(1, attrName);
         q.setParameter(2, attrVal);
         return q.list();
+    }
+    
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.record.RecordDAO#getRecordByAttribute(org.hibernate.Session, java.lang.Integer, java.lang.Integer, java.lang.Integer)
+     */
+    @Override
+    public List<Record> getRecordByAttribute(Session sesh, Integer userId, Integer surveyId, Integer attrId) {
+        if (sesh == null) {
+            sesh = getSession();
+        }
+        if (surveyId == null) {
+            throw new IllegalArgumentException("Integer cannot be null");
+        }
+        if (userId == null) {
+            throw new IllegalArgumentException("Integer cannot be null");
+        }
+        
+        Query q = sesh.createQuery("select distinct r, av.stringValue from Record r join r.attributes av join av.attribute attr where r.survey.id = ? and attr.id = ? and r.user.id = ? order by av.stringValue");
+        q.setParameter(0, surveyId);
+        q.setParameter(1, attrId);
+        q.setParameter(2, userId);
+        
+        List<Object[]> result = q.list();
+        List<Record> recList = new ArrayList<Record>(result.size());
+        
+        for (Object[] objArray : result) {
+            recList.add((Record)(objArray[0]));
+        }
+        
+        return recList;
+    }
+    
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.record.RecordDAO#getFieldNameRecords(org.hibernate.Session, java.lang.Integer, java.lang.Integer, au.com.gaiaresources.bdrs.model.taxa.TaxaService)
+     */
+    @Override
+    public List<Record> getFieldNameRecords(Session sesh, Integer userId, Integer surveyId, TaxaService taxaService) {
+        if (surveyId == null) {
+            throw new IllegalArgumentException("Integer cannot be null");
+        }
+        if (userId == null) {
+            throw new IllegalArgumentException("Integer cannot be null");
+        }
+        if (taxaService == null) {
+            throw new IllegalArgumentException("TaxaService cannot be null");
+        }
+        IndicatorSpecies fieldNameSpecies = taxaService.getFieldSpecies(sesh);
+        Attribute fieldSpeciesAttr = taxaService.getFieldNameAttribute(sesh);
+        
+        Query q = getSession().createQuery("select distinct r, av.stringValue from Record r join r.attributes av join av.attribute attr where r.survey.id = ? and r.species.id = ? and r.user.id = ? and attr = ? order by av.stringValue");
+        q.setParameter(0, surveyId);
+        q.setParameter(1, fieldNameSpecies.getId());
+        q.setParameter(2, userId);
+        q.setParameter(3, fieldSpeciesAttr);
+        
+        List<Object[]> result = q.list();
+        List<Record> recList = new ArrayList<Record>(result.size());
+        
+        for (Object[] objArray : result) {
+            recList.add((Record)(objArray[0]));
+        }
+        return recList;
     }
 }
 

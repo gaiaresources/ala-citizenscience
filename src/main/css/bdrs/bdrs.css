@@ -2281,3 +2281,17 @@ table.censusMethodAttributeTable tbody tr td {
     width: 40em;
 }
 
+/***********************************************/
+/* field name review                           */
+/***********************************************/
+#field_name_review_choose_survey {
+    padding-bottom: 1em;
+}
+
+td.field_name_review_sci_name_cell {
+    width: 27em;
+}
+
+input.field_name_review_sci_name_input {
+    width: 25em;
+}

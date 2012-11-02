@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.proxy.HibernateProxyHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import au.com.gaiaresources.bdrs.db.FilterManager;
@@ -36,6 +37,9 @@ public abstract class AbstractDAOImpl implements TransactionDAO {
     }
 
     public <T extends Persistent> T save(Session sesh, T instance) {
+        if (sesh == null) {
+            sesh = sessionFactory.getCurrentSession();
+        }
         updateTimestamp(instance);
         sesh.save(instance);
         return instance;
@@ -59,7 +63,8 @@ public abstract class AbstractDAOImpl implements TransactionDAO {
         
         Map<String, Object> params = new HashMap<String, Object>(1);
         params.put("id", instance.getId());
-        String queryString = String.format("delete %s where id = :id", instance.getClass().getSimpleName());
+        String clazzName = HibernateProxyHelper.getClassWithoutInitializingProxy(instance).getSimpleName();
+        String queryString = String.format("delete %s where id = :id", clazzName);
         log.debug(queryString.replaceAll(":id", instance.getId().toString()));
         return execute(queryString, params);
     }
@@ -159,6 +164,9 @@ public abstract class AbstractDAOImpl implements TransactionDAO {
 
     protected <T extends Persistent> List<T> find(Session sesh, String hql, Object[] args)
     {
+        if (sesh == null) {
+            sesh = sessionFactory.getCurrentSession();
+        }
         Query query = sesh.createQuery(hql);
         for (int i = 0; i < args.length; i++) {
             query.setParameter(i, args[i]);

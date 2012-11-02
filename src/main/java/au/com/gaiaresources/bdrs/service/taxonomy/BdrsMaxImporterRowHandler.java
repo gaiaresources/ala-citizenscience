@@ -56,6 +56,7 @@ public class BdrsMaxImporterRowHandler implements MaxImporterRowHandler {
             new SpeciesProfileTaxonNameDateBuilder(
                     MaxNameRow.ColumnName.UPDATED_ON,
                     "Updated On (The date this taxon was last updated in the Max database)"),
+            new SpeciesProfileBuilder(MaxNameRow.ColumnName.FAMILY_CODE, "Family Code"),
             };
     
     static final FamilyProfileBuilder[] FAMILY_PROFILE_BUILDER = new FamilyProfileBuilder[] {

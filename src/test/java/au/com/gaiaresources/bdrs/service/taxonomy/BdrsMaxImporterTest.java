@@ -111,6 +111,7 @@ public class BdrsMaxImporterTest extends AbstractBdrsMaxImporterTest {
             TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.CONSV_CODE.toString(), SpeciesProfileTaxonNameConsvCodeBuilder.CODE_LOOKUP.get("T"));
             TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.ADDED_ON.toString(), targetFormatter.format(sourceFormatter.parse("31/10/1991")));
             TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.UPDATED_ON.toString(), targetFormatter.format(sourceFormatter.parse("10/12/2004")));
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.FAMILY_CODE.toString(), "2");
         }
         {
             IndicatorSpecies species = getIndicatorSpecies(MaxImporter.getId(MaxImporter.SPECIES_ID_PREFIX, "12813"));
@@ -130,6 +131,7 @@ public class BdrsMaxImporterTest extends AbstractBdrsMaxImporterTest {
             TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.CONSV_CODE.toString(), SpeciesProfileTaxonNameConsvCodeBuilder.CODE_LOOKUP.get("X"));
             TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.ADDED_ON.toString(), targetFormatter.format(sourceFormatter.parse("4/11/1991")));
             TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.UPDATED_ON.toString(), targetFormatter.format(sourceFormatter.parse("10/12/2004")));
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.FAMILY_CODE.toString(), "2");
         }
         {
             IndicatorSpecies species = getIndicatorSpecies(MaxImporter.getId(MaxImporter.SPECIES_ID_PREFIX, "2"));
@@ -149,6 +151,14 @@ public class BdrsMaxImporterTest extends AbstractBdrsMaxImporterTest {
             TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.CONSV_CODE.toString(), SpeciesProfileTaxonNameConsvCodeBuilder.CODE_LOOKUP.get("1"));
             TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.ADDED_ON.toString(), targetFormatter.format(sourceFormatter.parse("1/01/1992")));
             TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.UPDATED_ON.toString(), targetFormatter.format(sourceFormatter.parse("10/12/2004")));
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.FAMILY_CODE.toString(), "2");
+        }
+        
+        {
+            // check for different family code
+            IndicatorSpecies species = getIndicatorSpecies(MaxImporter.getId(MaxImporter.SPECIES_ID_PREFIX, "8"));
+            List<SpeciesProfile> infoItems = species.getInfoItems();
+            TaxonTestUtils.assertSpeciesProfileValue(infoItems, MaxNameRow.ColumnName.FAMILY_CODE.toString(), "4");
         }
 
         // check deprecated indicator species and common name

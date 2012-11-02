@@ -18,10 +18,10 @@ import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.record.impl.RecordFilter;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValueDAO;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaService;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
 
@@ -331,7 +331,7 @@ public interface RecordDAO extends FacetDAO {
             RecordVisibility visibility, boolean held);
     
     /**
-     * Query for records where an attribute value has an attribute name
+     * Query for records where an attribute value has an attribute name.
      * with a given string value.
      * 
      * @param sesh session - can be null.
@@ -341,4 +341,28 @@ public interface RecordDAO extends FacetDAO {
      * @return List of records that matches parameters.
      */
     List<Record> getRecordByAttributeValue(Session sesh, Integer surveyId, String attrName, String attrVal);
+    
+    /**
+     * Query for records where an attribute value has an attribute id.
+     * Orders results by alphabetic attribute value string value.
+     * 
+     * @param sesh Hibernate session - nullable.
+     * @param userId Owner of the record. Not nullable.
+     * @param surveyId Survey records must belong to. Not nullable.
+     * @param attrId Attribute ID of an AttributeValue that the record owns. Not nullable.
+     * @return List of matching records.
+     */
+    List<Record> getRecordByAttribute(Session sesh, Integer userId, Integer surveyId, Integer attrId);
+    
+    /**
+     * Query for records that have field species assigned.
+     * Orders results by alphabetic field name.
+     * 
+     * @param sesh Hibernate session - nullable.
+     * @param userId Owner of the record. Not nullable.
+     * @param surveyId Survey records must belong to. Not nullable.
+     * @param taxaService TaxaService to get IndicatorSpecies for field species.
+     * @return List of matching records.
+     */
+    List<Record> getFieldNameRecords(Session sesh, Integer userId, Integer surveyId, TaxaService taxaService);
 }

@@ -44,6 +44,7 @@ import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeUtil;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaService;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
@@ -70,6 +71,7 @@ public class RecordDeserializer {
     private MetadataDAO metadataDAO = AppContext.getBean(MetadataDAO.class);
     private GeoMapService geoMapService = AppContext.getBean(GeoMapService.class);
     private SessionFactory sessionFactory = AppContext.getBean(SessionFactory.class);
+    private TaxaService taxaService = AppContext.getBean(TaxaService.class);
     
     RecordKeyLookup klu;
     AttributeParser attributeParser;
@@ -256,7 +258,7 @@ public class RecordDeserializer {
                 String numberString = entry.getValue(entry.prefix+klu.getIndividualCountKey());
                 
                 RecordProperty recordProperty;
-                RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO, survey);
+                RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO, survey, taxaService);
                 boolean isValid = false;
                 Map<String, String[]> params = dataMap;
                 Map<String, String[]> dateRangeParams = new HashMap<String, String[]>(params);

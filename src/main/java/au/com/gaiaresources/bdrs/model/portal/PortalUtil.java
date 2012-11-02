@@ -4,6 +4,7 @@
 package au.com.gaiaresources.bdrs.model.portal;
 
 import au.com.gaiaresources.bdrs.config.AppContext;
+import au.com.gaiaresources.bdrs.db.FilterManager;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.index.IndexSchedule;
@@ -14,6 +15,11 @@ import au.com.gaiaresources.bdrs.model.portal.impl.PortalInitialiser;
 import au.com.gaiaresources.bdrs.model.preference.Preference;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceCategory;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
+import au.com.gaiaresources.bdrs.model.taxa.Attribute;
+import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaService;
+import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
+import au.com.gaiaresources.bdrs.model.taxa.impl.TaxaServiceImpl;
 import au.com.gaiaresources.bdrs.model.threshold.Threshold;
 import au.com.gaiaresources.bdrs.model.threshold.ThresholdDAO;
 import au.com.gaiaresources.bdrs.model.user.RegistrationService;
@@ -21,6 +27,8 @@ import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.search.SearchService;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.facet.FacetService;
+import au.com.gaiaresources.bdrs.servlet.RequestContext;
+import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 import au.com.gaiaresources.bdrs.util.ModerationUtil;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
@@ -77,6 +85,19 @@ public class PortalUtil {
         u.setPortal(p);
         initPortalPreferences(sesh, p, false);
         initModerationThreshold(sesh, p);
+        initTaxa(sesh, p);
+    }
+    
+    public static void initTaxa(Session sesh, Portal p) {
+        TaxonGroup fieldGroup = TaxaServiceImpl.createFieldNameTaxonGroup();
+        fieldGroup.setPortal(p);
+        IndicatorSpecies fieldNameSpecies = TaxaServiceImpl.createFieldSpecies(fieldGroup);
+        fieldNameSpecies.setPortal(p);
+        Attribute fieldNameAttr = TaxaServiceImpl.createFieldNameAttr(fieldGroup);
+        fieldNameAttr.setPortal(p);
+        sesh.save(fieldGroup);
+        sesh.save(fieldNameSpecies);
+        sesh.save(fieldNameAttr);
     }
 
     /**

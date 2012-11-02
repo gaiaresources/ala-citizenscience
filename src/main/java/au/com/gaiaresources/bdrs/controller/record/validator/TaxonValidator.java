@@ -10,6 +10,7 @@ import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaService;
 
 /**
  * Validates that the input exactly matches, including case, the scientific name
@@ -46,6 +47,8 @@ public class TaxonValidator extends AbstractValidator {
 	private TaxaDAO taxaDAO;
 	
 	private Survey survey;
+	
+	private TaxaService taxaService;
 
 	private Logger log = Logger.getLogger(getClass());
 
@@ -64,10 +67,11 @@ public class TaxonValidator extends AbstractValidator {
 	 *            survey (can be null) that defines what taxa are allowed.
 	 */
 	public TaxonValidator(PropertyService propertyService, boolean required,
-			boolean blank, TaxaDAO taxaDAO, Survey survey) {
+			boolean blank, TaxaDAO taxaDAO, Survey survey, TaxaService taxaService) {
 		super(propertyService, required, blank);
 		this.taxaDAO = taxaDAO;
 		this.survey = survey;
+		this.taxaService = taxaService;
 	}
 
 	/**
@@ -134,7 +138,9 @@ public class TaxonValidator extends AbstractValidator {
 	}
 	
     private boolean isValidSurveySpecies(IndicatorSpecies species) {
-    	return survey == null || survey.getSpecies().isEmpty() ||
-    		survey.getSpecies().contains(species);
+        IndicatorSpecies fieldSpecies = taxaService.getFieldSpecies();
+        boolean result = survey == null || survey.getSpecies().isEmpty() ||
+                survey.getSpecies().contains(species) || species.getId().equals(fieldSpecies.getId());
+    	return result;
     }
 }

@@ -27,6 +27,7 @@ import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaService;
 import au.com.gaiaresources.bdrs.service.property.PropertyService;
 
 /**
@@ -45,17 +46,20 @@ public class RecordFormValidator {
     
     private Survey survey;
     
+    private TaxaService taxaService;
+    
     /**
      * Creates a new <code>RecordFormValidator</code>.
      * @param propertyService used to access configurable messages displayed to the user.
      * @param taxaDAO used to determine if species names can be resolved.
      * @param survey defines what taxa are allowed. Can be null.
      */
-    public RecordFormValidator(PropertyService propertyService, TaxaDAO taxaDAO, Survey survey) {
+    public RecordFormValidator(PropertyService propertyService, TaxaDAO taxaDAO, Survey survey, TaxaService taxaService) {
         
         this.propertyService = propertyService;
         this.taxaDAO = taxaDAO;
         this.survey = survey;
+        this.taxaService = taxaService;
         // use treemap as we would like the order of the errors to be deterministic
         errorMap = new TreeMap<String, String>();
         createValidators();
@@ -107,8 +111,8 @@ public class RecordFormValidator {
         validatorMap.put(ValidationType.REQUIRED_TIME, new TimeValidator(propertyService, true, false));
         validatorMap.put(ValidationType.TIME, new TimeValidator(propertyService, false, true));
         
-        validatorMap.put(ValidationType.REQUIRED_TAXON, new TaxonValidator(propertyService, true, false, taxaDAO, survey));
-        validatorMap.put(ValidationType.TAXON, new TaxonValidator(propertyService, false, true, taxaDAO, survey));
+        validatorMap.put(ValidationType.REQUIRED_TAXON, new TaxonValidator(propertyService, true, false, taxaDAO, survey, taxaService));
+        validatorMap.put(ValidationType.TAXON, new TaxonValidator(propertyService, false, true, taxaDAO, survey, taxaService));
         
         validatorMap.put(ValidationType.REQUIRED_CRS, new CrsValidator(propertyService, true, false));
     }
