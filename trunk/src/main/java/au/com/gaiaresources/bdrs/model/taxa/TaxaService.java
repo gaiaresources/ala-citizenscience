@@ -3,6 +3,9 @@ package au.com.gaiaresources.bdrs.model.taxa;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
+import org.hibernate.Session;
+
 import au.com.gaiaresources.bdrs.model.region.Region;
 
 /**
@@ -162,5 +165,41 @@ public interface TaxaService {
     */
     IndicatorSpecies getFieldSpecies();
 
+    /**
+     * Returns the Field name attribute if one exists, otherwise this function
+     * will create a new Field Species.
+     * @return Field name Attribute
+     */
     Attribute getFieldNameAttribute();
+    
+    /**
+     * Returns the Field name taxon group if one exists, otherwise this function
+     * will create a new taxon group.
+     * @param sesh Hibernate session - can be null.
+     * @return Taxon Group
+     */
+    TaxonGroup getFieldNameGroup(Session sesh);
+    
+    /**
+     * Returns the Field name taxon group if one exists, otherwise this function
+     * will create a new taxon group.
+     * @return Taxon Group
+     */
+    TaxonGroup getFieldNameGroup();
+    
+    /**
+     * Returns the Field Species taxon if one exists, otherwise this function
+     * will create a new Field Species.
+     * @param sesh Hibernate session - can be null
+     * @return
+     */
+    IndicatorSpecies getFieldSpecies(Session sesh);
+
+    /**
+     * Returns the Field name attribute if one exists, otherwise this function
+     * will create a new Field Species.
+     * @param sesh Hibernate session, can be null
+     * @return Field name Attribute
+     */
+    Attribute getFieldNameAttribute(Session sesh);
 }

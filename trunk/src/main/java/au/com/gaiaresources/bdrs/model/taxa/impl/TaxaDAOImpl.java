@@ -87,6 +87,9 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
     @Autowired
     private SearchService searchService;
     
+    @Autowired
+    private TaxaService taxaService;
+    
     @PostConstruct
     public void init() throws Exception {
         delService.registerDeleteCascadeHandler(TaxonGroup.class, new DeleteCascadeHandler() {
@@ -242,7 +245,8 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
      */
     @Override
     public List<TaxonGroup> getTaxonGroups() {
-        return find("from TaxonGroup g order by g.id");
+        TaxonGroup fieldNameGroup = taxaService.getFieldNameGroup();
+        return find("from TaxonGroup g where g.id != ? order by g.id", fieldNameGroup.getId());
     }
     
     /**
@@ -250,7 +254,8 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
      */
     @Override
     public List<TaxonGroup> getTaxonGroupsSortedByName() {
-        return find("from TaxonGroup g order by g.name"); 
+        TaxonGroup fieldNameGroup = taxaService.getFieldNameGroup();
+        return find("from TaxonGroup g where g.id != ? order by g.name", fieldNameGroup.getId()); 
     }
 
     /**
@@ -501,7 +506,8 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
 
     @Override
     public List<IndicatorSpecies> getIndicatorSpecies() {
-        return find("from IndicatorSpecies");
+        IndicatorSpecies fieldSpecies = taxaService.getFieldSpecies();
+        return find("from IndicatorSpecies sp where sp != ?", fieldSpecies);
     }
 
     @Override
@@ -605,6 +611,8 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
                 }
             }
         }
+        
+        IndicatorSpecies fieldSpecies = taxaService.getFieldSpecies();
         // Check whether survey has all species.
         boolean hasAllSpecies = countSpeciesForSurvey(survey) == 0;
         String query;
@@ -614,11 +622,16 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
             if (excludeSurvey) {
                 query += " where ";
                 query += GET_SPECIES_EXCLUDE_SURVEY_CLAUSE;
+                query += " and sp != :fieldSpecies ";
+            } else {
+                query += " where sp != :fieldSpecies ";
             }
             query += ORDER_SPECIES_BY_ID;
             q = sesh.createQuery(query);
         } else {
             query = "select sp" + GET_SPECIES_BY_SURVEY_BASE_QUERY;
+            query += " and ";
+            query += "sp != :fieldSpecies ";
             if (excludeSurvey) {
                 query += " and ";
                 query += GET_SPECIES_EXCLUDE_SURVEY_CLAUSE;
@@ -630,6 +643,7 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
         if (excludeSurvey) {
             q.setParameterList("notIds", excludeSpeciesInSurvey);
         }
+        q.setParameter("fieldSpecies", fieldSpecies);
         q.setFirstResult(start);
         q.setMaxResults(maxResults);
         return q.list();
@@ -649,10 +663,18 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
     }
 
     @Override
-    public List<IndicatorSpecies> getIndicatorSpeciesByNameSearch(String name) {
+    public List<IndicatorSpecies> getIndicatorSpeciesByNameSearch(String name, boolean includeFieldSpecies) {
         String searchString = toSQLSearchString(name);
-        return find("from IndicatorSpecies i where UPPER(commonName) like UPPER(?) or UPPER(scientificName) like UPPER (?)", 
-                    new Object[] {searchString, searchString}, 30);
+        if (includeFieldSpecies) {
+            return find("from IndicatorSpecies i where UPPER(commonName) like UPPER(?) or UPPER(scientificName) like UPPER (?)", 
+                        new Object[] {searchString, searchString}, 30);
+        } else {
+            // exclude the field species!
+            IndicatorSpecies fieldSpecies = taxaService.getFieldSpecies();
+            return find("from IndicatorSpecies i where i != ? and (UPPER(commonName) like UPPER(?) or UPPER(scientificName) like UPPER (?))", 
+                        new Object[] {fieldSpecies, searchString, searchString}, 30);
+        }
+        
     }
     
     @Override
@@ -914,6 +936,8 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
     public int countActualSpeciesForSurvey(Survey survey,
             List<Survey> notTheseSurveys) {
 
+        IndicatorSpecies fieldSpecies = taxaService.getFieldSpecies();
+        
         boolean exclude = notTheseSurveys != null && !notTheseSurveys.isEmpty();
         boolean hasAllSpecies = countSpeciesForSurvey(survey) == 0;
         if (exclude) {
@@ -927,18 +951,18 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
         }
         String queryString;
         if (hasAllSpecies) {
-            queryString = "select count(sp) from IndicatorSpecies sp";
+            queryString = "select count(sp) from IndicatorSpecies sp where ";
         } else {
-            queryString = "select count(sp) from Survey s join s.species sp where s = :survey";
+            queryString = "select count(sp) from Survey s join s.species sp where s = :survey and ";
         }
         if (exclude) {
-            if (hasAllSpecies) {
-                queryString += " where ";
-            } else {
-                queryString += " and ";
-            }
             queryString += GET_SPECIES_EXCLUDE_SURVEY_CLAUSE;
+            queryString += " and ";
+            queryString += " sp != :fieldSpecies ";
+        } else {
+            queryString += " sp != :fieldSpecies ";    
         }
+        
         Query q = getSession().createQuery(queryString);
         if (exclude) {
             q.setParameterList("notIds", notTheseSurveys);
@@ -946,6 +970,7 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
         if (!hasAllSpecies) {
             q.setParameter("survey", survey);   
         }
+        q.setParameter("fieldSpecies", fieldSpecies);
         Integer count = Integer.parseInt(q.list().get(0).toString(), 10);
         return count;
     }
@@ -1099,10 +1124,11 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
      */
     @Override
     public List<IndicatorSpecies> searchIndicatorSpeciesByGroupName(String groupName, String taxonName) {
-        
-        Query q = getSession().createQuery("from IndicatorSpecies i where (UPPER(i.commonName) like UPPER(:taxonName) or UPPER(i.scientificName) like UPPER (:taxonName)) and UPPER(i.taxonGroup.name) like UPPER(:groupName)");
+        IndicatorSpecies fieldSpecies = taxaService.getFieldSpecies();
+        Query q = getSession().createQuery("from IndicatorSpecies i where i != :fieldSpecies and (UPPER(i.commonName) like UPPER(:taxonName) or UPPER(i.scientificName) like UPPER (:taxonName)) and UPPER(i.taxonGroup.name) like UPPER(:groupName)");
         q.setParameter("groupName", toSQLSearchString(groupName));
         q.setParameter("taxonName", toSQLSearchString(taxonName));
+        q.setParameter("fieldSpecies", fieldSpecies);
         
         return q.list();
     }
@@ -1212,6 +1238,11 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
                         break;
                 }
             }
+            
+            // exclude the field species
+            IndicatorSpecies fieldSpecies = taxaService.getFieldSpecies();
+            searchTerm += " -(id:"+fieldSpecies.getId().toString()+")";
+            
             return searchService.searchPaged(getSession(), fields, aWrapper, searchTerm, filter, IndicatorSpecies.class, SpeciesProfile.class);
         }
     }
@@ -1318,5 +1349,38 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
         }
         Query q = sesh.createQuery("from IndicatorSpecies");
         return new ScrollableResultsImpl<IndicatorSpecies>(q);
+    }
+    
+    /*
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.taxa.TaxaDAO#getSpeciesForSurvey(org.hibernate.Session, au.com.gaiaresources.bdrs.model.survey.Survey, java.lang.String)
+     */
+    @Override
+    public IndicatorSpecies getSpeciesForSurvey(Session sesh, Survey s, String sciName) {
+        if (s == null) {
+            throw new IllegalArgumentException("Survey cannot be null");
+        }
+        if (StringUtils.nullOrEmpty(sciName)) {
+            throw new IllegalArgumentException("Sci name cannot be null or empty");
+        }
+        if (sesh == null) {
+            sesh = getSession();
+        }
+        int speciesCount = countSpeciesForSurvey(s);
+        if (speciesCount == 0) {
+            // i.e. survey has ALL species.
+            return this.getIndicatorSpeciesByScientificName(sesh, sciName);
+        } else {
+            List<IndicatorSpecies> species = find(sesh, "select i from Survey s join s.species i where upper(i.scientificName) = ? and s = ?", 
+                        new Object[] { sciName.toUpperCase(), s });
+            if (species.isEmpty()) {
+                return null;
+            } else {
+                if (species.size() > 1) {
+                    log.warn("Multiple IndicatorSpecies with the same scientific name found. Returning the first");
+                }
+                return species.get(0);
+            }
+        }
     }
 }

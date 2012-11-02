@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -230,7 +231,7 @@ public class TaxaServiceImpl implements TaxaService {
 	@Override
 	public List<? extends IndicatorSpecies> getIndicatorSpeciesByNameSearch(
 			String name) {
-		return taxaDAO.getIndicatorSpeciesByNameSearch(name);
+		return taxaDAO.getIndicatorSpeciesByNameSearch(name, false);
 	}
 
 	@Override
@@ -248,69 +249,120 @@ public class TaxaServiceImpl implements TaxaService {
     			infoItems_subset.add(s);
     		}
     	}
-    	return infoItems_subset;
-	}
+        return infoItems_subset;
+    }
 
-	@Override
-	public Attribute getFieldNameAttribute() {
-	    IndicatorSpecies fieldSpecies = getFieldSpecies();
-	    TaxonGroup fieldNamesGroup = fieldSpecies.getTaxonGroup();
-	    
-	    for(Attribute attr : fieldNamesGroup.getAttributes()) {
-	        if(Attribute.FIELD_NAME_NAME.equals(attr.getName()) &&
-	                Attribute.FIELD_NAME_DESC.equals(attr.getDescription())) {
-	            return attr;
-	        }
-	    }
-	    
-	    // if we got here, there isn't a field name attribute yet - so create one.
-	    Attribute attr = new Attribute();
-	    attr.setDescription(Attribute.FIELD_NAME_DESC);
-	    attr.setName(Attribute.FIELD_NAME_NAME);
-	    attr.setRequired(false);
-	    attr.setTag(false);
-	    attr.setTypeCode(AttributeType.STRING.getCode());
-	    attr = attributeDAO.save(attr);
-	    
-	    fieldNamesGroup.getAttributes().add(attr);
-	    taxaDAO.save(fieldNamesGroup);
-	    
-	    return attr;
-	}
+    @Override
+    public Attribute getFieldNameAttribute() {
+        return getFieldNameAttribute(null);
+    }
 
-	@Override
-	public IndicatorSpecies getFieldSpecies() {
-	    
-	    IndicatorSpecies fieldSpecies = taxaDAO.getIndicatorSpeciesByScientificName(IndicatorSpecies.FIELD_SPECIES_NAME);
-	    if(fieldSpecies == null) {
-	           TaxonGroup fieldNamesGroup = taxaDAO.getTaxonGroup(TaxonGroup.FIELD_NAMES_GROUP_NAME);
-	            if(fieldNamesGroup == null){
-	                fieldNamesGroup = new TaxonGroup();
-	                fieldNamesGroup.setName(TaxonGroup.FIELD_NAMES_GROUP_NAME);
-	                fieldNamesGroup.setBehaviourIncluded(false);
-	                fieldNamesGroup.setFirstAppearanceIncluded(false);
-	                fieldNamesGroup.setHabitatIncluded(false);
-	                fieldNamesGroup.setLastAppearanceIncluded(false);
-	                fieldNamesGroup.setNumberIncluded(false);
-	                fieldNamesGroup.setWeatherIncluded(false);
-	                fieldNamesGroup = taxaDAO.save(fieldNamesGroup);
-	            }
-	            
-	            fieldSpecies = new IndicatorSpecies();
-	            fieldSpecies.setScientificName(IndicatorSpecies.FIELD_SPECIES_NAME);
-                    fieldSpecies.setCommonName(IndicatorSpecies.FIELD_SPECIES_NAME);
-	            
-	            fieldSpecies.setAuthor("");
-	            fieldSpecies.setScientificNameAndAuthor("");
-	            fieldSpecies.setTaxonGroup(fieldNamesGroup);
-	            fieldSpecies.setTaxonRank(TaxonRank.SPECIES);
-	            fieldSpecies.setYear("");
-	            
-	            fieldSpecies = taxaDAO.save(fieldSpecies);
-	    }
-	    
-	    return fieldSpecies;
-	}
-	    
+    @Override
+    public IndicatorSpecies getFieldSpecies() {
+        return getFieldSpecies(null);
+    }
     
+    @Override
+    public TaxonGroup getFieldNameGroup(Session sesh) {
+        TaxonGroup fieldNamesGroup = taxaDAO.getTaxonGroup(null, TaxonGroup.FIELD_NAMES_GROUP_NAME);
+        if (fieldNamesGroup == null) {
+            fieldNamesGroup = createFieldNameTaxonGroup();
+            fieldNamesGroup = taxaDAO.save(sesh, fieldNamesGroup);
+        }
+        return fieldNamesGroup;
+    }
+    
+    @Override
+    public TaxonGroup getFieldNameGroup() {
+        return getFieldNameGroup(null);
+    }
+
+    @Override
+    public IndicatorSpecies getFieldSpecies(Session sesh) {
+        IndicatorSpecies fieldSpecies = taxaDAO.getIndicatorSpeciesByScientificName(sesh, IndicatorSpecies.FIELD_SPECIES_NAME);
+        if (fieldSpecies == sesh) {
+            TaxonGroup fieldNamesGroup = getFieldNameGroup(sesh);
+            fieldSpecies = createFieldSpecies(fieldNamesGroup);
+            fieldSpecies = taxaDAO.save(sesh, fieldSpecies);
+        }
+
+        return fieldSpecies;
+    }
+
+    @Override
+    public Attribute getFieldNameAttribute(Session sesh) {
+        IndicatorSpecies fieldSpecies = getFieldSpecies();
+        TaxonGroup fieldNamesGroup = fieldSpecies.getTaxonGroup();
+
+        for (Attribute attr : fieldNamesGroup.getAttributes()) {
+            if (Attribute.FIELD_NAME_NAME.equals(attr.getName())
+                    && Attribute.FIELD_NAME_DESC.equals(attr.getDescription())) {
+                return attr;
+            }
+        }
+
+        // if we got here, there isn't a field name attribute yet - so create one.
+        Attribute attr = createFieldNameAttr(fieldNamesGroup);
+        
+        attr = attributeDAO.save(sesh, attr);
+        taxaDAO.save(sesh, fieldNamesGroup);
+
+        return attr;
+    }
+    
+    /**
+     * Creates a new instance of the field name TaxonGroup. Does not persist the object.
+     * Note that there should be only one of these per portal.
+     * 
+     * @return Created TaxonGroup.
+     */
+    public static TaxonGroup createFieldNameTaxonGroup() {
+        TaxonGroup fieldNamesGroup = new TaxonGroup();
+        fieldNamesGroup.setName(TaxonGroup.FIELD_NAMES_GROUP_NAME);
+        fieldNamesGroup.setBehaviourIncluded(false);
+        fieldNamesGroup.setFirstAppearanceIncluded(false);
+        fieldNamesGroup.setHabitatIncluded(false);
+        fieldNamesGroup.setLastAppearanceIncluded(false);
+        fieldNamesGroup.setNumberIncluded(false);
+        fieldNamesGroup.setWeatherIncluded(false);
+        return fieldNamesGroup;
+    }
+    
+    /**
+     * Creates a new instance of the field name IndicatorSpecies. Does not persist the object.
+     * Note that there should be only one of these per portal.
+     * 
+     * @param fieldNamesGroup TaxonGroup that is assigned to the indicator species.
+     * @return Created IndicatorSpecies.
+     */
+    public static IndicatorSpecies createFieldSpecies(TaxonGroup fieldNamesGroup) {
+        IndicatorSpecies fieldSpecies = new IndicatorSpecies();
+        fieldSpecies.setScientificName(IndicatorSpecies.FIELD_SPECIES_NAME);
+        fieldSpecies.setCommonName(IndicatorSpecies.FIELD_SPECIES_NAME);
+
+        fieldSpecies.setAuthor("");
+        fieldSpecies.setScientificNameAndAuthor("");
+        fieldSpecies.setTaxonGroup(fieldNamesGroup);
+        fieldSpecies.setTaxonRank(TaxonRank.SPECIES);
+        fieldSpecies.setYear("");
+        return fieldSpecies;
+    }
+    
+    /**
+     * Creates a new instance of the field name attribute. Does not persist the object.
+     * Note that there should be only one of these per portal.
+     * 
+     * @param fieldNamesGroup TaxonGroup to attach the attribute.
+     * @return Field name Attribute
+     */
+    public static Attribute createFieldNameAttr(TaxonGroup fieldNamesGroup) {
+        Attribute attr = new Attribute();
+        attr.setDescription(Attribute.FIELD_NAME_DESC);
+        attr.setName(Attribute.FIELD_NAME_NAME);
+        attr.setRequired(false);
+        attr.setTag(false);
+        attr.setTypeCode(AttributeType.STRING.getCode());
+        fieldNamesGroup.getAttributes().add(attr);
+        return attr;
+    }
 }

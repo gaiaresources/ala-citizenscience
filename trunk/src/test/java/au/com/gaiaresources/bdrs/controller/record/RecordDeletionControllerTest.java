@@ -23,6 +23,7 @@ import org.springframework.security.authentication.encoding.PasswordEncoder;
 import org.springframework.web.servlet.ModelAndView;
 
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
+import au.com.gaiaresources.bdrs.db.FilterManager;
 import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
@@ -37,12 +38,14 @@ import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaService;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
@@ -103,9 +106,14 @@ public class RecordDeletionControllerTest extends AbstractControllerTest {
      * Total number of records created for each indicator species.
      */
     private int taxonRecordCount;
+    
+    private int origRecordCount;
 
     @Before
     public void setUp() throws Exception {
+        FilterManager.disablePartialRecordCountFilter(getSession());
+        origRecordCount = recordDAO.countAllRecords();
+        
         super.doSetup();
         dateA = dateFormat.parse("27 Jun 2004");
         dateB = dateFormat.parse("02 Oct 2005");
@@ -456,5 +464,7 @@ public class RecordDeletionControllerTest extends AbstractControllerTest {
             Assert.assertNotNull("sanity check", r.getId());
             Assert.assertNull("record should now be deleted", recordDAO.getRecord(r.getId()));
         }
+        
+        Assert.assertEquals("wrong count", origRecordCount, recordDAO.countAllRecords().intValue());
     }
 }

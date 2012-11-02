@@ -52,6 +52,7 @@ import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValueDAO;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValueUtil;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaService;
@@ -926,10 +927,14 @@ public class ApplicationService extends AbstractController {
             IndicatorSpecies taxon = taxaDAO.getIndicatorSpecies(taxonPk);
             if(taxon == null) {
                 // Must be a field species
+                // Don't create a new field name attribute if one already exists...
+                AttributeValue fieldName = AttributeValueUtil.getAttributeValue(taxaService.getFieldNameAttribute(), rec);
+                if (fieldName == null) {
+                    fieldName = new AttributeValue();
+                    fieldName.setAttribute(taxaService.getFieldNameAttribute());
+                }
                 taxon = taxaService.getFieldSpecies();
-                AttributeValue fieldName = new AttributeValue();
                 fieldName.setStringValue(scientificName);
-                fieldName.setAttribute(taxaService.getFieldNameAttribute());
                 fieldName = attributeValueDAO.save(fieldName);
                 rec.getAttributes().add(fieldName);
             }

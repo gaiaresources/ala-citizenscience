@@ -43,6 +43,7 @@ public interface TaxaDAO extends TransactionDAO {
 
     /**
      * Returns all taxon groups in alphabetical order.
+     * Will exclude the 'Field Names' taxon group.
      * @return
      */
     List<? extends TaxonGroup> getTaxonGroups();
@@ -150,9 +151,10 @@ public interface TaxaDAO extends TransactionDAO {
      * Multiple entries may be returned.
      * 
      * @param name Name to search for.
+     * @param includeFieldSpecies If true will return the special 'Field Species' in the query.
      * @return List of indicator species that match the search string.
      */
-    List<IndicatorSpecies> getIndicatorSpeciesByNameSearch(String name);
+    List<IndicatorSpecies> getIndicatorSpeciesByNameSearch(String name, boolean includeFieldSpecies);
     
     /**
 	 * Search for the indicator species by scientific name or common name. 
@@ -476,6 +478,7 @@ public interface TaxaDAO extends TransactionDAO {
 
     /**
      * Get all taxon groups sorted by name.
+     * Will exclude the 'Field Names' taxon group.
      * @return List of taxon groups sorted by name.
      */
     List<TaxonGroup> getTaxonGroupsSortedByName();
@@ -592,4 +595,15 @@ public interface TaxaDAO extends TransactionDAO {
      * @return Scrollable Results
      */
     ScrollableResults<IndicatorSpecies> getAll(Session sesh);
+    
+    /**
+     * Return a single IndicatorSpecies that exactly matches a scientific name
+     * and that the Survey is allowed to assign.
+     * 
+     * @param sesh Hibernate session. Nullable.
+     * @param s Survey. cannot be null.
+     * @param sciName Sci name, cannot be null, cannot be empty.
+     * @return A single species that matches the search parameters.
+     */
+    IndicatorSpecies getSpeciesForSurvey(Session sesh, Survey s, String sciName);
 }

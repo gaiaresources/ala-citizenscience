@@ -33,6 +33,7 @@ import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaService;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.service.property.PropertyService;
 
@@ -46,6 +47,9 @@ public class RecordFormValidatorTest extends AbstractControllerTest {
     
     @Autowired
     private SurveyDAO surveyDAO;
+    
+    @Autowired
+    private TaxaService taxaService;
 
     private Map<String, String[]> paramMap;
     private Map<String, String> errorMap;
@@ -307,7 +311,7 @@ public class RecordFormValidatorTest extends AbstractControllerTest {
         
         String key = "test";
         Validator validator = new TaxonValidator(propertyService, true, false,
-                taxaDAO, survey);
+                taxaDAO, survey, taxaService);
 
         String valid = species.getScientificName();
         String allLower = valid.toLowerCase();
@@ -396,7 +400,7 @@ public class RecordFormValidatorTest extends AbstractControllerTest {
         Date invalidLate = cal.getTime();
 
         String key = "date";
-        RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO, null);
+        RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO, null, taxaService);
 
         // Boundary Test
         paramMap.put(key, new String[] { dateFormat.format(valid) });
@@ -449,7 +453,7 @@ public class RecordFormValidatorTest extends AbstractControllerTest {
     public void testValidateRequiredTime() throws Exception {
         String key = "time";
         String value = "";
-        RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO, null);
+        RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO, null, taxaService);
 
         // Boundary Test
         paramMap.put(key, new String[] { value });
@@ -472,7 +476,7 @@ public class RecordFormValidatorTest extends AbstractControllerTest {
     public void testValidateTime() throws Exception {
         String key = "time";
         String value = "";
-        RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO, null);
+        RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO, null, taxaService);
 
         // Boundary Test
         paramMap.put(key, new String[] { value });
@@ -497,7 +501,7 @@ public class RecordFormValidatorTest extends AbstractControllerTest {
     public void testValidateHtml() throws Exception {
         String key = "test";
         String value = "";
-        RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO, null);
+        RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO, null, taxaService);
 
         // Boundary Test
         paramMap.put(key, new String[] { value });
@@ -525,7 +529,7 @@ public class RecordFormValidatorTest extends AbstractControllerTest {
         String key = "test";
         String value = "";
         String regex = "\\d+(\\.?\\d+)?"; // regex for numbers
-        RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO, null);
+        RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO, null, taxaService);
 
         Attribute att = new Attribute();
         att.setName(key+"_attribute");
@@ -602,7 +606,7 @@ public class RecordFormValidatorTest extends AbstractControllerTest {
     	surveyMga.setMap(new GeoMap());
     	surveyMga.getMap().setCrs(BdrsCoordReferenceSystem.MGA50);
     	
-    	RecordFormValidator validatorWgs = new RecordFormValidator(propertyService, taxaDAO, surveyWgs);
+    	RecordFormValidator validatorWgs = new RecordFormValidator(propertyService, taxaDAO, surveyWgs, taxaService);
     	
     	assertValid(validatorWgs, ValidationType.COORD_Y, "90", true, null);
     	assertValid(validatorWgs, ValidationType.COORD_Y, "90.1", false, null);
@@ -626,7 +630,7 @@ public class RecordFormValidatorTest extends AbstractControllerTest {
     	assertValid(validatorWgs, ValidationType.REQUIRED_COORD_X, "", false, null);
     	assertValid(validatorWgs, ValidationType.REQUIRED_COORD_Y, "", false, null);
     	
-    	RecordFormValidator validatorMga = new RecordFormValidator(propertyService, taxaDAO, surveyMga);
+    	RecordFormValidator validatorMga = new RecordFormValidator(propertyService, taxaDAO, surveyMga, taxaService);
     	
     	assertValid(validatorMga, ValidationType.COORD_Y, "90", true, null);
     	assertValid(validatorMga, ValidationType.COORD_Y, "90.1", true, null);

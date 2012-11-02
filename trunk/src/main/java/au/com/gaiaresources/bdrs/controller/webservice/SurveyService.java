@@ -48,6 +48,7 @@ import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaService;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
@@ -78,6 +79,8 @@ public class SurveyService extends AbstractController {
     private GroupDAO groupDAO;
     @Autowired
     private SessionFactory sessionFactory;
+    @Autowired
+    private TaxaService taxaService;
     
     private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
 
@@ -192,9 +195,11 @@ public class SurveyService extends AbstractController {
             throws IOException {
         List<IndicatorSpecies> speciesList;
         if (surveyDAO.countSpeciesForSurvey(surveyPk) == 0) {
-            speciesList = taxaDAO.getIndicatorSpeciesByNameSearch(speciesSearch);
+            speciesList = taxaDAO.getIndicatorSpeciesByNameSearch(speciesSearch, true);
         } else {
             speciesList = surveyDAO.getSpeciesForSurveySearch(surveyPk, speciesSearch);
+            // add the field species onto the list
+            speciesList.add(taxaService.getFieldSpecies());
         }
 
         JSONArray array = new JSONArray();

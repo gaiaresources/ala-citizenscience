@@ -459,4 +459,10 @@
         <put-attribute name="title" value="Profile"/>
         <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/profile.jsp"/>
     </definition>
+    
+    <!-- Field name review page -->
+    <definition name="fieldNameReview" extends="user-template">
+        <put-attribute name="title" value="Field Name Review"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/review/fieldnames/fieldNameReview.jsp"/>
+    </definition>
 </tiles-definitions>

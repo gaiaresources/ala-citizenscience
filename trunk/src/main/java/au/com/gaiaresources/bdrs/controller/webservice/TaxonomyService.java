@@ -60,7 +60,7 @@ public class TaxonomyService extends AbstractController {
 
         if(request.getParameter("q") != null) {
             List<IndicatorSpecies> speciesList =
-                taxaDAO.getIndicatorSpeciesByNameSearch(request.getParameter("q"));
+                taxaDAO.getIndicatorSpeciesByNameSearch(request.getParameter("q"), false);
             
             String depthStr = request.getParameter("depth");
             int depth = depthStr == null ? 0 : Integer.parseInt(depthStr);

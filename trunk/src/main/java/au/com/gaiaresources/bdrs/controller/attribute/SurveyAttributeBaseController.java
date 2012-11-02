@@ -19,6 +19,7 @@ import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaService;
 import au.com.gaiaresources.bdrs.model.threshold.ActionType;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.content.ContentService;
@@ -80,6 +81,9 @@ public class SurveyAttributeBaseController extends AbstractController {
     
     @Autowired
     private PropertyService propertyService;
+    
+    @Autowired
+    private TaxaService taxaService;
     
     private AttributeFormFieldFactory formFieldFactory = new AttributeFormFieldFactory();
     
@@ -337,7 +341,7 @@ public class SurveyAttributeBaseController extends AbstractController {
         Attribute attr;
         boolean isValid = true;
         AttributeParser parser = new WebFormAttributeParser(taxaDAO);
-        RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO, null);
+        RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO, null, taxaService);
         if(request.getParameterValues("attribute") != null) {
             for(String rawAttrPk : request.getParameterValues("attribute")) {
                 if(rawAttrPk != null && !rawAttrPk.isEmpty()) {
