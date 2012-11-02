@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -104,7 +105,7 @@ public class FieldNameReviewController extends AbstractController {
 
         User user = getRequestContext().getUser();
         if (user == null) {
-            throw new IllegalStateException("User cannot be null");
+            throw new AccessDeniedException("Must be logged in");
         }
         
         Attribute fieldNameAttr = taxaService.getFieldNameAttribute();
