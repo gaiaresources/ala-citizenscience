@@ -280,7 +280,7 @@ public class TaxaServiceImpl implements TaxaService {
     @Override
     public IndicatorSpecies getFieldSpecies(Session sesh) {
         IndicatorSpecies fieldSpecies = taxaDAO.getIndicatorSpeciesByScientificName(sesh, IndicatorSpecies.FIELD_SPECIES_NAME);
-        if (fieldSpecies == sesh) {
+        if (fieldSpecies == null) {
             TaxonGroup fieldNamesGroup = getFieldNameGroup(sesh);
             fieldSpecies = createFieldSpecies(fieldNamesGroup);
             fieldSpecies = taxaDAO.save(sesh, fieldSpecies);
