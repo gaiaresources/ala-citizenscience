@@ -1,36 +1,5 @@
 package au.com.gaiaresources.bdrs.controller.webservice;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
-import javassist.scopedpool.SoftValueHashMap;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.log4j.Logger;
-import org.codehaus.plexus.util.StringUtils;
-import org.hibernate.FlushMode;
-import org.postgresql.util.Base64;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.ModelAndView;
-
 import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
@@ -59,10 +28,41 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxaService;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
+import au.com.gaiaresources.bdrs.security.UserDetails;
 import au.com.gaiaresources.bdrs.service.survey.SurveyImportExportService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import au.com.gaiaresources.bdrs.servlet.RequestContext;
+import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 import au.com.gaiaresources.bdrs.util.SpatialUtil;
 import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
+import javassist.scopedpool.SoftValueHashMap;
+import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.log4j.Logger;
+import org.codehaus.plexus.util.StringUtils;
+import org.hibernate.FlushMode;
+import org.postgresql.util.Base64;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 @Controller
 public class ApplicationService extends AbstractController {
@@ -681,9 +681,10 @@ public class ApplicationService extends AbstractController {
             if(jsonData == null) {
                 throw new NullPointerException("Missing POST parameter 'syncData'.");
             }
-            
-            if (userDAO.getUserByRegistrationKey(ident) != null) {
-                User user = userDAO.getUserByRegistrationKey(ident);
+
+            User user = authenticate(ident);
+            if (user != null) {
+
                 JSONObject status = new JSONObject();
 
                 // The list of json objects that shall be passed back to the 
@@ -738,6 +739,21 @@ public class ApplicationService extends AbstractController {
             this.writeJson(request, response, jsonObj.toString());
             return null;
         }
+    }
+
+    /**
+     * Returns the User identified by the supplied ident parameter.
+     * The UserDetails is populated in the RequestContext as a side effect.
+     * @param ident identifies the User.
+     * @return the User identified by ident, or null if no such User exists.
+     */
+    private User authenticate(String ident) {
+        User user = userDAO.getUserByRegistrationKey(ident);
+        if (user != null) {
+            RequestContext requestContext = RequestContextHolder.getContext();
+            requestContext.setUserDetails(new UserDetails(user));
+        }
+        return user;
     }
     
     @RequestMapping(value = CREATE_SURVEY_URL, method = RequestMethod.POST)
