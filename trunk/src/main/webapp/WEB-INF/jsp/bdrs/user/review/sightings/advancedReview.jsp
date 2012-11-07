@@ -129,7 +129,7 @@
        <c:forEach var="facet" items="${ facetList }">
            jQuery(".${ facet.inputName }_tree_node_handler").click(function() {
                jQuery(".${ facet.inputName }OptContainer").slideToggle("fast", function() {
-                   var collapsed = jQuery(".${ facet.inputName }OptContainer").ss("display") === "none";
+                   var collapsed = jQuery(".${ facet.inputName }OptContainer").css("display") === "none";
                    var treeNode = jQuery(".${ facet.inputName }Header .tree_node");
                    if(collapsed) {
                        treeNode.removeClass('tree_node_expanded');
