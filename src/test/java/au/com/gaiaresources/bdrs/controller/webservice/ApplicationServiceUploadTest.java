@@ -1,39 +1,5 @@
 package au.com.gaiaresources.bdrs.controller.webservice;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
-
-import javax.imageio.ImageIO;
-
-import junit.framework.Assert;
-
-import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.junit.Before;
-import org.junit.Test;
-import org.postgresql.util.Base64;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.web.ModelAndViewAssert;
-import org.springframework.web.servlet.ModelAndView;
-
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
@@ -60,7 +26,36 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonRank;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.servlet.RequestContext;
+import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 import au.com.gaiaresources.bdrs.util.CSVUtils;
+import junit.framework.Assert;
+import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.junit.Before;
+import org.junit.Test;
+import org.postgresql.util.Base64;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.ModelAndViewAssert;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
 
 public class ApplicationServiceUploadTest extends AbstractControllerTest {
     
@@ -176,7 +171,10 @@ public class ApplicationServiceUploadTest extends AbstractControllerTest {
         ModelAndView mv = handle(request, response);
         ModelAndViewAssert.assertViewName(mv, "postMessage");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "message");
-        
+
+        RequestContext context = RequestContextHolder.getContext();
+        Assert.assertEquals("admin", context.getUser().getName());
+
         JSONObject json = JSONObject.fromStringToJSONObject(mv.getModel().get("message").toString());
         //System.err.println(mv.getModel().get("message"));
         Assert.assertEquals(200, json.getInt("status"));
@@ -202,7 +200,10 @@ public class ApplicationServiceUploadTest extends AbstractControllerTest {
         ModelAndView mv = handle(request, response);
         ModelAndViewAssert.assertViewName(mv, "postMessage");
         ModelAndViewAssert.assertModelAttributeAvailable(mv, "message");
-        
+
+        RequestContext context = RequestContextHolder.getContext();
+        Assert.assertEquals("admin", context.getUser().getName());
+
         JSONObject json = JSONObject.fromStringToJSONObject(mv.getModel().get("message").toString());
         //System.err.println(mv.getModel().get("message"));
         Assert.assertEquals(200, json.getInt("status"));
@@ -229,6 +230,9 @@ public class ApplicationServiceUploadTest extends AbstractControllerTest {
             ModelAndView preMV = handle(preRequest, preResponse);
             ModelAndViewAssert.assertViewName(preMV, "postMessage");
             ModelAndViewAssert.assertModelAttributeAvailable(preMV, "message");
+
+            RequestContext context = RequestContextHolder.getContext();
+            Assert.assertEquals("admin", context.getUser().getName());
             
             JSONObject preJSON = JSONObject.fromStringToJSONObject(preMV.getModel().get("message").toString());
             //System.err.println(mv.getModel().get("message"));
@@ -276,6 +280,9 @@ public class ApplicationServiceUploadTest extends AbstractControllerTest {
             ModelAndView preMV = handle(preRequest, preResponse);
             ModelAndViewAssert.assertViewName(preMV, "postMessage");
             ModelAndViewAssert.assertModelAttributeAvailable(preMV, "message");
+
+            RequestContext context = RequestContextHolder.getContext();
+            Assert.assertEquals("admin", context.getUser().getName());
             
             JSONObject preJSON = JSONObject.fromStringToJSONObject(preMV.getModel().get("message").toString());
             //System.err.println(mv.getModel().get("message"));
