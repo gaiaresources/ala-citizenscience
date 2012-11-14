@@ -12,4 +12,10 @@ AbstractBDRSTest.java does not fail.  -->
 	<bean id="profileConfig" class="au.com.gaiaresources.bdrs.config.ProfileConfig">
         <property name="xmlConfigFilename" value="/../../src/main/webapp/WEB-INF/profileConfig-test.xml"/>
     </bean>
+
+    <bean id="bdrsAuthenticationEntryPoint" class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint">
+        <property name="loginFormUrl" value="/home.htm?signin=true" />
+        <property name="useForward" value="true" />
+        <property name="forceHttps" value="false" />
+    </bean>
 </beans>
