@@ -13,6 +13,7 @@ public abstract class AbstractRecordFormField extends AbstractFormField {
     
     protected Survey survey;
     private Record record;
+    
     /**
      * Creates a new <code>AbstractRecordFormField</code>.
      * 
@@ -20,8 +21,8 @@ public abstract class AbstractRecordFormField extends AbstractFormField {
      * @param record the record to be updated
      * @param prefix the prefix to be prepended to input names
      */
-    public AbstractRecordFormField(Survey survey, Record record, String prefix) {
-    	super(prefix);
+    public AbstractRecordFormField(Survey survey, Record record, String prefix, String category) {
+    	super(prefix, category);
         this.survey = survey;
         this.record = record;
     }

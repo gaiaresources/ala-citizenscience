@@ -11,6 +11,8 @@ import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+
 import org.apache.log4j.Logger;
 
 /**
@@ -45,7 +47,7 @@ public class LocationAttributeFormField extends AbstractFormField implements Typ
     LocationAttributeFormField(Attribute attribute, 
             TypedAttributeValue locationAttribute, String prefix, Survey survey) {
 
-        super(prefix);
+        super(prefix, BdrsWebConstants.LOCATION_ATTR_CATEGORY);
 
         this.survey = survey;
         this.attribute = attribute;

@@ -8,7 +8,7 @@ public class TrackerFormRecordKeyLookup implements RecordKeyLookup {
     
     @Override
     public String getCensusMethodAttributePrefix() {
-        return TrackerController.CENSUS_METHOD_ATTRIBUTE_PREFIX;
+        return AttributeParser.DEFAULT_PREFIX;
     }
 
     @Override
@@ -38,7 +38,7 @@ public class TrackerFormRecordKeyLookup implements RecordKeyLookup {
 
     @Override
     public String getTaxonAttributePrefix() {
-        return TrackerController.TAXON_GROUP_ATTRIBUTE_PREFIX;
+        return AttributeParser.DEFAULT_PREFIX;
     }
     
     @Override

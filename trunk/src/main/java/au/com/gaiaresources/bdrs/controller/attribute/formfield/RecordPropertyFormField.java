@@ -11,6 +11,7 @@ import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 /**
  * The <code>RecordPropertyFormField</code> is a representation of a
@@ -37,7 +38,7 @@ public class RecordPropertyFormField extends AbstractRecordFormField implements 
      */
     public RecordPropertyFormField(Record record, RecordProperty recordProperty,
             IndicatorSpecies species, Taxonomic taxonomic, String prefix) {
-        super(recordProperty.getSurvey(), record, prefix);
+        super(recordProperty.getSurvey(), record, prefix, BdrsWebConstants.RECORD_PROPERTY_CATEGORY);
         this.recordProperty = recordProperty;
         this.taxonomic = taxonomic;
         this.species = species;

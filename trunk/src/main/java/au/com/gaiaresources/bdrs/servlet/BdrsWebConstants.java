@@ -60,4 +60,29 @@ public class BdrsWebConstants {
      * Used in foundation.jsp
      */
     public static final String MV_CSS_FORM_LAYOUT_URL = "cssFormLayoutUrl";
+    
+    /**
+     * Form field category. Attribute belongs to a census method.
+     */
+    public static final String CENSUS_METHOD_ATTR_CATEGORY = "census_method_attr";
+    /**
+     * Form field category. Attribute belongs to a taxon group.
+     */
+    public static final String TAXON_GROUP_ATTR_CATEGORY = "taxon_group_attr";
+    /**
+     * Form field category. Attribute belongs to a survey.
+     */
+    public static final String SURVEY_ATTR_CATEGORY = "survey_attribute";
+    /**
+     * Form field category. Attribute belongs to a location.
+     */
+    public static final String LOCATION_ATTR_CATEGORY = "location_attr";
+    /**
+     * Form field category. Form field is for a record propertry.
+     */
+    public static final String RECORD_PROPERTY_CATEGORY = "record_property";
+    /**
+     * Form field category. Form field is for a taxon attribute (used when editing taxonomy)
+     */
+    public static final String TAXON_ATTR_CATEGORY = "taxon_attr";
 }

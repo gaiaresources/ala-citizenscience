@@ -420,22 +420,49 @@ bdrs.contribute.initSpeciesAutocomplete = function(args) {
     var showScientificName = args.showScientificName;
     
     var addTaxonTableFunc = function(taxon) {
+
         // Load Taxon Group Attributes
         // Clear the group attribute rows
         if(taxonAttrRowSelector !== undefined && taxonAttrRowSelector !== null) {
             jQuery(taxonAttrRowSelector).parents("tr").remove();
         }
         
+        // Make a note of which attribute ids are currently on the form so we don't 
+        // double up. The concrete use case is:
+        // 1. Record has a field name.
+        // 2. Assign a standard species.
+        // 3. Edit the record again.
+        // 4. Select field species in the species autocomplete.
+        // you will have 2 field species items as the web service does not the current
+        // state of the web form.
+        var attrIds = [];
+        var name;
+        var id;
+        jQuery('[name*="attribute_"]').each(function(index, element) {
+            name = $(this).attr("name");
+            while (name.indexOf("attribute_") > -1) {
+                name = name.substr(name.indexOf("attribute_") + "attribute_".length, name.length - name.indexOf("attribute_") + "attribute_".length);
+                // get the first number in the string...
+                id = parseInt(name);
+                if (!isNaN(id)) {
+                    attrIds.push(id);
+                }
+            }
+        });
+        
         // Build GET request parameters
         var params = {};
         params.surveyId = surveyId;
         params.taxonId = taxon.id;
-        params.recordId = recordId;
+        if (recordId) {
+            params.recordId = recordId;
+        }
         params.editForm = editable;
+        params.attrIds = attrIds;
 
         // Issue Request
         if(attributeTbodySelector !== null && attributeTbodySelector !== undefined) {
-            jQuery.get(bdrs.portalContextPath+"/bdrs/user/ajaxTrackerTaxonAttributeTable.htm", params, function(data) {
+            jQuery.get(bdrs.portalContextPath+"/bdrs/user/ajaxTrackerTaxonAttributeTable.htm", jQuery.param(params, true), function(data) {
                 var node = jQuery(attributeTbodySelector);
                 // append to the main form table, not a sub table
                 node.first().append(data);

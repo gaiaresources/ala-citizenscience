@@ -106,6 +106,16 @@
 	                    <tiles:putAttribute name="isModerationOnly" value="${ recordWebFormContext.moderateOnly }"/>
 	                </tiles:insertDefinition>
 	            </c:forEach>
+	            <c:forEach items="${recordWebFormContext.namedFormFields['orphanFormFieldList']}" var="formField">
+                    <tiles:insertDefinition name="divLayoutformFieldRenderer">
+                        <tiles:putAttribute name="formField" value="${ formField }"/>
+                        <tiles:putAttribute name="locations" value="${ locations }"/>
+                        <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
+                        <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
+                        <tiles:putAttribute name="editEnabled" value="${ recordWebFormContext.editable }"/>
+                        <tiles:putAttribute name="isModerationOnly" value="${ recordWebFormContext.moderateOnly }"/>
+                    </tiles:insertDefinition>
+                </c:forEach>
 	        </c:when>
 	        <%--  DEFAULT --%>
 	        <c:otherwise>
@@ -159,6 +169,17 @@
 	                            <tiles:putAttribute name="isModerationOnly" value="${ recordWebFormContext.moderateOnly }"/>
 	                        </tiles:insertDefinition>
 	                    </c:forEach>
+	                    
+	                    <c:forEach items="${recordWebFormContext.namedFormFields['orphanFormFieldList']}" var="formField">
+                            <tiles:insertDefinition name="formFieldRenderer">
+                                <tiles:putAttribute name="formField" value="${ formField }"/>
+                                <tiles:putAttribute name="locations" value="${ locations }"/>
+                                <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
+                                <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
+                                <tiles:putAttribute name="editEnabled" value="${ recordWebFormContext.editable }"/>
+                                <tiles:putAttribute name="isModerationOnly" value="${ recordWebFormContext.moderateOnly }"/>
+                            </tiles:insertDefinition>
+                        </c:forEach>
 	                </tbody>
 	            </table>
 	        </c:otherwise>
@@ -179,7 +200,8 @@
         var speciesAutocompleteArgs = {
             surveySpeciesSearchSelector: "#id_survey_species_search",
             speciesIdSelector: "[name=species]",
-            taxonAttrRowSelector:"[name^=taxonGroupAttr_]",
+            // The form field category for taxon group attributes
+            taxonAttrRowSelector:".taxon_group_attr",
             surveyId: jQuery("[name=surveyId]").val(),
             recordId: (recordIdElem.length > 0 && recordIdElem.val().length > 0) ? recordIdElem.val() : undefined,
             editable: "${recordWebFormContext.editable}",

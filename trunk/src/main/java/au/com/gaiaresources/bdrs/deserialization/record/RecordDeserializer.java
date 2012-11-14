@@ -21,7 +21,6 @@ import au.com.gaiaresources.bdrs.config.AppContext;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
 import au.com.gaiaresources.bdrs.controller.record.RecordFormValidator;
-import au.com.gaiaresources.bdrs.controller.record.TrackerController;
 import au.com.gaiaresources.bdrs.controller.record.ValidationType;
 import au.com.gaiaresources.bdrs.db.FilterManager;
 import au.com.gaiaresources.bdrs.db.SessionFactory;
@@ -42,6 +41,7 @@ import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeUtil;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaService;
@@ -380,6 +380,7 @@ public class RecordDeserializer {
                 Map<Attribute, Object> attrFilenameMap = attrDictFact.createFileKeyDictionary(record, survey, null, taxonGroup, censusMethod, entry.getDataMap());
                 AttributeDeserializer attrDeserializer = new AttributeDeserializer(attributeParser);
 
+                
                 if (validate) {
                     isValid = validateSpeciesInformation(survey, taxonomic, species, isTaxonomicRecord, speciesSearch, numberString, validator, isValid, params);
                     // Here is the point we require our name dictionary as we are about to start validating attributes...
@@ -579,39 +580,38 @@ public class RecordDeserializer {
                 }
                 // Attach the record Attributes
                 List<TypedAttributeValue> attrValuesToDelete = new ArrayList<TypedAttributeValue>();
-                Set recAtts = record.getAttributes();
+                Set<AttributeValue> existingAttrValues = new HashSet<AttributeValue>(record.getAttributes().size()); 
+                existingAttrValues.addAll(record.getAttributes());
                 Set<AttributeScope> scope = new HashSet<AttributeScope>(AttributeScope.values().length+1);
                 scope.addAll(Arrays.asList(AttributeScope.values()));
                 scope.remove(AttributeScope.LOCATION);
                 scope.add(null);
                 // Survey Attributes
-                attrDeserializer.deserializeAttributes(survey.getAttributes(), attrValuesToDelete, 
-                                      recAtts, entry.prefix, attrNameMap, attrFilenameMap, 
-                                      record, entry.getDataMap(), entry.getFileMap(), currentUser, moderationOnly, scope, save);
                 
+                Set<Attribute> attributesToParseSet = new HashSet<Attribute>();
+                
+                attributesToParseSet.addAll(survey.getAttributes());
                 if (isTaxonomicRecord && species != null) {
-                    // Taxon Group Attributes
-                    attrDeserializer.deserializeAttributes(species.getTaxonGroup().getAttributes(), attrValuesToDelete, 
-                                          recAtts, TrackerController.TAXON_GROUP_ATTRIBUTE_PREFIX, attrNameMap, attrFilenameMap, 
-                                          record, entry.getDataMap(), entry.getFileMap(), currentUser, moderationOnly, scope, save);
+                    attributesToParseSet.addAll(species.getTaxonGroup().getAttributes());
                 }
-                
-                // Census Method Attributes
                 if (censusMethod != null) {
-                    attrDeserializer.deserializeAttributes(censusMethod.getAttributes(), attrValuesToDelete, 
-                                          recAtts, TrackerController.CENSUS_METHOD_ATTRIBUTE_PREFIX, attrNameMap, attrFilenameMap, 
-                                          record, entry.getDataMap(), entry.getFileMap(), currentUser, moderationOnly, scope, save);
+                    attributesToParseSet.addAll(censusMethod.getAttributes());
+                }
+                for (AttributeValue av : existingAttrValues) {
+                    attributesToParseSet.add(av.getAttribute());
                 }
                 
-                Record testRecord;
+                List<Attribute> attributeToParseList = new ArrayList<Attribute>(attributesToParseSet.size());
+                attributeToParseList.addAll(attributesToParseSet);
+                                
+                attrDeserializer.deserializeAttributes(attributeToParseList, attrValuesToDelete, 
+                                                       record.getAttributes(), entry.prefix, attrNameMap, attrFilenameMap, 
+                                                       record, entry.getDataMap(), entry.getFileMap(), currentUser, moderationOnly, scope, save);
+                
                 if (save) {
-                    testRecord = recordDAO.saveRecord(record);
-                } else {
-                    testRecord = record;
+                    recordDAO.saveRecord(record);
                 }
-                if (testRecord != null) {
-                    Geometry g = testRecord.getGeometry();
-                }
+                
                 rsResult.setRecord(record);
                 
                 if (save) {
@@ -699,7 +699,8 @@ public class RecordDeserializer {
 
                 // a species set size > 0 indicates the survey has a limited number of species
                 // to accept...
-                if (!survey.getSpecies().contains(speciesForSurveyCheck)) {
+                // Records are also allowed to record field species.
+                if (!survey.getSpecies().contains(speciesForSurveyCheck) && !speciesForSurveyCheck.getId().equals(taxaService.getFieldSpecies().getId())) {
 
                     Map<String, String> errorMap = validator.getErrorMap();
                     String errMsg = propertyService.getMessage(

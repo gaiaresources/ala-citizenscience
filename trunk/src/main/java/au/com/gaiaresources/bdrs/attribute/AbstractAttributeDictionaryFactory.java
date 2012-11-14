@@ -11,7 +11,6 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.springframework.util.StringUtils;
 
-import au.com.gaiaresources.bdrs.controller.record.TrackerController;
 import au.com.gaiaresources.bdrs.controller.record.WebFormAttributeParser;
 import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.model.location.Location;
@@ -117,33 +116,41 @@ public abstract class AbstractAttributeDictionaryFactory implements
 
         Map<Attribute, Object> result = new HashMap<Attribute, Object>();
         Set<String> check = new HashSet<String>();
+        Set<Attribute> attrSet = new HashSet<Attribute>();
         
         Map<Attribute, AttributeValue> attrValMap = new HashMap<Attribute, AttributeValue>();
         if (record != null) {
             for (AttributeValue value : record.getAttributes()) {
                 attrValMap.put(value.getAttribute(), value);
+                attrSet.add(value.getAttribute());
             }
         } else if (location != null) {
             for (AttributeValue value : location.getAttributes()) {
                 attrValMap.put(value.getAttribute(), value);
+                attrSet.add(value.getAttribute());
             }
         }
         
-        HashSet<Integer> existingCMs = new HashSet<Integer>();
-        if (survey.getAttributes() != null) {
-            addAttributesToMap(result, attrValMap, survey.getAttributes(), scope, check, "", "Survey", dataMap, existingCMs, isFileDictionary);
-            existingCMs.clear();
+        attrSet.addAll(survey.getAttributes());
+        
+        if (survey.getAttributes() != null && survey.getAttributes() != null) {
+            attrSet.addAll(survey.getAttributes());
         }
         
         if (taxonGroup != null && taxonGroup.getAttributes() != null) {
-            addAttributesToMap(result, attrValMap, taxonGroup.getAttributes(), scope, check, TrackerController.TAXON_GROUP_ATTRIBUTE_PREFIX, "Taxon group", dataMap, existingCMs, isFileDictionary);
-            existingCMs.clear();
+            attrSet.addAll(taxonGroup.getAttributes());
         }
         
         if (censusMethod != null && censusMethod.getAttributes() != null) {
-            addAttributesToMap(result, attrValMap, censusMethod.getAttributes(), scope, check, TrackerController.CENSUS_METHOD_ATTRIBUTE_PREFIX, "Census method", dataMap, existingCMs, isFileDictionary);
-            existingCMs.clear();
+            attrSet.addAll(censusMethod.getAttributes());
         }
+        
+        HashSet<Integer> existingCMs = new HashSet<Integer>();
+        // simplify to a single attribute source - Attribute !
+        List<Attribute> attrList = new ArrayList<Attribute>(attrSet);
+
+        addAttributesToMap(result, attrValMap, attrList, scope, check, "", "Attribute", dataMap, existingCMs, isFileDictionary);
+        
         return result;
     }
 
@@ -191,6 +198,8 @@ public abstract class AbstractAttributeDictionaryFactory implements
             Map<Attribute, AttributeValue> attrValueMap, Attribute attribute,
             Set<AttributeScope> scope, Set<String> check,
             String attributeSource, Map<String, String[]> dataMap, Set<Integer> existingCMs, boolean isFileDictionary) {
+        
+
         if (AttributeType.isCensusMethodType(attribute.getType())) {
             // add the census method attributes to the dictionary too
             CensusMethod cm = attribute.getCensusMethod();
@@ -275,8 +284,10 @@ public abstract class AbstractAttributeDictionaryFactory implements
                         prefixRecs.remove(preRemove);
                         // create a new attribute-value mapping
                         Map<Attribute, AttributeValue> recAttrValMap = new HashMap<Attribute, AttributeValue>();
+                        Set<Attribute> attrSet = new HashSet<Attribute>(cm.getAttributes());
                         for (AttributeValue value : rec.getAttributes()) {
                             recAttrValMap.put(value.getAttribute(), value);
+                            attrSet.add(value.getAttribute());
                         }
                         if (preRemove != null) {
                             // if we have stored a prefix for the record, use that one
@@ -296,7 +307,10 @@ public abstract class AbstractAttributeDictionaryFactory implements
                                 paramKey = paramKey + String.format(AttributeParser.ATTRIBUTE_RECORD_NAME_FORMAT, rec.getId()+"_");
                             }
                         }
-                        addAttributesToMap(childMap, recAttrValMap, cm.getAttributes(), scope, check, 
+                        
+                        List<Attribute> attrList = new ArrayList<Attribute>(attrSet);
+                        
+                        addAttributesToMap(childMap, recAttrValMap, attrList, scope, check, 
                                            paramKey, 
                                            "Census method", dataMap, new HashSet<Integer>(existingCMs), isFileDictionary);
                     }
@@ -308,7 +322,7 @@ public abstract class AbstractAttributeDictionaryFactory implements
                     if (rowPrefix.startsWith(prefix)) {
                         paramKey = rowPrefix;
                     } else {
-                        paramKey = getParamKey(prefix+rowPrefix, attribute, false);
+                        paramKey = getParamKey(prefix, attribute, false);
                     }
                     // attach the record bit to the end, this only applies to 
                     // duplicated records

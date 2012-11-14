@@ -55,6 +55,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter;
 import org.springframework.web.servlet.view.RedirectView;
 
+import au.com.gaiaresources.bdrs.controller.record.WebFormAttributeParser;
 import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.message.Message;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
@@ -550,7 +551,7 @@ public abstract class AbstractControllerTest extends AbstractTransactionalTest {
     protected Object genRandomAttributeValue(AttributeValue av, int seed, boolean assign, boolean save, Map<Attribute, Object> attParamMap, String prefix, Map<String, String> requestMap) {
         Attribute a = av.getAttribute();
         Object valueObj = null;
-        String paramName = String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, prefix, a.getId());
+        String paramName = WebFormAttributeParser.getParamKey(prefix,  a);
         switch (a.getType()) {
             case INTEGER:
             case DECIMAL:
@@ -676,7 +677,7 @@ public abstract class AbstractControllerTest extends AbstractTransactionalTest {
     protected Object setSpecificAttributeValue(AttributeValue av, String value, boolean assign, boolean save, Map<Attribute, Object> attParamMap, String prefix, Map<String, String> requestMap) {
         Attribute a = av.getAttribute();
         Object valueObj = null;
-        String paramName = String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, prefix, a.getId());
+        String paramName = WebFormAttributeParser.getParamKey(prefix,  a);
         switch (a.getType()) {
             case INTEGER:
             case DECIMAL:
@@ -905,9 +906,9 @@ public abstract class AbstractControllerTest extends AbstractTransactionalTest {
                 for (Record rec : recAttr.getRecords()) {
                     String recPrefix = AttributeType.CENSUS_METHOD_COL.equals(attr.getType()) ? recCount + "_" : "";
                     for (TypedAttributeValue recVal : rec.getAttributes()) {
-                        String recKey = String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, attPrefix, attr.getId())+
+                        String recKey = WebFormAttributeParser.getParamKey(attPrefix, attr)+
                                 String.format(AttributeParser.ATTRIBUTE_RECORD_NAME_FORMAT, rec.getId())+
-                                String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, recPrefix, recVal.getAttribute().getId());
+                                WebFormAttributeParser.getParamKey(recPrefix, recVal.getAttribute());
                         assertAttributeValue(recVal, params.get(recKey));
                     }
                 }

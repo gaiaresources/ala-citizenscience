@@ -10,6 +10,7 @@ import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 /**
  * The <code>TaxonAttributeFormField</code> is a representation of a
@@ -34,7 +35,7 @@ public class TaxonAttributeFormField extends AbstractFormField implements TypedA
     TaxonAttributeFormField(Attribute attribute, 
                             AttributeValue taxonAttribute, String prefix) {
 
-        super(prefix);
+        super(prefix, BdrsWebConstants.TAXON_ATTR_CATEGORY);
 
         this.attribute = attribute;
         this.taxonAttribute = taxonAttribute;

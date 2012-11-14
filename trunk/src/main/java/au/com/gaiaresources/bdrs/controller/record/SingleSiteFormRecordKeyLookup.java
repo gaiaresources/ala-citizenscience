@@ -30,7 +30,7 @@ public class SingleSiteFormRecordKeyLookup implements RecordKeyLookup {
      */
     @Override
     public String getCensusMethodAttributePrefix() {
-        return TrackerController.CENSUS_METHOD_ATTRIBUTE_PREFIX;
+        return AttributeParser.DEFAULT_PREFIX;
     }
 
     /* (non-Javadoc)
@@ -159,7 +159,7 @@ public class SingleSiteFormRecordKeyLookup implements RecordKeyLookup {
      */
     @Override
     public String getTaxonAttributePrefix() {
-        return TrackerController.TAXON_GROUP_ATTRIBUTE_PREFIX;
+        return AttributeParser.DEFAULT_PREFIX;
     }
 
     /* (non-Javadoc)

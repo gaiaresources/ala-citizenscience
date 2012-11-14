@@ -19,6 +19,7 @@ import org.springframework.test.web.ModelAndViewAssert;
 import org.springframework.web.servlet.ModelAndView;
 
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
+import au.com.gaiaresources.bdrs.controller.record.WebFormAttributeParser;
 import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
@@ -481,7 +482,7 @@ public class TaxonomyManagementControllerTest extends AbstractControllerTest {
         }
         
         for(TypedAttributeValue taxonAttr: taxon.getAttributes()) {
-            String key = String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, "", taxonAttr.getAttribute().getId());
+            String key = WebFormAttributeParser.getParamKey("", taxonAttr.getAttribute());
             assertAttributes(taxonAttr, params, key);
         }
     }
@@ -558,7 +559,7 @@ public class TaxonomyManagementControllerTest extends AbstractControllerTest {
         }
         
         for(TypedAttributeValue taxonAttr: taxon.getAttributes()) {
-            String key = String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, "", taxonAttr.getAttribute().getId());
+            String key = WebFormAttributeParser.getParamKey("", taxonAttr.getAttribute());
             assertAttributes(taxonAttr, params, key);
         }
     }

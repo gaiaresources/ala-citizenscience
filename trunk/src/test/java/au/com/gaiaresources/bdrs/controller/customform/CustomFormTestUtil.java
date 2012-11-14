@@ -1,6 +1,7 @@
 package au.com.gaiaresources.bdrs.controller.customform;
 
 import au.com.gaiaresources.bdrs.controller.record.SingleSiteController;
+import au.com.gaiaresources.bdrs.controller.record.WebFormAttributeParser;
 import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.form.CustomForm;
@@ -201,7 +202,7 @@ public class CustomFormTestUtil {
                     valueMap = surveyScopeAttributeValueMapping;
                 }
 
-                key = String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, prefix, attr.getId());
+                key = WebFormAttributeParser.getParamKey(prefix,  attr);
                 value = "";
 
                 switch (attr.getType()) {
@@ -341,7 +342,7 @@ public class CustomFormTestUtil {
             } else {
                 prefix = recordPrefix;
             }
-            String key = String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, prefix, recAttr.getAttribute().getId());
+            String key = WebFormAttributeParser.getParamKey(prefix,  recAttr.getAttribute());
 
             AttributeType type = recAttr.getAttribute().getType();
             if (SUPPORTED_ATTRIBUTE_TYPES.contains(type)) {
