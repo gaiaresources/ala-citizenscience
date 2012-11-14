@@ -111,13 +111,19 @@
         <property name="order" value="2" />
     </bean>
 	
-	<!-- authentication entry point -->
+	<!-- authentication entry point
 	<bean id="bdrsAuthenticationEntryPoint" class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint">
 		<property name="loginFormUrl" value="/home.htm?signin=true" />
 		<property name="useForward" value="${bdrs.security.login.useForward}" />
         <property name="forceHttps" value="${bdrs.security.login.forceHttps}" />
 	</bean>
+    -->
 
+    <bean id="bdrsAuthenticationEntryPoint" class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint">
+        <property name="loginFormUrl" value="/home.htm?signin=true" />
+        <property name="useForward" value="true" />
+        <property name="forceHttps" value="false" />
+    </bean>
 
     <!-- authentication filter -->
     <bean id="bdrsAuthenticationFilter" class=
