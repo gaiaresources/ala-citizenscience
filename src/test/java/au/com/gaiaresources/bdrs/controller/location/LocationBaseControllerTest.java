@@ -4,6 +4,7 @@ import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.AbstractFormField;
 import au.com.gaiaresources.bdrs.controller.map.WebMap;
 import au.com.gaiaresources.bdrs.controller.record.RecordWebFormContext;
+import au.com.gaiaresources.bdrs.controller.record.WebFormAttributeParser;
 import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
@@ -269,7 +270,7 @@ public class LocationBaseControllerTest extends AbstractControllerTest {
         for (TypedAttributeValue recAttr : location.getAttributes()) {
             Attribute attr = recAttr.getAttribute();
             if (locAttSurvey.getAttributes().contains(recAttr.getAttribute())) {
-                key = String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, "", attr.getId());
+                key = WebFormAttributeParser.getParamKey("", attr);
             } else {
                 Assert.assertFalse(true);
                 key = null;

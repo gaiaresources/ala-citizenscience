@@ -62,9 +62,10 @@
         <c:choose>
             <c:when test="${fieldEditable}">
                 <select name="${inputName}"
+                    class="${ formField.category }
                     <c:if test="${ formField.attribute.required }">
-                        class="validate(required)"
-                    </c:if>
+                        validate(required)
+                    </c:if>"
                 >
                     <%-- Add an empty option at the top of the list --%>
                     <option></option>
@@ -89,9 +90,10 @@
                     name="${inputName}"
                     maxlength="255"
                     value="<c:out value="${ fieldValue }"/>"
+                    class="${ formField.category }
                     <c:if test="${ formField.attribute.required }">
-                        class="validate(required)"
-                    </c:if>
+                        validate(required)
+                    </c:if>"
                 />
             </c:when>
             <c:otherwise>
@@ -190,14 +192,15 @@
                     name="${inputName}" 
                     maxlength="255" 
                     value="<c:out value="${ fieldValue }"/>"
+                    class="${ formField.category }
                     <c:choose>
                         <c:when test="${ formField.attribute.required }">
-                            class="validate(required) acomplete"
+                            validate(required) acomplete
                         </c:when>
                         <c:otherwise>
-                            class="acomplete"
+                            acomplete
                         </c:otherwise>
-                    </c:choose>
+                    </c:choose>"
                 />
             </c:when>
             <c:otherwise>
@@ -212,14 +215,15 @@
                     id="${inputName}"
                     name="${inputName}"
                     value="<c:out value="${ fieldValue }"/>"
+                    class="${ formField.category }
                     <c:choose>
                         <c:when test="${ formField.attribute.required }">
-                            class="validate(integer)"
+                            validate(integer)
                         </c:when>
                         <c:otherwise>
-                            class="validate(integerOrBlank)"
+                            validate(integerOrBlank)
                         </c:otherwise>
-                    </c:choose>
+                    </c:choose>"
                 />
             </c:when>
             <c:otherwise>
@@ -231,14 +235,15 @@
         <c:choose>
             <c:when test="${fieldEditable}">
                 <input type="text" id="${inputName}" name="${inputName}" value="<c:out value="${ fieldValue }"/>" 
+                    class="${ formField.category }
                     <c:choose>
                         <c:when test="${ formField.attribute.required }">
                               <c:choose>
                                   <c:when test="<%= formField.getAttribute().getOptions().size() >= 2 %>">
-                                      class="validate(range(<c:out value="${formField.attribute.options[0]}"/>,<c:out value="${formField.attribute.options[1]}"/>), integer)"
+                                      validate(range(<c:out value="${formField.attribute.options[0]}"/>,<c:out value="${formField.attribute.options[1]}"/>), integer)
                                   </c:when>
                                   <c:otherwise>
-                                      class="validate(integer)"
+                                      validate(integer)
                                   </c:otherwise>
                               </c:choose>
                               
@@ -246,14 +251,14 @@
                         <c:otherwise>
                              <c:choose>
                                   <c:when test="<%= formField.getAttribute().getOptions().size() >= 2 %>">
-                                      class="validate(rangeOrBlank(<c:out value="${formField.attribute.options[0]}"/>,<c:out value="${formField.attribute.options[1]}"/>), integerOrBlank)"
+                                      validate(rangeOrBlank(<c:out value="${formField.attribute.options[0]}"/>,<c:out value="${formField.attribute.options[1]}"/>), integerOrBlank)
                                   </c:when>
                                   <c:otherwise>
-                                      class="validate(integerOrBlank)"
+                                      validate(integerOrBlank)
                                   </c:otherwise>
                               </c:choose>
                         </c:otherwise>
-                    </c:choose>
+                    </c:choose>"
                 />
             </c:when>
             <c:otherwise>
@@ -280,14 +285,15 @@
                         id="${inputName}"
                         name="${inputName}"
                         value="<c:out value="${ fieldValue }"/>"
+                        class="${ formField.category }
                         <c:choose>
                             <c:when test="${ formField.attribute.required }">
-                                class="validate(regExp(${escapedRegex}, ${regex}))"
+                                validate(regExp(${escapedRegex}, ${regex}))
                             </c:when>
                             <c:otherwise>
-                                 class="validate(regExpOrBlank(${escapedRegex}, ${regex}))"
+                                 validate(regExpOrBlank(${escapedRegex}, ${regex}))
                             </c:otherwise>
-                        </c:choose>
+                        </c:choose>"
                     />
             </c:when>
             <c:otherwise>
@@ -302,14 +308,15 @@
                     id="${inputName}"
                     name="${inputName}"
                     value="<c:out value="${ fieldValue }"/>"
+                    class="${ formField.category }
                     <c:choose>
                         <c:when test="${ formField.attribute.required }">
-                            class="validate(number)"
+                            validate(number)
                         </c:when>
                         <c:otherwise>
-                            class="validate(numberOrBlank)"
+                            validate(numberOrBlank)
                         </c:otherwise>
-                    </c:choose>
+                    </c:choose>"
                 />
             </c:when>
             <c:otherwise>
@@ -323,11 +330,11 @@
                 <textarea id="${inputName}"
                           name="${inputName}"
                           onkeypress = "return (jQuery(this).val().length <= 255)"
-                          class="textleft"
+                          class="textleft ${ formField.category }
             <c:choose>
-                <c:when test="${ formField.attribute.required }"> class="validate(required,maxlength(8191)" </c:when>
-                <c:otherwise> class="validate(maxlength(8191))" </c:otherwise>
-            </c:choose>
+                <c:when test="${ formField.attribute.required }"> validate(required,maxlength(8191) </c:when>
+                <c:otherwise> validate(maxlength(8191)) </c:otherwise>
+            </c:choose>"
             ><c:out value="${ fieldValue }"/></textarea>
             </c:when>
             <c:otherwise>
@@ -341,7 +348,7 @@
                 <input type="text"
                     id="${inputName}"
                     name="${inputName}"
-                    class="datepicker 
+                    class="datepicker ${ formField.category }
                     <c:choose>
                     <c:when test="${ formField.attribute.required }">
                         validate(date)
@@ -362,7 +369,7 @@
         <c:choose>
             <c:when test="${fieldEditable}">
                 <input type="text" name="${ inputName }" 
-                class="timepicker
+                class="timepicker ${ formField.category }
                 <c:choose>
                     <c:when test="${ formField.attribute.required }">
                         validate(time)
@@ -386,7 +393,7 @@
                 <%-- No need to check if mandatory --%>
                 <input type="checkbox" 
                     id="${inputName}"
-                    class="vertmiddle singleCheckbox"
+                    class="vertmiddle singleCheckbox ${ formField.category }"
                     name="${inputName}"
                     value="true"
                     <c:choose>
@@ -425,7 +432,7 @@
                     <div>
                         <input type="checkbox" 
                             id="${inputName}_${multiCbStatus.index}"
-                            class="vertmiddle multiCheckbox"
+                            class="vertmiddle multiCheckbox ${ formField.category }"
                             name="${inputName}"
                             value='<c:out value="${ multiCbOpt.value }"/>'
                             <c:choose>
@@ -448,7 +455,7 @@
                 </div>
                 <div style="line-height: 0em;">
                     <%-- Value for this input is populate via javascript after the checkboxes --%>
-                    <input type="text"
+                    <input class="${ formField.category }" type="text"
                         id="${inputName}" 
                         <c:if test="${ formField.attribute.required }">
                             class="validate(required)"
@@ -496,9 +503,10 @@
                 <select multiple="multiple"
                         id="${inputName}"
                         name="${inputName}"
+                        class="${ formField.category }
                         <c:if test="${ formField.attribute.required }">
-                            class="validate(required)"
-                        </c:if>
+                            validate(required)
+                        </c:if>"
                     >
                     <c:forEach var="multiSelectOpt" items="${ formField.attribute.options }" varStatus="multiSelectStatus">
                         <jsp:useBean id="multiSelectOpt" type="au.com.gaiaresources.bdrs.model.taxa.AttributeOption"/>
@@ -552,9 +560,10 @@
                         id="${inputName}"
                         name="${inputName}"
                         style="visibility: hidden;height: 0em;"
+                        class="${ formField.category }
                         <c:if test="${ formField.attribute.required }">
-                            class="validate(required)"
-                        </c:if>
+                            validate(required)
+                        </c:if>"
                         <c:if test="${ formField.attributeValue != null}">
                             value="<c:out value="${ formField.attributeValue.stringValue}"/>"
                         </c:if>
@@ -564,7 +573,7 @@
                     accept="image/gif,image/jpeg,image/png"
                     id="${fileInputName}"
                     name="${fileInputName}"
-                    class="image_file"
+                    class="image_file ${ formField.category }"
                     onchange="bdrs.util.file.imageFileUploadChangeHandler(this);jQuery('#${inputName}').val(jQuery(this).val());"
                 />
                 <a href="javascript:void(0)" class="clearLink" onclick="jQuery('#${inputName}, #${fileInputName}').attr('value',''); jQuery('#${ formPrefix }attribute_img_${ formField.attribute.id }').remove();">Clear</a>
@@ -588,9 +597,10 @@
                         id="${inputName}"
                         name="${inputName}"
                         style="visibility: hidden;height: 0em;border:none;"
+                        class="${ formField.category }
                         <c:if test="${ formField.attribute.required }">
-                            class="validate(required)"
-                        </c:if>
+                            validate(required)
+                        </c:if>"
                         <c:if test="${ formField.attributeValue != null }">
                             value="<c:out value="${ formField.attributeValue.stringValue }"/>"
                         </c:if>
@@ -599,7 +609,7 @@
                 <input type="file"
                     id="${fileInputName}"
                     name="${fileInputName}"
-                    class="data_file"
+                    class="data_file ${ formField.category }"
                     onchange="jQuery('#${inputName}').val(jQuery(this).val());"
                 />
                 <a href="javascript:void(0)" class="clearLink" onclick="jQuery('#${inputName}, #${fileInputName}').attr('value',''); jQuery('#${sectionName}').remove();" >Clear</a>
@@ -611,7 +621,7 @@
     </c:when>
     <c:when test="${ formField.attribute.type == 'SPECIES' }">
         <tiles:insertDefinition name="speciesFormField">
-            <tiles:putAttribute name="formField" value="${formField}"/>
+            <tiles:putAttribute name="formField" value="${ formField }"/>
             <tiles:putAttribute name="editEnabled" value="${ editEnabled }"/>
             <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
             <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
@@ -626,7 +636,7 @@
                 <div class="scrollable" align="center">
                 <!-- hidden field for preventing the same census method from being added more than once 
                      (resulting in infinite recursion)-->
-                    <input type="hidden" name="censusMethodTableId" value="${formField.attribute.censusMethod.id}"/>
+                    <input class="${ formField.category }" type="hidden" name="censusMethodTableId" value="${formField.attribute.censusMethod.id}"/>
                     <c:set var="recordFormFieldCollection" value="${recordWebFormContext.namedCollections[id]}"></c:set>
                     <c:choose>
                         <c:when test="${recordFormFieldCollection != null}">
@@ -637,7 +647,7 @@
                         </c:otherwise>
                     </c:choose>
                     <!-- hidden field to keep the record id associated with this set of parameters -->
-                    <input name="${formPrefix}attribute_${ formField.attribute.id }_recordId" type="hidden" value="${rowRecordId}" />
+                    <input class="${ formField.category }" name="${formPrefix}attribute_${ formField.attribute.id }_recordId" type="hidden" value="${rowRecordId}" />
                     <table id="${formPrefix}attribute_${ formField.attribute.id }_table" class="censusMethodAttributeTable">
                         <tbody>
                             <c:forEach items="${recordWebFormContext.namedFormFields[id]}" var="subField">
@@ -667,7 +677,7 @@
             <div name="${ formPrefix }">
                 <div class="table_caption"><cw:validateHtml html="${formField.attribute.description}"/></div>
                 <div class="scrollable" align="center">
-                    <input type="hidden" name="censusMethodTableId" value="${formField.attribute.censusMethod.id}"/>
+                    <input class="${ formField.category }" type="hidden" name="censusMethodTableId" value="${formField.attribute.censusMethod.id}"/>
                     <table id="${formPrefix}attribute_${ formField.attribute.id }_table" class="datatable censusMethodAttributeTable">
                         <thead>
                             <tr>
@@ -698,7 +708,7 @@
                 </div>
                 <c:if test="${fieldEditable}">
                     <div id="add_attribute_row_panel" class="buttonpanel textcenter">
-                        <input type="hidden" id="${ formPrefix }attribute_${ formField.attribute.id }_record_index" name="attributeRecordIndex" value="${fn:length(recordWebFormContext.namedCollections[id])}"/>
+                        <input class="${ formField.category }" type="hidden" id="${ formPrefix }attribute_${ formField.attribute.id }_record_index" name="attributeRecordIndex" value="${fn:length(recordWebFormContext.namedCollections[id])}"/>
                         <input class="form_action" type="button" value="Add Row" onclick="bdrs.contribute.addAttributeRecordRow('#${formPrefix}attribute_${ formField.attribute.id }_record_index', '[name=surveyId]', '#${formPrefix}attribute_${ formField.attribute.id }_table tbody', ${ formField.attribute.id }, '[name=censusMethodTableId]', '#id_species_id', false, false, '${showScientificName}');"/>
                     </div>
                 </c:if>

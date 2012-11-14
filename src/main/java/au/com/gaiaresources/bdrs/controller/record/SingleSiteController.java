@@ -29,7 +29,6 @@ import org.springframework.web.servlet.ModelAndView;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordFormFieldCollection;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
-import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyFormField;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
 import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.deserialization.record.RecordDeserializer;
@@ -281,12 +280,12 @@ public abstract class SingleSiteController extends RecordController {
             if (AttributeScope.isRecordScope(attribute.getScope()) 
                     && !attribute.isTag()) {
                 if (AttributeType.isCensusMethodType(attribute.getType())) {
-                    FormField ff = createCensusMethodFormField(survey, record, attribute, getRequestContext().getUser(), prefix, context);
+                    FormField ff = createCensusMethodFormField(survey, record, attribute, getRequestContext().getUser(), prefix, context, BdrsWebConstants.SURVEY_ATTR_CATEGORY);
                     if (ff != null) {
                         formFieldList.add(ff);
                     }
                 } else {
-                    formFieldList.add(formFieldFactory.createRecordFormField(survey, record, attribute, null, prefix));
+                    formFieldList.add(formFieldFactory.createRecordFormField(survey, record, attribute, prefix, BdrsWebConstants.SURVEY_ATTR_CATEGORY));
                 }
             }
         }
@@ -480,7 +479,7 @@ public abstract class SingleSiteController extends RecordController {
                 AttributeValue attrVal = record == null ? null : AttributeValueUtil.getAttributeValue(attribute, record);
                 if (AttributeScope.isSurveyScope(attribute.getScope())) {
                     if (AttributeType.isCensusMethodType(attribute.getType())) {
-                        FormField ff = createCensusMethodFormField(survey, record, attribute, accessor, AttributeParser.DEFAULT_PREFIX, context);
+                        FormField ff = createCensusMethodFormField(survey, record, attribute, accessor, AttributeParser.DEFAULT_PREFIX, context, BdrsWebConstants.SURVEY_ATTR_CATEGORY);
                         if (ff != null) {
                             formFieldList.add(ff);
                         }
@@ -490,7 +489,7 @@ public abstract class SingleSiteController extends RecordController {
                 } else if (AttributeScope.isRecordScope(attribute.getScope())) {
                     recordScopedAttributeList.put(String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, "", attribute.getId()), attribute);
                     if (AttributeType.isCensusMethodType(attribute.getType())) {
-                        FormField ff = createCensusMethodFormField(survey, record, attribute, accessor, AttributeParser.DEFAULT_PREFIX, context);
+                        FormField ff = createCensusMethodFormField(survey, record, attribute, accessor, AttributeParser.DEFAULT_PREFIX, context, BdrsWebConstants.SURVEY_ATTR_CATEGORY);
                         if (ff != null) {
                             sightingRowFormFieldList.add(ff);
                         }
@@ -662,7 +661,7 @@ public abstract class SingleSiteController extends RecordController {
                         // must do this to ensure the appropriate form fields are 
                         // added to the form context named collections for building
                         // the census method attribute forms
-                        createCensusMethodFormField(survey, record, a, accessor, prefix, context);
+                        createCensusMethodFormField(survey, record, a, accessor, prefix, context, BdrsWebConstants.SURVEY_ATTR_CATEGORY);
                     }
                 }
                 

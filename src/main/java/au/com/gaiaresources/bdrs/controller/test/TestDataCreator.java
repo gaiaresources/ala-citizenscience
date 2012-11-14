@@ -42,6 +42,7 @@ import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter;
 
+import au.com.gaiaresources.bdrs.controller.record.WebFormAttributeParser;
 import au.com.gaiaresources.bdrs.controller.taxonomy.TaxonomyManagementController;
 import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.file.FileService;
@@ -466,7 +467,7 @@ public class TestDataCreator implements TestDataConstants {
         for(Attribute attr : taxonGroup.getAttributes()) {
             if(attr.isTag()) {
                 
-                name = String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, AttributeParser.DEFAULT_PREFIX, attr.getId());
+                name = WebFormAttributeParser.getParamKey(AttributeParser.DEFAULT_PREFIX, attr);
                 
                 taxonAttr = new AttributeValue();
                 taxonAttr.setAttribute(attr);

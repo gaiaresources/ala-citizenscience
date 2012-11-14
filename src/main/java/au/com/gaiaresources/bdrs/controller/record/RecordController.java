@@ -57,8 +57,14 @@ public class RecordController extends AttributeFormController {
      */
     protected String defaultTab() {
         PreferenceUtil preferenceUtil = new PreferenceUtil(preferenceDAO);
-        boolean useMap = preferenceUtil.getBooleanPreference(Preference.MY_SIGHTINGS_DEFAULT_VIEW_KEY);
-        return useMap ? MAP_TAB : TABLE_TAB;
+        try {
+            boolean useMap = preferenceUtil.getBooleanPreference(Preference.MY_SIGHTINGS_DEFAULT_VIEW_KEY);
+            return useMap ? MAP_TAB : TABLE_TAB;    
+        } catch (NullPointerException npe) {
+            // default to table view.
+            return TABLE_TAB;
+        }
+        
     }
     
     protected static String getSightingPrefix(int sightingIndex) {

@@ -62,4 +62,16 @@ public interface FormField extends Comparable<FormField> {
      * @return Unique name within the form.
      */
     public String getName();
+    
+    /**
+     * Gets a prefix for the id, name etc of form field.
+     * @return
+     */
+    public String getPrefix();
+    
+    /**
+     * Gets a string that categorizes the form field. E.g. taxongroupattr or censusmethodattr
+     * @return
+     */
+    public String getCategory();
 }

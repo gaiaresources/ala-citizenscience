@@ -66,14 +66,19 @@ public class RecordFormFieldCollection {
             if (AttributeType.isCensusMethodType(a.getType())) {
                 if (a.getCensusMethod() != null) {
                     if (!existingCmIds.contains(a.getCensusMethod().getId())) {
-                        FormField ff = formFieldFactory.createCensusMethodAttributeFormField(survey, record, a, av, prefix);
+                        // ** We don't really know where these attributes come from without additional database queries or changing
+                        // the passed arguments. At the moment the bdrs doesn't care what category that are from. If at a later point
+                        // in time we _do_ care - we will need to get the attribute owner and set the form field category appropriately.
+                        // For now we will just use an empty string.
+                        FormField ff = formFieldFactory.createCensusMethodAttributeFormField(survey, record, a, av, prefix, "");
                         if (ff != null) {
                             formFields.add(ff);
                         }
                     }
                 }
             } else {
-                formFields.add(formFieldFactory.createRecordFormField(survey, record, a, av, prefix));
+                // See above **
+                formFields.add(formFieldFactory.createRecordFormField(survey, record, a, av, prefix, ""));
             }
         }
         

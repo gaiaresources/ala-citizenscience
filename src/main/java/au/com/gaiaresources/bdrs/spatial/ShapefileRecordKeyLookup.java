@@ -1,6 +1,6 @@
 package au.com.gaiaresources.bdrs.spatial;
 
-import au.com.gaiaresources.bdrs.controller.record.TrackerController;
+import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.deserialization.record.RecordKeyLookup;
 
 public class ShapefileRecordKeyLookup implements RecordKeyLookup {
@@ -12,7 +12,7 @@ public class ShapefileRecordKeyLookup implements RecordKeyLookup {
 
     @Override
     public String getCensusMethodAttributePrefix() {
-        return TrackerController.CENSUS_METHOD_ATTRIBUTE_PREFIX;
+        return AttributeParser.DEFAULT_PREFIX;
     }
 
     @Override
@@ -84,7 +84,7 @@ public class ShapefileRecordKeyLookup implements RecordKeyLookup {
 
     @Override
     public String getTaxonAttributePrefix() {
-        return TrackerController.TAXON_GROUP_ATTRIBUTE_PREFIX;
+        return AttributeParser.DEFAULT_PREFIX;
     }
 
     @Override

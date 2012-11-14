@@ -1,8 +1,6 @@
 package au.com.gaiaresources.bdrs.model.taxa.impl;
 
 
-import junit.framework.Assert;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +18,7 @@ public class AttributeDAOImplTest extends AbstractTransactionalTest {
     
     private Attribute attr;
     private AttributeValue av;
+
     
     @Before
     public void setup() {
@@ -36,6 +35,8 @@ public class AttributeDAOImplTest extends AbstractTransactionalTest {
         av.setAttribute(attr);
         
         av = attrDAO.save(av);
+        
+        
     }
     
 	// If we can save without any hibernate exceptions the test passes.

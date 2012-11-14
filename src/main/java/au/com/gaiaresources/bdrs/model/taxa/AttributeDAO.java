@@ -1,6 +1,7 @@
 package au.com.gaiaresources.bdrs.model.taxa;
 
 import java.util.List;
+import java.util.Map;
 
 import au.com.gaiaresources.bdrs.db.TransactionDAO;
 import org.hibernate.Session;
@@ -146,4 +147,24 @@ public interface AttributeDAO extends TransactionDAO {
      * @param av
      */
     public <T extends TypedAttributeValue> void delete(Session sesh, T av);
+    
+    /**
+     * Get the relations for a list of attributes. Useful for working out what type an attribute is associated with,
+     * census method, survey or taxon group.
+     * @param sesh Hibernate session. can be null.
+     * @param attrList - List of attributes to search for.
+     * @return Map. Key is the ATTRIBUTE id. Value is an AttributeRelations object for that attribute.
+     */
+    public Map<Integer, AttributeRelations> getAttributeRelations(Session sesh, List<Attribute> attrList);
+    
+    /**
+     * This is a convenience wrapper for getAttributeRelations(Session sesh, List<Attribute> attrList).
+     * 
+     * Get the relations for a list of ATTRIBUTES. Useful for working out what type of attribute is associated with,
+     * census method, survey or taxon group.
+     * @param sesh Hibernate session. can be null.
+     * @param attrList - List of attributes to search for.
+     * @return Map. Key is the ATTRIBUTE id. Value is an AttributeRelations object for that attribute.
+     */
+    public Map<Integer, AttributeRelations> getAttributeRelationsByAttributeValue(Session sesh, List<AttributeValue> avList);
 }

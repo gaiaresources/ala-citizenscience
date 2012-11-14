@@ -245,6 +245,7 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
         
         int newSurveyRecordCount = recordDAO.countRecords(filter);
         Assert.assertEquals("record count should not have changed", surveyRecordCount, newSurveyRecordCount);
+        
         Assert.assertEquals("attribute value count should not have changed", avCount, refRecord1.getAttributes().size());
         
         // check survey scoped attribute values - note both records expect the same value

@@ -12,6 +12,7 @@ import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 /**
  * The <code>RecordAttributeFormField</code> is a representation of a
@@ -39,8 +40,29 @@ public class RecordAttributeFormField extends AbstractRecordFormField implements
      */
     RecordAttributeFormField(Survey survey, Record record, Attribute attribute,
             TypedAttributeValue attributeValue, String prefix) {
-
-        super(survey, record, prefix);
+        this(survey, record, attribute, attributeValue, prefix, BdrsWebConstants.SURVEY_ATTR_CATEGORY);
+    }
+    
+    /**
+     * Creates a new <code>RecordAttributeFormField</code> for the specified
+     * survey attribute.
+     * 
+     * @param survey
+     *            the survey containing the record
+     * @param record
+     *            the record to be updated
+     * @param attribute
+     *            the attribute represented by this field.
+     * @param attributeValue
+     *            the current value of this field or null
+     * @param prefix
+     *            the prefix to be prepended to input names.
+     * @param category
+     *            the category of the attribute form field.
+     */
+    RecordAttributeFormField(Survey survey, Record record, Attribute attribute,
+                             TypedAttributeValue attributeValue, String prefix, String category) {
+        super(survey, record, prefix, category);
         
         this.attribute = attribute;
         this.attributeValue = attributeValue;

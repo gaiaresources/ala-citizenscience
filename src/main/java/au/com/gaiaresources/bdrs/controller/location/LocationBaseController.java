@@ -354,7 +354,12 @@ public class LocationBaseController extends RecordController {
             for (AttributeValue attr : locationAttributes) {
                 if (surveyAttributeList.remove(attr.getAttribute())) {
                     if (AttributeType.isCensusMethodType(attr.getAttribute().getType())) {
-                        FormField ff = createCensusMethodFormField(survey, null, location, attr.getAttribute(), loggedInUser, AttributeParser.DEFAULT_PREFIX, context);
+                        FormField ff = createCensusMethodFormField(survey, null, location, 
+                                                                   attr.getAttribute(), 
+                                                                   loggedInUser, 
+                                                                   AttributeParser.DEFAULT_PREFIX, 
+                                                                   context, 
+                                                                   BdrsWebConstants.LOCATION_ATTR_CATEGORY);
                         if (ff != null) {
                             surveyFormFieldList.add(ff);
                         }
@@ -370,7 +375,11 @@ public class LocationBaseController extends RecordController {
         for (Attribute surveyAttr : surveyAttributeList) {
             if(AttributeScope.LOCATION.equals(surveyAttr.getScope())) {
                 if (AttributeType.isCensusMethodType(surveyAttr.getType())) {
-                    FormField ff = createCensusMethodFormField(survey, null, surveyAttr, loggedInUser, AttributeParser.DEFAULT_PREFIX, context);
+                    FormField ff = createCensusMethodFormField(survey, null, surveyAttr, 
+                                                               loggedInUser, 
+                                                               AttributeParser.DEFAULT_PREFIX, 
+                                                               context, 
+                                                               BdrsWebConstants.LOCATION_ATTR_CATEGORY);
                     if (ff != null) {
                         surveyFormFieldList.add(ff);
                     }

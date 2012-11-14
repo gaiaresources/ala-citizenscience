@@ -1,5 +1,7 @@
 package au.com.gaiaresources.bdrs.controller.attribute.formfield;
 
+import org.apache.log4j.Logger;
+
 import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.model.method.Taxonomic;
 import au.com.gaiaresources.bdrs.model.record.Record;
@@ -14,6 +16,8 @@ import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
  * of all <code>RecordFormFields</code>.
  */
 public class FormFieldFactory {
+    
+    private Logger log = Logger.getLogger(getClass());
 
     /**
      * Creates a new {@link FormField} for the specified survey attribute.
@@ -26,9 +30,9 @@ public class FormFieldFactory {
      * @return a <code>RecordFormField</code>
      */
     public FormField createRecordFormField(Survey survey, Record record,
-            Attribute attribute, TypedAttributeValue recordAttribute, String prefix) {
+            Attribute attribute, TypedAttributeValue recordAttribute, String prefix, String category) {
         return new RecordAttributeFormField(survey, record, attribute,
-                recordAttribute, prefix);
+                recordAttribute, prefix, category);
     }
 
     /**
@@ -70,8 +74,8 @@ public class FormFieldFactory {
      * @return a <code>RecordFormField</code>
      */
     public FormField createRecordFormField(Survey survey, Record record,
-            Attribute attribute, String prefix) {
-        return new RecordAttributeFormField(survey, record, attribute, null, prefix);
+            Attribute attribute, String prefix, String category) {
+        return new RecordAttributeFormField(survey, record, attribute, null, prefix, category);
     }
 
     /**
@@ -181,7 +185,7 @@ public class FormFieldFactory {
      * @return a {@link FormField} object which represents the attribute on the page
      */
     public FormField createCensusMethodAttributeFormField(Survey survey, Record record,
-            Attribute attribute, TypedAttributeValue recordAttribute, String prefix) {
-        return new CensusMethodAttributeFormField(survey, record, attribute, recordAttribute, prefix);
+            Attribute attribute, TypedAttributeValue recordAttribute, String prefix, String category) {
+        return new CensusMethodAttributeFormField(survey, record, attribute, recordAttribute, prefix, category);
     }
 }

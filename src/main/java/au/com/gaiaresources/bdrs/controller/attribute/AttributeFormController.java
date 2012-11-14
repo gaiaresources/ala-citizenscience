@@ -81,6 +81,8 @@ public abstract class AttributeFormController extends AbstractController {
     /** Required to create census method attribute form fields */
     protected FormFieldFactory formFieldFactory = new FormFieldFactory();
     
+    private Logger log = Logger.getLogger(getClass());
+    
     /**
      * Creates a form field for census method attribute types.
      * @param survey the survey that contains the attributes
@@ -93,8 +95,8 @@ public abstract class AttributeFormController extends AbstractController {
      */
     protected FormField createCensusMethodFormField(Survey survey, Record record,
             Attribute attr, User loggedInUser, String prefix,
-            RecordWebFormContext context) {
-        return createCensusMethodFormField(survey, record, attr, loggedInUser, prefix, context, new HashSet<Integer>());
+            RecordWebFormContext context, String category) {
+        return createCensusMethodFormField(survey, record, attr, loggedInUser, prefix, context, new HashSet<Integer>(), category);
     }
 
     /**
@@ -112,9 +114,16 @@ public abstract class AttributeFormController extends AbstractController {
             IndicatorSpecies species, Attribute attr,
             User loggedInUser, String prefix,
             RecordWebFormContext context) {
-        return createCensusMethodFormField(survey, record, species, attr, loggedInUser, prefix, context, new HashSet<Integer>());
+        return createCensusMethodFormField(survey, record, species, attr, loggedInUser, prefix, context, new HashSet<Integer>(), "");
     }
 
+    protected FormField createCensusMethodFormField(Survey survey, Record record,
+            IndicatorSpecies species, Attribute attr,
+            User loggedInUser, String prefix,
+            RecordWebFormContext context, String category) {
+        return createCensusMethodFormField(survey, record, species, attr, loggedInUser, prefix, context, new HashSet<Integer>(), category);
+    }
+    
     /**
      * Creates a form field for census method attribute types.
      * @param survey the survey that contains the attributes
@@ -127,8 +136,8 @@ public abstract class AttributeFormController extends AbstractController {
      * @return a form field that represents the census method attribute
      */
     protected FormField createCensusMethodFormField(Survey survey, Record record, Location location, 
-            Attribute attr, User loggedInUser, String prefix, RecordWebFormContext context) {
-        return createCensusMethodFormField(survey, record, location, attr, loggedInUser, prefix, context, new HashSet<Integer>());
+            Attribute attr, User loggedInUser, String prefix, RecordWebFormContext context, String category) {
+        return createCensusMethodFormField(survey, record, location, attr, loggedInUser, prefix, context, new HashSet<Integer>(), category);
     }
     
     /**
@@ -145,7 +154,8 @@ public abstract class AttributeFormController extends AbstractController {
      * @return a form field that represents the census method attribute
      */
     private FormField createCensusMethodFormField(Survey survey, Record record,
-            Attribute cmAttr, User loggedInUser, String prefix, RecordWebFormContext context, Set<Integer> existingIds) {
+            Attribute cmAttr, User loggedInUser, String prefix, RecordWebFormContext context, Set<Integer> existingIds, 
+            String category) {
         
         AttributeValue attrVal = record != null ? AttributeValueUtil.getAttributeValue(cmAttr, record) : null;
         CensusMethod cm = cmAttr.getCensusMethod();
@@ -154,7 +164,7 @@ public abstract class AttributeFormController extends AbstractController {
         }
         
         Set<Record> childRecords = attrVal != null ? attrVal.getRecords() : null;
-        FormField ff = formFieldFactory.createCensusMethodAttributeFormField(survey, record, cmAttr, attrVal, prefix);
+        FormField ff = formFieldFactory.createCensusMethodAttributeFormField(survey, record, cmAttr, attrVal, prefix, category);
         
         if (createSubFormFields(childRecords, cm, prefix, cmAttr, loggedInUser, record, survey, null, context, existingIds).isEmpty()) {
             return null;
@@ -177,7 +187,8 @@ public abstract class AttributeFormController extends AbstractController {
      * @return a form field that represents the census method attribute
      */
     private FormField createCensusMethodFormField(Survey survey, Record record, IndicatorSpecies species, 
-            Attribute cmAttr, User loggedInUser, String prefix, RecordWebFormContext context, Set<Integer> existingIds) {
+            Attribute cmAttr, User loggedInUser, String prefix, RecordWebFormContext context, Set<Integer> existingIds,
+            String category) {
         AttributeValue attrVal = species != null ? AttributeValueUtil.getAttributeValue(cmAttr, species) : null;
         CensusMethod cm = cmAttr.getCensusMethod();
         if (cm == null || !existingIds.add(cm.getId())) {
@@ -185,7 +196,7 @@ public abstract class AttributeFormController extends AbstractController {
         }
         
         Set<Record> childRecords = attrVal != null ? attrVal.getRecords() : null;
-        FormField ff = formFieldFactory.createCensusMethodAttributeFormField(survey, record, cmAttr, attrVal, prefix);
+        FormField ff = formFieldFactory.createCensusMethodAttributeFormField(survey, record, cmAttr, attrVal, prefix, category);
         
         if (createSubFormFields(childRecords, cm, prefix, cmAttr, loggedInUser, record, survey, species, context, existingIds).isEmpty()) {
             return null;
@@ -208,7 +219,7 @@ public abstract class AttributeFormController extends AbstractController {
      * @return a form field that represents the census method attribute
      */
     private FormField createCensusMethodFormField(Survey survey, Record record, Location location, 
-            Attribute cmAttr, User loggedInUser, String prefix, RecordWebFormContext context, Set<Integer> existingIds) {
+            Attribute cmAttr, User loggedInUser, String prefix, RecordWebFormContext context, Set<Integer> existingIds, String category) {
         AttributeValue attrVal = location != null ? AttributeValueUtil.getAttributeValue(cmAttr, location) : null;
         CensusMethod cm = cmAttr.getCensusMethod();
         if (cm == null || !existingIds.add(cm.getId())) {
@@ -216,7 +227,7 @@ public abstract class AttributeFormController extends AbstractController {
         }
         
         Set<Record> childRecords = attrVal != null ? attrVal.getRecords() : null;
-        FormField ff = formFieldFactory.createCensusMethodAttributeFormField(survey, record, cmAttr, attrVal, prefix);
+        FormField ff = formFieldFactory.createCensusMethodAttributeFormField(survey, record, cmAttr, attrVal, prefix, category);
         // create the blank ones for the headings
         if (createSubFormFields(childRecords, cm, prefix, cmAttr, loggedInUser, record, survey, null, context, existingIds).isEmpty()) {
             return null;
@@ -255,8 +266,9 @@ public abstract class AttributeFormController extends AbstractController {
                         "attribute_"+cmAttr.getId()+
                         String.format(AttributeParser.ATTRIBUTE_RECORD_NAME_FORMAT, 
                                       (childRec.getId() != null ? childRec.getId()+"_" : ""));
+                // no category required. you may add one if you need to be able to identify census method attributes.
                 createFieldsForCensusMethod(cm, cmAttr, prefix+"attribute_"+cmAttr.getId(), tmpPrefix, childRec, survey, species, 
-                                            loggedInUser, recordFormFieldList, subFFs, context, existingIds);
+                                            loggedInUser, recordFormFieldList, subFFs, context, existingIds, "");
 
                 RecordFormFieldCollection rffc = new RecordFormFieldCollection(
                     tmpPrefix, childRec, false, Collections.<RecordProperty> emptyList(), cm.getAttributes(), existingIds);
@@ -266,8 +278,9 @@ public abstract class AttributeFormController extends AbstractController {
             // create blank form fields if no records have been saved yet
             String tmpPrefix = prefix + "attribute_"+cmAttr.getId();
             String recString = String.format(AttributeParser.ATTRIBUTE_RECORD_NAME_FORMAT, "");
+            // no category required. you may add one if you need to be able to identify census method attributes.
             createFieldsForCensusMethod(cm, cmAttr, tmpPrefix, tmpPrefix+recString, null, survey, species, 
-                                        loggedInUser, recordFormFieldList, subFFs, context, existingIds);
+                                        loggedInUser, recordFormFieldList, subFFs, context, existingIds, "");
         }
         if (!recordFormFieldList.isEmpty()) {
             String tmpPrefix = prefix + "attribute_"+cmAttr.getId();
@@ -278,18 +291,19 @@ public abstract class AttributeFormController extends AbstractController {
 
     private void createFieldsForCensusMethod(CensusMethod cm, Attribute cmAttr, String collectionName,
             String tmpPrefix, Record childRec, Survey survey, IndicatorSpecies species, User loggedInUser, 
-            List<RecordFormFieldCollection> recordFormFieldList, List<FormField> subFFs, RecordWebFormContext context, Set<Integer> existingIds) {
+            List<RecordFormFieldCollection> recordFormFieldList, List<FormField> subFFs, RecordWebFormContext context, Set<Integer> existingIds,
+            String category) {
         List<Attribute> atts = cm.getAttributes();
         List<Attribute> cmAtts = new ArrayList<Attribute>();
         FormField ff = null;
         for (Attribute attribute : atts) {
             AttributeValue aVal = AttributeValueUtil.getAttributeValue(attribute, childRec);
             if (AttributeType.isCensusMethodType(attribute.getType())) {
-                ff = createCensusMethodFormField(survey, childRec, attribute, loggedInUser, tmpPrefix, context, new HashSet<Integer>(existingIds));
+                ff = createCensusMethodFormField(survey, childRec, attribute, loggedInUser, tmpPrefix, context, new HashSet<Integer>(existingIds), category);
             } else {
                 // TODO: comment about location here and join with below code
                 if (survey != null) {
-                    ff = formFieldFactory.createRecordFormField(survey, childRec, attribute, aVal, tmpPrefix);
+                    ff = formFieldFactory.createRecordFormField(survey, childRec, attribute, aVal, tmpPrefix, category);
                 } else if (species != null) {
                     ff = formFieldFactory.createTaxonFormField(attribute, aVal, tmpPrefix);
                 } else {

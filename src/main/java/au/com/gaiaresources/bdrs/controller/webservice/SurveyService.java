@@ -198,8 +198,10 @@ public class SurveyService extends AbstractController {
             speciesList = taxaDAO.getIndicatorSpeciesByNameSearch(speciesSearch, true);
         } else {
             speciesList = surveyDAO.getSpeciesForSurveySearch(surveyPk, speciesSearch);
-            // add the field species onto the list
-            speciesList.add(taxaService.getFieldSpecies());
+            // See RecordDeserializer.validateSpeciesInformation()
+            // if we want to add the field species onto the auto complete list we need to
+            // add the field species as follows...
+            // speciesList.add(taxaService.getFieldSpecies());
         }
 
         JSONArray array = new JSONArray();

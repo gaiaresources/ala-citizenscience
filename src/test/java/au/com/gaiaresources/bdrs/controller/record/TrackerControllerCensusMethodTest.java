@@ -14,8 +14,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.mock.web.MockMultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
@@ -34,10 +32,10 @@ import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
-import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
+import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
@@ -267,7 +265,7 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         dateFormat.setLenient(false);
         Date today = dateFormat.parse(dateFormat.format(new Date(System.currentTimeMillis())));
         
-        Map<String, String> params = generateTrackerFormData(m1.getAttributes(), TrackerController.CENSUS_METHOD_ATTRIBUTE_PREFIX, today);
+        Map<String, String> params = generateTrackerFormData(m1.getAttributes(), AttributeParser.DEFAULT_PREFIX, today);
         params.put("latitude", "-32.546");
         params.put("longitude", "115.488");
         params.put("date", dateFormat.format(today));
@@ -305,7 +303,7 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         dateFormat.setLenient(false);
         Date today = dateFormat.parse(dateFormat.format(new Date(System.currentTimeMillis())));
         
-        Map<String, String> params = generateTrackerFormData(m3.getAttributes(), TrackerController.CENSUS_METHOD_ATTRIBUTE_PREFIX, today);
+        Map<String, String> params = generateTrackerFormData(m3.getAttributes(), AttributeParser.DEFAULT_PREFIX, today);
 
         params.put("survey_species_search", "");
         params.put("number", "");
@@ -346,7 +344,7 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
         dateFormat.setLenient(false);
         Date today = dateFormat.parse(dateFormat.format(new Date(System.currentTimeMillis())));
         
-        Map<String, String> params = generateTrackerFormData(m3.getAttributes(), TrackerController.CENSUS_METHOD_ATTRIBUTE_PREFIX, today);
+        Map<String, String> params = generateTrackerFormData(m3.getAttributes(), AttributeParser.DEFAULT_PREFIX, today);
 
         params.put("survey_species_search", speciesA.getScientificName());
         params.put("number", "1");
@@ -402,11 +400,11 @@ public class TrackerControllerCensusMethodTest extends AbstractControllerTest {
             String key = "";
             Attribute attr = recAttr.getAttribute();
             if(survey.getAttributes().contains(recAttr.getAttribute())) {
-                key = String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, "", attr.getId());
+                key = WebFormAttributeParser.getParamKey("", attr);
             } else if(species != null && species.getTaxonGroup().getAttributes().contains(recAttr.getAttribute())) {
-                key = String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, TrackerController.TAXON_GROUP_ATTRIBUTE_PREFIX, attr.getId());
+                key = WebFormAttributeParser.getParamKey(AttributeParser.DEFAULT_PREFIX, attr);
             } else if (censusMethod != null && censusMethod.getAttributes().contains(recAttr.getAttribute())) {
-                key = String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, TrackerController.CENSUS_METHOD_ATTRIBUTE_PREFIX, attr.getId());
+                key = WebFormAttributeParser.getParamKey(AttributeParser.DEFAULT_PREFIX, attr);
             } else {
                 Assert.assertFalse(true);
                 key = null;

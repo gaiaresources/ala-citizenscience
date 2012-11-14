@@ -536,9 +536,9 @@ public class TrackerControllerTest extends RecordFormTest {
             for (TypedAttributeValue recAttr : rec.getAttributes()) {
                 Attribute attr = recAttr.getAttribute();
                 if (survey.getAttributes().contains(recAttr.getAttribute())) {
-                    key = String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, "", attr.getId());
+                    key = WebFormAttributeParser.getParamKey(AttributeParser.DEFAULT_PREFIX, attr);
                 } else if (speciesA.getTaxonGroup().getAttributes().contains(recAttr.getAttribute())) {
-                    key = String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, TrackerController.TAXON_GROUP_ATTRIBUTE_PREFIX, attr.getId());
+                    key = WebFormAttributeParser.getParamKey(AttributeParser.DEFAULT_PREFIX, attr);
                 } else {
                     Assert.assertFalse(true);
                     key = null;
@@ -573,9 +573,9 @@ public class TrackerControllerTest extends RecordFormTest {
         for (Attribute attr : speciesA.getTaxonGroup().getAttributes()) {
             if (AttributeType.INTEGER_WITH_RANGE.equals(attr.getType())) {
                 // set the value to this value otherwise generate a random value
-                setSpecificAttributeValue(attr, intWithRangeValue, null, TrackerController.TAXON_GROUP_ATTRIBUTE_PREFIX, params);
+                setSpecificAttributeValue(attr, intWithRangeValue, null, AttributeParser.DEFAULT_PREFIX, params);
             } else {
-                genRandomAttributeValue(attr, seed++, null, TrackerController.TAXON_GROUP_ATTRIBUTE_PREFIX, params);
+                genRandomAttributeValue(attr, seed++, null, AttributeParser.DEFAULT_PREFIX, params);
             }
         }
         return params;

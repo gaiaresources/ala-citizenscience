@@ -23,11 +23,12 @@ public class CensusMethodAttributeFormField extends RecordAttributeFormField {
      * @param attribute the {@link Attribute} this field represents
      * @param recordAttribute the {@link AttributeValue} this field contains
      * @param prefix a prefix to append to the form field name
+     * @param category category for the form field. nullable.
      */
     public CensusMethodAttributeFormField(Survey survey, Record record,
             Attribute attribute, TypedAttributeValue recordAttribute,
-            String prefix) {
-        super(survey, record, attribute, recordAttribute, prefix);
+            String prefix, String category) {
+        super(survey, record, attribute, recordAttribute, prefix, category);
     }
     
     @Override

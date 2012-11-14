@@ -14,7 +14,6 @@ import org.springframework.web.servlet.ModelAndView;
 import au.com.gaiaresources.bdrs.controller.AbstractGridControllerTest;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
-import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
@@ -77,7 +76,7 @@ public class TrackerControllerSpeciesAttributeValueTest extends
         request.setMethod("POST");
         request.setRequestURI(request.getContextPath()+TrackerController.EDIT_URL);
         request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
-        request.setParameter(String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, "", attr.getId()), this.dropBear.getScientificName());
+        request.setParameter(WebFormAttributeParser.getParamKey("", attr), this.dropBear.getScientificName());
         
         ModelAndView mav = handle(request, response);
         
@@ -111,8 +110,8 @@ public class TrackerControllerSpeciesAttributeValueTest extends
         request.setMethod("POST");
         request.setRequestURI(request.getContextPath()+TrackerController.EDIT_URL);
         request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
-        request.setParameter(String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, "", attr.getId()), this.dropBear.getScientificName());
-        request.addParameter(String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, "", attr.getId()), "     ");
+        request.setParameter(WebFormAttributeParser.getParamKey("", attr), this.dropBear.getScientificName());
+        request.addParameter(WebFormAttributeParser.getParamKey("", attr), "     ");
         
         ModelAndView mav = handle(request, response);
         
@@ -144,8 +143,8 @@ public class TrackerControllerSpeciesAttributeValueTest extends
         request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         // We are using an incorrect name but adding the id as a second parameter.
         // The ID should override the bad name.
-        request.setParameter(String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, "", attr.getId()), "dummy name");
-        request.addParameter(String.format(AttributeParser.ATTRIBUTE_NAME_TEMPLATE, "", attr.getId()), this.dropBear.getId().toString());
+        request.setParameter(WebFormAttributeParser.getParamKey("", attr), "dummy name");
+        request.addParameter(WebFormAttributeParser.getParamKey("", attr), this.dropBear.getId().toString());
         
         ModelAndView mav = handle(request, response);
         

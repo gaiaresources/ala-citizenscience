@@ -8,6 +8,7 @@ import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.log4j.Logger;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -28,6 +29,8 @@ import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 @Controller
 public class SingleSiteMultiTaxaController extends SingleSiteController {
+    
+    private Logger log = Logger.getLogger(getClass());
     
     public static final String SINGLE_SITE_MULTI_TAXA_URL = "/bdrs/user/singleSiteMultiTaxa.htm";
     public static final String PARAM_RECORD_ID = BdrsWebConstants.PARAM_RECORD_ID;
@@ -67,7 +70,6 @@ public class SingleSiteMultiTaxaController extends SingleSiteController {
                                     HttpServletResponse response,
                                     @RequestParam(value= PARAM_SURVEY_ID, required=true) int surveyId,
                                     @RequestParam(value=PARAM_SIGHTING_INDEX, defaultValue="0") int sightingIndex) {
-        
         return super.ajaxGetSightingsTable(request, response, surveyId, sightingIndex);
     }
 
