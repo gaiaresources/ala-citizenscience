@@ -15,11 +15,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import au.com.gaiaresources.bdrs.controller.attribute.DisplayContext;
-import org.hibernate.annotations.CollectionOfElements;
-import org.hibernate.annotations.Filter;
-import org.hibernate.annotations.FilterDef;
-import org.hibernate.annotations.IndexColumn;
-import org.hibernate.annotations.ParamDef;
+import org.hibernate.annotations.*;
 
 import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
 import au.com.gaiaresources.bdrs.annotation.NoThreshold;
@@ -58,6 +54,7 @@ public class Attribute extends PortalPersistentImpl {
      * {@inheritDoc}
      */
     @CompactAttribute
+    @Index(name="attribute_name_index")
     @Column(name = "NAME", nullable = false)
     public String getName() {
         return name;
