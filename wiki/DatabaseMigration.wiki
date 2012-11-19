@@ -751,3 +751,10 @@ alter table survey add column public_read_access boolean not null default true;
 
 rollback;
 </code>
+
+= r426 =
+<code language="sql">
+begin;
+create index attribute_name_index on ATTRIBUTE (NAME);
+rollback;
+</code>
