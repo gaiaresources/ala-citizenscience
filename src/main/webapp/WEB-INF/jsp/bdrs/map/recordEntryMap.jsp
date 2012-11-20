@@ -14,13 +14,13 @@
     <c:set var="mapEditable" value="true" />
 </c:if>
 
-<cw:getContent key="user/recordSightingMapDescription" />
-
-<div class="clear"></div>
-
-<div class="map_wrapper" id="map_wrapper">
-    <div id="base_map" class="defaultmap tracker_map review_map"></div>
-    <div id="geocode" class="geocode"></div>
+<div class="map_wrapper_wrapper">
+	<cw:getContent key="user/recordSightingMapDescription" />
+	<div class="clear"></div>
+	<div class="map_wrapper" id="map_wrapper">
+	    <div id="base_map" class="defaultmap tracker_map review_map"></div>
+	    <div id="geocode" class="geocode"></div>
+	</div>
 </div>
 
 <div class="clear"></div>
