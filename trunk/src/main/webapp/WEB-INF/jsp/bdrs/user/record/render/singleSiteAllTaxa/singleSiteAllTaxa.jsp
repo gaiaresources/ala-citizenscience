@@ -39,9 +39,11 @@
     
     <div id="tableContainer">
     
-    <%-- Just a tile to help avoid DRY between SSMT and SSAT forms --%>
-    <tiles:insertDefinition name="singleSiteSurveyScopeFields">
-    </tiles:insertDefinition>
+    <div id="surveyScopedFieldsContainer">
+	    <%-- Just a tile to help avoid DRY between SSMT and SSAT forms --%>
+	    <tiles:insertDefinition name="singleSiteSurveyScopeFields">
+	    </tiles:insertDefinition>
+    </div>
     
     <div id="sightingsContainer">
         <!-- Add sightings description text -->
@@ -64,7 +66,7 @@
                                 <c:choose>
                                     <c:when test="${ not sightingRowFormField.hidden }">
                                         <c:if test="${sightingRowFormField.scope == 'RECORD'}">
-                                            <th>
+                                            <th class="st_header_${ sightingRowFormField.name }">
                                                 <c:out value="${ sightingRowFormField.description }" />
                                             </th>
                                         </c:if>
@@ -73,7 +75,7 @@
                             </c:if> 
                             <c:if test="<%= sightingRowFormField.isAttributeFormField() %>">
                                 <c:if test="${ sightingRowFormField.attribute.scope == 'RECORD' || sightingRowFormField.attribute.scope == 'RECORD_MODERATION'}">
-                                    <th>
+                                    <th class="st_header_${ sightingRowFormField.name }">
                                     <c:out value="${ sightingRowFormField.attribute.description }" />
                                     </th>
                                 </c:if>
