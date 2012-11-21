@@ -52,7 +52,7 @@
        <c:choose>
            <c:when test="<%= formField.isPropertyFormField() %>">
                <c:if test="${ not formField.hidden }">
-                   <td>
+                   <td class="st_col_${ formField.name }">
                        <tiles:insertDefinition name="propertyRenderer">
                            <tiles:putAttribute name="formField" value="${ formField }"/>
                            <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
@@ -63,7 +63,7 @@
                </c:if>
            </c:when>
            <c:when test="<%= formField.isAttributeFormField() %>">
-               <td>
+               <td class="st_col_attr_type_${ formField.attribute.typeCode } st_col_${ formField.name }">
                    <tiles:insertDefinition name="attributeRenderer">
                        <tiles:putAttribute name="formField" value="${ formField }"/>
                        <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
