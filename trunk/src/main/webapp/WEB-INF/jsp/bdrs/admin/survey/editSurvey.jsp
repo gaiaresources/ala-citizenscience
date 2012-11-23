@@ -194,7 +194,7 @@
                         </td>
                     </tr>
                     <tr>
-                       <th>CSS Layout File:</th>
+                       <th>CSS Layout File (File must be non-empty):</th>
                        <td>
                         <c:set var="css_md" value="<%= survey.getMetadataByKey(Metadata.SURVEY_CSS) %>" scope="page"/>
                         <c:if test="${ css_md != null }">
@@ -232,6 +232,46 @@
                         </c:if>
                         </div>
                     </td>
+                    </tr>
+                    <tr>
+                        <th>Javascript File (File must be non-empty):</th>
+                        <td>
+	                        <c:set var="js_md" value="<%= survey.getMetadataByKey(Metadata.SURVEY_JS) %>" scope="page"/>
+	                        <c:if test="${ js_md != null }">
+	                            <jsp:useBean id="js_md" type="au.com.gaiaresources.bdrs.model.metadata.Metadata" scope="page"/>
+	                            <div id="<%= Metadata.SURVEY_JS %>_js">
+	                                <a href="${portalContextPath}/files/download.htm?<%= js_md.getFileURL() %>">
+	                                    <%-- filename here --%>
+	                                    ${ js_md.value }
+	                                </a>
+	                            </div>
+	                        </c:if>
+	                        <div style="line-height: 0em;">
+	                            <input type="text"
+	                                id="<%= Metadata.SURVEY_JS %>"
+	                                name="<%= Metadata.SURVEY_JS %>"
+	                                style="visibility: hidden;height: 0em;"
+	                                <c:if test="${js_md != null}">
+	                                    value="<c:out value="${js_md.value}"/>"
+	                                </c:if>
+	                            />
+	                        </div>
+	                        <input type="file"
+	                            accept="application/javascript"
+	                            id="<%= Metadata.SURVEY_JS %>_file"
+	                            name="<%= Metadata.SURVEY_JS %>_file"
+	                            onchange="jQuery('#<%= Metadata.SURVEY_JS %>').val(jQuery(this).val());jQuery('#<%= Metadata.SURVEY_JS %>_js').remove();"
+	                        />
+	                        <div>
+	                        <a href="javascript: void(0)"
+	                            onclick="jQuery('#<%= Metadata.SURVEY_JS %>, #<%= Metadata.SURVEY_JS %>_file').attr('value','');jQuery('#<%= Metadata.SURVEY_JS %>_js').remove();">
+	                            Clear
+	                        </a>
+	                        <c:if test="${ survey.id != null }">
+	                            <a href="javascript:editJsFile()" class="cssLayoutFileActionLink">Edit</a>
+	                        </c:if>
+	                        </div>
+	                    </td>
                     </tr>
                     <tr>
                         <th title="The action the website will take after clicking the 'Submit' button on the recording form">Submit Action:</th>
@@ -390,5 +430,13 @@
         	window.location.href = bdrs.portalContextPath + "/bdrs/admin/survey/editCssLayout.htm?surveyId=" + ${ survey.id };
         }
     };
+    var editJsFile = function() {
+    	var fileNode = jQuery('#<%= Metadata.SURVEY_JS %>');
+        if (!fileNode.val()) {
+            alert('You must save a file before editing');
+        } else {
+            window.location.href = bdrs.portalContextPath + "/bdrs/admin/survey/editJs.htm?surveyId=" + ${ survey.id };
+        }
+    }
     </c:if>
 </script>

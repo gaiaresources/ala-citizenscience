@@ -4,14 +4,11 @@ import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
@@ -36,6 +33,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -43,7 +41,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 
-import au.com.gaiaresources.bdrs.controller.HomePageController;
 import au.com.gaiaresources.bdrs.controller.map.AbstractEditMapController;
 import au.com.gaiaresources.bdrs.db.FilterManager;
 import au.com.gaiaresources.bdrs.file.FileService;
@@ -88,16 +85,18 @@ public class SurveyBaseController extends AbstractEditMapController {
      * The URL of the handler to retrieve an exported survey.
      */
     public static final String SURVEY_EXPORT_URL = "/bdrs/admin/survey/export.htm";
-
     /**
      * The URL of the handler to parse an imported survey.
      */
     public static final String SURVEY_IMPORT_URL = "/bdrs/admin/survey/import.htm";
-    
     /**
      * Edit the CSS layout for the survey form
      */
     public static final String SURVEY_EDIT_CSS_LAYOUT_URL = "/bdrs/admin/survey/editCssLayout.htm";
+    /**
+     * Edit the custom JS for the survey form
+     */
+    public static final String SURVEY_EDIT_JS_URL = "/bdrs/admin/survey/editJs.htm";
 
     /**
      * The POST dictionary key name of the survey import file.
@@ -169,23 +168,51 @@ public class SurveyBaseController extends AbstractEditMapController {
     /**
      * see bdrs-errors.properties
      */
-    public static final String MSG_KEY_FILE_MISSING = "bdrs.survey.cssLayout.missing";
+    public static final String MSG_KEY_SURVEY_CSS_FILE_MISSING = "bdrs.survey.cssLayout.missing";
     /**
      * see bdrs-errors.properties
      */
-    public static final String MSG_KEY_FILE_READ_ERROR = "bdrs.survey.cssLayout.fileReadError";
+    public static final String MSG_KEY_SURVEY_CSS_FILE_READ_ERROR = "bdrs.survey.cssLayout.fileReadError";
     /**
      * see bdrs-errors.properties
      */
-    public static final String MSG_KEY_NOT_TEXT_TYPE_FILE = "bdrs.survey.cssLayout.notTextType";
+    public static final String MSG_KEY_SURVEY_CSS_FILE_WRITE_ERROR = "bdrs.survey.cssLayout.fileWriteError";
     /**
      * see bdrs-errors.properties
      */
-    public static final String MSG_KEY_FILE_WRITE_ERROR = "bdrs.survey.cssLayout.fileWriteError";
+    public static final String MSG_KEY_SURVEY_CSS_FILE_WRITE_SUCCESS = "bdrs.survey.cssLayout.textFileSaved";
     /**
      * see bdrs-errors.properties
      */
-    public static final String MSG_KEY_FILE_WRITE_SUCCESS = "bdrs.survey.cssLayout.textFileSaved";
+    public static final String MSG_KEY_SURVEY_CSS_NO_FILE = "bdrs.survey.cssLayout.noFileSaved";
+    /**
+     * see bdrs-errors.properties
+     */
+    public static final String MSG_KEY_BASE_FORM_SAVE_CSS_ERROR = "bdrs.survey.save.errorCssLayoutSave";
+    /**
+     * see bdrs-errors.properties
+     */
+    public static final String MSG_KEY_SURVEY_JS_WRITE_ERROR = "bdrs-survey.js.fileWriteError";
+    /**
+     * see bdrs-errors.properties
+     */
+    public static final String MSG_KEY_SURVEY_JS_FILE_MISSING = "bdrs.survey.js.missing";
+    /**
+     * see bdrs-errors.properties
+     */
+    public static final String MSG_KEY_SURVEY_JS_FILE_WRITE_SUCCESS = "bdrs.survey.js.textFileSaved";
+    /**
+     * see bdrs-errors.properties
+     */
+    public static final String MSG_KEY_SURVEY_JS_FILE_READ_ERROR = "bdrs.survey.js.fileReadError";
+    /**
+     * see bdrs-errors.properties
+     */
+    public static final String MSG_KEY_BASE_FORM_SAVE_JS_ERROR = "bdrs.survey.save.errorJsSave";
+    /**
+     * see bdrs-errors.properties
+     */
+    public static final String MSG_KEY_SURVEY_JS_NO_FILE = "bdrs.survey.js.noFileSaved";
     
     /**
      * Model and view key
@@ -345,6 +372,9 @@ public class SurveyBaseController extends AbstractEditMapController {
         
         // get the css file if it exists...
         readCssFile(request, survey, metadataToDelete);
+        
+        // get the js file if it exists...
+        readJsFile(request, survey, metadataToDelete);
         
         // ---- Form Renderer Type
         // Initially assume the renderer type is a CustomForm primary key.
@@ -726,6 +756,12 @@ public class SurveyBaseController extends AbstractEditMapController {
         return new ModelAndView(new PortalRedirectView(SurveyBaseController.SURVEY_LISTING_URL, true));
     }
 
+    /**
+     * Get the survey represented by the string.
+     * 
+     * @param rawSurveyId Survey ID as a string.
+     * @return Survey matching criteria.
+     */
     private Survey getSurvey(String rawSurveyId) {
         Survey survey = null;
         try {
@@ -740,6 +776,11 @@ public class SurveyBaseController extends AbstractEditMapController {
         return survey;
     }
     
+    /**
+     * Helper for handling null surveys
+     * @param requestContext RequestContext for request.
+     * @return ModelAndView, sends the user back to the survey listing.
+     */
     public static ModelAndView nullSurveyRedirect(RequestContext requestContext) {
         requestContext.addMessage(SurveyBaseController.SURVEY_DOES_NOT_EXIST_ERROR_KEY);
         return new ModelAndView(new PortalRedirectView(SurveyBaseController.SURVEY_LISTING_URL, true));
@@ -748,9 +789,9 @@ public class SurveyBaseController extends AbstractEditMapController {
     /**
      * View for editing survey map settings.  Allows the user to set up default zoom and 
      * centering, base layer and custom bdrs layers to show on the project maps.
-     * @param request
-     * @param response
-     * @return
+     * @param request HttpServletRequest.
+     * @param response HttpServletResponse.
+     * @return ModelAndView.
      */
     @SuppressWarnings("unchecked")
     @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR})
@@ -772,9 +813,9 @@ public class SurveyBaseController extends AbstractEditMapController {
     /**
      * View for saving survey map settings.  Allows the user to set up default zoom and 
      * centering, base layer and custom bdrs layers to show on the project maps.
-     * @param request
-     * @param response
-     * @return
+     * @param request HttpServletRequest.
+     * @param response HttpServletResponse.
+     * @return ModelAndView.
      */
     @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR})
     @RequestMapping(value = "/bdrs/admin/survey/editMap.htm", method = RequestMethod.POST)
@@ -795,23 +836,66 @@ public class SurveyBaseController extends AbstractEditMapController {
         return mv;
     }
     
+    /**
+     * Edit the CSS layout for the survey.
+     * @param request HttpServletRequest.
+     * @param response HttpServletResponse.
+     * @return ModelAndView.
+     */
     @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR})
     @RequestMapping(value = SURVEY_EDIT_CSS_LAYOUT_URL, method = RequestMethod.GET)
-    public ModelAndView editTextFile(HttpServletRequest request,
+    public ModelAndView editCssFile(HttpServletRequest request,
             HttpServletResponse response) {
 
+        return editTextFile(request, response, "editSurveyCssLayout", Metadata.SURVEY_CSS, 
+                            MSG_KEY_SURVEY_CSS_FILE_MISSING, 
+                            MSG_KEY_SURVEY_CSS_FILE_READ_ERROR,
+                            MSG_KEY_SURVEY_CSS_NO_FILE);
+    }
+    
+    /**
+     * Edit the custom javascript for the survey.
+     * @param request HttpServletRequest.
+     * @param response HttpServletResponse.
+     * @return ModelAndView.
+     */
+    @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR})
+    @RequestMapping(value = SURVEY_EDIT_JS_URL, method = RequestMethod.GET)
+    public ModelAndView editSurveyJs(HttpServletRequest request,
+            HttpServletResponse response) {
+
+        return editTextFile(request, response, "editSurveyJs", Metadata.SURVEY_JS, 
+                            MSG_KEY_SURVEY_JS_FILE_MISSING, 
+                            MSG_KEY_SURVEY_JS_FILE_READ_ERROR,
+                            MSG_KEY_SURVEY_JS_NO_FILE);
+    }
+    
+    /**
+     * Edit a text file attached to a Metadata object.
+     * 
+     * @param request HttpServletRequest.
+     * @param response HttpServletResponse.
+     * @param viewName Name of view.
+     * @param metaKey Metadata key.
+     * @param msgKeyFileMissing Msg key for missing file.
+     * @param msgKeyReadError Msg key for read error.
+     * @return ModelAndView
+     */
+    private ModelAndView editTextFile(HttpServletRequest request,
+            HttpServletResponse response, String viewName, String metaKey, String msgKeyFileMissing, String msgKeyReadError, String msgKeyNoFile) {
+        
         Survey survey = getSurvey(request.getParameter(BdrsWebConstants.PARAM_SURVEY_ID));
         if (survey == null) {
             return SurveyBaseController.nullSurveyRedirect(getRequestContext());
         }
         
-        OpenFileResult ofr = openCssLayoutFile(survey);
+        OpenFileResult ofr = openMetadataFile(survey, metaKey, msgKeyFileMissing, msgKeyNoFile);
         if (!ofr.isValid()) {
             return ofr.modelAndView;
         }
 
         // see secure-admin.xml
-        ModelAndView mv = new ModelAndView("editSurveyCssLayout");
+        ModelAndView mv = new ModelAndView(viewName);
         mv.addObject("survey", survey);
         mv.addObject("filename", ofr.file.getName());
 
@@ -820,10 +904,10 @@ public class SurveyBaseController extends AbstractEditMapController {
         try {
             text = FileUtils.readFile(ofr.file.getAbsolutePath());
         } catch (FileNotFoundException fnfe) {
-            getRequestContext().addMessage(MSG_KEY_FILE_MISSING, new Object[] { ofr.file.getName() });
+            getRequestContext().addMessage(msgKeyFileMissing, new Object[] { ofr.file.getName() });
             return redirectToEdit(survey);
         } catch (IOException ioe) {
-            getRequestContext().addMessage(MSG_KEY_FILE_READ_ERROR);
+            getRequestContext().addMessage(msgKeyReadError);
             log.error("Could not read bytes from file. uuid = " + ofr.file.getAbsolutePath(), ioe);
             return redirectToEdit(survey);
         }
@@ -831,24 +915,72 @@ public class SurveyBaseController extends AbstractEditMapController {
         return mv;
     }
     
+    /**
+     * Save the CSS file that the user has been editing.
+     * 
+     * @param request HttpServletRequest.
+     * @param response HttpServletResponse.
+     * @param text Text to save.
+     * @return ModelAndView
+     */
     @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR})
     @RequestMapping(value = SURVEY_EDIT_CSS_LAYOUT_URL, method = RequestMethod.POST)
-    public ModelAndView saveTextFile(HttpServletRequest request, HttpServletResponse response,
+    public ModelAndView saveCssFile(HttpServletRequest request, HttpServletResponse response,
             @RequestParam(value=PARAM_TEXT) String text) {
+        
+        return saveTextFile(request, response, text, Metadata.SURVEY_CSS, MSG_KEY_SURVEY_CSS_FILE_WRITE_ERROR,
+                            MSG_KEY_SURVEY_CSS_FILE_MISSING, MSG_KEY_SURVEY_CSS_FILE_WRITE_SUCCESS, 
+                            MSG_KEY_SURVEY_CSS_NO_FILE, SURVEY_EDIT_CSS_LAYOUT_URL);
+    }
+    
+    /**
+     * Save the JS file that the user has been editing.
+     * 
+     * @param request HttpServletRequest.
+     * @param response HttpServletResponse.
+     * @param text Text to save.
+     * @return ModelAndView.
+     */
+    @RolesAllowed({Role.ADMIN, Role.ROOT, Role.POWERUSER, Role.SUPERVISOR})
+    @RequestMapping(value = SURVEY_EDIT_JS_URL, method = RequestMethod.POST)
+    public ModelAndView saveJsFile(HttpServletRequest request, HttpServletResponse response,
+            @RequestParam(value=PARAM_TEXT) String text) {
+        
+        return saveTextFile(request, response, text, Metadata.SURVEY_JS, MSG_KEY_SURVEY_JS_WRITE_ERROR,
+                            MSG_KEY_SURVEY_JS_FILE_MISSING, MSG_KEY_SURVEY_JS_FILE_WRITE_SUCCESS, 
+                            MSG_KEY_SURVEY_JS_NO_FILE, SURVEY_EDIT_JS_URL);
+    }
+    
+    /**
+     * Saves the text file that the use has been editing.
+     * 
+     * @param request HttpServletRequest.
+     * @param response HttpServletResponse.
+     * @param text Text to save.
+     * @param metadataKey Metadata key.
+     * @param msgKeyFileWriteError Message key for file write error.
+     * @param msgKeyFileMissing Message key for file missing error.
+     * @param msgKeySuccess Message key for successful save.
+     * @param editFileUrl URL to redirect to to continue editing the text after saving.
+     * @return ModelAndView.
+     */
+    private ModelAndView saveTextFile(HttpServletRequest request, HttpServletResponse response,
+            String text, String metadataKey, String msgKeyFileWriteError, 
+            String msgKeyFileMissing, String msgKeySuccess, String msgKeyNoFileSaved, String editFileUrl) {
         
         Survey survey = getSurvey(request.getParameter(BdrsWebConstants.PARAM_SURVEY_ID));
         if (survey == null) {
             return SurveyBaseController.nullSurveyRedirect(getRequestContext());
         }
         
-        OpenFileResult ofr = openCssLayoutFile(survey);
+        OpenFileResult ofr = openMetadataFile(survey, metadataKey, msgKeyFileMissing, msgKeyNoFileSaved);
         if (!ofr.isValid()) {
             return ofr.modelAndView;
         }
         if (ofr.file.exists()) {
             if (!ofr.file.delete()) {
                 log.error("failed to delete file - potential file locking issue : " + ofr.file.getAbsolutePath());
-                getRequestContext().addMessage(MSG_KEY_FILE_WRITE_ERROR);
+                getRequestContext().addMessage(msgKeyFileWriteError);
                 return redirectToEdit(survey);
             }
         }
@@ -856,12 +988,12 @@ public class SurveyBaseController extends AbstractEditMapController {
             if (!ofr.file.createNewFile()) {
                 // really this shouldn't happen as we have already checked for an deleted the file
                 log.error("could not create new file - " + ofr.file.getAbsolutePath());
-                getRequestContext().addMessage(MSG_KEY_FILE_WRITE_ERROR);
+                getRequestContext().addMessage(msgKeyFileWriteError);
                 return redirectToEdit(survey);
             }
         } catch (IOException e1) {
             log.error("could not create new file, IOException - " + ofr.file.getAbsolutePath(), e1);
-            getRequestContext().addMessage(MSG_KEY_FILE_WRITE_ERROR);
+            getRequestContext().addMessage(msgKeyFileWriteError);
             return redirectToEdit(survey);
         }
         
@@ -876,15 +1008,15 @@ public class SurveyBaseController extends AbstractEditMapController {
             writer.flush();
             
         } catch (FileNotFoundException fnfe) {
-            getRequestContext().addMessage(MSG_KEY_FILE_MISSING, new Object[] { ofr.file.getName() });
+            getRequestContext().addMessage(msgKeyFileMissing, new Object[] { ofr.file.getName() });
             return redirectToEdit(survey);
         } catch (UnsupportedEncodingException uee) {
             log.error("Unsupported encoding", uee);
-            getRequestContext().addMessage(MSG_KEY_FILE_WRITE_ERROR);
+            getRequestContext().addMessage(msgKeyFileWriteError);
             return redirectToEdit(survey);
         } catch (IOException ioe) {
             log.error("Error writing managed file, uuid " + ofr.file.getAbsolutePath(), ioe);
-            getRequestContext().addMessage(MSG_KEY_FILE_WRITE_ERROR);
+            getRequestContext().addMessage(msgKeyFileWriteError);
             return redirectToEdit(survey);
         } finally {
             if (writer != null) {
@@ -899,18 +1031,18 @@ public class SurveyBaseController extends AbstractEditMapController {
                     stream.close();
                 } catch (IOException e) {
                     log.error("failed to close stream", e);
-                    getRequestContext().addMessage(MSG_KEY_FILE_WRITE_ERROR);
+                    getRequestContext().addMessage(msgKeyFileWriteError);
                     return redirectToEdit(survey);
                 }
             }
         }
 
-        getRequestContext().addMessage(MSG_KEY_FILE_WRITE_SUCCESS);
+        getRequestContext().addMessage(msgKeySuccess);
         
         ModelAndView mv;
         if (request.getParameter(PARAM_SAVE_AND_CONTINUE_EDITING) != null) {
             // back to CSS layout editing screen
-            mv = new ModelAndView(new PortalRedirectView(SURVEY_EDIT_CSS_LAYOUT_URL, true));
+            mv = new ModelAndView(new PortalRedirectView(editFileUrl, true));
             mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
         } else if (request.getParameter(PARAM_SAVE_AND_CONTINUE) != null) {
             // back to first survey editing page
@@ -925,20 +1057,23 @@ public class SurveyBaseController extends AbstractEditMapController {
     }
     
     /**
-     * Opens a text managed file. 
-     * @param uuid managed file UUID
-     * @return OpenFileResult the result of the operation.
+     * Helper for opening a file attached to survey metadata.
+     * @param survey Survey to use.
+     * @param metaKey Metadata key to look for.
+     * @return OpenFileResult
      */
-    private OpenFileResult openCssLayoutFile(Survey survey) {
-        Metadata md = survey.getMetadataByKey(Metadata.SURVEY_CSS);
+    private OpenFileResult openMetadataFile(Survey survey, String metaKey, String msgKeyFileMissing, String msgKeyNoFileSaved) {
+        Metadata md = survey.getMetadataByKey(metaKey);
         OpenFileResult result = new OpenFileResult();
         if (md == null) {
+            getRequestContext().addMessage(msgKeyNoFileSaved);
+            result.modelAndView = redirectToEdit(survey);
             return result;
         }
         FileDataSource fds = fileService.getFile(md, md.getValue());
         
         if (fds == null) {
-            getRequestContext().addMessage(MSG_KEY_FILE_MISSING, new Object[] { md.getValue() });
+            getRequestContext().addMessage(msgKeyFileMissing, new Object[] { md.getValue() });
             result.modelAndView = redirectToEdit(survey);
             return result;
         }
@@ -950,17 +1085,16 @@ public class SurveyBaseController extends AbstractEditMapController {
     }
     
     /**
-     * Holder object for open file operation.
+     * Gets the required parameter name for a file in the file param map.
+     * 
+     * @param metaKey Metadata key that the file will belong to.
+     * @return Parameter name for file.
      */
-    private static class OpenFileResult {
-        // will be null if successful.
-        public ModelAndView modelAndView = null;
-        // will be non null if successful
-        public File file = null;
-        
-        public boolean isValid() {
-            return modelAndView == null && file != null;
+    public static final String getFileParamName(String metaKey) {
+        if (!StringUtils.hasLength(metaKey)) {
+            throw new IllegalArgumentException("String must be non empty");
         }
+        return String.format("%s_file", metaKey);
     }
     
     /**
@@ -975,14 +1109,18 @@ public class SurveyBaseController extends AbstractEditMapController {
     private MultipartFile readMetaFile(MultipartHttpServletRequest request, Survey survey, String metaKey, List<Metadata> metadataToDelete) {
         // Survey Logo
         String fileStr = request.getParameter(metaKey);
-        MultipartFile file = request.getFile(metaKey+"_file");
+        MultipartFile file = request.getFile(getFileParamName(metaKey));
         // file will always have size zero unless the file
         // is changed. If there is already a file, but the
         // project is updated, without changing the file input,
         // fileStr will not be empty but file will
         // have size zero.
         Metadata metadata = survey.getMetadataByKey(metaKey);
+        log.debug("1 - " + metaKey + " - survey id : " + survey.getId() + " fileStr : " + fileStr);
         if (fileStr != null) {
+            log.debug("2");
+            log.debug("metadata is not null : " + Boolean.toString(metadata != null));
+            log.debug("filestr is empty : " + Boolean.toString(fileStr.isEmpty()));
             if(fileStr.isEmpty() && metadata != null) {
                 // The file was intentionally cleared.
                 Set<Metadata> surveyMetadata = new HashSet<Metadata>(survey.getMetadata());
@@ -990,6 +1128,7 @@ public class SurveyBaseController extends AbstractEditMapController {
                 survey.setMetadata(surveyMetadata);
                 
                 metadataToDelete.add(metadata);
+                log.debug("deleting meta data");
             } else if(!fileStr.isEmpty() && file != null && file.getSize() > 0) {
                 return file;
             }
@@ -997,29 +1136,66 @@ public class SurveyBaseController extends AbstractEditMapController {
         return null;
     }
     
+    /**
+     * On the base survey editing form, saves the uploaded javascript file.
+     * 
+     * @param request HttpServletRequest.
+     * @param survey Survey being edited.
+     * @param metadataToDelete List to add metadata objects to.
+     */
+    private void readJsFile(MultipartHttpServletRequest request, Survey survey, List<Metadata> metadataToDelete) {
+        baseFormSaveTextFile(request, survey, metadataToDelete, Metadata.SURVEY_JS, MSG_KEY_BASE_FORM_SAVE_JS_ERROR);
+    }
+    
+    /**
+     * On the base survey editing form, saves the uploaded CSS file.
+     * @param request HttpServletRequest.
+     * @param survey Survey being edited.
+     * @param metadataToDelete List to add metadata objects to.
+     */
     private void readCssFile(MultipartHttpServletRequest request, Survey survey, List<Metadata> metadataToDelete) {
-        String metaKey = Metadata.SURVEY_CSS;
+        baseFormSaveTextFile(request, survey, metadataToDelete, Metadata.SURVEY_CSS, MSG_KEY_BASE_FORM_SAVE_CSS_ERROR);
+    }
+    
+    /**
+     * On the base survey editing form. saves the uploaded text file.
+     * 
+     * @param request HttpServletRequest.
+     * @param survey Survey being edited.
+     * @param metadataToDelete List to add metadata objects to.
+     * @param metaKey Metadata key of metadata to save file.
+     * @param msgKeyError Message key for saving error.
+     */
+    private void baseFormSaveTextFile(MultipartHttpServletRequest request, Survey survey, List<Metadata> metadataToDelete,
+            String metaKey, String msgKeyError) {
         MultipartFile file = readMetaFile(request, survey, metaKey, metadataToDelete);
         if (file != null) {
             String targetFilename = file.getOriginalFilename();
-            Metadata cssMetadata = survey.getMetadataByKey(metaKey);
-            if(cssMetadata == null) {
-                cssMetadata = new Metadata();
-                cssMetadata.setKey(metaKey);
+            Metadata fileMetadata = survey.getMetadataByKey(metaKey);
+            if(fileMetadata == null) {
+                fileMetadata = new Metadata();
+                fileMetadata.setKey(metaKey);
             }
-            cssMetadata.setValue(targetFilename);
-            metadataDAO.save(cssMetadata);
-            survey.getMetadata().add(cssMetadata);
+            fileMetadata.setValue(targetFilename);
+            metadataDAO.save(fileMetadata);
+            survey.getMetadata().add(fileMetadata);
             
             try {
-                fileService.createFile(cssMetadata, file);
+                fileService.createFile(fileMetadata, file);
             } catch (IOException ioe) {
-                getRequestContext().addMessage("bdrs.survey.save.errorCssLayoutSave");
-                log.error("Error saving css layout", ioe);
+                getRequestContext().addMessage(msgKeyError);
+                log.error("Error saving base form text file - " + msgKeyError, ioe);
             }
         }
     }
     
+    /**
+     * On the base survey form, save the survey logo.
+     * 
+     * @param request HttpServletRequest.
+     * @param survey Survey being edited.
+     * @param metadataToDelete List to add metadata objects to.
+     */
     private void readLogoFile(MultipartHttpServletRequest request, Survey survey, List<Metadata> metadataToDelete) {
         String metaKey = Metadata.SURVEY_LOGO;
         MultipartFile logoFile = readMetaFile(request, survey, metaKey, metadataToDelete);
@@ -1065,5 +1241,19 @@ public class SurveyBaseController extends AbstractEditMapController {
         ModelAndView mv = this.redirect(SURVEY_EDIT_URL_INITIAL_PAGE);
         mv.addObject(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId());
         return mv;
+    }
+
+    /**
+     * Holder object for open file operation.
+     */
+    private static class OpenFileResult {
+        // will be null if successful.
+        public ModelAndView modelAndView = null;
+        // will be non null if successful
+        public File file = null;
+        
+        public boolean isValid() {
+            return modelAndView == null && file != null;
+        }
     }
 }

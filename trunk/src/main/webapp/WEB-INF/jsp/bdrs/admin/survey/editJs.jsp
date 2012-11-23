@@ -3,32 +3,17 @@
 <%@ taglib uri="http://displaytag.sf.net" prefix="display" %>
 <%@ taglib uri="/WEB-INF/cw.tld" prefix="cw" %>
 
-<h1>Edit CSS Layout - '${ filename }'</h1>
+<h1>Edit Javascript - '${ filename }'</h1>
 
 <div>
     <p>
-        This is where you may edit your <a href="http://en.wikipedia.org/wiki/Cascading_Style_Sheets">cascading style sheet</a> (CSS) 
-        to customise the look of your project form. You will need some experience with CSS and HTML in order to style your form.
-    </p>
-    
-    <p>
-    Use CSS with the appropriate selectors to style your form. The following HTML will be produced for each form field:
-    </p>
-    
-    <p class="formFieldLayoutExample">
-    &lt;div id="ff_(name in database)" class="form_field_pair"&gt;</br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;div class="form_field_label"&gt;</br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Description of form field</br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/div&gt;</br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;div class="form_field_input"&gt;</br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Input of form field</br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/div&gt;</br>
-    &lt;/div&gt;</br>
+        This is where you may edit your <a href="http://en.wikipedia.org/wiki/JavaScript">javascript</a>
+        to customise the behaviour of your project form. You will need some experience with javascript and web development.
     </p>
 </div>
 
 <div class="input_container">
-<form method="post" action="${portalContextPath}/bdrs/admin/survey/editCssLayout.htm">
+<form method="post" action="${portalContextPath}/bdrs/admin/survey/editJs.htm">
     <input name="surveyId" type="hidden" value="${ survey.id }" />
     <textarea id="markItUp" name="text_to_save">${ text }</textarea>
     <div class="markItUpSubmitButton buttonpanel textright">
@@ -43,7 +28,7 @@
 <script type="text/javascript">
 
 var myHtmlSettings = {
-        nameSpace:       "css", // Useful to prevent multi-instances CSS conflict
+        nameSpace:       "js", // Useful to prevent multi-instances CSS conflict
         onShiftEnter:    {keepDefault:false, replaceWith:'<br />\n'},
         onCtrlEnter:     {keepDefault:false, openWith:'\n<p>', closeWith:'</p>\n'},
         onTab:           {keepDefault:false, openWith:'     '},
