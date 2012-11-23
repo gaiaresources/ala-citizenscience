@@ -60,6 +60,11 @@ public class BdrsWebConstants {
      * Used in foundation.jsp
      */
     public static final String MV_CSS_FORM_LAYOUT_URL = "cssFormLayoutUrl";
+    /**
+     * Constant for adding js download url to the ModelAndView.
+     * Used in foundation.jsp
+     */
+    public static final String MV_CUSTOM_JS_URL = "customJavascriptUrl";
     
     /**
      * Form field category. Attribute belongs to a census method.

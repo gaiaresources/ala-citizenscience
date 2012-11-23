@@ -214,6 +214,14 @@
         </div>
         <cw:getThemeTemplate key="template.page.footer"/>
     </body>
+    
+    <%-- If there is a survey specific JS file 
+         We want this before initialising form validation --%>
+    <c:if test="${ customJavascriptUrl != null }">
+        <!-- adding survey specific JS file -->
+        <script type="text/javascript" src="${portalContextPath}/files/download.htm?${ customJavascriptUrl }"></script>
+    </c:if>
+    
     <script type="text/javascript">
         bdrs.form.init_form_validation();
     </script>

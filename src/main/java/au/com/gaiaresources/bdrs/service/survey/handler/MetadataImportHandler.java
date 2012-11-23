@@ -53,7 +53,9 @@ public class MetadataImportHandler extends SimpleImportHandler implements Import
     @Override
     public void postSave(Session sesh, JSONObject importData, Map<Class, Map<Integer, PersistentImpl>> persistentLookup, JSONObject jsonPersistent, Object bean) {
         Metadata md = (Metadata) bean;
-        if (!Metadata.SURVEY_LOGO.equals(md.getKey()) && !Metadata.SURVEY_CSS.equals(md.getKey())) {
+        if (!Metadata.SURVEY_LOGO.equals(md.getKey()) 
+                && !Metadata.SURVEY_CSS.equals(md.getKey()) 
+                && !Metadata.SURVEY_JS.equals(md.getKey())) {
             return;
         }
 

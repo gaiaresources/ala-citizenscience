@@ -154,6 +154,8 @@ public abstract class AbstractImportExportService<T extends PersistentImpl> impl
                 flat.put(ImportHandler.FILE_CONTENT_KEY, encodeBase64(md, md.getValue()));
             } else if (Metadata.SURVEY_CSS.equals(md.getKey())) {
                 flat.put(ImportHandler.FILE_CONTENT_KEY, encodeBase64(md, md.getValue()));
+            } else if (Metadata.SURVEY_JS.equals(md.getKey())) {
+                flat.put(ImportHandler.FILE_CONTENT_KEY, encodeBase64(md, md.getValue()));
             }
             addToExport(exportData, md, JSONObject.fromMapToJSONObject(flat));
         }

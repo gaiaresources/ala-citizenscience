@@ -91,10 +91,16 @@ public class RecordController extends AttributeFormController {
             mv.addObject("ident", accessor.getRegistrationKey());
         }
         if (survey != null) {
+            // add survey specific CSS
             Metadata cssLayoutMetadata = survey.getMetadataByKey(Metadata.SURVEY_CSS);
             if (cssLayoutMetadata != null) {
                 mv.addObject(BdrsWebConstants.MV_CSS_FORM_LAYOUT_URL, cssLayoutMetadata.getFileURL());
-            }            
+            }
+            // add survey specific JS
+            Metadata jsMetadata = survey.getMetadataByKey(Metadata.SURVEY_JS);
+            if (jsMetadata != null) {
+                mv.addObject(BdrsWebConstants.MV_CUSTOM_JS_URL, jsMetadata.getFileURL());
+            }
         }
         return mv;
     }

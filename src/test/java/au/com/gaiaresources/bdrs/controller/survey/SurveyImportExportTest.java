@@ -128,6 +128,26 @@ public class SurveyImportExportTest extends AbstractGridControllerTest {
         Assert.assertNotNull("file data source cannot be null", fds);
         Assert.assertEquals("wrong contents", fileContents, FileUtils.readFile(fds.getFile().getAbsolutePath()));
     }
+    
+    @Test
+    public void testSurveyExportWithJavascript() throws Exception {
+        requestDropDatabase();
+        String filename = "testfile.js";
+        String fileContents = "blah";
+        Metadata md = survey1.addMetadata(Metadata.SURVEY_JS, filename);
+        metaDAO.save(md);
+        
+        MockMultipartFile testFile = new MockMultipartFile("file", filename, "application/javascript", fileContents.getBytes());
+        fileService.createFile(md, testFile);
+        
+        Survey s = testSurveyImportExport(survey1);
+        
+        Metadata jsMeta = s.getMetadataByKey(Metadata.SURVEY_JS);
+        Assert.assertNotNull("Metadata for survey css should not be null", jsMeta);
+        FileDataSource fds = fileService.getFile(jsMeta, jsMeta.getValue());
+        Assert.assertNotNull("file data source cannot be null", fds);
+        Assert.assertEquals("wrong contents", fileContents, FileUtils.readFile(fds.getFile().getAbsolutePath()));
+    }
 
     private void createNewRequest() {
         request = createMockHttpServletRequest();

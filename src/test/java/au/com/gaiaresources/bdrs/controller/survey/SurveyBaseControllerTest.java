@@ -191,6 +191,74 @@ public class SurveyBaseControllerTest extends AbstractGridControllerTest {
         Assert.assertEquals("wrong crs", BdrsCoordReferenceSystem.WGS84, survey.getMap().getCrs());
     }
     
+    /**
+     * Tests the basic use case of creating a new survey and clicking saveAndContinue.
+     */
+    @Test
+    public void testAddSurveySubmitCssAndJs() throws Exception {
+        login("admin", "password", new String[] { Role.ADMIN });
+
+        request.setMethod("POST");
+        request.setRequestURI("/bdrs/admin/survey/edit.htm");
+
+        MockMultipartHttpServletRequest multipartRequest = (MockMultipartHttpServletRequest)request;
+        
+        String cssFilename = "testfile.css";
+        String jsFilename = "testing.js";
+        
+        String cssContents = "#content { padding: 1em; }";
+        
+        MockMultipartFile testCssFile = new MockMultipartFile(SurveyBaseController.getFileParamName(Metadata.SURVEY_CSS), cssFilename, "text/css", cssContents.getBytes());
+        
+        String jsContents = "jQuery(function() { console.log('hello world'); }";
+        
+        MockMultipartFile testJsFile = new MockMultipartFile(SurveyBaseController.getFileParamName(Metadata.SURVEY_JS), jsFilename, "application/javascript", jsContents.getBytes());
+        
+        multipartRequest.addFile(testCssFile);
+        multipartRequest.addFile(testJsFile);
+        
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(Metadata.SURVEY_CSS, cssFilename);
+        params.put(Metadata.SURVEY_JS, jsFilename);
+        params.put("name", "Test Survey 1234");
+        params.put("description", "This is a test survey");
+        params.put("surveyDate", "10 Nov 2010");
+        params.put("SurveyLogo", "");
+        params.put("rendererType", "DEFAULT");
+        params.put("saveAndContinue", "saveAndContinue");
+        params.put(SurveyBaseController.PARAM_DEFAULT_RECORD_VISIBILITY, RecordVisibility.CONTROLLED.toString());
+        params.put(SurveyBaseController.PARAM_RECORD_VISIBILITY_MODIFIABLE, "true");
+        params.put(SurveyBaseController.PARAM_FORM_SUBMIT_ACTION, SurveyFormSubmitAction.MY_SIGHTINGS.toString());
+        params.put(SurveyBaseController.PARAM_CRS, BdrsCoordReferenceSystem.WGS84.toString());
+        
+        request.setParameters(params);
+        
+        ModelAndView mv = handle(request, response);
+        
+        assertRedirect(mv, "/bdrs/admin/survey/editTaxonomy.htm");
+        
+        Survey survey = surveyDAO.getSurveyByName(params.get("name"));
+        Assert.assertEquals(survey.getName(), params.get("name"));
+        Assert.assertEquals(survey.getDescription(), params.get("description"));
+        Calendar cal = GregorianCalendar.getInstance();
+        cal.set(2010, 10, 10, 0, 0, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        Assert.assertEquals(survey.getStartDate().getTime(), cal.getTime().getTime());
+        
+        Metadata mdCss = survey.getMetadataByKey(Metadata.SURVEY_CSS);
+        Assert.assertNotNull("metadata should be non null", mdCss);
+        Assert.assertEquals(cssFilename, mdCss.getValue());
+        
+        Metadata mdJs = survey.getMetadataByKey(Metadata.SURVEY_JS);
+        Assert.assertNotNull("metadata should be non null", mdJs);
+        Assert.assertEquals(jsFilename, mdJs.getValue());
+        
+        Assert.assertEquals(RecordVisibility.CONTROLLED, survey.getDefaultRecordVisibility());
+        Assert.assertEquals(true, survey.isRecordVisibilityModifiable());
+        Assert.assertEquals("form submit action mismatch", SurveyFormSubmitAction.MY_SIGHTINGS, survey.getFormSubmitAction());
+        Assert.assertEquals("wrong crs", BdrsCoordReferenceSystem.WGS84, survey.getMap().getCrs());
+    }
+    
     @Test
     public void saveCssFile() throws Exception {
         
@@ -226,7 +294,7 @@ public class SurveyBaseControllerTest extends AbstractGridControllerTest {
         this.handle(request, response);
         
         // should have returned success!
-        this.assertMessageCode(SurveyBaseController.MSG_KEY_FILE_WRITE_SUCCESS);
+        this.assertMessageCode(SurveyBaseController.MSG_KEY_SURVEY_CSS_FILE_WRITE_SUCCESS);
         
         FileDataSource fileDataSource = fileService.getFile(md, filename);
         Assert.assertNotNull("file data source cannot be null", fileDataSource);
@@ -236,6 +304,122 @@ public class SurveyBaseControllerTest extends AbstractGridControllerTest {
         String contents = FileUtils.readFile(file.getAbsolutePath());
         Assert.assertNotNull("Contents cannot be null", contents);
         Assert.assertEquals("Wrong contents", testCss, contents);
+    }
+    
+    @Test
+    public void saveJsFile() throws Exception {
+        
+        this.login("admin", "password", new String[] { Role.ADMIN });
+        
+        Survey survey = new Survey();
+        survey.setName("my survey");
+        survey.setDescription("my survey desc");
+        
+        String filename = "survey_form.js";
+        String testJs = "jQuery(function() { console.log('hello world'); });";
+        
+        Metadata md = new Metadata();
+        md.setKey(Metadata.SURVEY_JS);
+        md.setValue(filename);
+        mdDAO.save(md);
+        
+        Set<Metadata> mdList = new HashSet<Metadata>();
+        mdList.add(md);
+        survey.setMetadata(mdList);
+        
+        surveyDAO.save(survey);
+        
+        MockMultipartFile testFile = new MockMultipartFile("file", filename, "application/javascript", "blah".getBytes());
+        fileService.createFile(md, testFile);
+        
+        request.setRequestURI(SurveyBaseController.SURVEY_EDIT_JS_URL);
+        request.setMethod("POST");
+        request.setParameter(SurveyBaseController.PARAM_TEXT, testJs);
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
+        request.setParameter("Save", "true");
+        
+        this.handle(request, response);
+        
+        // should have returned success!
+        this.assertMessageCode(SurveyBaseController.MSG_KEY_SURVEY_JS_FILE_WRITE_SUCCESS);
+        
+        FileDataSource fileDataSource = fileService.getFile(md, filename);
+        Assert.assertNotNull("file data source cannot be null", fileDataSource);
+        File file = fileDataSource.getFile();
+        Assert.assertNotNull("file cannot be null", file);
+        
+        String contents = FileUtils.readFile(file.getAbsolutePath());
+        Assert.assertNotNull("Contents cannot be null", contents);
+        Assert.assertEquals("Wrong contents", testJs, contents);
+    }
+    
+    @Test
+    public void deleteCssFile() throws Exception {
+        testDeleteMetaFile(Metadata.SURVEY_CSS);
+    }
+    
+    @Test
+    public void deleteJsFile() throws Exception {
+        testDeleteMetaFile(Metadata.SURVEY_JS);
+    }
+    
+    @Test
+    public void deleteLogoFile() throws Exception {
+        testDeleteMetaFile(Metadata.SURVEY_LOGO);
+    }
+    
+    private void testDeleteMetaFile(String metaKey) throws Exception {
+        
+        this.login("admin", "password", new String[] { Role.ADMIN });
+        
+        Survey survey = new Survey();
+        survey.setName("my survey");
+        survey.setDescription("my survey desc");
+        
+        String filename = "empty.css";
+        
+        Metadata md = new Metadata();
+        md.setKey(metaKey);
+        md.setValue(filename);
+        mdDAO.save(md);
+        
+        Set<Metadata> mdList = new HashSet<Metadata>();
+        mdList.add(md);
+        survey.setMetadata(mdList);
+        
+        surveyDAO.save(survey);
+        
+        MockMultipartFile testFile = new MockMultipartFile("file", filename, "text/css", "blah".getBytes());
+        fileService.createFile(md, testFile);
+        
+        getSession().flush();
+        
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
+        // need to put an empty string to get it to delete...
+        params.put(metaKey, "");
+        params.put("name", "Test Survey 1234");
+        params.put("description", "This is a test survey");
+        params.put("surveyDate", "10 Nov 2010");
+        params.put("SurveyLogo", "");
+        params.put("rendererType", "DEFAULT");
+        params.put("saveAndContinue", "saveAndContinue");
+        params.put(SurveyBaseController.PARAM_DEFAULT_RECORD_VISIBILITY, RecordVisibility.CONTROLLED.toString());
+        params.put(SurveyBaseController.PARAM_RECORD_VISIBILITY_MODIFIABLE, "true");
+        params.put(SurveyBaseController.PARAM_FORM_SUBMIT_ACTION, SurveyFormSubmitAction.MY_SIGHTINGS.toString());
+        params.put(SurveyBaseController.PARAM_CRS, BdrsCoordReferenceSystem.WGS84.toString());
+        
+        request.addParameters(params);
+        request.setMethod("POST");
+        request.setRequestURI("/bdrs/admin/survey/edit.htm");
+        
+        this.handle(request, response);
+        
+        getSession().flush();
+        surveyDAO.refresh(survey);
+        
+        Metadata cssMeta = survey.getMetadataByKey(metaKey);
+        Assert.assertNull("CSS metadata should be null", cssMeta);
     }
 
     @Override
