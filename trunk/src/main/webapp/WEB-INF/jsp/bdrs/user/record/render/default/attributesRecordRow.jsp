@@ -59,7 +59,7 @@
            </c:otherwise>
        </c:choose>
        <c:if test="<%= formField.isAttributeFormField() %>">
-               <td>
+               <td class="cell_${ fn:replace(formField.name, " ", "_") }">
                    <tiles:insertDefinition name="attributeRenderer">
                        <tiles:putAttribute name="formField" value="${ formField }"/>
                        <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
