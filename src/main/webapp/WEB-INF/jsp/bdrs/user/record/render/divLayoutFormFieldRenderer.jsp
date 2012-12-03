@@ -1,6 +1,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://tiles.apache.org/tags-tiles" prefix="tiles" %>
 <%@ taglib uri="/WEB-INF/cw.tld" prefix="cw" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 
 <%@page import="au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem"%>
 <%@page import="au.com.gaiaresources.bdrs.servlet.RequestContextHolder"%>
@@ -12,6 +13,8 @@
 <tiles:useAttribute name="valueMap" classname="java.util.Map" ignore="true"/>
 <tiles:useAttribute name="editEnabled" ignore="true"/>
 <tiles:useAttribute name="isModerationOnly" ignore="true"/>
+
+<c:set var="form_field_name" value="${ fn:replace(formField.name, \" \", \"_\") }" />
 
      <c:choose>
          <c:when test="<%= formField.isModerationFormField() %>">
@@ -31,7 +34,7 @@
      <%-- Fields for display only, such as, comments, horizontal rules, HTML, etc --%>
      <c:set var="isVisible" value="true"></c:set>
 
-     <div id="ff_${ formField.name }" class="form_field_pair">
+     <div id="ff_${ form_field_name }" class="form_field_pair">
          <div>
              <tiles:insertDefinition name="attributeRenderer">
                  <tiles:putAttribute name="formField" value="${formField}"/>
@@ -61,7 +64,7 @@
               <%-- At this point we know that the FormField is a RecordPropertyFormField --%>
                 <c:if test="${not formField.hidden}">
                     <c:if test="${ crsFieldRequired }">
-                        <div id="ff_${ formField.name }" class="form_field_pair">
+                        <div id="ff_${ form_field_name }" class="form_field_pair">
                             <div class="form_field_label"><label for="srid">Zone</label></div>
                             <div class="form_field_input">
                                 <tiles:insertDefinition name="coordFormField">
@@ -127,7 +130,7 @@
           <c:when test="${ 'Location' == formField.propertyName }">
             <c:if test="${not formField.hidden}">
               <c:if test="${ not empty locations }">
-                  <div id="ff_${ formField.name }" class="form_field_pair">
+                  <div id="ff_${ form_field_name }" class="form_field_pair">
                       <div class="form_field_label">
                           <label for="location"><cw:validateHtml html="${ formField.description }"/></label>
                       </div>
@@ -146,7 +149,7 @@
           </c:when>
           <c:otherwise>
             <c:if test="${not formField.hidden}">
-              <div  id="ff_${ formField.name }" class="form_field_pair">
+              <div  id="ff_${ form_field_name }" class="form_field_pair">
                   <div class="form_field_label">
                       <label>
                           <cw:validateHtml html="${ formField.description }"/>
@@ -165,7 +168,7 @@
     </c:when>
     <c:when test="<%= formField.isAttributeFormField() %>">
         <c:set var="isVisible" value="true"></c:set>
-        <div  id="ff_${ formField.name }" class="form_field_pair">
+        <div  id="ff_${ form_field_name }" class="form_field_pair">
             <div class="form_field_label">
                 <label for="${ formPrefix }attribute_${formField.attribute.id}">
                     <cw:validateHtml html="${formField.attribute.description}"/>

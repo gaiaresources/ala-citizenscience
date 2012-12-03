@@ -22,6 +22,8 @@
 <c:set var="fileInputName" value="<%= formField.getPrefix()+\"attribute_file_\"+formField.getAttribute().getId() %>" />
 <c:set var="sectionName" value="<%= formField.getPrefix()+\"attribute_data_\"+formField.getAttribute().getId() %>" />
 
+<% pageContext.setAttribute("replaceChar", " "); %>
+
 <%-- we use inputName in scriptlets so we need to 'usebean' the variable... --%>
 <jsp:useBean id="inputName" type="java.lang.String"/>
 
@@ -672,6 +674,7 @@
         </c:if>
    </c:when>
    <c:when test="${ formField.attribute.type == 'CENSUS_METHOD_COL'}">
+        
         <c:set var="id" value="${formPrefix}attribute_${formField.attribute.id}"></c:set>
         <c:if test="${recordWebFormContext.namedFormFields[id] != null && fn:length(recordWebFormContext.namedFormFields[id]) > 0}">
             <div name="${ formPrefix }">
@@ -681,8 +684,11 @@
                     <table id="${formPrefix}attribute_${ formField.attribute.id }_table" class="datatable censusMethodAttributeTable">
                         <thead>
                             <tr>
+                            
+                            
                             <c:forEach items="${recordWebFormContext.namedFormFields[id]}" var="subField">
-                                <th class="censusMethodAttributeColumnHeader"><cw:validateHtml html="${subField.attribute.description}"/></th>
+                                <c:set var="col_header_class" value="cm_col_header_${fn:replace(formField.name, replaceChar, \"_\")}_${fn:replace(subField.name, replaceChar, \"_\")}" />
+                                <th class="${ col_header_class } censusMethodAttributeColumnHeader"><cw:validateHtml html="${subField.attribute.description}"/></th>
                             </c:forEach>
                             <c:if test="${ not preview and recordWebFormContext.editable and not recordWebFormContext.moderateOnly }">
                                 <th class="censusMethodAttributeColumnHeader deleteColumn">Delete</th>
