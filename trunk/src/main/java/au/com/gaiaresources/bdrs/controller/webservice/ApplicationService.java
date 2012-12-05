@@ -348,6 +348,34 @@ public class ApplicationService extends AbstractController {
         
         //retrieve requested survey
         Survey survey = surveyDAO.getSurvey(surveyRequested);
+        
+        JSONObject surveyData = getSurveyNoSpeciesJson(survey, now);
+
+        // support for JSONP
+        String callback = validateCallback(request.getParameter("callback"));
+        if (callback != null) {
+            response.setContentType("application/javascript");
+            response.getWriter().write(callback
+                    + "(");
+        } else {
+            response.setContentType("application/json");
+        }
+        
+        response.getWriter().write(surveyData.toString());
+        if (callback != null) {
+            response.getWriter().write(");");
+        }
+        log.debug("Wrote out data in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
+    }
+    
+    /**
+     * Gets a JSON Object representing a survey
+     * 
+     * @param survey Survey to jsonify.
+     * @param now The system time in milliseconds from the epoch.
+     * @return JSONified survey.
+     */
+    private JSONObject getSurveyNoSpeciesJson(Survey survey, long now) {
         log.debug("Retrieved Survey in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
         
         // Restructure survey data
@@ -389,22 +417,8 @@ public class ApplicationService extends AbstractController {
         surveyData.put(JSON_KEY_CENSUS_METHODS, censusMethodArray);
         surveyData.put(JSON_KEY_RECORD_PROP, recordPropertiesArray);
         surveyData.put(JSON_KEY_SURVEY_TEMPLATE, surveyImportExportService.exportObject(survey));
-
-        // support for JSONP
-        String callback = validateCallback(request.getParameter("callback"));
-        if (callback != null) {
-            response.setContentType("application/javascript");
-            response.getWriter().write(callback
-                    + "(");
-        } else {
-            response.setContentType("application/json");
-        }
         
-        response.getWriter().write(surveyData.toString());
-        if (callback != null) {
-            response.getWriter().write(");");
-        }
-        log.debug("Wrote out data in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
+        return surveyData;
     }
     
     /**
@@ -828,6 +842,8 @@ public class ApplicationService extends AbstractController {
             if (createdSurvey != null && createdSurvey.getId() != null) {
                 result.put(JSON_KEY_SUCCESS, true);
                 result.put(JSON_KEY_ID, createdSurvey.getId());
+                JSONObject surveyJson = this.getSurveyNoSpeciesJson(createdSurvey, System.currentTimeMillis());
+                result.put(JSON_KEY_SURVEY, surveyJson);
                 // 200
                 
                 // do some special survey settings since we don't port everything over...
