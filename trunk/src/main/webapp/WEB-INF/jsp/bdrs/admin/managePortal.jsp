@@ -4,7 +4,7 @@
 
 <ul>
 	<li><a href="${portalContextPath}/bdrs/admin/preference/preference.htm">Edit Preferences</a>&nbsp; - preferences for your Portal, such as storage areas, use of identifiers, etc</li>
-	<li><a href="${portalContextPath}/bdrs/admin/theme/edit.htm">Edit Theme</a>&nbsp; - where the look and feel (or Theme) for your Portal can be edited</li>
+	<li><a href="${portalContextPath}/bdrs/admin/theme/listing.htm">Edit Theme</a>&nbsp; - where the look and feel (or Theme) for your Portal can be edited</li>
 	<li><a href="${portalContextPath}/admin/editContent.htm">Edit Content</a>&nbsp; - where the text on most of the pages within the Portal can be modified</li>
 	<li><a href="${portalContextPath}/bdrs/admin/taxonomy/listing.htm">Manage Taxonomy</a>&nbsp; - where you can manage the taxonomy that drives the system, including the Species Profiles</li>
 	<li><a href="${portalContextPath}/bdrs/admin/map/listing.htm">Manage Maps</a>&nbsp; - where you can manage the variety of Maps that are available in the system, and add your own data to these Maps</li>
