@@ -333,38 +333,42 @@ bdrs.map.MIN_GOOGLE_ZOOM_LEVEL = 1;
 bdrs.map.baseMap = null;
 bdrs.map.selectedRecord = null;
 bdrs.map.initBaseMap = function(mapId, options){
-    var mapOptions = {
-        isPublic: true,
-        hideShowMapLink: false,
-        enlargeMapLink: true,
-        zoomLock: true,
-        ajaxFeatureLookup: false
-    };
-    jQuery.extend(mapOptions, options);
     
-    bdrs.map.initOpenLayers();
-    
-    var map;
-    if (bdrs.map.createCustomMap) {
-        map = bdrs.map.createCustomMap(mapId, mapOptions);
+    if (jQuery('#'+mapId+':visible').length > 0) {
+            var mapOptions = {
+            isPublic: true,
+            hideShowMapLink: false,
+            enlargeMapLink: true,
+            zoomLock: true,
+            ajaxFeatureLookup: false
+        };
+        jQuery.extend(mapOptions, options);
+        
+        bdrs.map.initOpenLayers();
+        
+        var map;
+        if (bdrs.map.createCustomMap) {
+            map = bdrs.map.createCustomMap(mapId, mapOptions);
+        }
+        else {
+            map = bdrs.map.createDefaultMap(mapId, mapOptions);
+        }
+        if (mapOptions.ajaxFeatureLookup) {
+            var highlightLayer = bdrs.map.addWMSHighlightLayer(map);
+            bdrs.map.initAjaxFeatureLookupClickHandler(map, {
+                wmsHighlightLayer: highlightLayer
+            });
+        }
+        else {
+            bdrs.map.initPointSelectClickHandler(map);
+        }
+        
+        // set the global cos we have to....
+        bdrs.map.baseMap = map;
+        
+        return map;
     }
-    else {
-        map = bdrs.map.createDefaultMap(mapId, mapOptions);
-    }
-    if (mapOptions.ajaxFeatureLookup) {
-        var highlightLayer = bdrs.map.addWMSHighlightLayer(map);
-        bdrs.map.initAjaxFeatureLookupClickHandler(map, {
-            wmsHighlightLayer: highlightLayer
-        });
-    }
-    else {
-        bdrs.map.initPointSelectClickHandler(map);
-    }
-    
-    // set the global cos we have to....
-    bdrs.map.baseMap = map;
-    
-    return map;
+    return null;
 }; // End initBaseMap
 bdrs.map.createDefaultMap = function(mapId, mapOptions){
     /*
@@ -3089,12 +3093,6 @@ bdrs.getDatePickerParams = function() {
     return params;
 };
 
-bdrs.timePickerCloseHandler = function(value,timePickerInstance) {
-    // only way I could see to acces the input node.
-    // calls blur event to trigger form validation
-    jQuery(timePickerInstance.input[0]).blur();
-};
-
 bdrs.initDatePicker = function(){
 
     // this function prevents the from date from being after the to date
@@ -3143,9 +3141,8 @@ bdrs.initDatePicker = function(){
     });
     
     // initialise timepicker inputs
-    jQuery('.timepicker').timepicker({
-        onClose: bdrs.timePickerCloseHandler
-    });
+    // Pass an empty object or the timepicker will be appended to a datepicker.
+    jQuery('.timepicker').timepicker({});
 };
 
 bdrs.initColorPicker = function(){

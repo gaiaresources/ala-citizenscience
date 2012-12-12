@@ -1,3 +1,7 @@
+/* WARNING - THIS FILE HAS BEEN EDITED */
+/* Search for **FILE EDITED** in this file */
+/* Changes thus far has been made to support preserving of the tab order */
+
 /*
 * jQuery timepicker addon
 * By: Trent Richardson [http://trentrichardson.com]
@@ -350,7 +354,14 @@ $.extend(Timepicker.prototype, {
 				slide: function(event, ui) {
 					tp_inst.hour_slider.slider( "option", "value", ui.value);
 					tp_inst._onTimeChange();
-				}
+				},
+                // **FILE EDITED** - Adding stop handler to give focus back to input so we don't break the tab order
+                // when using the sliders
+                stop: function(event, ui) {
+                    if (tp_inst.$input[0]) {
+                        jQuery(tp_inst.$input[0]).focus();
+                    }
+                }
 			});
 
 			// Updated by Peter Medeiros:
@@ -365,7 +376,14 @@ $.extend(Timepicker.prototype, {
 					// update the global minute slider instance value with the current slider value
 					tp_inst.minute_slider.slider( "option", "value", ui.value);
 					tp_inst._onTimeChange();
-				}
+				},
+                // **FILE EDITED** - Adding stop handler to give focus back to input so we don't break the tab order
+                // when using the sliders
+                stop: function(event, ui) {
+                    if (tp_inst.$input[0]) {
+                        jQuery(tp_inst.$input[0]).focus();
+                    }
+                }
 			});
 
 			this.second_slider = $tp.find('#ui_tpicker_second_'+ dp_id).slider({
