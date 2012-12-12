@@ -56,7 +56,13 @@
         var layerProj = bdrs.map.getProjection(entryForm.crsSelector);
         
         var layerName = bdrs.survey.location.LAYER_NAME;
-        bdrs.map.initBaseMap('base_map', { geocode: { selector: '#geocode' }, hideShowMapLink : true});
+        var result = bdrs.map.initBaseMap('base_map', { geocode: { selector: '#geocode' }, hideShowMapLink : true});
+        
+        // Early return if no map is created.
+        if (!result) {
+        	return;
+        }
+        
         bdrs.map.addLocationLayer(bdrs.map.baseMap, bdrs.survey.location.LOCATION_LAYER_NAME);
 
         <c:choose>

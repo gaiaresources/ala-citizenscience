@@ -2295,3 +2295,17 @@ td.field_name_review_sci_name_cell {
 input.field_name_review_sci_name_input {
     width: 25em;
 }
+
+/*************************************************/
+/* jquery timepicker                             */
+/*************************************************/
+/* Hiding the 'Done' button to avoid breaking the tab order of forms */
+.ui-datepicker-close {
+    display: none;
+} 
+
+div.ui-datepicker-buttonpane button.ui-priority-secondary { 
+    opacity: 1;
+    filter: Alpha(Opacity=100);
+}
+ 
