@@ -95,7 +95,7 @@ public class AttributeService extends AbstractController {
             }
         }
         if (user == null) {
-            writeErrorResponse(response, HttpServletResponse.SC_FORBIDDEN, "You are not authorized to access this service");
+            writeErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "You are not authorized to access this service");
         }
         return user != null;
     }

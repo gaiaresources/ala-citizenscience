@@ -14,7 +14,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import javax.xml.ws.http.HTTPException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -101,13 +100,12 @@ public class AttributeServiceTest extends AbstractControllerTest {
         request.setRequestURI("/webservice/attribute/recordsByAttributeValue.htm");
         request.setParameter("ident", ident);
 
-        try {
-            this.handle(request, response);
-            Assert.fail("Should have thrown an exception");
-        }
-        catch (HTTPException e) {
-            Assert.assertEquals(401, e.getStatusCode());
-        }
+        this.handle(request, response);
+
+        Assert.assertEquals(401, response.getStatus());
+        JSONObject json = (JSONObject) JSONSerializer.toJSON(response.getContentAsString());
+        Assert.assertEquals(401, json.getInt("status"));
+
     }
 
     @Test
