@@ -150,6 +150,9 @@ public class AttributeInstanceFormField extends AbstractAttributeFormField {
             }
             this.attribute.setCensusMethod(cm);
         }
+        else {
+            this.attribute.setCensusMethod(null);
+        }
         
         // Options
         List<AttributeOption> optList = new ArrayList<AttributeOption>();
