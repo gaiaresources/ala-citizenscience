@@ -2,5 +2,5 @@
 <%@ taglib uri="/WEB-INF/cw.tld" prefix="cw" %>
 <%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec"%>
 
-<cw:validateHtml html="${ renderContent }"/>
+${ renderContent }
 

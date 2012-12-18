@@ -43,6 +43,8 @@
 	    <%-- Just a tile to help avoid DRY between SSMT and SSAT forms --%>
 	    <tiles:insertDefinition name="singleSiteSurveyScopeFields">
 	    </tiles:insertDefinition>
+	    <%-- Allows you to make this a clearing div at the end of the container --%>
+	    <div id="surveyScopedFieldsContainerEnd"></div>
     </div>
     
     <div id="sightingsContainer">

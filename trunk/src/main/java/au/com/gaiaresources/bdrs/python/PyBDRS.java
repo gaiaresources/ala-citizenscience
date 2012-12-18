@@ -28,6 +28,7 @@ import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
+import au.com.gaiaresources.bdrs.model.portal.Portal;
 import au.com.gaiaresources.bdrs.model.portal.PortalDAO;
 import au.com.gaiaresources.bdrs.model.python.AbstractPythonRenderable;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
@@ -164,6 +165,15 @@ public class PyBDRS {
      */
     public String getLocalName() {
         return this.request.getLocalName();
+    }
+    
+    /**
+     * Returns the ID of the portal making the request.
+     * @return ID of portal making the request.
+     */
+    public int getPortalId() {
+        Portal p = RequestContextHolder.getContext().getPortal(); 
+        return p != null ? p.getId() : 0;
     }
 
     /**
