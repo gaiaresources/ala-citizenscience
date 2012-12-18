@@ -365,7 +365,7 @@ public class ApplicationService extends AbstractController {
         if (callback != null) {
             response.getWriter().write(");");
         }
-        log.debug("Wrote out data in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
+        log.debug("Wrote out data in  :" + (System.currentTimeMillis() - now));
     }
     
     /**
@@ -407,7 +407,7 @@ public class ApplicationService extends AbstractController {
                 recordPropertiesArray.add(recordProperty.flatten(true, false));
             }
         }
-        log.debug("Flatted RecordProperties in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
+        log.debug("Flatted RecordProperties in  :" + (System.currentTimeMillis() - now));
         
         // Store restructured survey data in JSONObject
         JSONObject surveyData = new JSONObject();
