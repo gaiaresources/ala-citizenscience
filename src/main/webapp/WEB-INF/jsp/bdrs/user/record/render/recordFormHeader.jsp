@@ -6,7 +6,7 @@
 
 <c:choose>
     <c:when test="${ not recordWebFormContext.preview and not recordWebFormContext.editable and recordWebFormContext.existingRecord }">
-    		<div class="buttonpanel textright">
+    		<div class="recordFormHeader buttonpanel textright">
                 <c:if test="${record.survey.recordCommentsEnabled && (recordWebFormContext.anonymous || recordWebFormContext.commentable)}">
                     <a href="#addComment">Leave a comment</a>
                     <c:set var="commentLinkPresent" value="true"/>

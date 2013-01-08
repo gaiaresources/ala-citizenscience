@@ -73,10 +73,14 @@
                     <option></option>
                     <c:forEach var="attrOpt" items="${ formField.attribute.options }">
                         <jsp:useBean id="attrOpt" type="au.com.gaiaresources.bdrs.model.taxa.AttributeOption"/>
-                        <option <c:if test="${attrOpt.value == fieldValue}">selected="selected"</c:if> >
+                        <c:set var="value_found" value="false" />
+                        <option <c:if test="${attrOpt.value == fieldValue}"><c:set var="value_found" value="true" /> selected="selected"</c:if> >
                             ${ attrOpt.value }
                         </option>
                     </c:forEach>
+                    <c:if test="${ value_found == \"false\" and fieldValue != null }">
+                        <option value="${ fieldValue }" selected="selected">${ fieldValue }</option>
+                    </c:if>
                 </select>
             </c:when>
             <c:otherwise>
