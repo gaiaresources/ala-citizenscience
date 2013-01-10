@@ -1,10 +1,10 @@
 package au.com.gaiaresources.bdrs.controller.file;
 
-import javax.activation.FileDataSource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.ws.http.HTTPException;
-
+import au.com.gaiaresources.bdrs.db.Persistent;
+import au.com.gaiaresources.bdrs.file.FileService;
+import au.com.gaiaresources.bdrs.model.file.ManagedFile;
+import au.com.gaiaresources.bdrs.model.file.ManagedFileDAO;
+import au.com.gaiaresources.bdrs.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
-import au.com.gaiaresources.bdrs.db.Persistent;
-import au.com.gaiaresources.bdrs.file.FileService;
-import au.com.gaiaresources.bdrs.model.file.ManagedFile;
-import au.com.gaiaresources.bdrs.model.file.ManagedFileDAO;
+import javax.activation.FileDataSource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.ws.http.HTTPException;
 
 @Controller
 public class DownloadFileController extends AbstractDownloadFileController {
@@ -139,7 +139,7 @@ public class DownloadFileController extends AbstractDownloadFileController {
             String uuid, boolean base64encode) {
         log.debug("starting at file service " + System.currentTimeMillis()
                 + " uuid=" + uuid);
-        if (uuid == null) {
+        if (StringUtils.nullOrEmpty(uuid)) {
             response.setStatus(404);
             return null;
         }
