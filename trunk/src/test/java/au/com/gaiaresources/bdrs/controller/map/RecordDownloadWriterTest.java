@@ -19,7 +19,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -33,7 +32,6 @@ import au.com.gaiaresources.bdrs.json.JSONSerializer;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.impl.ScrollableRecordsList;
 import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.service.web.JsonService;
 import au.com.gaiaresources.bdrs.spatial.AbstractShapefileTest;
 import au.com.gaiaresources.bdrs.spatial.ShapeFileReader;
@@ -48,7 +46,7 @@ public class RecordDownloadWriterTest extends AbstractShapefileTest {
     
     @Before
     public void recordDownloadWriterTestSetup() {
-    	downloadWriter = new RecordDownloadWriter();
+    	downloadWriter = new RecordDownloadWriter(true);
     }
     
     // the export 'no' record case is the same as exporting a template

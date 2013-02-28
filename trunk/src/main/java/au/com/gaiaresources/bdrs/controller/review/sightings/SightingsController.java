@@ -70,7 +70,7 @@ public abstract class SightingsController extends RecordController {
             if (downloadFormat != null) {
                 Session sesh = getRequestContext().getHibernate();
                 String contextPath = request.getContextPath();
-                RecordDownloadWriter downloadWriter = new RecordDownloadWriter();
+                RecordDownloadWriter downloadWriter = new RecordDownloadWriter(true);
                 for (String format : downloadFormat) {
 
                     RecordDownloadFormat rdf = RecordDownloadFormat.valueOf(format);
@@ -80,7 +80,7 @@ public abstract class SightingsController extends RecordController {
                         sc.rewind();
                         ZipEntry kmlEntry = new ZipEntry(KML_FILENAME);
                         zos.putNextEntry(kmlEntry);
-                        writeKML(zos, sesh, contextPath, user, sc);
+                        writeKML(zos, sesh, contextPath, user, sc, true);
                         zos.closeEntry();
                         break;
                     }
@@ -139,7 +139,20 @@ public abstract class SightingsController extends RecordController {
         }
     }
     
-    private static void writeKML(ZipOutputStream zos, Session sesh, String contextPath, User user, ScrollableResults<Record> sc) throws JAXBException {
+    /**
+     * Write KML
+     * 
+     * @param zos
+     * @param sesh
+     * @param contextPath
+     * @param user
+     * @param sc
+     * @param serializeAttributes Whether to include record attributes as json which is embedded in the KML.
+     * Very slow database access for large numbers of records and may also cause heap problems!
+     * @throws JAXBException
+     */
+    private static void writeKML(ZipOutputStream zos, Session sesh, String contextPath, User user, ScrollableResults<Record> sc,
+            boolean serializeAttributes) throws JAXBException {
         int recordCount = 0;
         List<Record> rList = new ArrayList<Record>(ScrollableResults.RESULTS_BATCH_SIZE);
         KMLWriter writer = KMLUtils.createKMLWriter(contextPath, null, KMLUtils.KML_RECORD_FOLDER);
@@ -148,14 +161,14 @@ public abstract class SightingsController extends RecordController {
             // evict to ensure garbage collection
             if (++recordCount % ScrollableResults.RESULTS_BATCH_SIZE == 0) {
                 
-                KMLUtils.writeRecords(writer, user, contextPath, rList);
+                KMLUtils.writeRecords(writer, user, contextPath, rList, serializeAttributes);
                 rList.clear();
                 sesh.clear();
             }
         }
         
         // Flush the remainder out of the list.
-        KMLUtils.writeRecords(writer, user, contextPath, rList);
+        KMLUtils.writeRecords(writer, user, contextPath, rList, serializeAttributes);
         sesh.clear();
         
         writer.write(false, zos);

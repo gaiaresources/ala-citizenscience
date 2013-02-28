@@ -1256,7 +1256,8 @@ bdrs.map.addWMSHighlightLayer = function(map, layername, url, options){
     };
     options = jQuery.extend(defaultOptions, options);
     
-    var layer = new OpenLayers.Layer.WMS.Post(layername ? layername : "highlightLayer", url ? url : bdrs.map.getBdrsMapServerUrl(), {
+    //var layer = new OpenLayers.Layer.WMS.Post(layername ? layername : "highlightLayer", url ? url : bdrs.map.getBdrsMapServerUrl(), {
+    var layer = new OpenLayers.Layer.WMS(layername ? layername : "highlightLayer", url ? url : bdrs.map.getBdrsMapServerUrl(), {
         'layers': options.wmsLayer,
         'transparent': 'true'
     }, {
@@ -1288,7 +1289,8 @@ bdrs.map.addBdrsWMSLayer = function(map, layerName, url, options){
     options = jQuery.extend(defaultOptions, options);
     var sld = bdrs.map.generateLayerSLD(options);
     
-    var wmsLayer = new OpenLayers.Layer.WMS.Post(layerName, url, {
+    //var wmsLayer = new OpenLayers.Layer.WMS.Post(layerName, url, {
+    var wmsLayer = new OpenLayers.Layer.WMS(layerName, url, {
         'layers': options.wmsLayer,
         'transparent': 'true',
         'geo_map_layer_id': options.bdrsLayerId,
@@ -2209,141 +2211,43 @@ bdrs.map.addFeatureClickPopup = function(layer){
     return selectControl;
 };
 
-bdrs.map.createContentState = function(itemArray, popup, mapServerQueryManager){
-    for (var itemIndex = 0; itemIndex < itemArray.length; ++itemIndex) {
+// note bdrs.map.getRecord shares the same interface with bdrs.map.getFeature
+bdrs.map.getRecord = function(id, successCallbackFcn, errorCallbackFcn, completeCallbackFcn){
+    jQuery.ajax(bdrs.contextPath + '/webservice/record/getRecordById_v2.htm', {
+        data: {
+            regkey: bdrs.ident,
+            recordId: id
+        },
+        success: successCallbackFcn,
+        error: errorCallbackFcn,
+        complete: completeCallbackFcn
+    });
+};
+
+// note bdrs.map.getRecord shares the same interface with bdrs.map.getFeature
+bdrs.map.getFeature = function(id, successCallbackFcn, errorCallbackFcn, completeCallbackFcn){
     
-        var item = itemArray[itemIndex];
-        
-        var tbody = jQuery("<tbody></tbody>");
+    jQuery.ajax(bdrs.contextPath + '/bdrs/map/getFeatureInfoById.htm', {
+        data: {
+            featureId: id
+        },
+        success: successCallbackFcn,
+        error: errorCallbackFcn,
+        complete: completeCallbackFcn
+    });
+};
 
-        var linkValue = jQuery("<div></div>");
-        if (item.type == "record") {
-            // record specific stuff
-            var recordAttrKeys = ["owner", "census_method", "species", "common_name", "number", "notes", "habitat", "when", "behaviour", "coord_ref_system", "x", "y"];
-            var recordId = item["recordId"];
-            var ownerId = item["ownerId"];
-            var recordVisibility = item["recordVisibility"];
-            
-            // if the record is public or if you are the owner or admin, add the view link
-            if (recordVisibility == 'PUBLIC' || (bdrs.authenticated && (bdrs.authenticatedUserId === ownerId || bdrs.isAdmin))) {
-                var viewRecordRow = jQuery("<tr><td></td></tr>");
-                viewRecordRow.attr('colspan', '2');
-                var surveyId = item["surveyId"];
-                var recordUrl = bdrs.portalContextPath + "/bdrs/user/surveyRenderRedirect.htm?surveyId=" + surveyId + "&recordId=" + recordId;
-                jQuery("<a>View&nbsp;Full&nbsp;Record</a>").attr('href', recordUrl).appendTo(linkValue);
-                jQuery("<a>View&nbsp;Record</a>").attr('href', recordUrl).appendTo(viewRecordRow.find("td"));
-                tbody.append(viewRecordRow);
-            }
-            if (bdrs.authenticated) {
-                var requestRecordInfoRow = jQuery("<tr><td></td></tr>");
-                requestRecordInfoRow.attr('colspan', '2');
-                var requestRecordInfoUrl = bdrs.portalContextPath + "/bdrs/user/contactRecordOwner.htm?recordId=" + recordId;
-                jQuery("<a>Contact&nbsp;Owner</a>").attr('href', requestRecordInfoUrl).appendTo(requestRecordInfoRow.find("td"));
-                tbody.append(requestRecordInfoRow);
-            }
-			var crs = item["coord_ref_system"];
-            for (var i = 0; i < recordAttrKeys.length; i++) {
-                var key = recordAttrKeys[i];
-                var value;
-                if (key === 'when') {
-					// Only show the date if non null else we get 'NaN' in the formatted
-					// date string. The following actually omits the 'when' row
-					var formatted_date = item._when_formatted;
-					if (formatted_date !== undefined && formatted_date !== null) {
-						value = item._when_formatted;
-					}
-					else {
-						value = "";
-					}
-				} else if (key === 'species' && item[key]) {
-					value = jQuery("<i></i>").append(item[key]);
-				} else if ((key === 'number' || key ==='x' || key === 'y') && item[key]) {
-					value = item[key];
-					// It will be a number, change to string
-					if (value.toString) {
-						value = value.toString();	
-					}
-				} else if (key === 'coord_ref_system' && crs) {
-					value = crs.name;
-				} else {
-					value = item[key];
-				}
-
-				// value set, alter key if required
-				if (key === "x") {
-					if (crs) {
-						key = crs.xname;
-					}
-				} else if (key === "y") {
-					if (crs) {
-						key = crs.yname;
-					}
-				} else if (key === "coord_ref_system") {
-					key = "Coord Ref System";
-				}
-				
-				if (value && value !== null && value.length > 0 && value !== '-1') {
-                    var row = jQuery("<tr></tr>");
-                    row.append(jQuery("<th></th>").css('whiteSpace', 'nowrap').append(titleCaps(key.replace("_", " ")) + ":"));
-                    row.append(jQuery("<td></td>").css('whiteSpace', 'nowrap').append(value));
-                    tbody.append(row);
-            	} 
-            }
-        }
-        else if (item.type === "geoMapFeature") {
-                // Map feature specific stuff
-                var mapFeatureTitle = jQuery("<tr></tr>");
-                mapFeatureTitle.attr('colspan', '2');
-                jQuery("<span>Map&nbsp;Feature<span>").appendTo(mapFeatureTitle);
-                tbody.append(mapFeatureTitle);
-        }
-
-        if (item.attributes && jQuery.isArray(item.attributes)) {
-            var attrArray = item.attributes;
-			
-			var k, v, type, attrType;
-            for (var j = 0; j < attrArray.length; j++) {
-                var tuple = attrArray[j];
-				
-				k = tuple["name"];
-				v = tuple["value"];
-				type = tuple["type"];
-				attrType = bdrs.model.taxa.attributeType.code[type];
-				// if it is a census method attribute, the value is a link the the full record
-				if (attrType.isCensusMethodType()) {
-					v = linkValue.html();
-				}
-				// if v is a number, change it to a string..
-                if (v && v.toString) {
-                    v = v.toString();
-                }
-                if (v && v.length > 0 && v !== '-1') {
-                    var r = jQuery("<tr></tr>");
-                    r.append(jQuery("<th></th>").css('whiteSpace', 'nowrap').append(k + ":"));
-					var dataCell = jQuery("<td></td>");
-					dataCell.css('whiteSpace', 'nowrap').append(v);
-					if (bdrs.model.taxa.attributeType.SPECIES === attrType) {
-						dataCell.addClass("scientificName");
-					}
-					r.append(dataCell);
-                    tbody.append(r);
-                }
-            }    
-        }
-        
-        var table = jQuery("<table></table>").append(tbody);
-        table.addClass("kmlDescriptionTable");
-        var tableDiv = jQuery("<div></div>").append(table);
-        tableDiv.addClass("popupPage" + itemIndex);
-        // phwoar! duck punch onto the item object GO
-        item.htmlContent = tableDiv;
-    }
+/**
+ * Create content state for the popup
+ * 
+ * @param {Array} itemArray json items (records or geo map features) to display. These should not include
+ * attribute values.
+ * @param {Object} popup Openlayers popup object.
+ * @param {Object} mapServerQueryManager Object to handle queries to MapServer. Used for the highlight layer.
+ */
+bdrs.map.createContentState = function(itemArray, popup, mapServerQueryManager){
     
     var popupContent = jQuery("<div></div>").addClass("popupContent");
-    
-    for (var m = 0; m < itemArray.length; ++m) {
-        popupContent.append(itemArray[m].htmlContent);
-    }
     
     popupContent.appendTo(popup.contentDiv);
     
@@ -2351,11 +2255,179 @@ bdrs.map.createContentState = function(itemArray, popup, mapServerQueryManager){
         currentPage: 0,
         itemArray: itemArray,
         popup: popup,
-        mapServerQueryManager: mapServerQueryManager
+        mapServerQueryManager: mapServerQueryManager,
+        loadingCounter: 0
     };
+    
     return result;
 };
 
+/**
+ * Appends html to the popup content.
+ * 
+ * @param {Object} contentState ContentState dict
+ * @param {String} htmlContent content to append
+ */
+bdrs.map.appendContentPage = function(contentState, htmlContent) {
+    var popupContent = jQuery(contentState.popup.contentDiv).find(".popupContent");
+    popupContent.append(htmlContent);
+};
+
+/**
+ * Get the jQuery wrapped dom element for the table body 
+ * for a given item page in the popup content.
+ * 
+ * @param {Object} contentState ContentState dict
+ * @param {int} itemIndex Index of item
+ * @return {Object} jQuery node
+ */
+bdrs.map.getPopupContentTableBody = function(contentState, itemIndex) {
+    // each page has the class "popupPage" + itemIndex
+    return jQuery(contentState.popup.contentDiv).find(".popupPage"+itemIndex).find("tbody");
+};
+
+/**
+ * Create the content html
+ * 
+ * @param {Object} item Record or GeoMapFeature
+ * @param {int} itemIndex Index of item in popup
+ * @return {String} html content
+ */
+bdrs.map.createContentHtml = function(item, itemIndex) {
+        
+    var tbody = jQuery("<tbody></tbody>");
+
+    var linkValue = jQuery("<div></div>");
+    if (item.type == "record") {
+        // record specific stuff
+        var recordAttrKeys = ["owner", "census_method", "species", "common_name", "number", "notes", "habitat", "when", "behaviour", "coord_ref_system", "x", "y"];
+        var recordId = item["recordId"];
+        var ownerId = item["ownerId"];
+        var recordVisibility = item["recordVisibility"];
+        
+        // if the record is public or if you are the owner or admin, add the view link
+        if (recordVisibility == 'PUBLIC' || (bdrs.authenticated && (bdrs.authenticatedUserId === ownerId || bdrs.isAdmin))) {
+            var viewRecordRow = jQuery("<tr><td></td></tr>");
+            viewRecordRow.attr('colspan', '2');
+            var surveyId = item["surveyId"];
+            var recordUrl = bdrs.portalContextPath + "/bdrs/user/surveyRenderRedirect.htm?surveyId=" + surveyId + "&recordId=" + recordId;
+            jQuery("<a>View&nbsp;Full&nbsp;Record</a>").attr('href', recordUrl).appendTo(linkValue);
+            jQuery("<a>View&nbsp;Record</a>").attr('href', recordUrl).appendTo(viewRecordRow.find("td"));
+            tbody.append(viewRecordRow);
+        }
+        if (bdrs.authenticated) {
+            var requestRecordInfoRow = jQuery("<tr><td></td></tr>");
+            requestRecordInfoRow.attr('colspan', '2');
+            var requestRecordInfoUrl = bdrs.portalContextPath + "/bdrs/user/contactRecordOwner.htm?recordId=" + recordId;
+            jQuery("<a>Contact&nbsp;Owner</a>").attr('href', requestRecordInfoUrl).appendTo(requestRecordInfoRow.find("td"));
+            tbody.append(requestRecordInfoRow);
+        }
+        var crs = item["coord_ref_system"];
+        for (var i = 0; i < recordAttrKeys.length; i++) {
+            var key = recordAttrKeys[i];
+            var value;
+            if (key === 'when') {
+                // Only show the date if non null else we get 'NaN' in the formatted
+                // date string. The following actually omits the 'when' row
+                var formatted_date = item._when_formatted;
+                if (formatted_date !== undefined && formatted_date !== null) {
+                    value = item._when_formatted;
+                }
+                else {
+                    value = "";
+                }
+            } else if (key === 'species' && item[key]) {
+                value = jQuery("<i></i>").append(item[key]);
+            } else if ((key === 'number' || key ==='x' || key === 'y') && item[key]) {
+                value = item[key];
+                // It will be a number, change to string
+                if (value.toString) {
+                    value = value.toString();   
+                }
+            } else if (key === 'coord_ref_system' && crs) {
+                value = crs.name;
+            } else {
+                value = item[key];
+            }
+
+            // value set, alter key if required
+            if (key === "x") {
+                if (crs) {
+                    key = crs.xname;
+                }
+            } else if (key === "y") {
+                if (crs) {
+                    key = crs.yname;
+                }
+            } else if (key === "coord_ref_system") {
+                key = "Coord Ref System";
+            }
+            
+            if (value && value !== null && value.length > 0 && value !== '-1') {
+                var row = jQuery("<tr></tr>");
+                row.append(jQuery("<th></th>").css('whiteSpace', 'nowrap').append(titleCaps(key.replace("_", " ")) + ":"));
+                row.append(jQuery("<td></td>").css('whiteSpace', 'nowrap').append(value));
+                tbody.append(row);
+            }
+        }
+    }
+    else if (item.type === "geoMapFeature") {
+            // Map feature specific stuff
+            var mapFeatureTitle = jQuery("<tr></tr>");
+            mapFeatureTitle.attr('colspan', '2');
+            jQuery("<span>Map&nbsp;Feature<span>").appendTo(mapFeatureTitle);
+            tbody.append(mapFeatureTitle);
+    }
+
+    if (item.attributes && jQuery.isArray(item.attributes)) {
+        var attrArray = item.attributes;
+        
+        var k, v, type, attrType;
+        for (var j = 0; j < attrArray.length; j++) {
+            var tuple = attrArray[j];
+            
+            k = tuple["name"];
+            v = tuple["value"];
+            type = tuple["type"];
+            attrType = bdrs.model.taxa.attributeType.code[type];
+            // if it is a census method attribute, the value is a link the the full record
+            if (attrType.isCensusMethodType()) {
+                v = linkValue.html();
+            }
+            // if v is a number, change it to a string..
+            if (v && v.toString) {
+                v = v.toString();
+            }
+            if (v && v.length > 0 && v !== '-1') {
+                var r = jQuery("<tr></tr>");
+                r.append(jQuery("<th></th>").css('whiteSpace', 'nowrap').append(k + ":"));
+                var dataCell = jQuery("<td></td>");
+                dataCell.css('whiteSpace', 'nowrap').append(v);
+                if (bdrs.model.taxa.attributeType.SPECIES === attrType) {
+                    dataCell.addClass("scientificName");
+                }
+                r.append(dataCell);
+                tbody.append(r);
+            }
+        }
+    }
+    
+    var table = jQuery("<table></table>").append(tbody);
+    table.addClass("kmlDescriptionTable");
+    var tableDiv = jQuery("<div></div>").append(table);
+    tableDiv.addClass("popupPage" + itemIndex);
+    
+    // information is initially hidden
+    tableDiv.hide();
+    return tableDiv;
+}
+
+/**
+ * Get the left arrow click handler which decrements the current popup page
+ * 
+ * @param {Object} contentState ContentState dict
+ * @return {Function} handler func
+ */
 bdrs.map.getPopupLeftHandler = function(contentState){
     var myContentState = contentState;
     return function(){
@@ -2366,7 +2438,129 @@ bdrs.map.getPopupLeftHandler = function(contentState){
     };
 };
 
+/**
+ * Get the right arrow click handler which increments the current popup page
+ * 
+ * @param {Object} newContentState ContentState dict
+ * @return {Function} handler func
+ */
+bdrs.map.getPopupRightHandler = function(newContentState){
+    var contentState = newContentState;
+    return function(){
+        if (contentState.currentPage < contentState.itemArray.length - 1) {
+            contentState.currentPage += 1;
+            bdrs.map.displayPopupPage(contentState);
+        }
+    };
+};
+
+/**
+ * Displays the current page of the content state
+ * 
+ * @param {Object} contentState ContentState dict
+ */
 bdrs.map.displayPopupPage = function(contentState){
+    jQuery(".currentPage", contentState.popup.contentDiv).text(contentState.currentPage + 1);
+    
+    // if the html content has not been generated yet...
+    if (!contentState.itemArray[contentState.currentPage].htmlContent) {
+        // download and generate it.
+        bdrs.map.createPopupPage(contentState, contentState.currentPage);
+    } else {
+        bdrs.map.setPopupPageVisible(contentState);
+    }
+};
+
+/**
+ * Helper to get the record ID
+ * 
+ * @param {Object} item record
+ * @return {int} record ID or null
+ */
+bdrs.map.getItemRecordId = function(item) {
+    if (item.type === "record") {
+        return item.recordId;
+    } else {
+        return null;
+    }
+};
+
+/**
+ * Helper to get the geo map feature ID
+ * 
+ * @param {Object} item geo map feature
+ * @return {int} geo map feature ID or null
+ */
+bdrs.map.getItemFeatureId = function(item) {
+    if (item.type === "geoMapFeature") {
+        return item.id;
+    } else {
+        return null;
+    }
+};
+
+/**
+ * Create the popup page
+ * 
+ * @param {Object} contentState ContentState dict
+ * @param {int} itemIndex item index
+ * It must fulfill an interface, see in code.
+ */
+bdrs.map.createPopupPage = function(contentState, itemIndex) {
+    var itemIndex = contentState.currentPage;
+    var item = contentState.itemArray[itemIndex];
+    var type = item.type;
+    var surveyId = item["surveyId"];
+    
+    var getInfoFunc = null;
+    var id = null;
+    if (type === "record") {
+        getInfoFunc = bdrs.map.getRecord;
+        id = bdrs.map.getItemRecordId(item);
+    } else if (type === "geoMapFeature") {
+        getInfoFunc = bdrs.map.getFeature;
+        id = bdrs.map.getItemFeatureId(item);
+    } else {
+        throw 'type not handled : ' + type;
+    }
+    
+    if (!id) {
+        throw 'invalid id to try to fetch : ' + id;
+    }
+    
+    jQuery(".loadingPageSpinner").show();
+    // keep track of loading counter to stop popup jitter
+    contentState.loadingCounter += 1;
+    
+    getInfoFunc(id, 
+        // success handler
+        function(rec) {
+            item.htmlContent = bdrs.map.createContentHtml(rec, itemIndex);
+            bdrs.map.appendContentPage(contentState, item.htmlContent);
+        },
+        // error handler
+        function(ev) {
+            // create page saying failed to get data
+            console.log('error getting attributes');
+        },
+        // complete handler
+        function() {
+            contentState.loadingCounter -= 1;
+            if (contentState.loadingCounter === 0) {
+                jQuery(".loadingPageSpinner").hide();
+                bdrs.map.setPopupPageVisible(contentState);
+                contentState.popup.show();
+            }
+        }
+    );
+};
+
+/**
+ * Makes the current page visible
+ * 
+ * @param {Object} contentState ContentState dict
+ */
+bdrs.map.setPopupPageVisible = function(contentState){
     jQuery(".currentPage", contentState.popup.contentDiv).text(contentState.currentPage + 1);
     // if a query manager was passed in, query the map server appropriately!
     if (contentState.mapServerQueryManager) {
@@ -2395,18 +2589,7 @@ bdrs.map.displayPopupPage = function(contentState){
         // show the left arrow
         jQuery(".shiftContentLeft").css("visibility", "visible");
     }
-    
     contentState.popup.updateSize();
-};
-
-bdrs.map.getPopupRightHandler = function(newContentState){
-    var contentState = newContentState;
-    return function(){
-        if (contentState.currentPage < contentState.itemArray.length - 1) {
-            contentState.currentPage += 1;
-            bdrs.map.displayPopupPage(contentState);
-        }
-    };
 };
 
 //-----------------------------------------------
@@ -2854,7 +3037,6 @@ bdrs.map.initAjaxFeatureLookupClickHandler = function(map, options){
                         bdrs.map.createFeaturePopup(map, googleProjectionLonLat, data["items"], popupOptions);
                     }
                 },
-                
                 error: function(data){
                     bdrs.message.set("Error retrieving feature info");
                 }
@@ -2891,6 +3073,7 @@ bdrs.map.clearPopups = function(map){
 };
 
 bdrs.map.createFeaturePopup = function(map, googleProjectionLonLatPos, featureArray, options){
+    
     if (!options) {
         options = {};
     }
@@ -2907,9 +3090,9 @@ bdrs.map.createFeaturePopup = function(map, googleProjectionLonLatPos, featureAr
     var cyclerDiv = jQuery("<div></div>").addClass("textcenter").appendTo(content);
     
     // only add the arrows if more than one total page
-    var leftShiftDiv = jQuery('<div></div>').addClass("shiftContentLeftContainer").appendTo(content);;
+    var leftShiftDiv = jQuery('<div><span class="loadingPageSpinner"><img src="' + bdrs.contextPath + '/images/wdTree/tree/loading.gif" /></span></div>').addClass("shiftContentLeftContainer").appendTo(content);;
     var rightShiftDiv = jQuery('<div></div>').addClass("shiftContentRightContainer textright").appendTo(content);
-    jQuery('<img src="' + bdrs.contextPath + '/images/icons/left.png" />').addClass("shiftContentLeft").appendTo(leftShiftDiv);
+    jQuery('<img src="' + bdrs.contextPath + '/images/icons/left.png" />').addClass("shiftContentLeft").prependTo(leftShiftDiv);
     jQuery("<span></span>").addClass("currentPage").appendTo(cyclerDiv);
     jQuery("<span>&nbsp;of&nbsp;</span>").appendTo(cyclerDiv);
     jQuery("<span></span>").addClass("totalPages").appendTo(cyclerDiv);
@@ -2929,6 +3112,8 @@ bdrs.map.createFeaturePopup = function(map, googleProjectionLonLatPos, featureAr
         popup.feature = feature;
     }
     
+    // popup is hidden until data is finished downloading / rendering.
+    popup.hide();
     map.addPopup(popup);
     
     // now the dom is recreated from our content string, add our handlers and content state

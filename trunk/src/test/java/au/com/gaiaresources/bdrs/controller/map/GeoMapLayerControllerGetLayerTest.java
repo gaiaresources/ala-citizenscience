@@ -215,22 +215,16 @@ public class GeoMapLayerControllerGetLayerTest extends AbstractControllerTest {
         {
             JSONObject obj = getFeature(JsonService.JSON_ITEM_TYPE_RECORD, recordOwnerOnly.getId().longValue(), items);
             Assert.assertNotNull(obj);
-            JSONArray attributes = obj.getJSONArray(JsonService.JSON_KEY_ATTRIBUTES); 
             
-            Assert.assertEquals(1, getAttribute(attributes, recAttr1.getDescription()).getLong(JsonService.JSON_KEY_ATTR_VALUE));
-            Assert.assertEquals("two", getAttribute(attributes, recAttr2.getDescription()).getString(JsonService.JSON_KEY_ATTR_VALUE));
-            Assert.assertEquals("three", getAttribute(attributes, recAttr3.getDescription()).getString(JsonService.JSON_KEY_ATTR_VALUE));
+            Assert.assertFalse("attribute array should not be included", obj.has(JsonService.JSON_KEY_ATTRIBUTES));
             
             Assert.assertEquals("Standard Taxonomic", obj.getString(JsonService.RECORD_KEY_CENSUS_METHOD));
         }
         {
             JSONObject obj = getFeature(JsonService.JSON_ITEM_TYPE_RECORD, recordPublic.getId().longValue(), items);
             Assert.assertNotNull(obj);
-            JSONArray attributes = obj.getJSONArray(JsonService.JSON_KEY_ATTRIBUTES); 
             
-            Assert.assertEquals(7, getAttribute(attributes, recAttr1.getDescription()).getLong(JsonService.JSON_KEY_ATTR_VALUE));
-            Assert.assertEquals("eight", getAttribute(attributes, recAttr2.getDescription()).getString(JsonService.JSON_KEY_ATTR_VALUE));
-            Assert.assertEquals("nine", getAttribute(attributes, recAttr3.getDescription()).getString(JsonService.JSON_KEY_ATTR_VALUE));
+            Assert.assertFalse("attribute array should not be included", obj.has(JsonService.JSON_KEY_ATTRIBUTES));
             
             Assert.assertEquals("Standard Taxonomic", obj.getString(JsonService.RECORD_KEY_CENSUS_METHOD));
         }
@@ -260,22 +254,15 @@ public class GeoMapLayerControllerGetLayerTest extends AbstractControllerTest {
         {
             JSONObject obj = getFeature(JsonService.JSON_ITEM_TYPE_RECORD, recordPublic.getId().longValue(), items);
             Assert.assertNotNull(obj);
-            JSONArray attributes = obj.getJSONArray(JsonService.JSON_KEY_ATTRIBUTES); 
             
-            Assert.assertEquals("expect all attributes to be present", 3, attributes.size());
-            
-            Assert.assertEquals(7, getAttribute(attributes, recAttr1.getDescription()).getLong(JsonService.JSON_KEY_ATTR_VALUE));
-            Assert.assertEquals("eight", getAttribute(attributes, recAttr2.getDescription()).getString(JsonService.JSON_KEY_ATTR_VALUE));
-            Assert.assertEquals("nine", getAttribute(attributes, recAttr3.getDescription()).getString(JsonService.JSON_KEY_ATTR_VALUE));
+            Assert.assertFalse("attribute array should not be included", obj.has(JsonService.JSON_KEY_ATTRIBUTES));
             
             Assert.assertEquals("Standard Taxonomic", obj.getString(JsonService.RECORD_KEY_CENSUS_METHOD));
         }
         {
             JSONObject obj = getFeature(JsonService.JSON_ITEM_TYPE_RECORD, recordControlled.getId().longValue(), items);
             Assert.assertNotNull(obj);
-            JSONArray attributes = obj.getJSONArray(JsonService.JSON_KEY_ATTRIBUTES); 
-            
-            Assert.assertEquals("there should be no attributes", 0, attributes.size());
+            Assert.assertFalse("attribute array should not be included", obj.has(JsonService.JSON_KEY_ATTRIBUTES));
         }
     }
     
@@ -300,22 +287,16 @@ public class GeoMapLayerControllerGetLayerTest extends AbstractControllerTest {
         {
             JSONObject obj = getFeature(JsonService.JSON_ITEM_TYPE_RECORD, recordPublic.getId().longValue(), items);
             Assert.assertNotNull(obj);
-            JSONArray attributes = obj.getJSONArray(JsonService.JSON_KEY_ATTRIBUTES); 
             
-            Assert.assertEquals("expect all attributes to be present", 3, attributes.size());
-            
-            Assert.assertEquals(7, getAttribute(attributes, recAttr1.getDescription()).getLong(JsonService.JSON_KEY_ATTR_VALUE));
-            Assert.assertEquals("eight", getAttribute(attributes, recAttr2.getDescription()).getString(JsonService.JSON_KEY_ATTR_VALUE));
-            Assert.assertEquals("nine", getAttribute(attributes, recAttr3.getDescription()).getString(JsonService.JSON_KEY_ATTR_VALUE));
+            Assert.assertFalse("attribute array should not be included", obj.has(JsonService.JSON_KEY_ATTRIBUTES));
             
             Assert.assertEquals("Standard Taxonomic", obj.getString(JsonService.RECORD_KEY_CENSUS_METHOD));
         }
         {
             JSONObject obj = getFeature(JsonService.JSON_ITEM_TYPE_RECORD, recordControlled.getId().longValue(), items);
             Assert.assertNotNull(obj);
-            JSONArray attributes = obj.getJSONArray(JsonService.JSON_KEY_ATTRIBUTES); 
             
-            Assert.assertEquals("there should be no attributes", 0, attributes.size());
+            Assert.assertFalse("attribute array should not be included", obj.has(JsonService.JSON_KEY_ATTRIBUTES));
         }
     }
     

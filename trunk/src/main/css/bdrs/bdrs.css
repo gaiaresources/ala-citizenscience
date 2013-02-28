@@ -120,6 +120,12 @@
     margin-top: -1.8em;
 }
 
+/* styling for loading spinner in popup */
+.loadingPageSpinner {
+    padding-bottom: 1px;
+    padding-left: 3px;  
+}
+
 /***********************************************/
 /*  Layout for the Email Users and Groups page */
 /***********************************************/
@@ -2308,4 +2314,3 @@ div.ui-datepicker-buttonpane button.ui-priority-secondary {
     opacity: 1;
     filter: Alpha(Opacity=100);
 }
- 

@@ -272,7 +272,7 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
                                                             getParameter(newParamMap, SORT_BY_QUERY_PARAM_NAME), 
                                                             getParameter(newParamMap, SORT_ORDER_QUERY_PARAM_NAME),
                                                             getParameter(newParamMap, SEARCH_QUERY_PARAM_NAME));
-        advancedReviewKMLSightings(request, response, facetList, sr);
+        advancedReviewKMLSightings(request, response, facetList, sr, false);
     }
     
     /**
@@ -618,8 +618,8 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
     */
     @Override
     protected void writeKMLResults(KMLWriter writer, User currentUser,
-            String contextPath, List<Record> rList) {
-        KMLUtils.writeRecords(writer, currentUser, contextPath, rList);
+            String contextPath, List<Record> rList, boolean serializeAttributes) {
+        KMLUtils.writeRecords(writer, currentUser, contextPath, rList, serializeAttributes);
     }
 
     /*

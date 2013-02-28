@@ -81,9 +81,20 @@ public class JsonService {
      * 
      * @param record - the record to convert to json
      * @param hideDetails - whether or not we should hide the details of the record. In general, on a public map we will hide the details
-     * @return
+     * @return jsonified record
      */
     public JSONObject toJson(AccessControlledRecordAdapter record, String contextPath, SpatialUtilFactory spatialUtilFactory) {
+        return toJson(record, contextPath, spatialUtilFactory, false);
+    }
+    
+    /**
+     * @param record - the record to convert to json
+     * @param hideDetails - whether or not we should hide the details of the record. In general, on a public map we will hide the details
+     * @param serializeAttributeValues - whether to serialize the attribute values. Serializing the attribute values is slow so we want to avoid it
+     * when iterating over large amounts of records.
+     * @return jsonified record
+     */
+    public JSONObject toJson(AccessControlledRecordAdapter record, String contextPath, SpatialUtilFactory spatialUtilFactory, boolean serializeAttributeValues) {
         if (contextPath == null) {
             throw new IllegalArgumentException("String, contextPath, cannot be null");
         }
@@ -113,8 +124,12 @@ public class JsonService {
         }
         
         addToAttributeMap(attrMap, RECORD_KEY_HABITAT, record.getHabitat());
-        addToAttributeMap(attrMap, JSON_KEY_ATTRIBUTES, getOrderedAttributes(record.getOrderedAttributes(), contextPath));
-        addToAttributeMap(attrMap, RECORD_KEY_BEHAVIOUR, record.getBehaviour());   
+        
+        if (serializeAttributeValues) {
+            addToAttributeMap(attrMap, JSON_KEY_ATTRIBUTES, getOrderedAttributes(record.getOrderedAttributes(), contextPath));
+        }
+        
+        addToAttributeMap(attrMap, RECORD_KEY_BEHAVIOUR, record.getBehaviour());
         
         if(record.getWhen() != null) {
             addToAttributeMap(attrMap, RECORD_KEY_WHEN, record.getWhen().getTime());
@@ -155,13 +170,30 @@ public class JsonService {
     	return obj;
     }
     
+    /**
+     * Serialize a geo map feature, no attributes.
+     * @param feature geo map feature to serialize
+     * @return JSONObject
+     */
     public JSONObject toJson(GeoMapFeature feature) {
+        return toJson(feature, false);
+    }
+    
+    /**
+     * Serialize a geo map feature
+     * @param feature feature to serialize
+     * @param serializeAttributes true to include attributes (slow db access over large data sets)
+     * @return JSONObject
+     */
+    public JSONObject toJson(GeoMapFeature feature, boolean serializeAttributes) {
         Map<String, Object> attrMap = new HashMap<String, Object>(3);
         attrMap.put(JSON_KEY_ID, feature.getId());
         attrMap.put(JSON_KEY_TYPE, JSON_ITEM_TYPE_MAP_FEATURE);
         // it's ok to use an empty context path here since GeoMapFeatures cannot have file attributes
         // which is the only type that requires the contextPath to create the download link
-        attrMap.put(JSON_KEY_ATTRIBUTES, getOrderedAttributes(feature.getOrderedAttributes(), ""));
+        if (serializeAttributes) {
+            attrMap.put(JSON_KEY_ATTRIBUTES, getOrderedAttributes(feature.getOrderedAttributes(), ""));
+        }
         return JSONObject.fromMapToJSONObject(attrMap);
     }
     
