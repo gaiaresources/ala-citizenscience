@@ -954,6 +954,8 @@ public abstract class AbstractBulkDataService {
                 }
 
                 Set<AttributeValue> recAttrSet = new HashSet<AttributeValue>();
+                Set<AttributeValue> delAttrSet = new HashSet<AttributeValue>();
+                
                 if (species != null) {
                     for (Attribute taxonAttr : species.getTaxonGroup().getAttributes()) {
                         String recAttrValue = recordUpload.getNamedAttribute(XlsRecordRow.SURVEY_ATTR_NAMESPACE, taxonAttr.getName());
@@ -968,9 +970,22 @@ public abstract class AbstractBulkDataService {
                 for (Attribute surveyAttr : survey.getAttributes()) {
                     if (!AttributeScope.LOCATION.equals(surveyAttr.getScope())) {
                         String recAttrValue = recordUpload.getNamedAttribute(XlsRecordRow.SURVEY_ATTR_NAMESPACE, surveyAttr.getDescription());
-                        if (org.springframework.util.StringUtils.hasLength(recAttrValue)) {
-                            AttributeValue recAttr = createAttributeValue(sesh, recordAttributeMap, surveyAttr, recAttrValue, survey, bulkUpload);
-                            recAttrSet.add(recAttr);
+                        // If there is no column for the attribute, recAttrValue will be null.
+                        // For certain attribute types e.g. image, audio, file there will be no column in the exported spreadsheet, 
+                        // these will be ignored when writing to the record.
+                        // There are also special 'orphan' attributes like Field Name which won't be on the exported spreadsheet.
+                        if (recAttrValue != null) {
+                            // There is a column for the attribute.
+                            // Delete if the value is an empty string!
+                            if (!recAttrValue.isEmpty()) {
+                                AttributeValue recAttr = createAttributeValue(sesh, recordAttributeMap, surveyAttr, recAttrValue, survey, bulkUpload);
+                                recAttrSet.add(recAttr);
+                            } else {
+                                AttributeValue av = recordAttributeMap.get(surveyAttr);
+                                if (av != null) {
+                                    delAttrSet.add(av);
+                                }
+                            }
                         }
                     }
                 }
@@ -979,13 +994,34 @@ public abstract class AbstractBulkDataService {
                     for (Attribute censusMethodAttr : cm.getAttributes()) {
                         String cmNamespace = bulkDataReadWriteService.formatCensusMethodNameId(cm);
                         String cmAttrValue = recordUpload.getNamedAttribute(cmNamespace, censusMethodAttr.getDescription());
-                        if (org.springframework.util.StringUtils.hasLength(cmAttrValue)) {
-                            AttributeValue recAttr = createAttributeValue(sesh, recordAttributeMap, censusMethodAttr, cmAttrValue, survey, bulkUpload);
-                            recAttrSet.add(recAttr);
+                        // If there is no column for the attribute, recAttrValue will be null.
+                        // For certain attribute types e.g. image, audio, file there will be no column in the exported spreadsheet, 
+                        // these will be ignored when writing to the record.
+                        // There are also special 'orphan' attributes like Field Name which won't be on the exported spreadsheet.
+                        if (cmAttrValue != null) {
+                            // There is a column for the attribute.
+                            // Delete if the value is an empty string!
+                            if (!cmAttrValue.isEmpty()) {
+                                AttributeValue recAttr = createAttributeValue(sesh, recordAttributeMap, censusMethodAttr, cmAttrValue, survey, bulkUpload);
+                                recAttrSet.add(recAttr);
+                            } else {
+                                AttributeValue av = recordAttributeMap.get(censusMethodAttr);
+                                if (av != null) {
+                                    delAttrSet.add(av);
+                                }
+                            }
                         }
                     }
                 }
 
+                // We still want to preserve all of the old attribute values.
+                // Since we are using a set, this should avoid duplicates.
+                // If attribute values are marked for deletion then don't add them!
+                for (AttributeValue av : rec.getAttributes()) {
+                    if (!delAttrSet.contains(av)) {
+                        recAttrSet.add(av);
+                    }
+                }
                 rec.setAttributes(recAttrSet);
 
                 // Set record visibility to survey default. Setting via web form not supported.
@@ -996,8 +1032,8 @@ public abstract class AbstractBulkDataService {
                 records.add(rec);
 
                 // Delete any remaining RecordAttributes
-                for (AttributeValue delRecAttr : recordAttributeMap.values()) {
-                    recordDAO.delete(sesh, delRecAttr);
+                for (AttributeValue av : delAttrSet) {
+                    recordDAO.delete(sesh, av);
                 }
                 
                 count += 1;
