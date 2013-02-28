@@ -25,6 +25,7 @@ import junit.framework.Assert;
 
 import org.apache.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -61,6 +62,7 @@ import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValueDAO;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
@@ -74,6 +76,8 @@ import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 import com.vividsolutions.jts.geom.Point;
 
 public class BulkDataServiceTest extends AbstractControllerTest {
+    
+    private static final int HEADER_ROW_IDX = 2;
 
     @Autowired
     private BulkDataService bulkDataService;
@@ -85,6 +89,8 @@ public class BulkDataServiceTest extends AbstractControllerTest {
     private RecordDAO recDAO;
     @Autowired
     private AttributeDAO attrDAO;
+    @Autowired
+    private AttributeValueDAO avDAO;
     @Autowired
     private BulkDataReadWriteService bdrws;
     @Autowired
@@ -109,6 +115,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
     CensusMethod cm2;
     Attribute testAttr3;
     Attribute testAttr4;
+    Attribute orphanAttr;
 
     Attribute surveyAttr1;
     Attribute surveyAttr2;
@@ -167,6 +174,9 @@ public class BulkDataServiceTest extends AbstractControllerTest {
         survey.getCensusMethods().add(cm2);
 
         survey.getCensusMethods().add(cm2);
+        
+        // Attribute values made from this attribute should not be changed during imports.
+        orphanAttr = createAttribute("orphanattr", "orphan", true, AttributeScope.RECORD, false, "ST");
 
         // make cm1 and cm2 do the recursion thing
         cm.getCensusMethods().add(cm2);
@@ -331,65 +341,65 @@ public class BulkDataServiceTest extends AbstractControllerTest {
                 .getRow(0).getCell(0).getStringCellValue());
 
         // The header - contains the attribute names
-        Assert.assertNotNull(obSheet.getRow(2));
+        Assert.assertNotNull(obSheet.getRow(HEADER_ROW_IDX));
 
 		int colIdx = 0;
-		Assert.assertEquals("ID", obSheet.getRow(2).getCell(colIdx++)
+		Assert.assertEquals("ID", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
 				.getStringCellValue());
-		Assert.assertEquals("Parent ID", obSheet.getRow(2).getCell(colIdx++)
+		Assert.assertEquals("Parent ID", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
 				.getStringCellValue());
-		Assert.assertEquals("Census Method ID", obSheet.getRow(2).getCell(
+		Assert.assertEquals("Census Method ID", obSheet.getRow(HEADER_ROW_IDX).getCell(
 				colIdx++).getStringCellValue());
-		Assert.assertEquals("Census Method", obSheet.getRow(2)
+		Assert.assertEquals("Census Method", obSheet.getRow(HEADER_ROW_IDX)
 				.getCell(colIdx++).getStringCellValue());
-		Assert.assertEquals("Scientific Name", obSheet.getRow(2).getCell(
+		Assert.assertEquals("Scientific Name", obSheet.getRow(HEADER_ROW_IDX).getCell(
 				colIdx++).getStringCellValue());
-		Assert.assertEquals("Common Name", obSheet.getRow(2).getCell(colIdx++)
+		Assert.assertEquals("Common Name", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
 				.getStringCellValue());
-		Assert.assertEquals("Location ID", obSheet.getRow(2).getCell(colIdx++)
+		Assert.assertEquals("Location ID", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
 				.getStringCellValue());
-		Assert.assertEquals("Location Name", obSheet.getRow(2)
+		Assert.assertEquals("Location Name", obSheet.getRow(HEADER_ROW_IDX)
 				.getCell(colIdx++).getStringCellValue());
-		Assert.assertEquals("Latitude/Northings", obSheet.getRow(2).getCell(colIdx++)
+		Assert.assertEquals("Latitude/Northings", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
 				.getStringCellValue());
-		Assert.assertEquals("Longitude/Eastings", obSheet.getRow(2).getCell(colIdx++)
+		Assert.assertEquals("Longitude/Eastings", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
 				.getStringCellValue());
-		Assert.assertEquals("wrong header", EPSG_HEADER, obSheet.getRow(2).getCell(colIdx++)
+		Assert.assertEquals("wrong header", EPSG_HEADER, obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
 				.getStringCellValue());
 		Assert.assertEquals(new RecordProperty(survey, RecordPropertyType.WHEN,
-				metadataDAO).getDescription(), obSheet.getRow(2).getCell(
+				metadataDAO).getDescription(), obSheet.getRow(HEADER_ROW_IDX).getCell(
 				colIdx++).getStringCellValue());
 		Assert.assertEquals(new RecordProperty(survey, RecordPropertyType.TIME,
-				metadataDAO).getDescription(), obSheet.getRow(2).getCell(
+				metadataDAO).getDescription(), obSheet.getRow(HEADER_ROW_IDX).getCell(
 				colIdx++).getStringCellValue());
 		Assert.assertEquals(new RecordProperty(survey,
 				RecordPropertyType.NUMBER, metadataDAO).getDescription(),
-				obSheet.getRow(2).getCell(colIdx++).getStringCellValue());
+				obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++).getStringCellValue());
 		Assert.assertEquals(new RecordProperty(survey,
 				RecordPropertyType.NOTES, metadataDAO).getDescription(),
-				obSheet.getRow(2).getCell(colIdx++).getStringCellValue());
+				obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++).getStringCellValue());
 
-        Assert.assertEquals("sdesc1", obSheet.getRow(2).getCell(colIdx++)
+        Assert.assertEquals("sdesc1", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
                 .getStringCellValue());
-        Assert.assertEquals("sdesc2", obSheet.getRow(2).getCell(colIdx++)
+        Assert.assertEquals("sdesc2", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
                 .getStringCellValue());
 
         // cm1
         Assert.assertEquals(bdrws.formatCensusMethodNameId(cm), obSheet.getRow(
                 1).getCell(colIdx).getStringCellValue());
-        Assert.assertEquals("desc1", obSheet.getRow(2).getCell(colIdx++)
+        Assert.assertEquals("desc1", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
                 .getStringCellValue());
 
-        Assert.assertEquals("desc2", obSheet.getRow(2).getCell(colIdx++)
+        Assert.assertEquals("desc2", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
                 .getStringCellValue());
 
         // cm2
         Assert.assertEquals(bdrws.formatCensusMethodNameId(cm2), obSheet
                 .getRow(1).getCell(colIdx).getStringCellValue());
-        Assert.assertEquals("desc3", obSheet.getRow(2).getCell(colIdx++)
+        Assert.assertEquals("desc3", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
                 .getStringCellValue());
 
-        Assert.assertEquals("desc4", obSheet.getRow(2).getCell(colIdx++)
+        Assert.assertEquals("desc4", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
                 .getStringCellValue());
 
         // Location Sheet
@@ -544,51 +554,51 @@ public class BulkDataServiceTest extends AbstractControllerTest {
                 .getRow(0).getCell(0).getStringCellValue());
 
         // The header - contains the attribute names
-        Assert.assertNotNull(obSheet.getRow(2));
+        Assert.assertNotNull(obSheet.getRow(HEADER_ROW_IDX));
 
 		int colIdx = 0;
-		Assert.assertEquals("ID", obSheet.getRow(2).getCell(colIdx++)
+		Assert.assertEquals("ID", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
 				.getStringCellValue());
-		Assert.assertEquals("Parent ID", obSheet.getRow(2).getCell(colIdx++)
+		Assert.assertEquals("Parent ID", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
 				.getStringCellValue());
-		Assert.assertEquals("Census Method ID", obSheet.getRow(2).getCell(
+		Assert.assertEquals("Census Method ID", obSheet.getRow(HEADER_ROW_IDX).getCell(
 				colIdx++).getStringCellValue());
-		Assert.assertEquals("Census Method", obSheet.getRow(2)
+		Assert.assertEquals("Census Method", obSheet.getRow(HEADER_ROW_IDX)
 				.getCell(colIdx++).getStringCellValue());
-		Assert.assertEquals("Scientific Name", obSheet.getRow(2).getCell(
+		Assert.assertEquals("Scientific Name", obSheet.getRow(HEADER_ROW_IDX).getCell(
 				colIdx++).getStringCellValue());
-		Assert.assertEquals("Common Name", obSheet.getRow(2).getCell(colIdx++)
+		Assert.assertEquals("Common Name", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
 				.getStringCellValue());
-		Assert.assertEquals("Location ID", obSheet.getRow(2).getCell(colIdx++)
+		Assert.assertEquals("Location ID", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
 				.getStringCellValue());
-		Assert.assertEquals("Location Name", obSheet.getRow(2)
+		Assert.assertEquals("Location Name", obSheet.getRow(HEADER_ROW_IDX)
 				.getCell(colIdx++).getStringCellValue());
-		Assert.assertEquals("Latitude/Northings", obSheet.getRow(2).getCell(colIdx++)
+		Assert.assertEquals("Latitude/Northings", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
 				.getStringCellValue());
-		Assert.assertEquals("Longitude/Eastings", obSheet.getRow(2).getCell(colIdx++)
+		Assert.assertEquals("Longitude/Eastings", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
 				.getStringCellValue());
-		Assert.assertEquals("wrong header", EPSG_HEADER, obSheet.getRow(2).getCell(colIdx++)
+		Assert.assertEquals("wrong header", EPSG_HEADER, obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
 				.getStringCellValue());
 		Assert.assertEquals(new RecordProperty(survey, RecordPropertyType.WHEN,
-				metadataDAO).getDescription(), obSheet.getRow(2).getCell(
+				metadataDAO).getDescription(), obSheet.getRow(HEADER_ROW_IDX).getCell(
 				colIdx++).getStringCellValue());
 		Assert.assertEquals(new RecordProperty(survey, RecordPropertyType.TIME,
-				metadataDAO).getDescription(), obSheet.getRow(2).getCell(
+				metadataDAO).getDescription(), obSheet.getRow(HEADER_ROW_IDX).getCell(
 				colIdx++).getStringCellValue());
 		Assert.assertEquals(new RecordProperty(survey,
 				RecordPropertyType.NUMBER, metadataDAO).getDescription(),
-				obSheet.getRow(2).getCell(colIdx++).getStringCellValue());
+				obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++).getStringCellValue());
 		Assert.assertEquals(new RecordProperty(survey,
 				RecordPropertyType.NOTES, metadataDAO).getDescription(),
-				obSheet.getRow(2).getCell(colIdx++).getStringCellValue());
+				obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++).getStringCellValue());
 
-        Assert.assertEquals("sdesc1", obSheet.getRow(2).getCell(colIdx++)
+        Assert.assertEquals("sdesc1", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
                 .getStringCellValue());
-        Assert.assertEquals("sdesc2", obSheet.getRow(2).getCell(colIdx++)
+        Assert.assertEquals("sdesc2", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
                 .getStringCellValue());
 
         Assert.assertNull(obSheet.getRow(1).getCell(colIdx));
-        Assert.assertNull(obSheet.getRow(2).getCell(colIdx++));
+        Assert.assertNull(obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++));
     }
 
     /**
@@ -627,47 +637,47 @@ public class BulkDataServiceTest extends AbstractControllerTest {
                 .getRow(0).getCell(0).getStringCellValue());
 
         // The header - contains the attribute names
-        Assert.assertNotNull(obSheet.getRow(2));
+        Assert.assertNotNull(obSheet.getRow(HEADER_ROW_IDX));
 
 		int colIdx = 0;
-		Assert.assertEquals("ID", obSheet.getRow(2).getCell(colIdx++)
+		Assert.assertEquals("ID", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
 				.getStringCellValue());
-		Assert.assertEquals("Parent ID", obSheet.getRow(2).getCell(colIdx++)
+		Assert.assertEquals("Parent ID", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
 				.getStringCellValue());
-		Assert.assertEquals("Census Method ID", obSheet.getRow(2).getCell(
+		Assert.assertEquals("Census Method ID", obSheet.getRow(HEADER_ROW_IDX).getCell(
 				colIdx++).getStringCellValue());
-		Assert.assertEquals("Census Method", obSheet.getRow(2)
+		Assert.assertEquals("Census Method", obSheet.getRow(HEADER_ROW_IDX)
 				.getCell(colIdx++).getStringCellValue());
-		Assert.assertEquals("Scientific Name", obSheet.getRow(2).getCell(
+		Assert.assertEquals("Scientific Name", obSheet.getRow(HEADER_ROW_IDX).getCell(
 				colIdx++).getStringCellValue());
-		Assert.assertEquals("Common Name", obSheet.getRow(2).getCell(colIdx++)
+		Assert.assertEquals("Common Name", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
 				.getStringCellValue());
-		Assert.assertEquals("Location ID", obSheet.getRow(2).getCell(colIdx++)
+		Assert.assertEquals("Location ID", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
 				.getStringCellValue());
-		Assert.assertEquals("Location Name", obSheet.getRow(2)
+		Assert.assertEquals("Location Name", obSheet.getRow(HEADER_ROW_IDX)
 				.getCell(colIdx++).getStringCellValue());
-		Assert.assertEquals("Latitude/Northings", obSheet.getRow(2).getCell(colIdx++)
+		Assert.assertEquals("Latitude/Northings", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
 				.getStringCellValue());
-		Assert.assertEquals("Longitude/Eastings", obSheet.getRow(2).getCell(colIdx++)
+		Assert.assertEquals("Longitude/Eastings", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
 				.getStringCellValue());
-		Assert.assertEquals("wrong header", EPSG_HEADER, obSheet.getRow(2).getCell(colIdx++)
+		Assert.assertEquals("wrong header", EPSG_HEADER, obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
 				.getStringCellValue());
 		Assert.assertEquals(recordProperties.get(RecordPropertyType.WHEN)
-				.getDescription(), obSheet.getRow(2).getCell(colIdx++)
+				.getDescription(), obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
 				.getStringCellValue());
 		Assert.assertEquals(recordProperties.get(RecordPropertyType.TIME)
-				.getDescription(), obSheet.getRow(2).getCell(colIdx++)
+				.getDescription(), obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
 				.getStringCellValue());
 		Assert.assertEquals(recordProperties.get(RecordPropertyType.NUMBER)
-				.getDescription(), obSheet.getRow(2).getCell(colIdx++)
+				.getDescription(), obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
 				.getStringCellValue());
 		Assert.assertEquals(recordProperties.get(RecordPropertyType.NOTES)
-				.getDescription(), obSheet.getRow(2).getCell(colIdx++)
+				.getDescription(), obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
 				.getStringCellValue());
 
-        Assert.assertEquals("sdesc1", obSheet.getRow(2).getCell(colIdx++)
+        Assert.assertEquals("sdesc1", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
                 .getStringCellValue());
-        Assert.assertEquals("sdesc2", obSheet.getRow(2).getCell(colIdx++)
+        Assert.assertEquals("sdesc2", obSheet.getRow(HEADER_ROW_IDX).getCell(colIdx++)
                 .getStringCellValue());
     }
 
@@ -947,6 +957,14 @@ public class BulkDataServiceTest extends AbstractControllerTest {
             record.getAttributes().add(recAttr);
         }
     }
+    
+    private void addOrphanAttr(Record rec, String value) {
+        AttributeValue av = new AttributeValue();
+        av.setAttribute(orphanAttr);
+        av.setStringValue(value);
+        avDAO.save(av);
+        rec.getAttributes().add(av);
+    }
 
     @SuppressWarnings("deprecation")
     @Test
@@ -967,8 +985,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
         // alternately, we could add a login to the test
         rec.setRecordVisibility(RecordVisibility.PUBLIC);
         createCensusMethodRecordAttributes(rec);
-
-        // cm.get
+        addOrphanAttr(rec, "parent");
 
         Record recChild = createRecord(survey, point, user, species, cal
                 .getTime(), cal.getTime().getTime(), null, null, "", false, false, "", "",
@@ -979,6 +996,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
         // alternately, we could add a login to the test
         recChild.setRecordVisibility(RecordVisibility.PUBLIC);
         createCensusMethodRecordAttributes(recChild);
+        addOrphanAttr(recChild, "child");
 
         List<Record> recListToDownload = new ArrayList<Record>();
         recListToDownload.add(rec);
@@ -1004,6 +1022,9 @@ public class BulkDataServiceTest extends AbstractControllerTest {
         Workbook wb = new HSSFWorkbook(inStream);
 
         Sheet obSheet = wb.getSheet(AbstractBulkDataService.RECORD_SHEET_NAME);
+        
+        List<String> headerList = this.getHeaderList(obSheet, HEADER_ROW_IDX);
+        Assert.assertFalse("must not contain orphan attr desc", headerList.contains(orphanAttr.getDescription()));
 
         {
             Row parentXlsRow = obSheet.getRow(3);
@@ -1168,6 +1189,12 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 
         Assert.assertNull(recChild.getParentRecord());
         Assert.assertEquals(1, rec.getChildRecords().size());
+        
+        // assert orphan attribute has not changed.
+        Assert.assertEquals("wrong parent orphan attribute value", 
+                            getAttributeValueByAttrId(rec, orphanAttr.getId()).getStringValue(), "parent");
+        Assert.assertEquals("wrong child orphan attribute value", 
+                            getAttributeValueByAttrId(recChild, orphanAttr.getId()).getStringValue(), "child");
     }
 
     @Test
@@ -2404,5 +2431,28 @@ public class BulkDataServiceTest extends AbstractControllerTest {
         }
         return atts;
         
+    }
+    
+    private AttributeValue getAttributeValueByAttrId(Record rec, Integer attrId) {
+        for (AttributeValue av : rec.getAttributes()) {
+            if (av.getAttribute().getId().equals(attrId)) {
+                return av;
+            }
+        }
+        return null;
+    }
+    
+    private List<String> getHeaderList(Sheet sheet, int headerRowIdx) {
+        int colIdx = 0;
+        List<String> result = new ArrayList<String>();
+        Row headerRow = sheet.getRow(headerRowIdx);
+        Cell c = headerRow.getCell(colIdx, Row.CREATE_NULL_AS_BLANK);
+        while (StringUtils.hasLength(c.getStringCellValue())) {
+            c = headerRow.getCell(colIdx, Row.CREATE_NULL_AS_BLANK);
+            result.add(c.getStringCellValue());
+            log.debug("cell value : " + c.getStringCellValue());
+            colIdx += 1;
+        }
+        return result;
     }
 }
