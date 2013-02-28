@@ -141,7 +141,7 @@ public class JsonServiceTest extends AbstractSpringContextTest {
     
     private void testRecordToJson_showAll(User accessor) {
         AccessControlledRecordAdapter recAdapter = new AccessControlledRecordAdapter(record, accessor);
-        JSONObject obj = jsonService.toJson(recAdapter, CONTEXT_PATH, spatialUtilFactory);
+        JSONObject obj = jsonService.toJson(recAdapter, CONTEXT_PATH, spatialUtilFactory, true);
         
         Assert.assertEquals("indicatus specius", obj.getString(JsonService.RECORD_KEY_SPECIES));
         Assert.assertEquals(owner.getFirstName() + " " + owner.getLastName(), obj.getString(JsonService.RECORD_KEY_USER));
@@ -178,7 +178,7 @@ public class JsonServiceTest extends AbstractSpringContextTest {
     @Test
     public void testRecordToJson_asNonOwner() {
         AccessControlledRecordAdapter recAdapter = new AccessControlledRecordAdapter(record, nonOwner);
-        JSONObject obj = jsonService.toJson(recAdapter, CONTEXT_PATH, spatialUtilFactory);
+        JSONObject obj = jsonService.toJson(recAdapter, CONTEXT_PATH, spatialUtilFactory, true);
         
         Assert.assertEquals(owner.getFirstName() + " " + owner.getLastName(), obj.getString(JsonService.RECORD_KEY_USER));
         Assert.assertEquals(owner.getId().intValue(), obj.getInt(JsonService.RECORD_KEY_USER_ID));
@@ -194,6 +194,24 @@ public class JsonServiceTest extends AbstractSpringContextTest {
         Assert.assertNotNull(attributes);
         
         Assert.assertEquals("expect empty array", 0, attributes.size());
+    }
+    
+    @Test
+    public void testRecordToJsonAsNonOwnerNoSerializeAttributes() {
+        AccessControlledRecordAdapter recAdapter = new AccessControlledRecordAdapter(record, nonOwner);
+        JSONObject obj = jsonService.toJson(recAdapter, CONTEXT_PATH, spatialUtilFactory, false);
+        
+        Assert.assertEquals(owner.getFirstName() + " " + owner.getLastName(), obj.getString(JsonService.RECORD_KEY_USER));
+        Assert.assertEquals(owner.getId().intValue(), obj.getInt(JsonService.RECORD_KEY_USER_ID));
+        
+        Assert.assertFalse(obj.containsKey(JsonService.RECORD_KEY_SPECIES));
+        Assert.assertFalse(obj.containsKey(JsonService.RECORD_KEY_BEHAVIOUR));
+        Assert.assertFalse(obj.containsKey(JsonService.RECORD_KEY_COMMON_NAME));
+        Assert.assertFalse(obj.containsKey(JsonService.RECORD_KEY_HABITAT));
+        Assert.assertFalse(obj.containsKey(JsonService.RECORD_KEY_NOTES));
+        Assert.assertFalse(obj.containsKey(JsonService.RECORD_KEY_NUMBER));
+        
+        Assert.assertFalse("expect no attributes", obj.has(JsonService.JSON_KEY_ATTRIBUTES));
     }
     
     private JSONObject getItemByName(JSONArray array, String name) {
