@@ -35,6 +35,7 @@ import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
 import au.com.gaiaresources.bdrs.db.impl.PaginationFilter;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.model.record.AccessControlledRecordAdapter;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
@@ -49,6 +50,7 @@ import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.service.bulkdata.AbstractBulkDataService;
+import au.com.gaiaresources.bdrs.service.web.JsonService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.util.SpatialUtil;
 import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
@@ -61,10 +63,17 @@ public class RecordService extends AbstractController {
      */
     public static final String AJAX_GET_CHILD_RECORD_URL = "/webservice/record/getChildRecords.htm"; 
     
+    public static final String GET_RECORD_BY_ID_V2_URL = "/webservice/record/getRecordById_v2.htm";
+    
     /**
      * Request parameter for parent record ID
      */
     public static final String PARAM_PARENT_RECORD_ID = "parentRecordId";
+    
+    /**
+     * Ident of user
+     */
+    public static final String PARAM_IDENT = "regkey";
     
     /**
      * Request parameter for census method ID
@@ -82,6 +91,8 @@ public class RecordService extends AbstractController {
     private TaxaService taxaService;
     @Autowired
     private AbstractBulkDataService bulkDataService;
+    @Autowired
+    private JsonService jsonService;
     
     private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
 
@@ -639,6 +650,36 @@ public class RecordService extends AbstractController {
         response.setContentType("application/json");
         response.getWriter().write(rec.toString());
 
+    }
+    
+    /**
+     * Outputs JSON suitable for displaying on BDRS maps.
+     *
+     * @param ident ident of user.
+     * @param recordPk record PK.
+     * @param serializeAttributeValues whether to serialize attribute values or not. defaults to true.
+     * @param request HttpServletRequest.
+     * @param response HttpServletReponse.
+     * @throws IOException Error writing to output stream.
+     */
+    @RequestMapping(value = GET_RECORD_BY_ID_V2_URL, method = RequestMethod.GET)
+    public void getRecordByIdV2(
+            @RequestParam(value = PARAM_IDENT, required = false) String ident,
+            @RequestParam(value = BdrsWebConstants.PARAM_RECORD_ID, defaultValue = "0", required = true) int recordPk,
+            @RequestParam(value = "serializeAv", required = false, defaultValue = "true") boolean serializeAttributeValues,
+            HttpServletRequest request, HttpServletResponse response) throws IOException {
+        User user = userDAO.getUserByRegistrationKey(ident);
+
+        Record record = recordDAO.getRecord(recordPk);
+        
+        // Filter data based on user permissions. Null user is OK
+        AccessControlledRecordAdapter ar = new AccessControlledRecordAdapter(record, user);
+
+        JSONObject recJson = jsonService.toJson(ar, request.getContextPath(), new SpatialUtilFactory(), serializeAttributeValues);
+
+        // return JSON
+        response.setContentType("application/json");
+        response.getWriter().write(recJson.toString());
     }
 
     @RequestMapping(value = "/webservice/record/getRecordAttributeById.htm", method = RequestMethod.GET)

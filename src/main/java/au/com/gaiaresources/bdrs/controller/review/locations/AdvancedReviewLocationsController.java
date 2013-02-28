@@ -222,7 +222,7 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
                                                                      getParameter(newParamMap, SORT_ORDER_QUERY_PARAM_NAME),
                                                                      getParameter(newParamMap, SEARCH_QUERY_PARAM_NAME),
                                                                      locationArea, null);
-        advancedReviewKMLSightings(request, response, facetList, sr);
+        advancedReviewKMLSightings(request, response, facetList, sr, true);
     }
     
     /**
@@ -502,7 +502,11 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
 
     @Override
     protected void writeKMLResults(KMLWriter writer, User currentUser,
-            String contextPath, List<Location> rList) {
+            String contextPath, List<Location> rList, boolean serializeAttributes) {
+        if (!serializeAttributes) {
+            throw new IllegalArgumentException("This implementation always serializes attributes");
+        }
+        // Ignore serializeAttributes for locations - we always serialize the attributes.
         KMLUtils.writeLocations(writer, contextPath, rList);
     }
     

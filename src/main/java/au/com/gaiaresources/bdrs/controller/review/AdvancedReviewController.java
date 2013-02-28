@@ -204,7 +204,7 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
      * Returns the list of results matching the {@link Facet} criteria as KML.
      */
     public void advancedReviewKMLSightings(HttpServletRequest request, HttpServletResponse response, 
-            List<Facet> facetList, ScrollableResults<T> sr) throws IOException, JAXBException {
+            List<Facet> facetList, ScrollableResults<T> sr, boolean serializeAttributes) throws IOException, JAXBException {
 
         KMLWriter writer = KMLUtils.createKMLWriter(request.getContextPath(), null, getKMLFolderName());
         User currentUser = getRequestContext().getUser();
@@ -218,12 +218,12 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
             
             // evict to ensure garbage collection
             if (++recordCount % ScrollableRecords.RESULTS_BATCH_SIZE == 0) {
-                writeKMLResults(writer, currentUser, contextPath, rList);
+                writeKMLResults(writer, currentUser, contextPath, rList, serializeAttributes);
                 rList.clear();
                 sesh.clear();
             }
         }
-        writeKMLResults(writer, currentUser, contextPath, rList);
+        writeKMLResults(writer, currentUser, contextPath, rList, serializeAttributes);
         
         response.setContentType(KMLUtils.KML_CONTENT_TYPE);
         writer.write(false, response.getOutputStream());
@@ -241,9 +241,11 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
      * @param currentUser the logged in user
      * @param contextPath the contextPath of the application
      * @param rList the list of results to write
+     * @param serializeAttributes whether to serialize attributes as json which is embedded in the KML. Is slow
+     * and can cause heap problems for large datasets
      */
     protected abstract void writeKMLResults(KMLWriter writer, User currentUser,
-            String contextPath, List<T> rList);
+            String contextPath, List<T> rList, boolean serializeAttributes);
 
     /**
      * Turns the supplied PortalPersistentImpl into an Map containing it's properties.

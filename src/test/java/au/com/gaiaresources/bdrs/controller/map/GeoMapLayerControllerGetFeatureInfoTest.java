@@ -9,8 +9,11 @@ import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
 
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
+import au.com.gaiaresources.bdrs.controller.webservice.RecordService;
 import au.com.gaiaresources.bdrs.geometry.GeometryBuilder;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
@@ -33,6 +36,7 @@ import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.web.JsonService;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 
 public class GeoMapLayerControllerGetFeatureInfoTest extends
         AbstractControllerTest {
@@ -81,8 +85,8 @@ public class GeoMapLayerControllerGetFeatureInfoTest extends
     @Before
     public void setup() throws Exception {
         
-        owner = userDAO.createUser("owner", "first", "last", "user@user.com", "password", "regkey", Role.USER);
-        nonOwner = userDAO.createUser("nonowner", "nonowner", "nonowner", "nonowner@user.com", "password", "regkey", Role.USER);
+        owner = userDAO.createUser("owner", "first", "last", "user@user.com", "password", "ownerregkey", Role.USER);
+        nonOwner = userDAO.createUser("nonowner", "nonowner", "nonowner", "nonowner@user.com", "password", "nonownerregkey", Role.USER);
         
         Calendar cal = Calendar.getInstance();
         cal.set(2011, 1, 1);
@@ -196,7 +200,7 @@ public class GeoMapLayerControllerGetFeatureInfoTest extends
     public void testWebservice_asAdmin() throws Exception {
 
         login("admin", "password", new String[] { Role.ADMIN });
-        testExpectAllRecordsWithFullDetailReturned();
+        testExpectAllRecordsWithFullDetailReturned(userDAO.getUser("admin"));
     }
     
     /**
@@ -207,10 +211,10 @@ public class GeoMapLayerControllerGetFeatureInfoTest extends
     public void testWebService_asOwner() throws Exception {
         
         login("owner", "password", new String[] { Role.USER });
-        testExpectAllRecordsWithFullDetailReturned();
+        testExpectAllRecordsWithFullDetailReturned(userDAO.getUser("owner"));
     }
     
-    private void testExpectAllRecordsWithFullDetailReturned() throws Exception {
+    private void testExpectAllRecordsWithFullDetailReturned(User loggedInUser) throws Exception {
         request.setRequestURI(GeoMapLayerController.GET_FEATURE_SERVICE_URL);
         request.setMethod("GET");
         
@@ -229,6 +233,12 @@ public class GeoMapLayerControllerGetFeatureInfoTest extends
         {
             JSONObject obj = getFeature(JsonService.JSON_ITEM_TYPE_RECORD, recordOwnerOnly.getId().longValue(), items);
             Assert.assertNotNull(obj);
+            
+            Assert.assertFalse("attribute array should not be included", obj.has(JsonService.JSON_KEY_ATTRIBUTES));
+            
+            // get the full object
+            obj = getRecordJson(obj.getInt("recordId"), loggedInUser);
+            
             JSONArray attributes = obj.getJSONArray(JsonService.JSON_KEY_ATTRIBUTES); 
             
             Assert.assertEquals(1, getAttribute(attributes, recAttr1.getDescription()).getLong(JsonService.JSON_KEY_ATTR_VALUE));
@@ -240,6 +250,12 @@ public class GeoMapLayerControllerGetFeatureInfoTest extends
         {
             JSONObject obj = getFeature(JsonService.JSON_ITEM_TYPE_RECORD, recordPublic.getId().longValue(), items);
             Assert.assertNotNull(obj);
+            
+            Assert.assertFalse("attribute array should not be included", obj.has(JsonService.JSON_KEY_ATTRIBUTES));
+            
+            // get the full object
+            obj = getRecordJson(obj.getInt("id"), loggedInUser);
+            
             JSONArray attributes = obj.getJSONArray(JsonService.JSON_KEY_ATTRIBUTES); 
             
             Assert.assertEquals(7, getAttribute(attributes, recAttr1.getDescription()).getLong(JsonService.JSON_KEY_ATTR_VALUE));
@@ -251,6 +267,12 @@ public class GeoMapLayerControllerGetFeatureInfoTest extends
         {
             JSONObject obj = getFeature(JsonService.JSON_ITEM_TYPE_RECORD, recordControlled.getId().longValue(), items);
             Assert.assertNotNull(obj);
+            
+            Assert.assertFalse("attribute array should not be included", obj.has(JsonService.JSON_KEY_ATTRIBUTES));
+            
+            // get the full object
+            obj = getRecordJson(obj.getInt("id"), loggedInUser);
+            
             JSONArray attributes = obj.getJSONArray(JsonService.JSON_KEY_ATTRIBUTES); 
             
             Assert.assertEquals(10, getAttribute(attributes, recAttr1.getDescription()).getLong(JsonService.JSON_KEY_ATTR_VALUE));
@@ -262,6 +284,12 @@ public class GeoMapLayerControllerGetFeatureInfoTest extends
         {
             JSONObject obj = getFeature(JsonService.JSON_ITEM_TYPE_MAP_FEATURE, gmf.getId().longValue(), items);
             Assert.assertNotNull(obj);
+            
+            Assert.assertFalse("attribute array should not be included", obj.has(JsonService.JSON_KEY_ATTRIBUTES));
+            
+            // get the full object
+            obj = getFeatureJson(obj.getInt("id"));
+            
             JSONArray attributes = obj.getJSONArray(JsonService.JSON_KEY_ATTRIBUTES);
             Assert.assertEquals(4, getAttribute(attributes, layerAttr1.getDescription()).getLong(JsonService.JSON_KEY_ATTR_VALUE));
             Assert.assertEquals("five", getAttribute(attributes, layerAttr2.getDescription()).getString(JsonService.JSON_KEY_ATTR_VALUE));
@@ -280,6 +308,7 @@ public class GeoMapLayerControllerGetFeatureInfoTest extends
     @Test
     public void testWebservice_asNonOwner() throws Exception {
         login("nonowner", "password", new String[] { Role.USER });
+        User u = userDAO.getUser("nonowner");
         
         request.setRequestURI(GeoMapLayerController.GET_FEATURE_SERVICE_URL);
         request.setMethod("GET");
@@ -299,7 +328,13 @@ public class GeoMapLayerControllerGetFeatureInfoTest extends
         {
             JSONObject obj = getFeature(JsonService.JSON_ITEM_TYPE_RECORD, recordPublic.getId().longValue(), items);
             Assert.assertNotNull(obj);
-            JSONArray attributes = obj.getJSONArray(JsonService.JSON_KEY_ATTRIBUTES); 
+             
+            Assert.assertFalse("attribute array should not be included", obj.has(JsonService.JSON_KEY_ATTRIBUTES));
+            
+            // get the full object
+            obj = getRecordJson(obj.getInt("recordId"), u);
+            
+            JSONArray attributes = obj.getJSONArray(JsonService.JSON_KEY_ATTRIBUTES);
             
             Assert.assertEquals("expect all attributes to be present", 3, attributes.size());
             
@@ -312,6 +347,12 @@ public class GeoMapLayerControllerGetFeatureInfoTest extends
         {
             JSONObject obj = getFeature(JsonService.JSON_ITEM_TYPE_RECORD, recordControlled.getId().longValue(), items);
             Assert.assertNotNull(obj);
+            
+            Assert.assertFalse("attribute array should not be included", obj.has(JsonService.JSON_KEY_ATTRIBUTES));
+            
+            // get the full object
+            obj = getRecordJson(obj.getInt("id"), u);
+            
             JSONArray attributes = obj.getJSONArray(JsonService.JSON_KEY_ATTRIBUTES); 
             
             Assert.assertEquals("there should be no attributes", 0, attributes.size());
@@ -320,10 +361,16 @@ public class GeoMapLayerControllerGetFeatureInfoTest extends
             // features are unaffected
             JSONObject obj = getFeature(JsonService.JSON_ITEM_TYPE_MAP_FEATURE, gmf.getId().longValue(), items);
             Assert.assertNotNull(obj);
+            Assert.assertFalse("attribute array should not be included", obj.has(JsonService.JSON_KEY_ATTRIBUTES));
+            
+            // get the full object
+            obj = getFeatureJson(obj.getInt("id"));
+            
             JSONArray attributes = obj.getJSONArray(JsonService.JSON_KEY_ATTRIBUTES);
             Assert.assertEquals(4, getAttribute(attributes, layerAttr1.getDescription()).getLong(JsonService.JSON_KEY_ATTR_VALUE));
             Assert.assertEquals("five", getAttribute(attributes, layerAttr2.getDescription()).getString(JsonService.JSON_KEY_ATTR_VALUE));
             Assert.assertEquals("six", getAttribute(attributes, layerAttr3.getDescription()).getString(JsonService.JSON_KEY_ATTR_VALUE));
+            
         }
     }
     
@@ -352,6 +399,11 @@ public class GeoMapLayerControllerGetFeatureInfoTest extends
         {
             JSONObject obj = getFeature(JsonService.JSON_ITEM_TYPE_RECORD, recordPublic.getId().longValue(), items);
             Assert.assertNotNull(obj);
+            Assert.assertFalse("attribute array should not be included", obj.has(JsonService.JSON_KEY_ATTRIBUTES));
+            
+            // get the full object
+            obj = getRecordJson(obj.getInt("recordId"), null);
+            
             JSONArray attributes = obj.getJSONArray(JsonService.JSON_KEY_ATTRIBUTES); 
             
             Assert.assertEquals("expect all attributes to be present", 3, attributes.size());
@@ -365,6 +417,11 @@ public class GeoMapLayerControllerGetFeatureInfoTest extends
         {
             JSONObject obj = getFeature(JsonService.JSON_ITEM_TYPE_RECORD, recordControlled.getId().longValue(), items);
             Assert.assertNotNull(obj);
+            Assert.assertFalse("attribute array should not be included", obj.has(JsonService.JSON_KEY_ATTRIBUTES));
+            
+            // get the full object
+            obj = getRecordJson(obj.getInt("recordId"), null);
+            
             JSONArray attributes = obj.getJSONArray(JsonService.JSON_KEY_ATTRIBUTES); 
             
             Assert.assertEquals("there should be no attributes", 0, attributes.size());
@@ -373,10 +430,16 @@ public class GeoMapLayerControllerGetFeatureInfoTest extends
             // features are unaffected
             JSONObject obj = getFeature(JsonService.JSON_ITEM_TYPE_MAP_FEATURE, gmf.getId().longValue(), items);
             Assert.assertNotNull(obj);
+            Assert.assertFalse("attribute array should not be included", obj.has(JsonService.JSON_KEY_ATTRIBUTES));
+            
+            // get the full object
+            obj = getFeatureJson(obj.getInt("id"));
+            
             JSONArray attributes = obj.getJSONArray(JsonService.JSON_KEY_ATTRIBUTES);
             Assert.assertEquals(4, getAttribute(attributes, layerAttr1.getDescription()).getLong(JsonService.JSON_KEY_ATTR_VALUE));
             Assert.assertEquals("five", getAttribute(attributes, layerAttr2.getDescription()).getString(JsonService.JSON_KEY_ATTR_VALUE));
             Assert.assertEquals("six", getAttribute(attributes, layerAttr3.getDescription()).getString(JsonService.JSON_KEY_ATTR_VALUE));
+            
         }
     }
         
@@ -398,5 +461,35 @@ public class GeoMapLayerControllerGetFeatureInfoTest extends
             }
         }
         return null;
+    }
+    
+    private JSONObject getRecordJson(Integer recordId, User u) throws Exception {
+        MockHttpServletRequest request = this.createStandardRequest();
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        request.setRequestURI(RecordService.GET_RECORD_BY_ID_V2_URL);
+        request.setMethod("GET");
+        request.setParameter(BdrsWebConstants.PARAM_RECORD_ID, recordId.toString());
+
+        if (u != null) {
+            request.setParameter(RecordService.PARAM_IDENT, u.getRegistrationKey());
+        }
+        
+        this.handle(request,  response);
+        
+        JSONObject json = (JSONObject) JSONSerializer.toJSON(response.getContentAsString());
+        return json;
+    }
+    
+    private JSONObject getFeatureJson(Integer featureId) throws Exception {
+        MockHttpServletRequest request = this.createStandardRequest();
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        request.setRequestURI(GeoMapLayerController.GET_FEATURE_INFO_BY_ID_SERVICE_URL);
+        request.setMethod("GET");
+        request.setParameter(GeoMapLayerController.PARAM_FEATURE_ID, featureId.toString());
+        
+        this.handle(request,  response);
+        
+        JSONObject json = (JSONObject) JSONSerializer.toJSON(response.getContentAsString());
+        return json;
     }
 }

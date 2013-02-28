@@ -49,7 +49,6 @@ import au.com.gaiaresources.bdrs.model.map.GeoMapLayerSource;
 import au.com.gaiaresources.bdrs.model.record.AccessControlledRecordAdapter;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
-import au.com.gaiaresources.bdrs.model.record.impl.ScrollableRecordsList;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
@@ -83,6 +82,7 @@ public class GeoMapLayerController extends AbstractController {
     
     public static final String GET_FEATURE_SERVICE_URL = "/bdrs/map/getFeatureInfo.htm";
     public static final String CHECK_SHAPEFILE_SERVICE_URL = "/bdrs/map/checkShapefile.htm";
+    public static final String GET_FEATURE_INFO_BY_ID_SERVICE_URL = "/bdrs/map/getFeatureInfoById.htm";
     
     public static final String GEO_MAP_LAYER_PK_VIEW = "geoMapLayerId";
     public static final String GEO_MAP_LAYER_PK_SAVE = "geoMapLayerPk";
@@ -108,6 +108,7 @@ public class GeoMapLayerController extends AbstractController {
     public static final String PARAM_DOWNLOAD_FORMAT = "downloadFormat";
     
     public static final String PARAM_LAYER_ID = "layerPk";
+    public static final String PARAM_FEATURE_ID = "featureId";
     
     public static final String PARAM_STROKE_COLOR = "strokeColor";
     public static final String PARAM_FILL_COLOR = "fillColor";
@@ -409,7 +410,8 @@ public class GeoMapLayerController extends AbstractController {
                                            request.getContextPath(), 
                                            request.getParameter("placemark_color"), 
                                            recList, 
-                                           response.getOutputStream());
+                                           response.getOutputStream(),
+                                           false);
             } catch (JAXBException e) {
                 log.error(e);
                 throw e;
@@ -421,21 +423,6 @@ public class GeoMapLayerController extends AbstractController {
         } else {
             // We are displaying the records using MapServer
         }
-    }
-    
-    // public
-    @RequestMapping(value = DOWNLOAD_RECORDS_URL, method = RequestMethod.GET) 
-    public void downloadRecords(HttpServletRequest request, HttpServletResponse response,
-            @RequestParam(value = PARAM_MAP_LAYER_ID, required=true) Integer[] mapLayerIds,
-            @RequestParam(value = PARAM_DOWNLOAD_FORMAT, required=true) String downloadFormat) throws Exception {
-        
-        User accessingUser = getRequestContext().getUser();
-        List<Record> recordList = getRecordsToDisplay(mapLayerIds, accessingUser, null);
-        RecordDownloadFormat format = RecordDownloadFormat.valueOf(downloadFormat);
-        new RecordDownloadWriter().write(getRequestContext().getHibernate(),
-                                   request, response, 
-                                   new ScrollableRecordsList(recordList), 
-                                   format, accessingUser);
     }
     
     /**
@@ -463,7 +450,8 @@ public class GeoMapLayerController extends AbstractController {
                                        request.getContextPath(), 
                                        request.getParameter("placemark_color"), 
                                        recordList, 
-                                       response.getOutputStream());
+                                       response.getOutputStream(),
+                                       true);
         } catch (JAXBException e) {
             log.error(e);
             throw e;
@@ -471,6 +459,27 @@ public class GeoMapLayerController extends AbstractController {
             log.error(e);
             throw e;
         }
+    }
+    
+    // public
+    /**
+     * Simple web service for retreving feature info in json format
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @param featureId Primary key of geo map feature object
+     * @throws IOException error writing to stream
+     */
+    @RequestMapping(value=GET_FEATURE_INFO_BY_ID_SERVICE_URL, method=RequestMethod.GET)
+    public void getSingleFeatureInfo(HttpServletRequest request, HttpServletResponse response,
+            @RequestParam(value=PARAM_FEATURE_ID, required = true) int featureId) throws IOException {
+        
+        GeoMapFeature gmf = featureDAO.get(featureId);
+        if (gmf == null) {
+            // return empty json object
+            this.writeJson(response, "{}");
+            return;
+        }
+        this.writeJson(response, jsonService.toJson(gmf, true).toString());
     }
     
     // public

@@ -132,7 +132,7 @@ public class RecordMapController extends AbstractController {
                                                               endDate, 
                                                               speciesScientificNameSearch,
                                                               1, limit);
-        new RecordDownloadWriter().write(sesh, request, response, sc, format, currentUser);
+        new RecordDownloadWriter(false).write(sesh, request, response, sc, format, currentUser);
     }
 
     @RequestMapping(value = KMLUtils.GET_RECORD_PLACEMARK_PNG_URL, method = RequestMethod.GET)

@@ -409,7 +409,7 @@ public class MySightingsController extends SightingsController {
         RecordFilter filter = getRecordFilter(surveyId, taxonGroupId, taxonSearch, startDate, endDate, user, userRecordsOnly, limit, false);
         ScrollableRecords sr = getScrollableRecords(filter, sortBy, sortOrder);
         
-        new RecordDownloadWriter().write(getRequestContext().getHibernate(), request, response, sr, RecordDownloadFormat.KML, user);
+        new RecordDownloadWriter(false).write(getRequestContext().getHibernate(), request, response, sr, RecordDownloadFormat.KML, user);
     }
     
     /**

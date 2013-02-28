@@ -69,7 +69,16 @@ public class KMLUtils {
         return writer;
     }
     
-    public static void writeRecords(KMLWriter writer, User currentUser, String contextPath, List<Record> recordList) {
+    /**
+     * Write records to KML writer
+     * 
+     * @param writer KML Writer
+     * @param currentUser Currently logged in user
+     * @param contextPath web server context path
+     * @param recordList list of records to serialize
+     * @param serializeAttributes Whether to serialize attributes. Is slow and can cause heap problems for large.
+     */
+    public static void writeRecords(KMLWriter writer, User currentUser, String contextPath, List<Record> recordList, boolean serializeAttributes) {
         JsonService jsonService = AppContext.getBean(JsonService.class);
         
         String label;
@@ -80,7 +89,7 @@ public class KMLUtils {
         for(Record record : recordList) {
             label = String.format("Record #%d", record.getId());
             AccessControlledRecordAdapter recAdapter = new AccessControlledRecordAdapter(record, currentUser);
-            description = jsonService.toJson(recAdapter, contextPath, spatialUtilFactory).toString();
+            description = jsonService.toJson(recAdapter, contextPath, spatialUtilFactory, serializeAttributes).toString();
             
             Geometry geom = record.getGeometry();
             if (geom != null) {
@@ -93,9 +102,22 @@ public class KMLUtils {
         }
     }
 
-    public static void writeRecordsToKML(User currentUser, String contextPath, String placemarkColorHex, List<Record> recordList, OutputStream outputStream) throws JAXBException {
+    /**
+     * Write the records as KML to an output stream.
+     * 
+     * @param currentUser Currently logged in user
+     * @param contextPath web server context path.
+     * @param placemarkColorHex Colour of the placemarker.
+     * @param recordList List of records to write.
+     * @param outputStream Output stream to write to.
+     * @param serializeAttributes Whether to serialize attributes. Is slow and can cause heap problems for large.
+     * numbers of records. 
+     * @throws JAXBException
+     */
+    public static void writeRecordsToKML(User currentUser, String contextPath, String placemarkColorHex, List<Record> recordList, OutputStream outputStream,
+            boolean serializeAttributes) throws JAXBException {
         KMLWriter writer = createKMLWriter(contextPath, placemarkColorHex, KML_RECORD_FOLDER);
-        writeRecords(writer, currentUser, contextPath, recordList);
+        writeRecords(writer, currentUser, contextPath, recordList, serializeAttributes);
         writer.write(false, outputStream);
     }
     
