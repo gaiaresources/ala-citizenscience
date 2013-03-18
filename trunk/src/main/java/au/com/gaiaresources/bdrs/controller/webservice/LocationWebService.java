@@ -88,7 +88,7 @@ public class LocationWebService extends AbstractController {
 
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("id", location.getId());
-        data.put("locations", geom.toString());
+        data.put("location", geom.toString());
         data.put("name", location.getName());
 
         // Attach attribute values
