@@ -1,14 +1,13 @@
 package au.com.gaiaresources.bdrs.controller.webservice;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.ws.http.HTTPException;
 
+import au.com.gaiaresources.bdrs.model.taxa.*;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -26,7 +25,6 @@ import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
@@ -83,25 +81,54 @@ public class LocationWebService extends AbstractController {
         throws IOException {
 
         Location location = locationDAO.getLocation(pk);
-        
         // For simplicity make sure the output geometry is in WGS84. We could set it to the same
         // as the survey but then we would have to default back to WGS84 anyway. Added complexity for
         // little gain IMO
-        location.setLocation(spatialUtil.transform(location.getLocation()));
-        
-        // get the depth from the depth of attributes to display
-        // use 4 if we want to display attributes and 2 otherwise
-        int depth = displayAttributes ? 4 : 2;
-        Map<String,Object> locationObj = location.flatten(depth);
-        if (displayAttributes && surveyId != -1) {
-            filterAttributesBySurvey(surveyId, location, locationObj);
+        Geometry geom = spatialUtil.transform(location.getLocation());
+
+        Map<String, Object> data = new HashMap<String, Object>();
+        data.put("id", location.getId());
+        data.put("locations", geom.toString());
+        data.put("name", location.getName());
+
+        // Attach attribute values
+        if(displayAttributes && surveyId > -1) {
+            Survey survey = surveyDAO.getSurvey(surveyId);
+
+            // Populate the known attribute values.
+            Map<Attribute, AttributeValue> locAttrMap = new HashMap<Attribute, AttributeValue>();
+            for(AttributeValue av : location.getAttributes(survey)) {
+                if(av.getValue() != null) {
+                    locAttrMap.put(av.getAttribute(), av);
+                }
+            }
+
+            // Special handling for HTML type attributes.
+            for(Attribute attr : survey.getAttributes()) {
+                if( AttributeScope.LOCATION.equals(attr.getScope()) &&
+                    AttributeUtil.isHTMLType(attr) &&
+                    !locAttrMap.containsKey(attr)) {
+
+                    AttributeValue tmp = new AttributeValue();
+                    tmp.setAttribute(attr);
+                    tmp.setStringValue("");
+                    locAttrMap.put(attr, tmp);
+                }
+            }
+
+            // Sort and serialize the attribute values
+            List<AttributeValue> avList = new ArrayList<AttributeValue>(locAttrMap.values());
+            Collections.sort(avList, new AttributeValueComparator());
+
+            List<Map<String, Object>> flatAttrVals = new ArrayList<Map<String, Object>>(avList.size());
+            for(AttributeValue av : avList) {
+                flatAttrVals.add(av.flatten(1));
+            }
+
+            data.put("orderedAttributes", flatAttrVals);
         }
-        
-        response.setContentType("application/json");
-        response.getWriter().write(JSONObject.fromMapToString(locationObj));
-        
-        // We have changed the geometry in the location object. evict it
-        // to avoid persisting changes to database.
+
+        super.writeJson(request, response, JSONObject.fromMapToString(data));
         getRequestContext().getHibernate().evict(location);
     }
 
@@ -206,16 +233,5 @@ public class LocationWebService extends AbstractController {
             }  
         }
         writeJson(request, response, result.toString());
-    }
-    
-    /**
-     * Filter attributes out of the flattened map to avoid changing the actual object
-     * @param surveyId the survey for which the location is requested
-     * @param location the location
-     * @param locationObj flattened location object
-     */
-    private void filterAttributesBySurvey(int surveyId, Location location, Map<String, Object> locationObj) {
-        Survey survey = surveyDAO.get(surveyId);
-        LocationUtils.filterAttributesBySurvey(survey, location, locationObj);
     }
 }

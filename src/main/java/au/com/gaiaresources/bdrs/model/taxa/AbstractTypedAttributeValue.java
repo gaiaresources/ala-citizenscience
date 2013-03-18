@@ -47,13 +47,20 @@ public abstract class AbstractTypedAttributeValue extends PortalPersistentImpl i
         case INTEGER_WITH_RANGE:
             // must turn into an int or we get decimal points in the string representation
             // e.g. 2.00
-            return this.getNumericValue() != null ? Integer.toString(this.getNumericValue().intValue()) : "NaN";
-            
+            if(this.getNumericValue() == null) {
+                return this.attribute.isRequired() ? "NaN" : "";
+            } else {
+                return Integer.toString(this.getNumericValue().intValue());
+            }
+
         case DECIMAL:
-            return this.getNumericValue() != null ? this.getNumericValue().stripTrailingZeros().toPlainString() : "NaN";
+            if(this.getNumericValue() == null) {
+                return this.attribute.isRequired() ? "NaN" : "";
+            } else {
+                return this.getNumericValue().stripTrailingZeros().toPlainString();
+            }
         case DATE:
             return this.getDateValue() != null ? DateFormatter.format(this.getDateValue(), DateFormatter.DAY_MONTH_YEAR) : "";
-        
         case TIME:  // time is actually stored as a string hh:mm
         case BARCODE:
         case REGEX:

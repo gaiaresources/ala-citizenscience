@@ -162,13 +162,13 @@
                 success: function(data) {
                     var wkt = new OpenLayers.Format.WKT(bdrs.map.wkt_options);
                     var feature = wkt.read(data.location);
-    
+
                     // add the location geometry to the map
                     var loclayer = bdrs.map.baseMap.getLayersByName(bdrs.survey.location.LOCATION_LAYER_NAME)[0];
                     loclayer.removeFeatures(loclayer.features);
-    
+
                     loclayer.addFeatures(feature);
-    
+
                     // zoom the map to show the currently selected location
                     var geobounds = feature.geometry.getBounds();
                     if (point) {
