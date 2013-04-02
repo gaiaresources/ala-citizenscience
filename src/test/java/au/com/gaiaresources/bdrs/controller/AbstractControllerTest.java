@@ -1,5 +1,7 @@
 package au.com.gaiaresources.bdrs.controller;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.InetSocketAddress;
@@ -19,6 +21,8 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import au.com.gaiaresources.bdrs.controller.survey.SurveyBaseController;
+import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.simpleframework.http.Form;
@@ -111,6 +115,9 @@ public abstract class AbstractControllerTest extends AbstractTransactionalTest {
     protected CensusMethodDAO cmDAO;
     @Autowired
     protected RecordDAO recDAO;
+
+    @Autowired
+    protected SurveyDAO surveyDAO;
     
     protected CensusMethod attrCm;
     
@@ -1082,5 +1089,71 @@ public abstract class AbstractControllerTest extends AbstractTransactionalTest {
         
         taxaDAO.save(a);
         return a;
+    }
+
+    /**
+     * Imports a previously exported survey.
+     *
+     * @param surveyExportFile the file to be imported.
+     */
+    protected void importSurvey(String username, String password, File surveyExportFile) throws Exception {
+
+        // Since we will be committing data, we need to drop the database after we are finished.
+        requestDropDatabase();
+
+        FileInputStream fis = null;
+        try {
+            // Commit the existing session before starting the import.
+            sessionFactory.getCurrentSession().getTransaction().commit();
+            sessionFactory.getCurrentSession().beginTransaction();
+            resetRequestContext();
+
+            // Clean up and prepare for the request
+            response = new MockHttpServletResponse();
+            createNewRequest();
+
+            // Build the request
+            fis = new FileInputStream(surveyExportFile);
+            MockMultipartHttpServletRequest req = (MockMultipartHttpServletRequest) request;
+            req.setMethod("POST");
+            req.setRequestURI(SurveyBaseController.SURVEY_IMPORT_URL);
+            req.addFile(new MockMultipartFile(SurveyBaseController.POST_KEY_SURVEY_IMPORT_FILE, fis));
+
+            // Issue the request
+            login(username, password, new String[]{Role.ADMIN});
+            handle(request, response);
+            assertMessageCode("bdrs.survey.import.success");
+
+            // Commit and clean up
+            sessionFactory.getCurrentSession().getTransaction().commit();
+            sessionFactory.getCurrentSession().beginTransaction();
+            resetRequestContext();
+
+            response = new MockHttpServletResponse();
+            createNewRequest();
+
+        } catch(IOException ioe) {
+            throw ioe;
+        } finally {
+            if (fis != null ) {
+                try {
+                    fis.close();
+                    fis = null;
+                } catch(IOException ioex) {
+                    throw ioex;
+                }
+            }
+        }
+    }
+
+    private void createNewRequest() {
+        request = createMockHttpServletRequest();
+        resetRequestContext();
+    }
+
+    private void resetRequestContext() {
+        RequestContextHolder.set(new RequestContext(request, applicationContext));
+        getRequestContext().setHibernate(sessionFactory.getCurrentSession());
+        getRequestContext().setPortal(defaultPortal);
     }
 }
