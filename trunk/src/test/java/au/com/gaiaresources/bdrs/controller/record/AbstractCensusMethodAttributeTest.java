@@ -1,16 +1,14 @@
 package au.com.gaiaresources.bdrs.controller.record;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.springframework.mock.web.MockHttpServletRequest;
-
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
+import org.springframework.mock.web.MockHttpServletRequest;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
 
 /**
  * Some handy methods for helping to test census method attributes, especially 
@@ -52,7 +50,8 @@ public abstract class AbstractCensusMethodAttributeTest extends AbstractControll
             String baseParamName2 = prefix+rowIdxString+"attribute_"+attr.getId()+"_";
             String baseParamName = prefix+"attribute_"+attr.getId()+"_";
             request.addParameter(baseParamName2+"recordId", rec != null ? rec.getId().toString() : "0");
-            
+            request.addParameter(baseParamName2+"rowIndex", Integer.toString(entry.getRowIdx()));
+
             // apparently this is just how it works...
             if (rec != null) {
                 request.addParameter(baseParamName+"rowPrefix", baseParamName2+"_record_"+recIdString);
@@ -62,6 +61,7 @@ public abstract class AbstractCensusMethodAttributeTest extends AbstractControll
         } else if (attr.getType() == AttributeType.CENSUS_METHOD_ROW) {
             // record id
             request.addParameter(prefix+"attribute_"+attr.getId()+"_recordId", rec != null ? rec.getId().toString() : "0");
+
             
         } else {
             // it's a value!

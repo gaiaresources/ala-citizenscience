@@ -28,6 +28,10 @@ public class RecordDeserializerResult {
     public Map<String, String> getErrorMap() {
         return this.errorMap;
     }
+
+    public boolean hasErrors() {
+        return !this.errorMap.isEmpty();
+    }
     
     public RecordEntry getRecordEntry() {
         return this.entry;

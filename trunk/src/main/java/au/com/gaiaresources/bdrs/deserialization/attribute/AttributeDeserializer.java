@@ -1,23 +1,9 @@
 package au.com.gaiaresources.bdrs.deserialization.attribute;
 
-import java.io.IOException;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import org.apache.log4j.Logger;
-import org.springframework.web.multipart.MultipartFile;
-
 import au.com.gaiaresources.bdrs.config.AppContext;
 import au.com.gaiaresources.bdrs.controller.record.RecordFormValidator;
 import au.com.gaiaresources.bdrs.controller.record.WebFormAttributeParser;
+import au.com.gaiaresources.bdrs.db.WeightComparator;
 import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.file.FileService;
 import au.com.gaiaresources.bdrs.model.attribute.Attributable;
@@ -33,6 +19,20 @@ import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import org.apache.log4j.Logger;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Parses and saves {@link AttributeValue}s.
@@ -173,8 +173,7 @@ public class AttributeDeserializer {
                 // method is used for the row prefix in single site multi taxa forms as well as 
                 // for the census method / taxon group attribute prefixes although they are mutually exclusive and
                 // the condition checked for this mutual exclusiveness is below.
-                String prefix = AttributeScope.isRecordScope(attribute.getScope()) ? entryPrefix
-                        : "";
+                String prefix = AttributeScope.isRecordScope(attribute.getScope())  ? entryPrefix : "";
                 Object attrNameObj = attrNameMap.get(attribute);
                 if (attrNameObj instanceof List) {
                     int nameIndex = 0;
@@ -198,7 +197,7 @@ public class AttributeDeserializer {
                         }
                     }
                 } else {
-                    savedOne |= saveAttribute(prefix, getAttrNameKey(attrNameMap, attribute), getAttrNameKey(attrFilenameMap, attribute), attribute, attributable, dataMap, fileMap, currentUser, recAtts, attrValuesToDelete, moderationOnly, attrNameMap, attrFilenameMap, entryPrefix, scope, save);
+                    savedOne |= saveAttribute(prefix, getAttrNameKey(attrNameMap, attribute, entryPrefix), getAttrNameKey(attrFilenameMap, attribute, entryPrefix), attribute, attributable, dataMap, fileMap, currentUser, recAtts, attrValuesToDelete, moderationOnly, attrNameMap, attrFilenameMap, entryPrefix, scope, save);
                 }
             }
         }
@@ -259,8 +258,10 @@ public class AttributeDeserializer {
             IOException {
         boolean savedOne = false;
 
+
         TypedAttributeValue recAttr = attributeParser.parse(prefix + attrName, prefix
                 + attrFileName, attribute, attributable, dataMap, fileMap);
+
         // have to save the value here since we are recursing with the attributeParser
         // and the value may change as child attributes are saved
         boolean isAddOrUpdate = attributeParser.isAddOrUpdateAttribute();
@@ -268,116 +269,10 @@ public class AttributeDeserializer {
             // create a sub record to record the census method attributes
             // add the census method attributes to the dictionary too
             // get the census method from the attribute value
-            CensusMethod cm = attribute.getCensusMethod();
-            Set<Record> childRecords = recAttr.getRecords();
-            if (childRecords == null) {
-                childRecords = new LinkedHashSet<Record>();
-            }
-            Record thisRecord = null;
-            if (attributable instanceof Record) {
-                thisRecord = (Record) attributable;
-            }
+            savedOne = deserializeCensusMethodAttributes(
+                    prefix, attribute, attributable, dataMap, fileMap, currentUser, recAtts, attrValuesToDelete,
+                    moderationOnly, attrNameMap, attrFilenameMap, entryPrefix, scope, save, recAttr, isAddOrUpdate);
 
-            Map<String, Integer> recIds = getRecIdsFromMap(attrNameMap, attribute, dataMap, thisRecord);
-            // if the census method is null, we cannot save any attribute values
-            // if the attribute value is not AttributeValue type, we cannot save it
-            if (cm != null) {
-                int rowId = 0;
-                String rowPrefix = "";
-                // rowId is mapped by the parent record
-                Map<Integer, Integer> rowIds = new HashMap<Integer, Integer>();
-                for (Entry<String, Integer> rowRec : recIds.entrySet()) {
-                    Integer integer = rowRec.getValue();
-                    rowPrefix = rowRec.getKey();
-                    if (!rowPrefix.startsWith(entryPrefix)) {
-                        // ignore any entry that is from another row
-                        continue;
-                    }
-                    Record rec = null;
-                    if (integer == 0) {
-                        // create a new record
-                        rec = new Record();
-                        // save the parent record here if it has not yet been saved
-                        if (thisRecord != null && thisRecord.getId() == null) {
-                            if (save) {
-                                thisRecord = recordDAO.saveRecord(thisRecord);
-                            }
-                            newRecords.add(thisRecord.getId());
-                        }
-                        rec.setParentRecord(thisRecord);
-                        rec.setUser(currentUser);
-                    } else {
-                        rec = recordDAO.getRecord(integer);
-                        if (rec == null) {
-                            log.error("Could not retrieve record with id "
-                                    + integer);
-                        }
-                    }
-
-                    // get the row id for the parent record
-                    if (rec.getParentRecord() != null
-                            && rowIds.containsKey(rec.getParentRecord().getId())) {
-                        rowId = rowIds.get(rec.getParentRecord().getId());
-                    } else if (rec.getParentRecord() == null
-                            && rowIds.containsKey(NULL_PARENT_ID)) {
-                        rowId = rowIds.get(NULL_PARENT_ID);
-                    } else {
-                        rowId = 0;
-                    }
-
-                    prefix = rowPrefix
-                            + String.format(AttributeParser.ATTRIBUTE_RECORD_NAME_FORMAT, (integer == 0 ? ""
-                                    : integer + "_"));
-
-                    boolean saved = deserializeAttributes(cm.getAttributes(), attrValuesToDelete, rec.getAttributes(), prefix, (Map<Attribute, Object>) attrNameMap.get(attribute), (Map<Attribute, Object>) attrFilenameMap.get(attribute), rec, dataMap, fileMap, currentUser, moderationOnly, scope, save);
-
-                    if (saved) {
-                        savedOne = true;
-                        // only save the record if at least one attribute is saved
-                        if (AttributeUtil.isModifiableByScopeAndUser(attribute, currentUser)) {
-                            if (isAddOrUpdate) {
-                                if (save) {
-                                    recAttr = attributeDAO.save(recAttr);
-                                    // there is only 1 implementation of TypedAttributeValue and that is
-                                    // AttributeValue
-                                    rec.setAttributeValue((AttributeValue) recAttr);
-                                    rec = recordDAO.save(rec);
-                                }
-                                if (integer == 0) {
-                                    newRecords.add(rec.getId());
-                                }
-                                childRecords.add(rec);
-                                if (attributeParser.getAttrFile() != null
-                                        && save) {
-                                    fileService.createFile(recAttr, attributeParser.getAttrFile());
-                                }
-
-                                recAttr.setRecords(childRecords);
-                                // there is only 1 implementation of TypedAttributeValue and that is
-                                // AttributeValue
-                                recAtts.add((AttributeValue) recAttr);
-                            } else if (!moderationOnly) {
-                                // don't delete any attributes on moderation only
-                                recAtts.remove(recAttr);
-                                attrValuesToDelete.add(recAttr);
-                            }
-                        }
-                        if (AttributeType.CENSUS_METHOD_COL.equals(attribute.getType())) {
-                            rowId++;
-                            // map the parent id to the row id so we can map records
-                            // to their position inside a table within the parent record
-                            rowIds.put(rec.getParentRecord() != null ? rec.getParentRecord().getId()
-                                    : NULL_PARENT_ID, rowId);
-                        }
-                    }
-
-                    // if we've saved the record, but not the attribute value,
-                    // we should delete the record
-                    if (rec.getId() != null && recAttr.getId() == null) {
-                        recordDAO.delete(rec);
-                    }
-                }
-            }
         } else if (AttributeUtil.isModifiableByScopeAndUser(attribute, currentUser)) {
             if (isAddOrUpdate) {
                 if (save) {
@@ -399,6 +294,166 @@ public class AttributeDeserializer {
 
         }
         return savedOne;
+    }
+
+    protected boolean deserializeCensusMethodAttributes(
+            String prefix, Attribute attribute, Attributable<? extends TypedAttributeValue> attributable,
+            Map<String, String[]> dataMap, Map<String, MultipartFile> fileMap,
+            User currentUser, Set<AttributeValue> recAtts,
+            List<TypedAttributeValue> attrValuesToDelete, boolean moderationOnly,
+            Map<Attribute, Object> attrNameMap, Map<Attribute, Object> attrFilenameMap, String entryPrefix,
+            Set<AttributeScope> scope, boolean save, TypedAttributeValue recAttr, boolean addOrUpdate) throws ParseException, IOException {
+
+        boolean savedOne = false;
+        CensusMethod cm = attribute.getCensusMethod();
+        Set<Record> childRecords = recAttr.getRecords();
+        if (childRecords == null) {
+            childRecords = new TreeSet<Record>(new WeightComparator());
+        }
+
+        String parentAttributePrefix = prefix;
+        Record thisRecord = null;
+        if (attributable instanceof Record) {
+            thisRecord = (Record) attributable;
+
+            if (thisRecord.getParentRecord()  != null) {
+                parentAttributePrefix = entryPrefix;
+            }
+        }
+
+        Map<String, Integer> recIds = getRecIdsFromMap(attrNameMap, attribute, dataMap, thisRecord);
+        // if the census method is null, we cannot save any attribute values
+        // if the attribute value is not AttributeValue type, we cannot save it
+        if (cm != null) {
+            int rowId = 0;
+            String rowPrefix = "";
+            // rowId is mapped by the parent record
+            Map<Integer, Integer> rowIds = new HashMap<Integer, Integer>();
+            for (Entry<String, Integer> rowRec : recIds.entrySet()) {
+                Integer integer = rowRec.getValue();
+                rowPrefix = rowRec.getKey();
+                if (!rowPrefix.startsWith(parentAttributePrefix)) {
+                    // ignore any entry that is from another row
+                    continue;
+                }
+                int rowIndex = extractRowIndexFromParameters(attribute, dataMap, entryPrefix, rowPrefix, integer);
+                Record rec = null;
+                if (integer == 0) {
+                    // create a new record
+                    rec = new Record();
+                    rec.setWeight(rowIndex);
+
+                    // save the parent record here if it has not yet been saved
+                    if (thisRecord != null && thisRecord.getId() == null) {
+                        if (save) {
+                            thisRecord = recordDAO.saveRecord(thisRecord);
+                        }
+                        newRecords.add(thisRecord.getId());
+                    }
+                    rec.setParentRecord(thisRecord);
+                    rec.setUser(currentUser);
+                } else {
+                    rec = recordDAO.getRecord(integer);
+                    if (rec == null) {
+                        log.error("Could not retrieve record with id "
+                                + integer);
+                    }
+                }
+
+                // get the row id for the parent record
+                if (rec.getParentRecord() != null
+                        && rowIds.containsKey(rec.getParentRecord().getId())) {
+                    rowId = rowIds.get(rec.getParentRecord().getId());
+                } else if (rec.getParentRecord() == null
+                        && rowIds.containsKey(NULL_PARENT_ID)) {
+                    rowId = rowIds.get(NULL_PARENT_ID);
+                } else {
+                    rowId = 0;
+                }
+
+                prefix = rowPrefix
+                        + String.format(AttributeParser.ATTRIBUTE_RECORD_NAME_FORMAT, (integer == 0 ? ""
+                                : integer + "_"));
+
+                boolean saved = deserializeAttributes(cm.getAttributes(), attrValuesToDelete, rec.getAttributes(), prefix, (Map<Attribute, Object>) attrNameMap.get(attribute), (Map<Attribute, Object>) attrFilenameMap.get(attribute), rec, dataMap, fileMap, currentUser, moderationOnly, scope, save);
+
+                if (saved) {
+                    savedOne = true;
+                    // only save the record if at least one attribute is saved
+                    if (AttributeUtil.isModifiableByScopeAndUser(attribute, currentUser)) {
+                        if (addOrUpdate) {
+                            if (save) {
+                                recAttr = attributeDAO.save(recAttr);
+                                // there is only 1 implementation of TypedAttributeValue and that is
+                                // AttributeValue
+                                rec.setAttributeValue((AttributeValue) recAttr);
+                                rec = recordDAO.save(rec);
+                            }
+                            if (integer == 0) {
+                                newRecords.add(rec.getId());
+                            }
+                            childRecords.add(rec);
+                            if (attributeParser.getAttrFile() != null
+                                    && save) {
+                                fileService.createFile(recAttr, attributeParser.getAttrFile());
+                            }
+
+                            recAttr.setRecords(childRecords);
+                            // there is only 1 implementation of TypedAttributeValue and that is
+                            // AttributeValue
+                            recAtts.add((AttributeValue) recAttr);
+                        } else if (!moderationOnly) {
+                            // don't delete any attributes on moderation only
+                            recAtts.remove(recAttr);
+                            attrValuesToDelete.add(recAttr);
+                        }
+                    }
+                    if (AttributeType.CENSUS_METHOD_COL.equals(attribute.getType())) {
+                        rowId++;
+                        // map the parent id to the row id so we can map records
+                        // to their position inside a table within the parent record
+                        rowIds.put(rec.getParentRecord() != null ? rec.getParentRecord().getId()
+                                : NULL_PARENT_ID, rowId);
+                    }
+                }
+
+                // if we've saved the record, but not the attribute value,
+                // we should delete the record
+                if (rec.getId() != null && recAttr.getId() == null) {
+                    recordDAO.delete(rec);
+                }
+            }
+        }
+        return savedOne;
+    }
+
+    /**
+     * Returns the table row number we are processing.  Used to keep consistent ordering of row based matrix
+     * attributes and also when editing survey scoped attributes on a multi-species form (as the matrix attribute
+     * values need to be kept in sync across all records on the form and the record ids are not available for
+     * rows other than for the primary record being edited)
+     * @param attribute the attribute being edited.
+     * @param dataMap  the request parameters
+     * @param entryPrefix used to determine which parameter to get the row index from.
+     * @param rowPrefix used to determine which parameter to get the row index from.
+     * @param integer the record containing data for the set of census method (matrix) attributes.
+     * @return the index of the row being edited.
+     */
+    private int extractRowIndexFromParameters(Attribute attribute, Map<String, String[]> dataMap, String entryPrefix, String rowPrefix, Integer integer) {
+        int rowIndex = 0;
+        try {
+            String[] rowIndexStrings = dataMap.get(rowPrefix+"_rowIndex");
+            if (rowIndexStrings == null) {
+                rowIndexStrings = dataMap.get(entryPrefix+integer+"_attribute_"+attribute.getId()+"_rowIndex");
+            }
+            if (rowIndexStrings != null) {
+                rowIndex = Integer.parseInt(rowIndexStrings[0]);
+            }
+        }
+        catch (Exception e) {
+            rowIndex = 0;
+        }
+        return rowIndex;
     }
 
     /**
@@ -463,6 +518,7 @@ public class AttributeDeserializer {
             } else {
                 getRecIdFromValue(nameMapValue, nameKey, rowIndex, ids, attribute, parentAttribute, dataMap, parentRecord);
             }
+
         }
 
         return ids;
@@ -499,12 +555,20 @@ public class AttributeDeserializer {
         String parentNameKey = "";
         // don't include a check for the topmost parent id because it will not be part of the parameter name
         // also don't include any records that have been created during this save
-        String[] recordIdParams = dataMap.get(BdrsWebConstants.PARAM_RECORD_ID);
+        Set<String> topLevelRecords = new HashSet<String>();
+        String[] records = dataMap.get(BdrsWebConstants.PARAM_RECORD_ID);
+        records = records == null ? new String[0] : records;
+        int recordNum = 0;
+        while (records != null) {
+            topLevelRecords.addAll(Arrays.asList(records));
+            records = dataMap.get(recordNum+"_"+BdrsWebConstants.PARAM_RECORD_ID);
+            recordNum++;
+        }
+
         if (parentRecord != null
                 && parentRecord.getId() != null
-                && recordIdParams != null
-                && recordIdParams.length > 0
-                && !String.valueOf(parentRecord.getId()).equals(recordIdParams[0])
+                && !topLevelRecords.isEmpty()
+                && !topLevelRecords.contains(String.valueOf(parentRecord.getId()))
                 && !newRecords.contains(parentRecord.getId())) {
             parentNameKey = "record_" + parentRecord.getId() + "_";
         }
@@ -546,19 +610,25 @@ public class AttributeDeserializer {
                     + "_recordId");
             int id = 0;
             String rowNum = rowPrefixParamPrefix;
-            try {
-                if (rowRecIdParam != null && rowRecIdParam.length > 0) {
-                    id = Integer.valueOf(rowRecIdParam[0]);
-                } else {
-                    int startId = paramName.indexOf(nameKey) + nameKey.length();
-                    //rowNum = paramName.substring(0, paramName.indexOf(nameKey));
-                    id = Integer.valueOf(paramName.substring(startId, paramName.indexOf("_", startId)));
-                }
-            } catch (NumberFormatException e) {
-                // this means there was no record id associated with the value,
-                // add a 0 to the list, indicating that we should add a new record
-            }
             if (!rowIndex.contains(rowNum)) {
+                try {
+                    if (rowRecIdParam != null && rowRecIdParam.length > 0) {
+                        for (int i=0; i<rowRecIdParam.length; i++) {
+                            if (paramName.contains(rowRecIdParam[i])) {
+                                id = Integer.valueOf(rowRecIdParam[i]);
+                                break;
+                            }
+                        }
+                    } else {
+                        int startId = paramName.indexOf(nameKey) + nameKey.length();
+                        //rowNum = paramName.substring(0, paramName.indexOf(nameKey));
+                        id = Integer.valueOf(paramName.substring(startId, paramName.indexOf("_", startId)));
+                    }
+                } catch (NumberFormatException e) {
+                    // this means there was no record id associated with the value,
+                    // add a 0 to the list, indicating that we should add a new record
+                }
+
                 ids.put(rowNum, id);
                 rowIndex.add(rowNum);
             }
@@ -570,23 +640,27 @@ public class AttributeDeserializer {
      * 
      * @param attrNameMap
      *            the Attribute name mapping
-     * @param attr
-     *            the attribute to get the key of
+     * @param attr the attribute to get the key of
+     *
      * @return a String key for the given attribute
      */
     private String getAttrNameKey(Map<Attribute, Object> attrNameMap,
-            Attribute attr) {
+            Attribute attr, String prefix) {
         if (attrNameMap != null) {
             Object o = attrNameMap.get(attr);
             if (o instanceof String) {
                 return (String) o;
             } else if (o instanceof List && !((List) o).isEmpty()) {
-                return ((List<String>) o).get(0);
+                for (String val : (List<String>)o) {
+                    if (prefix == null || val.startsWith(prefix)) {
+                        return val;
+                    }
+                }
             } else if (o instanceof Map && !((Map) o).isEmpty()) {
                 Map<Attribute, Object> mapping = (Map<Attribute, Object>) o;
                 // get the first value in the mapping
                 for (Entry<Attribute, Object> entry : mapping.entrySet()) {
-                    return getAttrNameKey(mapping, entry.getKey());
+                    return getAttrNameKey(mapping, entry.getKey(), prefix);
                 }
             } else {
                 // use default attribute name for ad hoc attribute values - i.e., the attribute
@@ -624,6 +698,6 @@ public class AttributeDeserializer {
             Map<Attribute, Object> attrFilenameMap, Attribute attr,
             Map<String, String[]> params, Map<String, MultipartFile> fileMap) {
         return attributeParser.validate(validator, prefix
-                + getAttrNameKey(attrNameMap, attr), getAttrNameKey(attrFilenameMap, attr), attr, params, fileMap);
+                + getAttrNameKey(attrNameMap, attr, prefix), getAttrNameKey(attrFilenameMap, attr, prefix), attr, params, fileMap);
     }
 }

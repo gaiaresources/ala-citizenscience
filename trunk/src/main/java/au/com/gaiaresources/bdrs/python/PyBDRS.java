@@ -1,19 +1,5 @@
 package au.com.gaiaresources.bdrs.python;
 
-import java.io.File;
-import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.log4j.Logger;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
-
 import au.com.gaiaresources.bdrs.controller.record.SingleSiteController;
 import au.com.gaiaresources.bdrs.controller.record.SingleSiteFormAttributeDictionaryFactory;
 import au.com.gaiaresources.bdrs.controller.record.SingleSiteFormToRecordEntryTransformer;
@@ -57,6 +43,18 @@ import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 import au.com.gaiaresources.bdrs.util.SpatialUtil;
 import au.com.gaiaresources.taxonlib.ITaxonLibSession;
 import au.com.gaiaresources.taxonlib.ITemporalContext;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.log4j.Logger;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Represents the bridge between the Java Virtual Machine and the
@@ -398,7 +396,7 @@ public class PyBDRS {
         }
         
         RecordKeyLookup lookup = new TrackerFormRecordKeyLookup();
-        SingleSiteFormToRecordEntryTransformer transformer = new SingleSiteFormToRecordEntryTransformer();
+        SingleSiteFormToRecordEntryTransformer transformer = new SingleSiteFormToRecordEntryTransformer(recordDAO);
         SingleSiteFormAttributeDictionaryFactory adf = new SingleSiteFormAttributeDictionaryFactory();
         AttributeParser parser = new WebFormAttributeParser(taxaDAO);
 

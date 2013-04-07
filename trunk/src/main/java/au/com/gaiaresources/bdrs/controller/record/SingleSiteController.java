@@ -1,31 +1,5 @@
 package au.com.gaiaresources.bdrs.controller.record;
 
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.propertyeditors.CustomDateEditor;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.web.bind.ServletRequestDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
-import org.springframework.web.servlet.ModelAndView;
-
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordFormFieldCollection;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
@@ -55,8 +29,31 @@ import au.com.gaiaresources.bdrs.service.content.ContentService;
 import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
-
 import com.vividsolutions.jts.geom.Geometry;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.propertyeditors.CustomDateEditor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * The <code>SingleSiteMultiTaxa</code> controller is a record add form renderer
@@ -151,7 +148,7 @@ public abstract class SingleSiteController extends RecordController {
         
         RecordKeyLookup lookup = new TrackerFormRecordKeyLookup();
         
-        SingleSiteFormToRecordEntryTransformer transformer = new SingleSiteFormToRecordEntryTransformer();
+        SingleSiteFormToRecordEntryTransformer transformer = new SingleSiteFormToRecordEntryTransformer(recordDAO);
         SingleSiteFormAttributeDictionaryFactory adf = new SingleSiteFormAttributeDictionaryFactory();
         AttributeParser parser = new WebFormAttributeParser(taxaDAO);
 
@@ -382,7 +379,7 @@ public abstract class SingleSiteController extends RecordController {
         // mock save the record
         if (valueMap != null) {
             RecordKeyLookup lookup = new TrackerFormRecordKeyLookup();
-            SingleSiteFormToRecordEntryTransformer transformer = new SingleSiteFormToRecordEntryTransformer();
+            SingleSiteFormToRecordEntryTransformer transformer = new SingleSiteFormToRecordEntryTransformer(recordDAO);
             SingleSiteFormAttributeDictionaryFactory adf = new SingleSiteFormAttributeDictionaryFactory();
             AttributeParser parser = new WebFormAttributeParser(taxaDAO);
     

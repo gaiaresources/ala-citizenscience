@@ -10,7 +10,9 @@
 <tiles:useAttribute name="editEnabled" ignore="true" />
 <tiles:useAttribute name="isModerationOnly" classname="java.lang.Boolean" ignore="true" />
 <tiles:useAttribute name="attributeId" ignore="true" />
+<tiles:useAttribute name="attributeValue" ignore="true" />
 <tiles:useAttribute name="formPrefix" ignore="true" />
+<tiles:useAttribute name="rowNumber" ignore="true" />
 
 <%-- when there is a record form field collection use it, it's filled with data. Otherwise use the formFieldList object to create the empty row --%>
 
@@ -21,19 +23,23 @@
         <c:set var="rowRecordId" value="${recordFormFieldCollection.recordId}"></c:set>
         <c:set var="replaceString" value="attribute_${attributeId}"/>
         <c:set var="recIdPrefix" value="${fn:substringBefore(recordFormFieldCollection.prefix, replaceString)}"/>
+        <c:set var="rowPrefix" value="${recordFormFieldCollection.prefix}${rowIndex}"/>
     </c:when>
     <c:otherwise>
         <c:set var="ffList" value="${ recordWebFormContext.namedFormFields['formFieldList'] }"></c:set>
         <c:set var="highlight" value="false"></c:set>
         <c:set var="rowRecordId" value="0"></c:set>
         <c:set var="recIdPrefix" value="${formPrefix}${rowIndex}"/>
+        <c:set var="rowPrefix" value="${recIdPrefix}attribute_${attributeId}"/>
     </c:otherwise>
 </c:choose>
 
 <tr class="textcenter <c:if test="${highlight}">bdrsHighlight</c:if>">
-    <input name="${recordFormFieldCollection.prefix}${rowIndex}recordId" type="hidden" value="${rowRecordId}" />
+
     <input name="${recIdPrefix}attribute_${attributeId}_recordId" type="hidden" value="${rowRecordId}" />
-    <input name="${formPrefix}attribute_${attributeId}_rowPrefix" type="hidden" value="${recordFormFieldCollection.prefix}${rowIndex}" />
+    <input name="${formPrefix}attribute_${attributeId}_rowPrefix" type="hidden" value="${rowPrefix}" />
+    <input name="${recIdPrefix}attribute_${attributeId}_rowIndex" type="hidden" value="${rowNumber}" />
+
     <c:set var="fieldEditable" value="${editEnabled}" ></c:set>
     <c:forEach items="${ffList}" var="formField">
         <jsp:useBean id="formField" type="au.com.gaiaresources.bdrs.controller.attribute.formfield.AbstractFormField" />

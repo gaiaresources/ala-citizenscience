@@ -1,24 +1,12 @@
 package au.com.gaiaresources.bdrs.controller.attribute;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.servlet.ModelAndView;
-
 import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormFieldFactory;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordFormFieldCollection;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
 import au.com.gaiaresources.bdrs.controller.record.RecordWebFormContext;
+import au.com.gaiaresources.bdrs.db.WeightComparator;
 import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
@@ -36,6 +24,17 @@ import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.map.GeoMapService;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Base controller for forms that can edit attributes.
@@ -259,9 +258,13 @@ public abstract class AttributeFormController extends AbstractController {
         List<FormField> subFFs = new ArrayList<FormField>();
         List<RecordFormFieldCollection> recordFormFieldList = new ArrayList<RecordFormFieldCollection>();
         int rowPrefix = 0;
+
         // create populated form fields from any previously saved records
         if (childRecords != null && !childRecords.isEmpty()) {
-            for (Record childRec : childRecords) {
+            List<Record> children = new ArrayList<Record>(childRecords);
+            // Sorting by weight will both keep a consistent ordering and preserve inital ordering.
+            Collections.sort(children, new WeightComparator());
+            for (Record childRec : children) {
                 String tmpPrefix = prefix + (AttributeType.CENSUS_METHOD_COL.equals(cmAttr.getType()) ? getRowIndexPrefix(rowPrefix++) : "") + 
                         "attribute_"+cmAttr.getId()+
                         String.format(AttributeParser.ATTRIBUTE_RECORD_NAME_FORMAT, 
@@ -371,6 +374,7 @@ public abstract class AttributeFormController extends AbstractController {
         mv.addObject("survey", survey);
         mv.addObject(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT, context);
         mv.addObject("rowIndex", prefix);
+        mv.addObject("rowNumber", rowIndex);
         mv.addObject("attributeId", attributeId);
         mv.addObject("formPrefix", getAttributePrefix(request));
         // by definition editing must be enabled for items to be added to the

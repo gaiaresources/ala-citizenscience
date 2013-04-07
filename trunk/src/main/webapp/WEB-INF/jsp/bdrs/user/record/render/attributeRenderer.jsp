@@ -654,6 +654,8 @@
                     </c:choose>
                     <!-- hidden field to keep the record id associated with this set of parameters -->
                     <input class="${ formField.category }" name="${formPrefix}attribute_${ formField.attribute.id }_recordId" type="hidden" value="${rowRecordId}" />
+                    <input name="${formPrefix}attribute_${formField.attribute.id}_rowIndex" type="hidden" value="0" />
+
                     <table id="${formPrefix}attribute_${ formField.attribute.id }_table" class="censusMethodAttributeTable">
                         <tbody>
                             <c:forEach items="${recordWebFormContext.namedFormFields[id]}" var="subField">
@@ -702,15 +704,17 @@
                         <tbody>
                         
                         <%-- Insert existing records here. --%>
-                        <c:forEach items="${recordWebFormContext.namedCollections[id]}" var="recordFormFieldCollection">
-                            <tiles:insertDefinition name="attributeRecordRow">
+                        <c:forEach items="${recordWebFormContext.namedCollections[id]}" var="recordFormFieldCollection" varStatus="status">
+                           <tiles:insertDefinition name="attributeRecordRow">
                                 <tiles:putAttribute name="recordFormFieldCollection" value="${recordFormFieldCollection}"/>
                                 <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
                                 <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
                                 <tiles:putAttribute name="editEnabled" value="${ recordWebFormContext.editable }" />
                                 <tiles:putAttribute name="isModerationOnly" value="${ recordWebFormContext.moderateOnly }" />
-                                   <tiles:putAttribute name="attributeId" value="${formField.attribute.id}" />
-                                   <tiles:putAttribute name="formPrefix" value="${ formPrefix }" />
+                                <tiles:putAttribute name="attributeId" value="${formField.attribute.id}" />
+                                <tiles:putAttribute name="attributeValue" value="${formField.attributeValue}"/>
+                                <tiles:putAttribute name="formPrefix" value="${ formPrefix }" />
+                                <tiles:putAttribute name="rowNumber" value="${status.count-1}"/>
                             </tiles:insertDefinition>
                         </c:forEach>
                         </tbody>

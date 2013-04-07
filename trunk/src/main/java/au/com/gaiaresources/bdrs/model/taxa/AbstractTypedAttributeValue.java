@@ -1,28 +1,30 @@
 package au.com.gaiaresources.bdrs.model.taxa;
 
-import java.io.UnsupportedEncodingException;
-import java.math.BigDecimal;
-import java.net.URLEncoder;
-import java.util.Date;
-import java.util.Set;
+import au.com.bytecode.opencsv.CSVWriter;
+import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
+import au.com.gaiaresources.bdrs.db.WeightComparator;
+import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
+import au.com.gaiaresources.bdrs.file.FileService;
+import au.com.gaiaresources.bdrs.model.record.Record;
+import au.com.gaiaresources.bdrs.util.CSVUtils;
+import au.com.gaiaresources.bdrs.util.DateFormatter;
+import org.apache.commons.lang.StringEscapeUtils;
+import org.hibernate.annotations.CollectionOfElements;
+import org.springframework.util.StringUtils;
 
 import javax.persistence.CascadeType;
 import javax.persistence.FetchType;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
-
-import org.apache.commons.lang.StringEscapeUtils;
-import org.hibernate.annotations.CollectionOfElements;
-import org.springframework.util.StringUtils;
-
-import au.com.bytecode.opencsv.CSVWriter;
-import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
-import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
-import au.com.gaiaresources.bdrs.file.FileService;
-import au.com.gaiaresources.bdrs.model.record.Record;
-import au.com.gaiaresources.bdrs.util.CSVUtils;
-import au.com.gaiaresources.bdrs.util.DateFormatter;
+import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Abstract helper class to implement common behaviour in TypedAttributeValue
@@ -221,5 +223,15 @@ public abstract class AbstractTypedAttributeValue extends PortalPersistentImpl i
      */
     public void setRecords(Set<Record> records) {
         this.records = records;
+    }
+
+    @Transient
+    public List<Record> getOrderedRecords() {
+        if (getRecords() == null) {
+            return null;
+        }
+        List<Record> records = new ArrayList<Record>(getRecords());
+        Collections.sort(records, new WeightComparator());
+        return records;
     }
 }
