@@ -1,21 +1,5 @@
 package au.com.gaiaresources.bdrs.deserialization.record;
 
-import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.log4j.Logger;
-
 import au.com.gaiaresources.bdrs.attribute.AttributeDictionaryFactory;
 import au.com.gaiaresources.bdrs.config.AppContext;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
@@ -54,10 +38,24 @@ import au.com.gaiaresources.bdrs.util.DateFormatter;
 import au.com.gaiaresources.bdrs.util.SpatialUtil;
 import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 import au.com.gaiaresources.bdrs.util.StringUtils;
-
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.operation.valid.IsValidOp;
 import com.vividsolutions.jts.operation.valid.TopologyValidationError;
+import org.apache.log4j.Logger;
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class RecordDeserializer {
 
@@ -151,481 +149,499 @@ public class RecordDeserializer {
 
         // disable the partial record filter to allow records for attribute values to be retrieved
         FilterManager.disablePartialRecordCountFilter(sessionFactory.getCurrentSession());
-        SpatialUtilFactory spatialUtilFactory = new SpatialUtilFactory();
-        
+
         try {
             for (RecordEntry entry : entries) {
-                
-                RecordDeserializerResult rsResult = new RecordDeserializerResult(entry);
-                results.add(rsResult);
-                
-                Map<String, String[]> dataMap = entry.getDataMap();
-                
-                Integer surveyPk = Integer.parseInt(entry.getValue(klu.getSurveyIdKey()));
-                
-                String censusMethodIdString = entry.getValue(klu.getCensusMethodIdKey());
-                
-                censusMethodIdString = censusMethodIdString == null ? "0" : censusMethodIdString; 
-                Integer censusMethodId = Integer.parseInt(censusMethodIdString);
-                
-                Survey survey = surveyDAO.getSurvey(surveyPk);
-                // lazy initialise the map for the survey
-                if (survey.getMap() == null) {
-                	survey.setMap(geoMapService.getForSurvey(survey));
-                }
-                CensusMethod censusMethod = cmDAO.get(censusMethodId);
-                
-                // Get the record here so we can first check authorization without doing all of the 
-                // other checks...
-                Record record;
-                // use the prefix in case it is a single site form
-                // all other forms will have a default prefix of ""
-                String recordId = entry.getValue(entry.prefix + klu.getRecordIdKey());
-                if (recordId != null && !recordId.isEmpty()) {
-                    int recordIdInt;
-                    try {
-                        recordIdInt = Integer.parseInt(recordId);
-                    } catch (NumberFormatException nfe) {
-                        setErrorMessage(rsResult, "Invalid record ID", "Record id: " + recordId + " is not a valid integer. If you want to create a new record indicate '0' as the record ID");
-                        continue;
-                    }
-                    
-                    // Unfortunately in shapefiles when you leave an integer field blank it becomes 
-                    // a '0'. If we detect such a record_id we will create a new record.
-                    if (recordIdInt == 0) {
-                        record = createNewRecord(entry, klu);
-                    } else {
-                        record = recordDAO.getRecord(recordIdInt);
-                        
-                        // we are attempting to edit an existing record but the record
-                        // query has returned null. Error!
-                        if (record == null) {
-                            setErrorMessage(rsResult, "Record retrieval failure", "Record id: " + recordId + " is not an existing record.");
-                            // don't do any further processing for this record
-                            continue;
-                        }
-                    }
-                } else {
-                    record = createNewRecord(entry, klu);
-                }
-    
-                // set the survey for the record here because it is used for 
-                // some of the checking mechanisms before the final save
-                record.setSurvey(survey);
-                
-                // set the record here so we have a copy to use even in the event of an error
-                rsResult.setRecord(record);
-                
-                // check authorization!
-                if (!record.canWrite(currentUser)) {
-                    // failed, do reporting.
-                    rsResult.setAuthorizedAccess(false);
-                    setErrorMessage(rsResult, "Authorization failure", "You do not have authorization to edit this record");
-                    // don't do any further processing for this record
-                    continue;
-                }
-            
-                Taxonomic taxonomic;
-                if(censusMethod != null && censusMethod.getTaxonomic() != null) {
-                        taxonomic = censusMethod.getTaxonomic();
-                }
-                else {
-                        taxonomic = Taxonomic.OPTIONALLYTAXONOMIC;
-                }
-                
-                // If taxon is denoted by numeric ID, then use it!
-                IndicatorSpecies species;
-               
-                try {
-                    // use the prefix as it is necessary for single site forms
-                    species = taxaDAO.getIndicatorSpecies(Integer.parseInt(entry.getValue(entry.prefix+klu.getSpeciesIdKey())));
-                } catch (NumberFormatException nfe) {
-                    species = null;
-                }
-                String speciesSearch = entry.getValue(entry.prefix+klu.getSpeciesNameKey());
-                if (species == null && StringUtils.notEmpty(speciesSearch)) {
-                	species = this.getSpeciesFromName(speciesSearch);
-                }
-            
-                // if we are doing moderation only, it is not necessary to validate all of the fields, only the moderation ones
-                boolean moderationOnly = record.getId() != null && !currentUser.equals(record.getUser()) &&
-                                         !currentUser.isAdmin() && currentUser.isModerator() && 
-                                         record.isAtLeastOneModerationAttribute();
-    
-                boolean isTaxonomicRecord = Taxonomic.TAXONOMIC.equals(taxonomic) || Taxonomic.OPTIONALLYTAXONOMIC.equals(taxonomic);
-                // use the prefix as it is necessary for single site forms
-            
-                String numberString = entry.getValue(entry.prefix+klu.getIndividualCountKey());
-                
-                RecordProperty recordProperty;
-                RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO, survey, taxaService);
-                boolean isValid = false;
-                Map<String, String[]> params = dataMap;
-                Map<String, String[]> dateRangeParams = new HashMap<String, String[]>(params);
-                dateRangeParams.put("dateRange", 
-                           new String[] {
-                                survey.getStartDate() == null ? "" : DateFormatter.format(survey.getStartDate(), DateFormatter.DAY_MONTH_YEAR),
-                                survey.getEndDate() == null ? "" : DateFormatter.format(survey.getEndDate(), DateFormatter.DAY_MONTH_YEAR) } );
-                TaxonGroup taxonGroup = null;
-                // don't validate when we are only moderating or if we have explicitly said not to
-                if (validate) {
-                    if (!moderationOnly) {
-                        // Validate darwin core fields
-                        recordProperty = new RecordProperty(survey, RecordPropertyType.NOTES, metadataDAO);
-                        if ( recordProperty.isRequired()) {
-                            validator.validate(params, ValidationType.REQUIRED_BLANKABLE_STRING, klu.getNotesKey(), null, recordProperty);
-                        } else {
-                            validator.validate(params, ValidationType.STRING, klu.getNotesKey(), null, recordProperty);
-                        }
-                        
-                        recordProperty = new RecordProperty(survey, RecordPropertyType.WHEN, metadataDAO);
-                        if(recordProperty.isRequired()) {
-                            validator.validate(params, ValidationType.REQUIRED_HISTORICAL_DATE, klu.getDateKey(), null, recordProperty);
-                            validator.validate(dateRangeParams, ValidationType.REQUIRED_DATE_WITHIN_RANGE, klu.getDateKey(), null, recordProperty);
-                        } else {
-                            validator.validate(params, ValidationType.BLANKABLE_HISTORICAL_DATE, klu.getDateKey(), null, recordProperty);
-                            validator.validate(dateRangeParams, ValidationType.DATE_WITHIN_RANGE, klu.getDateKey(), null, recordProperty);
-                        }
-                
-                        recordProperty = new RecordProperty(survey, RecordPropertyType.ACCURACY, metadataDAO);
-                        if (recordProperty.isRequired()) {
-                            validator.validate(params, ValidationType.REQUIRED_DOUBLE, klu.getAccuracyKey(), null, recordProperty);
-                        } else {
-                            validator.validate(params, ValidationType.DOUBLE, klu.getAccuracyKey(), null, recordProperty);
-                        }
-                        
-                        validator.validate(params, ValidationType.INTEGER, klu.getRecordIdKey(), null);
-                        
-                        recordProperty = new RecordProperty(survey, RecordPropertyType.TIME, metadataDAO);
-                        if (recordProperty.isRequired()) {
-                            validator.validate(params, ValidationType.REQUIRED_TIME, klu.getTimeKey(), null, recordProperty);
-                        } else {
-                            validator.validate(params, ValidationType.TIME, klu.getTimeKey(), null, recordProperty);
-                        }
-                                
-                        if (entry.getGeometry() == null) {
-                        	// check wkt
-                        	String wktString = getFirstValue(params, klu.getWktKey());
-                        	String latString = getFirstValue(params, klu.getLatitudeKey());
-                            String lonString = getFirstValue(params, klu.getLongitudeKey());
-                            boolean hasSpatial = (StringUtils.notEmpty(wktString) || StringUtils.notEmpty(latString) 
-                    				|| StringUtils.notEmpty(lonString));
-                            
-                            // If any of the coordinate related parameters have been set, check if the 
-                            // coordinate reference system needs to be specified.
-                            String crsString = getFirstValue(params, klu.getZoneKey());
-                            boolean crsValid = true;
-                            if ((StringUtils.notEmpty(crsString) || survey.getMap().getCrs().isZoneRequired()) && hasSpatial) {
-                            	crsValid = validator.validate(params, ValidationType.REQUIRED_CRS, klu.getZoneKey(), null);
-                            	if (crsValid) {
-                            		validator.setCrs(BdrsCoordReferenceSystem.getBySRID(Integer.valueOf(crsString)));
-                            	}
-                            }
-                            
-                            recordProperty = new RecordProperty(survey, RecordPropertyType.POINT, metadataDAO);
-                            if (StringUtils.nullOrEmpty(wktString)) {
-                                if ( recordProperty.isRequired()) {
-                                    validator.validate(params, ValidationType.REQUIRED_COORD_Y, klu.getLatitudeKey(), null, recordProperty);
-                                    validator.validate(params, ValidationType.REQUIRED_COORD_X, klu.getLongitudeKey(), null, recordProperty);    
-                                } else {
-                                    validator.validate(params, ValidationType.COORD_Y, klu.getLatitudeKey(), null, recordProperty);
-                                    validator.validate(params, ValidationType.COORD_X, klu.getLongitudeKey(), null, recordProperty); 
-                                }
-                            } else if (crsValid) {
-                            	// Since wkt validation relies on the CRS being valid, only do this validation when the earlier CRS validates!
-                            	// If the wkt string is non empty, we require it to be valid.
-                            	validator.validate(params, ValidationType.REQUIRED_WKT, klu.getWktKey(), null, recordProperty);
-                            }
-                        } else {
-                            // make sure the geometry is valid !
-                            
-                            IsValidOp isValidOp = new IsValidOp(entry.getGeometry());
-                            TopologyValidationError geomError = isValidOp.getValidationError();
-                            
-                            boolean geomValid = geomError == null;
-                            
-                            if (!geomValid) {
-                                Map<String, String> errorMap = validator.getErrorMap();
-                                String errMsg = propertyService.getMessage(
-                                                GEOM_INVALID_KEY, 
-                                                GEOM_INVALID_DEFAULT_MESSAGE);
-                                errorMap.put(klu.getLatitudeKey(), String.format(errMsg, geomError.getMessage()));
-                                errorMap.put(klu.getLongitudeKey(), String.format(errMsg, geomError.getMessage()));
-                            } else {
-                                // attempt to do geometry conversion as we only support multiline, multipolygon and singlepoint
-                                try {
-                                    SpatialUtil spatialUtil = spatialUtilFactory.getLocationUtil(entry.getGeometry().getSRID());
-                                    Geometry geom = spatialUtil.convertToMultiGeom(entry.getGeometry());
-                                    entry.setGeometry(geom);
-                                } catch (IllegalArgumentException iae) {
-                                    Map<String, String> errorMap = validator.getErrorMap();
-                                    errorMap.put(klu.getLatitudeKey(), iae.getMessage());
-                                    errorMap.put(klu.getLongitudeKey(), iae.getMessage());
-                                }
-                            }
-                            isValid = isValid && geomValid;
-                        }
-        
-                    }
-                    else {
-                        // Because the occurences/number field is not editable in moderation mode (if the moderator is
-                        // not an admin), the number property won't be submitted with the form.  Hence we are faking it
-                        // as species and occurances are validated as a block).
-                        numberString = Integer.toString(record.getNumber());
-                        params.put(klu.getIndividualCountKey(), new String[] {numberString});
-                    }
-                }
-                taxonGroup = species != null ? species.getTaxonGroup() : null;
-                Map<Attribute, Object> attrNameMap = attrDictFact.createNameKeyDictionary(record, survey, null, taxonGroup, censusMethod, entry.getDataMap());
-                Map<Attribute, Object> attrFilenameMap = attrDictFact.createFileKeyDictionary(record, survey, null, taxonGroup, censusMethod, entry.getDataMap());
                 AttributeDeserializer attrDeserializer = new AttributeDeserializer(attributeParser);
 
-                
-                if (validate) {
-                    isValid = validateSpeciesInformation(survey, taxonomic, species, isTaxonomicRecord, speciesSearch, numberString, validator, isValid, params);
-                    // Here is the point we require our name dictionary as we are about to start validating attributes...
-                    for(Attribute attr : survey.getAttributes()) {
-                        if(attrDictFact.getDictionaryAttributeScope().contains(attr.getScope())) {
-                            // validate all attributes when not moderating, 
-                            // but only moderation attributes when moderation only
-                            if (AttributeUtil.isModifiableByScopeAndUser(attr, currentUser) && (!moderationOnly || 
-                                    (moderationOnly && AttributeScope.isModerationScope(attr.getScope())))) {
-                                // use the entry prefix for record scoped attributes
-                                // the record entry prefix will be the id for the row in the sightings table
-                                // for single site record entry forms
-                                String prefix = AttributeScope.isRecordScope(attr.getScope()) ? entry.prefix : "";
-                                isValid = isValid & attrDeserializer.validate(validator, prefix, attrNameMap, attrFilenameMap, attr, params, entry.getFileMap());
-                            }
-                        }
-                    }
-                    if(species != null) {
-                        for(Attribute attr : species.getTaxonGroup().getAttributes()) {
-                            if(!attr.isTag()) {
-                                isValid = isValid & attrDeserializer.validate(validator, "", attrNameMap, attrFilenameMap, attr, params, entry.getFileMap());
-                            }
-                        }
-                    }
-                    if (censusMethod != null) {
-                        for (Attribute attr : censusMethod.getAttributes()) {
-                            isValid = isValid & attrDeserializer.validate(validator, "", attrNameMap, attrFilenameMap, attr, params, entry.getFileMap());
-                        }
-                    }
-                    
-                    if(validator.getErrorMap().size() > 0) {
-                        rsResult.setErrorMap(validator.getErrorMap());
-                        // and early end of loop
-                        continue;
-                    }
-                }
-                // At this point we know that, 
-                // the species primary key does not match an indicator species possibly
-                // due to it not being set because javascript being disabled, however
-                // the taxon validator has been run so the scientific name has been
-                // entered so we can search on the name.
-                
-                Integer number = null;
-                if (isTaxonomicRecord) {
-                    if(species != null && !StringUtils.nullOrEmpty(numberString)) {
-                        try {
-                            number = Integer.valueOf(numberString); 
-                        } catch (NumberFormatException nfe) {
-                            log.warn("Record deserializer could not parse number string to an int : " + numberString);
-                        }
-                    }
-                } else {
-                    species = null;
-                    number = null;
-                }
-                
-                User user = currentUser;
-    
-                // if we are just moderating the record, only want to set the moderation attributes
-                record.setSpecies(species);
-                if (!moderationOnly) {
-                    // Preserve the original owner of the record if this is a record edit.
-                    if (record.getUser() == null) {
-                        record.setUser(user);
-                    }
-                    record.setNumber(number);
-                    recordProperty = new RecordProperty(survey, RecordPropertyType.NOTES, metadataDAO);
-                    if (!recordProperty.isHidden()) {
-                        record.setNotes(entry.getValue(klu.getNotesKey()));
-                    }
-                    record.setFirstAppearance(false);
-                    record.setLastAppearance(false);
-                    // is possible to set this to null
-                    record.setCensusMethod(censusMethod);
-                    
-                    // attempt to parse the record visibility key. if not cannot be parsed i.e. invalid or not filled in,
-                    // use the default record visibility for the survey.
-                    record.setRecordVisibility(RecordVisibility.parse(entry.getValue(klu.getRecordVisibilityKey()), survey.getDefaultRecordVisibility()));
-            
-                    // Dates
-                    String timeString = attributeParser.getTimeValue(klu.getTimeKey(), klu.getTimeHourKey(), klu.getTimeMinuteKey(), entry.getDataMap());
-                    String[] timeStringSplit = timeString != null ? timeString.split(":") : null;
-                    
-                    // default record time is midnight.
-                    Integer hour = null;
-                    Integer minute = null;
-                    
-                    if (timeStringSplit != null && timeStringSplit.length == 2) {
-                        try {
-                            hour = Integer.parseInt(timeStringSplit[0]);
-                        } catch(NumberFormatException nfe) {
-                            
-                        }
-                        try {
-                            minute = Integer.parseInt(timeStringSplit[1]);
-                        } catch (NumberFormatException nfe) {
-                            
-                        }
-                    }
-            
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy");
-                    // Dates
-                    Date date = null;
-                    
-                    String dateString = entry.getValue(klu.getDateKey());
-                    if (StringUtils.nullOrEmpty(dateString)){
-                        date = null;
-                    } else {
-                        date = dateFormat.parse(dateString);
-                    }
-                    Calendar cal = Calendar.getInstance();
-                    cal.clear();
-                    if(date != null) {
-                        cal.setTime(date);
-                        cal.clear(Calendar.HOUR_OF_DAY);
-                        cal.clear(Calendar.MINUTE);
-                        cal.clear(Calendar.SECOND);
-                        cal.clear(Calendar.MILLISECOND);
-                    }
-                    if (minute != null) {
-                        cal.set(Calendar.MINUTE, minute);
-                    }
-                    if (hour != null) {
-                         cal.set(Calendar.HOUR_OF_DAY, hour);
-                    }
-                    
-                    // if any of the time fields are non null, set the
-                    // date/time fields of the record.
-                    if(date != null || hour != null || minute != null) {
-                        record.setWhen(cal.getTime());
-                        record.setTime(cal.getTimeInMillis());
-                        record.setLastDate(cal.getTime());
-                        record.setLastTime(cal.getTimeInMillis());
-                    }
-                    if (entry.getGeometry() == null) {
-                    	// By this point we have already validated the srid in the param map is valid so
-                    	// we'll parse it blindly. If there is no srid in the param map we will use
-                    	// the current survey srid setting.
-                    	Integer srid = StringUtils.notEmpty(entry.getValue(klu.getZoneKey())) ?
-                    			Integer.valueOf(entry.getValue(klu.getZoneKey())) 
-                    	        : survey.getMap().getSrid();
-                    	SpatialUtil spatialUtil = spatialUtilFactory.getLocationUtil(srid);
-                    	
-                    	String wktString = getFirstValue(params, klu.getWktKey());
-                        
-                        if (StringUtils.notEmpty(wktString)) {
-                        	// use wkt
-                        	Geometry geom = spatialUtil.createGeometryFromWKT(wktString);
-                        	record.setGeometry(geom);
-                        } else {
-                        	// use lat lon
-                        	String latString = getFirstValue(params, klu.getLatitudeKey());
-                            String lonString = getFirstValue(params, klu.getLongitudeKey());
-                            // Position
-                            // Geometry is nullable now
-                            if(!(StringUtils.nullOrEmpty(latString) && StringUtils.nullOrEmpty(lonString))){
-                                double latitude = Double.parseDouble(latString);
-                                double longitude = Double.parseDouble(lonString);
-                                record.setPoint(spatialUtil.createPoint(latitude, longitude));
-                            }
-                        } 
-                    } else {
-                    	Geometry theGeom = entry.getGeometry();
-                        record.setGeometry(theGeom);
-                    }
-                    Location loc = null;
-                    // First try to get the location by primary key.
-                    if(entry.getValue(klu.getLocationKey()) != null) {
-                        int locationId = Integer.parseInt(entry.getValue(klu.getLocationKey()));
-                        // At this point locationId may be -1 and therefore loc will be null.
-                        loc = locationDAO.getLocation(locationId);
-                    }
-                    
-                    // If the location lookup fails, try to see if we should create
-                    // a new location.
-                    if(loc == null) {
-                    	String locationName = entry.getValue(klu.getLocationNameKey());
-                        if(locationName != null && !locationName.isEmpty()) {
-                            loc = new Location();
-                            loc.setName(locationName);
-                            
-                            double latitude = record.getGeometry().getCentroid().getY();
-                            double longitude = record.getGeometry().getCentroid().getX();
-                            
-                            // use the same srid as the record's geom.
-                        	SpatialUtil spatialUtil = spatialUtilFactory.getLocationUtil(record.getGeometry().getSRID());
-                        	
-                            loc.setLocation(spatialUtil.createPoint(latitude, longitude));
-                            loc = locationDAO.save(loc);
-                        }
-                    }
-                    // This loc here may still be null but that is ok.
-                    record.setLocation(loc);
-                    
-                    String accuracyStr = entry.getValue(klu.getAccuracyKey());
-                    record.setAccuracyInMeters(StringUtils.notEmpty(accuracyStr) ? Double.parseDouble(accuracyStr) : null);
-                }
-                // Attach the record Attributes
-                List<TypedAttributeValue> attrValuesToDelete = new ArrayList<TypedAttributeValue>();
-                Set<AttributeValue> existingAttrValues = new HashSet<AttributeValue>(record.getAttributes().size()); 
-                existingAttrValues.addAll(record.getAttributes());
-                Set<AttributeScope> scope = new HashSet<AttributeScope>(AttributeScope.values().length+1);
-                scope.addAll(Arrays.asList(AttributeScope.values()));
-                scope.remove(AttributeScope.LOCATION);
-                scope.add(null);
-                // Survey Attributes
-                
-                Set<Attribute> attributesToParseSet = new HashSet<Attribute>();
-                
-                attributesToParseSet.addAll(survey.getAttributes());
-                if (isTaxonomicRecord && species != null) {
-                    attributesToParseSet.addAll(species.getTaxonGroup().getAttributes());
-                }
-                if (censusMethod != null) {
-                    attributesToParseSet.addAll(censusMethod.getAttributes());
-                }
-                for (AttributeValue av : existingAttrValues) {
-                    attributesToParseSet.add(av.getAttribute());
-                }
-                
-                List<Attribute> attributeToParseList = new ArrayList<Attribute>(attributesToParseSet.size());
-                attributeToParseList.addAll(attributesToParseSet);
-                                
-                attrDeserializer.deserializeAttributes(attributeToParseList, attrValuesToDelete, 
-                                                       record.getAttributes(), entry.prefix, attrNameMap, attrFilenameMap, 
-                                                       record, entry.getDataMap(), entry.getFileMap(), currentUser, moderationOnly, scope, save);
-                
-                if (save) {
-                    recordDAO.saveRecord(record);
-                }
-                
-                rsResult.setRecord(record);
-                
-                if (save) {
-                    for(TypedAttributeValue attrVal : attrValuesToDelete) {
-                        attributeDAO.save(attrVal);
-                        attributeDAO.delete(attrVal);
-                    }
-                }
+                RecordDeserializerResult result = deserializeRecord(currentUser, validate, save, entry, attrDeserializer);
+                results.add(result);
             }
         } finally {
             // enable the partial record filter to prevent records for attribute values to be retrieved
             FilterManager.setPartialRecordCountFilter(sessionFactory.getCurrentSession());
         }
         return results;
+    }
+
+    /**
+     * Creates a Record from the supplied parameters.
+     *
+     * @param currentUser - the user that the records will be attributed to
+     * @param validate - boolean flag indicating whether or not to run the validation
+     * @param save - boolean flag indicating whether or not to save the records
+     * @param entry - contains the data to deserialize
+     * @param attrDeserializer - used to deserialize the attributes of the record.
+     * @return Returns true if the Record deserialized correctly, false if validation errors were encountered.
+     * @throws ParseException
+     * @throws IOException
+     */
+    private RecordDeserializerResult deserializeRecord(User currentUser, boolean validate, boolean save,
+                                                       RecordEntry entry, AttributeDeserializer attrDeserializer) throws ParseException, IOException {
+        SpatialUtilFactory spatialUtilFactory = new SpatialUtilFactory();
+
+        RecordDeserializerResult rsResult = new RecordDeserializerResult(entry);
+
+        Map<String, String[]> dataMap = entry.getDataMap();
+
+        Integer surveyPk = Integer.parseInt(entry.getValue(klu.getSurveyIdKey()));
+
+        String censusMethodIdString = entry.getValue(klu.getCensusMethodIdKey());
+
+        censusMethodIdString = censusMethodIdString == null ? "0" : censusMethodIdString;
+        Integer censusMethodId = Integer.parseInt(censusMethodIdString);
+
+        Survey survey = surveyDAO.getSurvey(surveyPk);
+        // lazy initialise the map for the survey
+        if (survey.getMap() == null) {
+            survey.setMap(geoMapService.getForSurvey(survey));
+        }
+        CensusMethod censusMethod = cmDAO.get(censusMethodId);
+
+        // Get the record here so we can first check authorization without doing all of the
+        // other checks...
+        Record record;
+        // use the prefix in case it is a single site form
+        // all other forms will have a default prefix of ""
+        String recordId = entry.getValue(entry.prefix + klu.getRecordIdKey());
+        if (recordId != null && !recordId.isEmpty()) {
+            int recordIdInt;
+            try {
+                recordIdInt = Integer.parseInt(recordId);
+            } catch (NumberFormatException nfe) {
+                setErrorMessage(rsResult, "Invalid record ID", "Record id: " + recordId + " is not a valid integer. If you want to create a new record indicate '0' as the record ID");
+                return rsResult;
+            }
+
+            // Unfortunately in shapefiles when you leave an integer field blank it becomes
+            // a '0'. If we detect such a record_id we will create a new record.
+            if (recordIdInt == 0) {
+                record = createNewRecord(entry, klu);
+            } else {
+                record = recordDAO.getRecord(recordIdInt);
+
+                // we are attempting to edit an existing record but the record
+                // query has returned null. Error!
+                if (record == null) {
+                    setErrorMessage(rsResult, "Record retrieval failure", "Record id: " + recordId + " is not an existing record.");
+                    // don't do any further processing for this record
+                    return rsResult;
+                }
+            }
+        } else {
+            record = createNewRecord(entry, klu);
+        }
+
+        // set the survey for the record here because it is used for
+        // some of the checking mechanisms before the final save
+        record.setSurvey(survey);
+
+        // set the record here so we have a copy to use even in the event of an error
+        rsResult.setRecord(record);
+
+        // check authorization!
+        if (!record.canWrite(currentUser)) {
+            // failed, do reporting.
+            rsResult.setAuthorizedAccess(false);
+            setErrorMessage(rsResult, "Authorization failure", "You do not have authorization to edit this record");
+            // don't do any further processing for this record
+            return rsResult;
+        }
+
+        Taxonomic taxonomic;
+        if(censusMethod != null && censusMethod.getTaxonomic() != null) {
+                taxonomic = censusMethod.getTaxonomic();
+        }
+        else {
+                taxonomic = Taxonomic.OPTIONALLYTAXONOMIC;
+        }
+
+        // If taxon is denoted by numeric ID, then use it!
+        IndicatorSpecies species;
+
+        try {
+            // use the prefix as it is necessary for single site forms
+            species = taxaDAO.getIndicatorSpecies(Integer.parseInt(entry.getValue(entry.prefix+klu.getSpeciesIdKey())));
+        } catch (NumberFormatException nfe) {
+            species = null;
+        }
+        String speciesSearch = entry.getValue(entry.prefix+klu.getSpeciesNameKey());
+        if (species == null && StringUtils.notEmpty(speciesSearch)) {
+            species = this.getSpeciesFromName(speciesSearch);
+        }
+
+        // if we are doing moderation only, it is not necessary to validate all of the fields, only the moderation ones
+        boolean moderationOnly = record.getId() != null && !currentUser.equals(record.getUser()) &&
+                                 !currentUser.isAdmin() && currentUser.isModerator() &&
+                                 record.isAtLeastOneModerationAttribute();
+
+        boolean isTaxonomicRecord = Taxonomic.TAXONOMIC.equals(taxonomic) || Taxonomic.OPTIONALLYTAXONOMIC.equals(taxonomic);
+        // use the prefix as it is necessary for single site forms
+
+        String numberString = entry.getValue(entry.prefix+klu.getIndividualCountKey());
+
+        RecordProperty recordProperty;
+        RecordFormValidator validator = new RecordFormValidator(propertyService, taxaDAO, survey, taxaService);
+        boolean isValid = false;
+        Map<String, String[]> params = dataMap;
+        Map<String, String[]> dateRangeParams = new HashMap<String, String[]>(params);
+        dateRangeParams.put("dateRange",
+                   new String[] {
+                        survey.getStartDate() == null ? "" : DateFormatter.format(survey.getStartDate(), DateFormatter.DAY_MONTH_YEAR),
+                        survey.getEndDate() == null ? "" : DateFormatter.format(survey.getEndDate(), DateFormatter.DAY_MONTH_YEAR) } );
+        TaxonGroup taxonGroup = null;
+        // don't validate when we are only moderating or if we have explicitly said not to
+        if (validate) {
+            if (!moderationOnly) {
+                // Validate darwin core fields
+                recordProperty = new RecordProperty(survey, RecordPropertyType.NOTES, metadataDAO);
+                if ( recordProperty.isRequired()) {
+                    validator.validate(params, ValidationType.REQUIRED_BLANKABLE_STRING, klu.getNotesKey(), null, recordProperty);
+                } else {
+                    validator.validate(params, ValidationType.STRING, klu.getNotesKey(), null, recordProperty);
+                }
+
+                recordProperty = new RecordProperty(survey, RecordPropertyType.WHEN, metadataDAO);
+                if(recordProperty.isRequired()) {
+                    validator.validate(params, ValidationType.REQUIRED_HISTORICAL_DATE, klu.getDateKey(), null, recordProperty);
+                    validator.validate(dateRangeParams, ValidationType.REQUIRED_DATE_WITHIN_RANGE, klu.getDateKey(), null, recordProperty);
+                } else {
+                    validator.validate(params, ValidationType.BLANKABLE_HISTORICAL_DATE, klu.getDateKey(), null, recordProperty);
+                    validator.validate(dateRangeParams, ValidationType.DATE_WITHIN_RANGE, klu.getDateKey(), null, recordProperty);
+                }
+
+                recordProperty = new RecordProperty(survey, RecordPropertyType.ACCURACY, metadataDAO);
+                if (recordProperty.isRequired()) {
+                    validator.validate(params, ValidationType.REQUIRED_DOUBLE, klu.getAccuracyKey(), null, recordProperty);
+                } else {
+                    validator.validate(params, ValidationType.DOUBLE, klu.getAccuracyKey(), null, recordProperty);
+                }
+
+                validator.validate(params, ValidationType.INTEGER, klu.getRecordIdKey(), null);
+
+                recordProperty = new RecordProperty(survey, RecordPropertyType.TIME, metadataDAO);
+                if (recordProperty.isRequired()) {
+                    validator.validate(params, ValidationType.REQUIRED_TIME, klu.getTimeKey(), null, recordProperty);
+                } else {
+                    validator.validate(params, ValidationType.TIME, klu.getTimeKey(), null, recordProperty);
+                }
+
+                if (entry.getGeometry() == null) {
+                    // check wkt
+                    String wktString = getFirstValue(params, klu.getWktKey());
+                    String latString = getFirstValue(params, klu.getLatitudeKey());
+                    String lonString = getFirstValue(params, klu.getLongitudeKey());
+                    boolean hasSpatial = (StringUtils.notEmpty(wktString) || StringUtils.notEmpty(latString)
+                            || StringUtils.notEmpty(lonString));
+
+                    // If any of the coordinate related parameters have been set, check if the
+                    // coordinate reference system needs to be specified.
+                    String crsString = getFirstValue(params, klu.getZoneKey());
+                    boolean crsValid = true;
+                    if ((StringUtils.notEmpty(crsString) || survey.getMap().getCrs().isZoneRequired()) && hasSpatial) {
+                        crsValid = validator.validate(params, ValidationType.REQUIRED_CRS, klu.getZoneKey(), null);
+                        if (crsValid) {
+                            validator.setCrs(BdrsCoordReferenceSystem.getBySRID(Integer.valueOf(crsString)));
+                        }
+                    }
+
+                    recordProperty = new RecordProperty(survey, RecordPropertyType.POINT, metadataDAO);
+                    if (StringUtils.nullOrEmpty(wktString)) {
+                        if ( recordProperty.isRequired()) {
+                            validator.validate(params, ValidationType.REQUIRED_COORD_Y, klu.getLatitudeKey(), null, recordProperty);
+                            validator.validate(params, ValidationType.REQUIRED_COORD_X, klu.getLongitudeKey(), null, recordProperty);
+                        } else {
+                            validator.validate(params, ValidationType.COORD_Y, klu.getLatitudeKey(), null, recordProperty);
+                            validator.validate(params, ValidationType.COORD_X, klu.getLongitudeKey(), null, recordProperty);
+                        }
+                    } else if (crsValid) {
+                        // Since wkt validation relies on the CRS being valid, only do this validation when the earlier CRS validates!
+                        // If the wkt string is non empty, we require it to be valid.
+                        validator.validate(params, ValidationType.REQUIRED_WKT, klu.getWktKey(), null, recordProperty);
+                    }
+                } else {
+                    // make sure the geometry is valid !
+
+                    IsValidOp isValidOp = new IsValidOp(entry.getGeometry());
+                    TopologyValidationError geomError = isValidOp.getValidationError();
+
+                    boolean geomValid = geomError == null;
+
+                    if (!geomValid) {
+                        Map<String, String> errorMap = validator.getErrorMap();
+                        String errMsg = propertyService.getMessage(
+                                        GEOM_INVALID_KEY,
+                                        GEOM_INVALID_DEFAULT_MESSAGE);
+                        errorMap.put(klu.getLatitudeKey(), String.format(errMsg, geomError.getMessage()));
+                        errorMap.put(klu.getLongitudeKey(), String.format(errMsg, geomError.getMessage()));
+                    } else {
+                        // attempt to do geometry conversion as we only support multiline, multipolygon and singlepoint
+                        try {
+                            SpatialUtil spatialUtil = spatialUtilFactory.getLocationUtil(entry.getGeometry().getSRID());
+                            Geometry geom = spatialUtil.convertToMultiGeom(entry.getGeometry());
+                            entry.setGeometry(geom);
+                        } catch (IllegalArgumentException iae) {
+                            Map<String, String> errorMap = validator.getErrorMap();
+                            errorMap.put(klu.getLatitudeKey(), iae.getMessage());
+                            errorMap.put(klu.getLongitudeKey(), iae.getMessage());
+                        }
+                    }
+                    isValid = isValid && geomValid;
+                }
+
+            }
+            else {
+                // Because the occurences/number field is not editable in moderation mode (if the moderator is
+                // not an admin), the number property won't be submitted with the form.  Hence we are faking it
+                // as species and occurances are validated as a block).
+                numberString = Integer.toString(record.getNumber());
+                params.put(klu.getIndividualCountKey(), new String[] {numberString});
+            }
+        }
+        taxonGroup = species != null ? species.getTaxonGroup() : null;
+        Map<Attribute, Object> attrNameMap = attrDictFact.createNameKeyDictionary(record, survey, null, taxonGroup, censusMethod, entry.getDataMap());
+        Map<Attribute, Object> attrFilenameMap = attrDictFact.createFileKeyDictionary(record, survey, null, taxonGroup, censusMethod, entry.getDataMap());
+
+        if (validate) {
+            isValid = validateSpeciesInformation(survey, taxonomic, species, isTaxonomicRecord, speciesSearch, numberString, validator, isValid, params);
+            // Here is the point we require our name dictionary as we are about to start validating attributes...
+            for(Attribute attr : survey.getAttributes()) {
+                if(attrDictFact.getDictionaryAttributeScope().contains(attr.getScope())) {
+                    // validate all attributes when not moderating,
+                    // but only moderation attributes when moderation only
+                    if (AttributeUtil.isModifiableByScopeAndUser(attr, currentUser) && (!moderationOnly ||
+                            (moderationOnly && AttributeScope.isModerationScope(attr.getScope())))) {
+                        // use the entry prefix for record scoped attributes
+                        // the record entry prefix will be the id for the row in the sightings table
+                        // for single site record entry forms
+                        String prefix = AttributeScope.isRecordScope(attr.getScope()) ? entry.prefix : "";
+                        isValid = isValid & attrDeserializer.validate(validator, prefix, attrNameMap, attrFilenameMap, attr, params, entry.getFileMap());
+                    }
+                }
+            }
+            if(species != null) {
+                for(Attribute attr : species.getTaxonGroup().getAttributes()) {
+                    if(!attr.isTag()) {
+                        isValid = isValid & attrDeserializer.validate(validator, "", attrNameMap, attrFilenameMap, attr, params, entry.getFileMap());
+                    }
+                }
+            }
+            if (censusMethod != null) {
+                for (Attribute attr : censusMethod.getAttributes()) {
+                    isValid = isValid & attrDeserializer.validate(validator, "", attrNameMap, attrFilenameMap, attr, params, entry.getFileMap());
+                }
+            }
+
+            if(validator.getErrorMap().size() > 0) {
+                rsResult.setErrorMap(validator.getErrorMap());
+                // and early end of loop
+                return rsResult;
+            }
+        }
+        // At this point we know that,
+        // the species primary key does not match an indicator species possibly
+        // due to it not being set because javascript being disabled, however
+        // the taxon validator has been run so the scientific name has been
+        // entered so we can search on the name.
+
+        Integer number = null;
+        if (isTaxonomicRecord) {
+            if(species != null && !StringUtils.nullOrEmpty(numberString)) {
+                try {
+                    number = Integer.valueOf(numberString);
+                } catch (NumberFormatException nfe) {
+                    log.warn("Record deserializer could not parse number string to an int : " + numberString);
+                }
+            }
+        } else {
+            species = null;
+            number = null;
+        }
+
+        User user = currentUser;
+
+        // if we are just moderating the record, only want to set the moderation attributes
+        record.setSpecies(species);
+        if (!moderationOnly) {
+            // Preserve the original owner of the record if this is a record edit.
+            if (record.getUser() == null) {
+                record.setUser(user);
+            }
+            record.setNumber(number);
+            recordProperty = new RecordProperty(survey, RecordPropertyType.NOTES, metadataDAO);
+            if (!recordProperty.isHidden()) {
+                record.setNotes(entry.getValue(klu.getNotesKey()));
+            }
+            record.setFirstAppearance(false);
+            record.setLastAppearance(false);
+            // is possible to set this to null
+            record.setCensusMethod(censusMethod);
+
+            // attempt to parse the record visibility key. if not cannot be parsed i.e. invalid or not filled in,
+            // use the default record visibility for the survey.
+            record.setRecordVisibility(RecordVisibility.parse(entry.getValue(klu.getRecordVisibilityKey()), survey.getDefaultRecordVisibility()));
+
+            // Dates
+            String timeString = attributeParser.getTimeValue(klu.getTimeKey(), klu.getTimeHourKey(), klu.getTimeMinuteKey(), entry.getDataMap());
+            String[] timeStringSplit = timeString != null ? timeString.split(":") : null;
+
+            // default record time is midnight.
+            Integer hour = null;
+            Integer minute = null;
+
+            if (timeStringSplit != null && timeStringSplit.length == 2) {
+                try {
+                    hour = Integer.parseInt(timeStringSplit[0]);
+                } catch(NumberFormatException nfe) {
+
+                }
+                try {
+                    minute = Integer.parseInt(timeStringSplit[1]);
+                } catch (NumberFormatException nfe) {
+
+                }
+            }
+
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy");
+            // Dates
+            Date date = null;
+
+            String dateString = entry.getValue(klu.getDateKey());
+            if (StringUtils.nullOrEmpty(dateString)){
+                date = null;
+            } else {
+                date = dateFormat.parse(dateString);
+            }
+            Calendar cal = Calendar.getInstance();
+            cal.clear();
+            if(date != null) {
+                cal.setTime(date);
+                cal.clear(Calendar.HOUR_OF_DAY);
+                cal.clear(Calendar.MINUTE);
+                cal.clear(Calendar.SECOND);
+                cal.clear(Calendar.MILLISECOND);
+            }
+            if (minute != null) {
+                cal.set(Calendar.MINUTE, minute);
+            }
+            if (hour != null) {
+                 cal.set(Calendar.HOUR_OF_DAY, hour);
+            }
+
+            // if any of the time fields are non null, set the
+            // date/time fields of the record.
+            if(date != null || hour != null || minute != null) {
+                record.setWhen(cal.getTime());
+                record.setTime(cal.getTimeInMillis());
+                record.setLastDate(cal.getTime());
+                record.setLastTime(cal.getTimeInMillis());
+            }
+            if (entry.getGeometry() == null) {
+                // By this point we have already validated the srid in the param map is valid so
+                // we'll parse it blindly. If there is no srid in the param map we will use
+                // the current survey srid setting.
+                Integer srid = StringUtils.notEmpty(entry.getValue(klu.getZoneKey())) ?
+                        Integer.valueOf(entry.getValue(klu.getZoneKey()))
+                        : survey.getMap().getSrid();
+                SpatialUtil spatialUtil = spatialUtilFactory.getLocationUtil(srid);
+
+                String wktString = getFirstValue(params, klu.getWktKey());
+
+                if (StringUtils.notEmpty(wktString)) {
+                    // use wkt
+                    Geometry geom = spatialUtil.createGeometryFromWKT(wktString);
+                    record.setGeometry(geom);
+                } else {
+                    // use lat lon
+                    String latString = getFirstValue(params, klu.getLatitudeKey());
+                    String lonString = getFirstValue(params, klu.getLongitudeKey());
+                    // Position
+                    // Geometry is nullable now
+                    if(!(StringUtils.nullOrEmpty(latString) && StringUtils.nullOrEmpty(lonString))){
+                        double latitude = Double.parseDouble(latString);
+                        double longitude = Double.parseDouble(lonString);
+                        record.setPoint(spatialUtil.createPoint(latitude, longitude));
+                    }
+                }
+            } else {
+                Geometry theGeom = entry.getGeometry();
+                record.setGeometry(theGeom);
+            }
+            Location loc = null;
+            // First try to get the location by primary key.
+            if(entry.getValue(klu.getLocationKey()) != null) {
+                int locationId = Integer.parseInt(entry.getValue(klu.getLocationKey()));
+                // At this point locationId may be -1 and therefore loc will be null.
+                loc = locationDAO.getLocation(locationId);
+            }
+
+            // If the location lookup fails, try to see if we should create
+            // a new location.
+            if(loc == null) {
+                String locationName = entry.getValue(klu.getLocationNameKey());
+                if(locationName != null && !locationName.isEmpty()) {
+                    loc = new Location();
+                    loc.setName(locationName);
+
+                    double latitude = record.getGeometry().getCentroid().getY();
+                    double longitude = record.getGeometry().getCentroid().getX();
+
+                    // use the same srid as the record's geom.
+                    SpatialUtil spatialUtil = spatialUtilFactory.getLocationUtil(record.getGeometry().getSRID());
+
+                    loc.setLocation(spatialUtil.createPoint(latitude, longitude));
+                    loc = locationDAO.save(loc);
+                }
+            }
+            // This loc here may still be null but that is ok.
+            record.setLocation(loc);
+
+            String accuracyStr = entry.getValue(klu.getAccuracyKey());
+            record.setAccuracyInMeters(StringUtils.notEmpty(accuracyStr) ? Double.parseDouble(accuracyStr) : null);
+        }
+        // Attach the record Attributes
+        List<TypedAttributeValue> attrValuesToDelete = new ArrayList<TypedAttributeValue>();
+        Set<AttributeValue> existingAttrValues = new HashSet<AttributeValue>(record.getAttributes().size());
+        existingAttrValues.addAll(record.getAttributes());
+        Set<AttributeScope> scope = new HashSet<AttributeScope>(AttributeScope.values().length+1);
+        scope.addAll(Arrays.asList(AttributeScope.values()));
+        scope.remove(AttributeScope.LOCATION);
+        scope.add(null);
+        // Survey Attributes
+
+        Set<Attribute> attributesToParseSet = new HashSet<Attribute>();
+
+        attributesToParseSet.addAll(survey.getAttributes());
+        if (isTaxonomicRecord && species != null) {
+            attributesToParseSet.addAll(species.getTaxonGroup().getAttributes());
+        }
+        if (censusMethod != null) {
+            attributesToParseSet.addAll(censusMethod.getAttributes());
+        }
+        for (AttributeValue av : existingAttrValues) {
+            attributesToParseSet.add(av.getAttribute());
+        }
+
+        List<Attribute> attributeToParseList = new ArrayList<Attribute>(attributesToParseSet.size());
+        attributeToParseList.addAll(attributesToParseSet);
+
+        attrDeserializer.deserializeAttributes(attributeToParseList, attrValuesToDelete,
+                                               record.getAttributes(), entry.prefix, attrNameMap, attrFilenameMap,
+                                               record, entry.getDataMap(), entry.getFileMap(), currentUser, moderationOnly, scope, save);
+
+        if (save) {
+            recordDAO.saveRecord(record);
+        }
+
+        rsResult.setRecord(record);
+
+        if (save) {
+            for(TypedAttributeValue attrVal : attrValuesToDelete) {
+                attributeDAO.save(attrVal);
+                attributeDAO.delete(attrVal);
+            }
+        }
+        return rsResult;
     }
 
     /**

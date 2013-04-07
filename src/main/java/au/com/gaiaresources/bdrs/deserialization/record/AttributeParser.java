@@ -314,6 +314,7 @@ public abstract class AttributeParser {
                 case CENSUS_METHOD_COL:
                     // census method types do not have a string value, but should be added or updated
                     addOrUpdateAttribute = true;
+                    attributeValue.setStringValue("");
                     break;
                 default:
                     log.warn("Unknown Attribute Type: " + attrType);
