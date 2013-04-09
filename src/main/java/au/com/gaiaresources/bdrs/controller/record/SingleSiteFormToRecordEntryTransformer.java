@@ -392,7 +392,7 @@ public class SingleSiteFormToRecordEntryTransformer {
             RecordPath newPath = mapping.transformPath(path);
             String newKey = doSubstitution(path, newPath, key);
 
-            String[] value = params.get(entry.getValue());
+            String[] value = entry.getValue();
             String[] newValue = value;
 
             if (key.endsWith(ROW_PREFIX) && value != null) {
