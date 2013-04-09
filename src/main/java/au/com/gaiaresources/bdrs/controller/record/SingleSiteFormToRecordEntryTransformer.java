@@ -8,11 +8,9 @@ import org.apache.log4j.Logger;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -331,10 +329,6 @@ public class SingleSiteFormToRecordEntryTransformer {
 
                 RecordMatcher matcher = recordMappings.get(recordPrefix);
                 recordParams = substituteParameters(paramMap, matcher);
-                for (String key : new TreeMap<String, String[]>(recordParams).keySet()) {
-                   System.out.println(key+"="+Arrays.asList(recordParams.get(key)));
-                }
-
             }
             RecordEntry entry = new RecordEntry(recordParams, recordFiles, recordPrefix);
             result.add(entry);
@@ -391,13 +385,14 @@ public class SingleSiteFormToRecordEntryTransformer {
         Map<String, String[]> newParams = new HashMap<String, String[]>();
 
         ParameterParser parser = new ParameterParser(mapping.record);
-        for (String key : params.keySet()) {
+        for (Map.Entry<String, String[]> entry : params.entrySet()) {
 
+            String key = entry.getKey();
             RecordPath path = parser.parse(key);
             RecordPath newPath = mapping.transformPath(path);
             String newKey = doSubstitution(path, newPath, key);
 
-            String[] value = params.get(key);
+            String[] value = params.get(entry.getValue());
             String[] newValue = value;
 
             if (key.endsWith(ROW_PREFIX) && value != null) {

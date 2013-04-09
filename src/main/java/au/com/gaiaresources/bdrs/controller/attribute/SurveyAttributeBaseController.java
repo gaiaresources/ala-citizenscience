@@ -198,7 +198,7 @@ public class SurveyAttributeBaseController extends AbstractController {
 
         // Update the form rendering type given the new criteria
         SurveyFormRendererType formRenderType = survey.getFormRendererType();
-        if(formRenderType == null || (formRenderType != null && !formRenderType.isEligible(survey))) {
+        if(formRenderType == null || !formRenderType.isEligible(survey)) {
             Metadata md = survey.setFormRendererType(SurveyFormRendererType.DEFAULT);
             metadataDAO.save(md);
         }
