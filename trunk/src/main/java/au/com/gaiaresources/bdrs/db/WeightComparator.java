@@ -2,12 +2,13 @@ package au.com.gaiaresources.bdrs.db;
 
 import au.com.gaiaresources.bdrs.model.record.Record;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 /**
  * Compares two Persistent objects on their weight.
  */
-public class WeightComparator implements Comparator<Record> {
+public class WeightComparator implements Comparator<Record>, Serializable {
 
     /**
      * Implements a default ordering based on weight.
