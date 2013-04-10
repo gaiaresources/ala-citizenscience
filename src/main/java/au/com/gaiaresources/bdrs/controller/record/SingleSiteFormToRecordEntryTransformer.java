@@ -329,6 +329,8 @@ public class SingleSiteFormToRecordEntryTransformer {
 
                 RecordMatcher matcher = recordMappings.get(recordPrefix);
                 recordParams = substituteParameters(paramMap, matcher);
+
+                recordFiles = substituteFiles(fileMap, matcher);
             }
             RecordEntry entry = new RecordEntry(recordParams, recordFiles, recordPrefix);
             result.add(entry);
@@ -423,6 +425,29 @@ public class SingleSiteFormToRecordEntryTransformer {
 
         }
         return newParams;
+    }
+
+    /**
+     * Takes a the set of user supplied HTTP parameters and returns a modified set of parameters suitable for
+     * editing any files uploaded during an edit operation of a multi species form.
+     * @param fileMap the set original HTTP parameters containing an uploaded file.
+     * @param mapping capable of mapping the original parameters to ones suitable for the contained Record.
+     * @return a new set of HTTP parameters to use.
+     */
+    private Map<String, MultipartFile> substituteFiles(Map<String, MultipartFile> fileMap, RecordMatcher mapping) {
+        Map<String, MultipartFile> newFiles = new HashMap<String, MultipartFile>();
+
+        ParameterParser parser = new ParameterParser(mapping.record);
+        for (Map.Entry<String, MultipartFile> entry : fileMap.entrySet()) {
+
+            String key = entry.getKey();
+            RecordPath path = parser.parse(key);
+            RecordPath newPath = mapping.transformPath(path);
+            String newKey = doSubstitution(path, newPath, key);
+            newFiles.put(newKey, entry.getValue());
+        }
+
+        return newFiles;
     }
 
     private String doSubstitution(RecordPath path, RecordPath newPath, String key) {

@@ -12,6 +12,7 @@ import junit.framework.TestCase;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.junit.Test;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashSet;
@@ -35,6 +36,7 @@ public class SingleSiteFormToRecordEntryTransformerTest extends TestCase {
     private Attribute doubleNestedTextAttribute;
     private Attribute rowCensusMethod;
     private Attribute nestedRowTextAttribute;
+    private Attribute fileAttribute;
 
     private Record createTestRecord(int firstId) {
         Record parent = new Record();
@@ -75,6 +77,12 @@ public class SingleSiteFormToRecordEntryTransformerTest extends TestCase {
         AttributeValue doubleNestedTextAttributeValue = new AttributeValue();
         doubleNestedTextAttributeValue.setAttribute(doubleNestedTextAttribute);
         doubleNestedTextAttributeValue.setStringValue("Nested Test");
+        childOfChild.getAttributes().add(doubleNestedTextAttributeValue);
+
+        fileAttribute = createAttribute(70, AttributeType.IMAGE);
+        AttributeValue fileAttributeValue = new AttributeValue();
+        fileAttributeValue.setAttribute(fileAttribute);
+        fileAttributeValue.setStringValue("filename");
         childOfChild.getAttributes().add(doubleNestedTextAttributeValue);
 
         parent.getAttributes().add(censusMethodValue);
@@ -132,7 +140,7 @@ public class SingleSiteFormToRecordEntryTransformerTest extends TestCase {
 
         addSpeciesRecordParams(paramMap, new String[]{Integer.toString(species1.getId()), Integer.toString(species2.getId())});
         int species1ChildRecordId = 2;
-        addCensusMethodAttr("Test", species1ChildRecordId, paramMap);
+        addCensusMethodAttr("Test", species1ChildRecordId, paramMap, fileMap);
         int species1RowChildRecordId = 4;
         addRowCensusMethodAttr("Test row", species1RowChildRecordId, paramMap);
 
@@ -166,6 +174,9 @@ public class SingleSiteFormToRecordEntryTransformerTest extends TestCase {
         Assert.assertEquals("7", species2Params.get("0_attribute_10_record_6_0_attribute_30_recordId")[0]);
         Assert.assertEquals("Test nested", species2Params.get("0_attribute_10_record_6_0_attribute_30_record_7_attribute_40")[0]);
 
+        // Now the file in the nested census method
+        Assert.assertEquals("file.txt", entries.get(1).getFileMap().get("0_attribute_10_record_6_0_attribute_30_record_7_attribute_file_70").getName());
+
         // Now the nested row census method
         Assert.assertEquals("8", species2Params.get("attribute_50_record_8_recordId")[0]);
         Assert.assertEquals("Test row", species2Params.get("attribute_50_record_8_attribute_60")[0]);
@@ -189,7 +200,7 @@ public class SingleSiteFormToRecordEntryTransformerTest extends TestCase {
 
         addSpeciesRecordParams(paramMap, new String[]{Integer.toString(species1.getId()), ""});
         int species1ChildRecordId = 2;
-        addCensusMethodAttr("Test", species1ChildRecordId, paramMap);
+        addCensusMethodAttr("Test", species1ChildRecordId, paramMap, fileMap);
         int species1RowChildRecordId = 4;
         addRowCensusMethodAttr("Test row", species1RowChildRecordId, paramMap);
 
@@ -248,7 +259,7 @@ public class SingleSiteFormToRecordEntryTransformerTest extends TestCase {
 
         addSpeciesRecordParams(paramMap, new String[]{Integer.toString(species1.getId()), Integer.toString(species2.getId())});
         int species1ChildRecordId = 2;
-        addCensusMethodAttr("Test", species1ChildRecordId, paramMap);
+        addCensusMethodAttr("Test", species1ChildRecordId, paramMap, fileMap);
         int species1RowChildRecordId = 4;
         addRowCensusMethodAttr("Test row", species1RowChildRecordId, paramMap);
 
@@ -286,15 +297,13 @@ public class SingleSiteFormToRecordEntryTransformerTest extends TestCase {
         Assert.assertEquals("New Test nested", species2Params.get("1_attribute_10_record_0_attribute_30_record_attribute_40")[0]);
     }
 
-
-
     private void addSpeciesRecordParams(Map<String, String[]> params, String[] recordIds) {
         for (int i = 0; i < recordIds.length; i++) {
             params.put(i + "_recordId", new String[]{recordIds[i]});
         }
     }
 
-    private String addCensusMethodAttr(String value, int recordId, Map<String, String[]> params) {
+    private String addCensusMethodAttr(String value, int recordId, Map<String, String[]> params, Map<String, MultipartFile> files) {
         // Actually need all rows here.
         params.put("attribute_" + censusMethodAttr.getId() + "_rowPrefix", new String[]{"0_attribute_" + censusMethodAttr.getId() + "_record_" + recordId + "_"});
 
@@ -313,7 +322,7 @@ public class SingleSiteFormToRecordEntryTransformerTest extends TestCase {
 
         // Now the nested census method attributes
         params.put(attrPrefix + "_0_attribute_" + nestedCensusMethod.getId() + "_record_" + childRecordId + "_attribute_" + doubleNestedTextAttribute.getId(), new String[]{value + " nested"});
-
+        files.put(attrPrefix + "_0_attribute_" + nestedCensusMethod.getId() + "_record_" + childRecordId + "_attribute_file_"+fileAttribute.getId(), new MockMultipartFile("file.txt", new byte[0]));
         return attrPrefix;
     }
 
