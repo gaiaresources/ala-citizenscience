@@ -1,0 +1,468 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!DOCTYPE tiles-definitions PUBLIC
+       "-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN"
+       "http://tiles.apache.org/dtds/tiles-config_2_0.dtd">
+
+<tiles-definitions>
+
+    <!-- Record Map -->
+    <definition name="recordBaseMap" extends="user-template">
+        <put-attribute name="title" value="Records Map"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/map/recordBaseMap.jsp"/>
+        <put-attribute name="maps" value="true"/>
+        <put-list-attribute name="customCss">
+            <add-attribute>jpicker/jPicker-1.1.3.css</add-attribute>
+        </put-list-attribute>
+        <put-list-attribute name="customJavaScript">
+            <add-attribute>jpicker/jpicker-1.1.3.js</add-attribute>
+        </put-list-attribute>
+    </definition>
+
+    <!-- Record Tracker -->
+    <definition name="recordTracker" extends="user-template">
+        <put-attribute name="title" value="Records Map"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/map/recordTracker.jsp"/>
+        <put-attribute name="maps" value="true"/>
+        <put-list-attribute name="customCss">
+            <add-attribute>jpicker/jPicker-1.1.3.css</add-attribute>
+        </put-list-attribute>
+        <put-list-attribute name="customJavaScript">
+            
+            <add-attribute>jpicker/jpicker-1.1.3.js</add-attribute>
+        </put-list-attribute>
+    </definition>
+    
+    <definition name="userProfile" extends="user-template">
+        <put-attribute name="title" value="Edit Account"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/editProfile.jsp"/>
+    </definition>
+    
+    <!-- User Meta Data Form Fields originally this was meant to be in vanilla_content.xml -->
+    <!-- Use this tile inside a form to populate it with the configured user metadata -->
+    <definition name="userMetaDataFormFields" template="/WEB-INF/jsp/bdrs/user/userMetaDataFormFields.jsp">
+        <put-attribute name="metaList" type="object"/>
+    </definition>
+
+    <!-- My Sightings -->
+    <definition name="mySightings" extends="user-template">
+        <put-attribute name="title" value="My Sightings"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/map/mySightings.jsp"/>
+        <put-attribute name="maps" value="true"/>
+        <put-list-attribute name="customJavaScript">
+            <add-attribute>bdrs/review/downloadSightingsWidget.js</add-attribute>
+            <add-attribute>bdrs/review/mySightings.js</add-attribute>
+            <add-attribute>bdrs/review/record.js</add-attribute>
+        </put-list-attribute>
+    </definition>
+
+    <!-- Advanced Review Sightings/Locations -->
+    <definition name="advancedReview" template="/WEB-INF/jsp/bdrs/user/review/sightings/advancedReview.jsp">
+        <put-attribute name="title" value="Sightings"/>
+        <put-attribute name="maps" value="true"/>
+        <put-list-attribute name="customJavaScript">
+            <add-attribute>bdrs/review/downloadSightingsWidget.js</add-attribute>
+            <add-attribute>advancedReview.js</add-attribute>
+        </put-list-attribute>
+    </definition>
+    
+    <definition name="advancedReviewRecords" extends="user-template">
+        <put-attribute name="title" value="Sightings"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/review/sightings/advancedReviewRecords.jsp"/>
+        <put-attribute name="maps" value="true"/>
+        <put-list-attribute name="customJavaScript">
+            <add-attribute>bdrs/review/downloadSightingsWidget.js</add-attribute>
+            <add-attribute>advancedReview.js</add-attribute>
+            <add-attribute>advancedReviewSightings.js</add-attribute>
+        </put-list-attribute>
+    </definition>
+    
+    <definition name="advancedReviewLocations" extends="user-template">
+        <put-attribute name="title" value="Locations"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/review/sightings/advancedReviewLocations.jsp"/>
+        <put-attribute name="maps" value="true"/>
+        <put-list-attribute name="customJavaScript">
+            <add-attribute>bdrs/review/downloadSightingsWidget.js</add-attribute>
+            <add-attribute>advancedReview.js</add-attribute>
+            <add-attribute>advancedReviewLocations.js</add-attribute>
+        </put-list-attribute>
+    </definition>
+
+    <definition name="downloadSightingsWidget" template="/WEB-INF/jsp/bdrs/user/review/sightings/downloadSightingsWidget.jsp">
+    </definition>
+    
+    <definition name="advancedReviewFacet" template="/WEB-INF/jsp/bdrs/user/review/sightings/advancedReviewFacet.jsp">
+        <put-attribute name="facet" type="object"/>
+    </definition>
+    
+    <definition name="advancedReviewMapView" template="/WEB-INF/jsp/bdrs/user/review/sightings/advancedReviewMapView.jsp">
+        <put-attribute name="sortBy" type="object"/>
+        <put-attribute name="sortOrder" type="object"/>
+        <put-attribute name="resultsPerPage" type="object"/>
+        <put-attribute name="pageCount" type="object"/>
+        <put-attribute name="pageNumber" type="object"/>
+    </definition>
+    
+    <definition name="advancedReviewTableView" template="/WEB-INF/jsp/bdrs/user/review/sightings/advancedReviewTableView.jsp">
+        <put-attribute name="sortBy" type="object"/>
+        <put-attribute name="sortOrder" type="object"/>
+    </definition>
+
+    <definition name="advancedReviewImagesView" template="/WEB-INF/jsp/bdrs/user/review/sightings/advancedReviewImagesView.jsp">
+        <put-attribute name="sortBy" type="object"/>
+        <put-attribute name="sortOrder" type="object"/>
+    </definition>
+
+
+    <!-- Record Listing -->
+    <definition name="recordListing" extends="user-template">
+        <put-attribute name="title" value="Record Listing"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/record/listing.jsp"/>
+        <put-attribute name="maps" value="false"/>
+        <put-list-attribute name="customJavaScript">
+        </put-list-attribute>
+    </definition>
+
+    <!-- User Location -->
+    <definition name="userEditLocations" extends="user-template">
+        <put-attribute name="title" value="User Location"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/location/editLocations.jsp"/>
+        <put-attribute name="maps" value="true"/>
+        <put-list-attribute name="customJavaScript">
+            
+        </put-list-attribute>
+    </definition>
+    
+    <!-- Record Form Field Renderer -->
+    <definition name="formFieldRenderer" template="/WEB-INF/jsp/bdrs/user/record/render/formFieldRenderer.jsp">
+        <put-attribute name="formField" type="object"/>
+        <put-attribute name="locations" type="object"/>
+        <put-attribute name="errorMap" type="object"/>
+        <put-attribute name="valueMap" type="object"/>
+    </definition>
+	
+	<definition name="divLayoutformFieldRenderer" template="/WEB-INF/jsp/bdrs/user/record/render/divLayoutFormFieldRenderer.jsp">
+        <put-attribute name="formField" type="object"/>
+        <put-attribute name="locations" type="object"/>
+        <put-attribute name="errorMap" type="object"/>
+        <put-attribute name="valueMap" type="object"/>
+    </definition>
+    
+    <definition name="formFieldVerticalRenderer" template="/WEB-INF/jsp/bdrs/user/record/render/formFieldVerticalRenderer.jsp">
+        <put-attribute name="formField" type="object"/>
+        <put-attribute name="locations" type="object"/>
+        <put-attribute name="errorMap" type="object"/>
+        <put-attribute name="valueMap" type="object"/>
+    </definition>
+    
+    <definition name="formFieldListRenderer" template="/WEB-INF/jsp/bdrs/user/record/render/formFieldListRenderer.jsp">
+        <put-attribute name="formField" type="object"/>
+        <put-attribute name="errorMap" type="object"/>
+        <put-attribute name="valueMap" type="object"/>
+    </definition>
+    
+    <!-- Property Renderer -->
+    <definition name="propertyRenderer" template="/WEB-INF/jsp/bdrs/user/record/render/propertyRenderer.jsp">
+        <put-attribute name="formField" type="object"/>
+        <put-attribute name="isLatitude" type="object" value="false"/>
+        <put-attribute name="isLongitude" type="object" value="false"/>
+        <put-attribute name="locations" type="object"/>
+        <put-attribute name="errorMap" type="object"/>
+        <put-attribute name="valueMap" type="object"/>
+    </definition>
+    
+    <!-- Attribute Renderer -->
+    <definition name="attributeRenderer" template="/WEB-INF/jsp/bdrs/user/record/render/attributeRenderer.jsp">
+        <put-attribute name="formField" type="object"/>
+    </definition>
+	
+	<!-- species form field -->
+	<definition name="speciesFormField" template="/WEB-INF/jsp/bdrs/user/record/render/speciesFormField.jsp">
+		<put-attribute name="formField" type="object"/>
+	</definition>
+	
+    <!-- Coordinate form field -->
+    <definition name="coordFormField" template="/WEB-INF/jsp/bdrs/user/record/render/coordFormField.jsp">
+        <put-attribute name="formField" type="object"/>
+    </definition>
+
+    <!-- Tracker -->
+    <definition name="tracker" extends="user-template">
+        <put-attribute name="title" value="Records Map"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/record/render/default/tracker.jsp"/>
+        <put-attribute name="maps" value="true"/>
+        <put-list-attribute name="customJavaScript">
+            <add-attribute>bdrs/contribute/tracker.js</add-attribute>
+            <add-attribute>bdrs/review/record.js</add-attribute>
+        </put-list-attribute>
+    </definition>
+    
+    <!-- Tracker record view -->
+    <definition name="trackerRecordView" template="/WEB-INF/jsp/bdrs/user/record/render/default/trackerRecordView.jsp">
+    </definition>
+    
+    <!-- Tracker sub record view -->
+    <definition name="trackerSubRecordView" template="/WEB-INF/jsp/bdrs/user/record/render/default/trackerSubRecordView.jsp">
+    </definition>
+    
+    <!-- Census Method Attribute Row -->
+    <definition name="attributeRecordRow" template="/WEB-INF/jsp/bdrs/user/record/render/default/attributesRecordRow.jsp">
+        <put-attribute name="rowIndex"/>
+        <put-attribute name="record"/>
+        <put-attribute name="survey"/>
+        <put-attribute name="recAttrMap"/>
+        <put-attribute name="recAttrFileURLMapping"/>
+    </definition>
+    
+    <!-- Atlas -->
+    <definition name="atlas" extends="user-template">
+        <put-attribute name="title" value="Record a Sighting"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/record/render/atlas/atlas.jsp"/>
+        <put-attribute name="maps" value="true"/>
+        <put-list-attribute name="customJavaScript">
+            
+        </put-list-attribute>
+    </definition>
+    
+    <definition name="atlasVerticalFormFieldRenderer" template="/WEB-INF/jsp/bdrs/user/record/render/atlas/atlasVerticalFormFieldRenderer.jsp">
+        <put-attribute name="formField" type="object"/>
+        <put-attribute name="label" type="object"/>
+        <put-attribute name="sublabel" type="object"/>
+        <put-attribute name="isLatitude" type="object" value="false"/>
+        <put-attribute name="isLongitude" type="object" value="false"/>
+        <put-attribute name="errorMap" type="object"/>
+        <put-attribute name="valueMap" type="object"/>
+    </definition>
+
+    <!-- Yearly Sightings -->
+    <definition name="yearlySightings" extends="user-template">
+        <put-attribute name="title" value="Yearly Sightings"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/record/render/yearlySightings/yearlySightings.jsp"/>
+        <put-attribute name="maps" value="false"/>
+        <put-list-attribute name="customJavaScript">
+            
+        </put-list-attribute>
+    </definition>
+    
+    <!-- Single Site Multi Taxa -->
+    <definition name="singleSiteMultiTaxa" extends="user-template">
+        <put-attribute name="title" value="Single Site Multiple Species"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/record/render/singleSiteMultiTaxa/singleSiteMultiTaxa.jsp"/>
+        <put-attribute name="maps" value="true"/>
+        <put-list-attribute name="customJavaScript">
+            
+        </put-list-attribute>
+    </definition>
+    
+    <definition name="singleSiteMultiTaxaRow" template="/WEB-INF/jsp/bdrs/user/record/render/singleSiteMultiTaxa/singleSiteMultiTaxaRow.jsp">
+        <put-attribute name="sightingIndex"/>
+        <put-attribute name="record"/>
+        <put-attribute name="survey"/>
+        <put-attribute name="recAttrMap"/>
+        <put-attribute name="recAttrFileURLMapping"/>
+        <!--<put-attribute name="attribute"/>
+        <put-attribute name="index"/>-->
+    </definition>
+    
+    <!-- Single Site All Taxa -->
+    <definition name="singleSiteAllTaxa" extends="user-template">
+        <put-attribute name="title" value="Single Site All Species"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/record/render/singleSiteAllTaxa/singleSiteAllTaxa.jsp"/>
+        <put-attribute name="maps" value="true"/>
+        <put-list-attribute name="customJavaScript">
+            
+        </put-list-attribute>
+    </definition>
+    
+    <!-- Single site survey scoped fields -->
+    <definition name="singleSiteSurveyScopeFields" template="/WEB-INF/jsp/bdrs/user/record/render/singleSiteMultiTaxa/singleSiteSurveyScopeFields.jsp">
+    </definition>
+
+    <!-- Record Comments -->
+    <definition name="comment" template="/WEB-INF/jsp/bdrs/user/record/render/comment.jsp"/>
+    <definition name="addComment" template="/WEB-INF/jsp/bdrs/user/record/render/addComment.jsp"/>
+    <definition name="commentsRenderer" template="/WEB-INF/jsp/bdrs/user/record/render/commentsRenderer.jsp"/>
+
+    <!-- No Script Message -->
+    <definition name="noscriptMessage" template="/WEB-INF/jsp/bdrs/user/record/render/noscript.jsp"/>
+
+    <!-- Bulk Data -->
+    <definition name="bulkdata" extends="user-template">
+        <put-attribute name="title" value="Bulk Data"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/bulkdata/bulkdata.jsp"/>
+        <put-attribute name="maps" value="false"/>
+        <put-list-attribute name="customJavaScript">
+        </put-list-attribute>
+    </definition>
+
+    <definition name="importSummary" extends="user-template">
+        <put-attribute name="title" value="Import Summary"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/bulkdata/importSummary.jsp"/>
+        <put-attribute name="maps" value="false"/>
+        <put-list-attribute name="customJavaScript">
+        </put-list-attribute>
+    </definition>
+    
+    <definition name="shapefileImportSummary" extends="user-template">
+        <put-attribute name="title" value="Import Summary"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/bulkdata/shapefileImportSummary.jsp"/>
+        <put-attribute name="maps" value="false"/>
+        <put-list-attribute name="customCss">
+        </put-list-attribute>
+        <put-list-attribute name="customJavaScript">
+        </put-list-attribute>
+    </definition>
+
+    <definition name="importForm" template="/WEB-INF/jsp/bdrs/bulkdata/importForm.jsp">
+        <put-attribute name="showHeader" value="false"/>
+        <put-attribute name="header" value=""/>
+        <put-attribute name="showHelp" value="true"/>
+        <put-attribute name="extraContent" value=""/>
+    </definition>
+    
+    <!-- Embedded -->
+    <definition name="widgetBuilder" extends="user-template">
+        <put-attribute name="title" value="Create Embedded Widget"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/embedded/widget_builder.jsp"/>
+        <put-attribute name="maps" value="false"/>
+        <put-list-attribute name="customJavaScript">
+            <add-attribute>embedded.js</add-attribute>
+        </put-list-attribute>
+    </definition>
+    
+    <!-- Managed Files -->
+    <definition name="managedFileList" extends="user-template">
+        <put-attribute name="title" value="Manage Files"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/file/listing.jsp"/>
+        <put-attribute name="maps" value="false"/>
+        <put-list-attribute name="customCss"></put-list-attribute>
+        <put-list-attribute name="customJavaScript"></put-list-attribute>
+    </definition>
+    <definition name="managedFileEdit" extends="user-template">
+        <put-attribute name="title" value="Edit File"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/file/edit.jsp"/>
+        <put-attribute name="maps" value="false"/>
+        <put-list-attribute name="customCss"></put-list-attribute>
+        <put-list-attribute name="customJavaScript"></put-list-attribute>
+    </definition>
+    
+    <!-- contact another user via bdrs -->
+    <definition name="messageUser" extends="template">
+        <put-attribute name="title" value="Contact Record Owner" />
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/message/messageUser.jsp" />
+        <put-attribute name="maps" value="true"/>
+        <put-list-attribute name="customJavaScript">
+        </put-list-attribute>
+    </definition>
+    
+    <!-- 'record now' survey chooser -->
+    <definition name="recordNowSurveyChooser" extends="template">
+        <put-attribute name="title" value="Choose a Survey" />
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/record/recordNowChooseSurvey.jsp" />
+        <put-attribute name="maps" value="false"/>
+        <put-list-attribute name="customJavaScript">
+        </put-list-attribute>
+    </definition>
+    
+    <!-- MV cut and paste below here -->
+    <definition name="student-template" extends="template"/>
+
+    <definition name="studentViewSurveyResults" extends="student-template">
+        <put-attribute name="title" value="View Data Results"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/mv/student/viewsurveyresults.jsp"/>
+    </definition>
+
+    <definition name="studentListRecords" extends="student-template">
+        <put-attribute name="title" value="List Records"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/mv/student/listrecords.jsp"/>
+    </definition>
+
+    <definition name="studentViewSurveyGroupResults" extends="student-template">
+        <put-attribute name="title" value="View Data Results by Group"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/mv/student/viewsurveygroupresults.jsp"/>
+    </definition>
+
+    <!-- Import Templates -->
+    <definition name="importRecords" extends="student-template">
+        <put-attribute name="title" value="Biodiversity Snapshots | View Data Results by Group"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/mv/student/importrecords.jsp"/>
+    </definition>
+
+    <definition name="importRecordsSummary" extends="student-template">
+        <put-attribute name="title" value="Biodiversity Snapshots | View Data Results by Group"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/mv/student/importrecordssummary.jsp"/>
+    </definition>
+
+    <definition name="importResultsForm" template="/WEB-INF/jsp/mv/student/importform.jsp">
+        <put-attribute name="header" value="Import Results"/>
+        <put-attribute name="showHelp" value="true"/>
+        <put-attribute name="extraContent" value=""/>
+    </definition>
+
+    <!-- desktop id tool -->
+    <definition name="desktop-featuresList" extends="template">
+        <put-attribute name="title" value="features" />
+        <put-attribute name="tabActive" value="identify" />
+        <put-attribute name="content"
+            value="/WEB-INF/jsp/mobile/featuresList.jsp" />
+        <put-list-attribute name="customCss">
+            <add-attribute>mv/featureslist.css</add-attribute>
+        </put-list-attribute>
+    </definition>
+
+    <!--  Desktop Add Record -->
+    <definition name="desktopAddRecord" extends="template">
+        <put-attribute name="title" value="Add Record" />
+        <put-attribute name="content" value="/WEB-INF/jsp/mv/student/record.jsp" />
+        <put-list-attribute name="customJavaScript">
+            <add-attribute>mobile/database.js</add-attribute>
+            <add-attribute>mobile/jquery.infieldlabel.min.js</add-attribute>
+            <add-attribute>ketchup/jquery.ketchup.basic.min.js</add-attribute>
+        </put-list-attribute>
+    </definition>
+    
+    <!-- Report -->
+    <definition name="reportListing" extends="user-template">
+        <put-attribute name="title" value="Report Listing"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/report/listing.jsp"/>
+        <put-attribute name="maps" value="false"/>
+        <put-list-attribute name="customJavaScript">
+            <add-attribute>bdrs/report.js</add-attribute>
+        </put-list-attribute>
+    </definition>
+    <!-- CustomForm -->
+    <definition name="customFormListing" extends="user-template">
+        <put-attribute name="title" value="Custom Form Listing"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/customform/listing.jsp"/>
+        <put-attribute name="maps" value="false"/>
+        <put-list-attribute name="customJavaScript">
+            <add-attribute>bdrs/customform.js</add-attribute>
+        </put-list-attribute>
+    </definition>
+
+    <!-- Python Render View -->
+    <definition name="pythonRender" extends="user-template">
+        <put-attribute name="title" value="Report"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/python/render.jsp"/>
+        <put-attribute name="maps" value="false"/>
+        <put-list-attribute name="customJavaScript">
+        </put-list-attribute>
+    </definition>
+
+    <!-- Contribute landing page -->
+    <definition name="contribute" extends="user-template">
+        <put-attribute name="title" value="Contribute" />
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/contribute.jsp" />
+    </definition>
+    
+    <!-- Profile landing page -->
+    <definition name="profile" extends="user-template">
+        <put-attribute name="title" value="Profile"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/profile.jsp"/>
+    </definition>
+    
+    <!-- Field name review page -->
+    <definition name="fieldNameReview" extends="user-template">
+        <put-attribute name="title" value="Field Name Review"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/user/review/fieldnames/fieldNameReview.jsp"/>
+    </definition>
+</tiles-definitions>

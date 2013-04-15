@@ -1,0 +1,12 @@
+<p>
+The list of build schedules below are build schedules for indexes that have been created in the system for full text searching.
+</p>
+<p>
+To create a new index build schedule, click the 'Add Index Schedule' button to be directed to a page where you can specify the build schedule for the index.
+</p>
+<p>
+To edit an existing index build schedule, click the 'Edit' link on the same row as the schedule.
+</p>
+<p>
+To remove an existing index build schedule, click the red x in the "Delete" column on the same row as the schedule.
+</p>

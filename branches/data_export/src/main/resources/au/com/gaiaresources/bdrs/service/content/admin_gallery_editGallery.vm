@@ -1,0 +1,34 @@
+<p>
+Follow the instructions below to create an image gallery.  Image galleries can be 
+used to create 'Image Slideshow' embedded widgets.
+</p>
+<h4>Upload Image Instructions:</h4>
+<ul>
+    <li>Click on the 'Add Image' button</li>
+    <li>Select a 'Full Sized Image' to upload</li>
+    <li>Select how to generate your 'Slideshow Sized Image'
+       <ol>
+        <li>
+            Auto resize slideshow image: Resizes your uploaded image to 250 pixels wide by 154 pixels high.
+        </li>
+        <li>
+            Upload slideshow image: You may resize/crop your own images and upload them. If you have selected this method, please select an image to upload.
+        </li>
+       </ol>
+    </li>
+    <li>Enter your image file properties. These will appear underneth your slideshow as a caption. If you leave these fields empty there will be no caption.</li>
+</ul>
+
+<h4>Using your gallery:</h4>
+<p>
+Once you have successfully saved the gallery go to the <a href="${bdrsContextPath}/bdrs/public/embedded/widgetBuilder.htm">Embedded Widgets page</a>. 
+Select the 'Image Slideshow' widget, select your gallery, and edit the display properties as required.
+</p>
+
+<h4>Tips on getting the most out of your gallery</h4>
+<ul>
+    <li>If you are using auto resizing, the images will look nicer if they are a 1.6:1 width-to-height ratio, or as close as possible to that ratio</li>
+    <li>If you are cropping your images manually, make all the images the same dimensions. When creating your embedded widget, set the image width/height properties
+    to the same dimensions as your uploaded image.  Also make sure to leave enough space in the widget width/height to display your captions. 
+    You should add about 100px height to display the caption text.</li>
+</ul>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+
+	<!-- Database -->
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        
+        <!--<property name="driverClassName" value="${bdrs.db.driver}"/>
+        <property name="url" value="${bdrs.db.url}"/>
+        <property name="username" value="${bdrs.db.user.name}"/>
+        <property name="password" value="${bdrs.db.user.password}"/>-->
+        
+        <property name="driverClassName" value="org.postgresql.Driver"/>
+        <property name="url" value="jdbc:postgresql://localhost:5432/bdrs-test-ala-citizenscience"/>
+        <property name="username" value="postgres"/>
+        <property name="password" value="postgres"/>
+        <property name="maxActive" value="200"/>
+        <property name="testOnBorrow" value="true"/>
+        <property name="testOnReturn" value="true"/>
+        <property name="validationQuery" value="select 1"/>
+    </bean>
+
+    <!-- The abstract parent bean can be found in climatewatch-hibernate.xml -->
+    <bean id="sessionFactory" parent="abstractSessionFactory">
+        <property name="hibernateProperties">
+            <props merge="true">
+                <prop key="hibernate.search.default.indexBase">/tmp/bdrs-test-googlecode/lucene</prop>
+                <prop key="hibernate.search.indexing_strategy">manual</prop>
+            </props>
+        </property>
+    </bean>
+</beans>

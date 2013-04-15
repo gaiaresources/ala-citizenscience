@@ -1,0 +1,2316 @@
+/*************************************************************/
+/* This CSS file contains the default styling for BDRS core. */
+/* Themed implementations will override select styles in     */
+/* their override.css or base.css file, otherwise, these     */
+/* styles will be used.                                      */
+/*                                                           */
+/* Styles that affect layout and default rendering for new   */
+/* features should be added here.                            */
+/*************************************************************/
+
+.ui-datepicker {
+    z-index: 4000 !important;
+}
+
+.ui-dialog {
+    z-index: 4003;
+}
+
+/************************************/
+/* Record Map                       */
+/************************************/
+#record_map_filter_table {
+    float: left;
+    width: 50%;
+}
+
+#record_map_layers_table {
+    float: left;
+    width: 50%;
+}
+
+#record_map_filter_table thead th,
+#record_map_layers_table thead th {
+    text-align: center;
+}
+
+#record_map_layers {
+    width: 100%;
+    height: 100%;
+}
+
+#layer_actions td {
+    text-align: right;
+    padding: 4px 0px 0px 0px;
+}
+
+#record_base_map_hover_tip {
+    height: 1em;
+    padding: 2px 2px 2px 2px;
+    /*background-color: wheat;
+    border: 1px solid tan;
+    color: dimgray;*/
+    text-align: right;
+}
+
+.tracker_map {
+    height: 465px;
+}
+
+.review_map {
+    height: 465px;
+}
+
+.review_map_fullscreen {
+    height: 100%;
+    width: 100%;
+}
+
+.kmlDescriptionTable {
+   /* margin: 0.5em 0.5em 0.5em 0.5em; */
+}
+
+.kmlDescriptionTable th,
+.kmlDescriptionTable td {
+    padding: 0;
+    margin: 0;
+}
+
+.kmlDescriptionTable tbody th {
+    text-align: right;
+    padding-right: 1em;
+}
+
+.trackerRelatedRecordsSection {
+    padding-left: 0.5em;
+}
+
+/*****************************************/
+/* Styling for the popups in viewMap.jsp */
+/*****************************************/
+#content .olFramedCloudPopupContent h1 {
+    color: #333333;
+    font-size: 135%;
+    font-weight: bold;
+    padding: 10px 0;
+}
+
+#content .olFramedCloudPopupContent table {
+
+}
+
+#content .olFramedCloudPopupContent tr,
+#content .olFramedCloudPopupContent th,
+#content .olFramedCloudPopupContent td {
+    line-height: normal;
+    padding: 0;
+    margin: 0;
+}
+
+#content .olFramedCloudPopupContent tbody th {
+    text-align: right;
+    padding-right: 1em;
+}
+
+.shiftContentLeftContainer {
+    margin-top: -1.5em;
+}
+
+.shiftContentRightContainer {
+    margin-top: -1.8em;
+}
+
+/* styling for loading spinner in popup */
+.loadingPageSpinner {
+    padding-bottom: 1px;
+    padding-left: 3px;  
+}
+
+/***********************************************/
+/*  Layout for the Email Users and Groups page */
+/***********************************************/
+#emailHeader table {
+    margin-bottom: 0em;
+    margin-top: 1em;
+}
+
+#emailHeader tr {
+    padding: 0em 0em 0em 0em;
+    margin: 0em 0em 0em 0em;
+}
+#emailHeader td {
+    padding: 0em 0.75em 0.1em 0em;
+    margin: 0em 0em 0em 0em;
+}
+
+#toUsers,
+#subject {
+    width: 340px;
+}
+#selectUsers {
+    float: right; 
+}
+
+#popupDialog select.multiSelect{
+    background-color: white;
+}
+
+#popupDialog {
+    height: 300px;
+}
+
+/***********************************************************************************/
+/* Location List Styling for the list of locations shown on user editLocations.jsp */
+/***********************************************************************************/
+table.locationList {
+    border-collapse: collapse;
+}
+div.locationList {
+    overflow: auto;
+}
+
+div.locationList table tbody tr td {
+    text-align: center;
+}
+
+div.locationList table tbody tr td input[type=text] {
+    width: 210px;
+}
+
+.locations_map {
+    height: 465px;
+}
+
+.restrict_locations {
+    margin: 1px 3px 0px 10px;
+}
+
+/*********************************************/
+/* Styles for Location Attributes Entry Page */
+/*********************************************/
+input.locationMetadata,
+textarea.locationMetadata {
+    width: 415px;
+}
+
+.locationsContainer table label {
+    float: right;
+    text-align: right;
+}
+
+.locationAttributes .locations_map {
+    width: 70%;
+}
+
+/***********************************************/
+/* Styles for the vertical form field renderer */
+/***********************************************/
+
+.verticalFormField {
+    padding: 5px;
+    overflow: hidden;
+}
+
+.verticalFormField label {
+    font-weight: bold;
+    float: left;
+}
+.verticalFormField label,
+.verticalFormField input[type=text],
+.verticalFormField input[type=checkbox],
+.verticalFormField input[type=file],
+.verticalFormField select,
+.verticalFormField textarea {
+    margin: 0 0 0 20px;
+    vertical-align: top;
+}
+/* the label width keeps the form aligned as if it were in a table layout */
+.verticalFormField label,
+.verticalFormField select,
+.verticalFormField textarea {
+    width: 200px;
+}
+
+.verticalFormField input[type=file] {
+    width: 175px;
+}
+
+.verticalFormField input[type=text] {
+    width: 194px;
+}
+
+.form_table .verticalFormField textarea {
+    width: 200px;
+}
+
+/* reset the width for time selector so they will appear next to each other */
+#timeSelector select {
+    width: auto;
+}
+
+select.minuteSelector {
+    margin: 0;
+}
+
+.clearLink {
+    vertical-align: bottom;
+}
+
+label.multiCheckboxLabel {
+    font-weight: normal;
+    margin: 0;
+    vertical-align: top;
+    float: none;
+}
+
+.multiCheckboxOpts {
+    float: left;
+}
+
+#attribute_input_table td {
+    white-space: nowrap;
+}
+
+/*********************************************************/
+/* Styling for location attributes on record entry forms */
+/*********************************************************/
+
+.attributeDescription {
+    width: 34%;
+    font-weight: bold;
+}
+
+.attributeDescription, 
+.attributeValue {
+    float: left;
+    padding: 1px;
+    vertical-align: middle;
+}
+
+.attributeValue {
+    width: 64%;
+}
+
+.attributeElement {
+    overflow: hidden;
+}
+/********************************************************************/
+/* Search navigation bar styling (for pagination on advancedReview) */
+/********************************************************************/
+
+#searchNavBar {
+    text-align:center;
+}
+
+#searchNavBar ul,#searchNavBar ul li {
+    display:inline;
+    list-style:none;
+}
+
+.searchContainer #searchText {
+    width : 20em;
+}
+
+.facetOptions {
+    padding-bottom: 2em;
+}
+.facetOptions div {
+    padding-left: 5px;
+}
+
+.facetOptions .showMore,
+.facetOptions .showLess {
+    text-align: right;
+}
+.facetOptions .showMore a,
+.facetOptions .showLess a {
+    padding-right: 1em;
+}
+
+/*****************************************/
+/* Image gallery styling (advanced review)
+/*****************************************/
+.galleryImage {
+    width: 90px;
+    float: left;
+    margin: 5px 10px 5px 10px;
+    list-style: none;
+    height: 145px;
+    text-align: center;
+}
+
+.galleryImage img {
+    width: 70px;
+    height: 80px;
+}
+
+.galleryImage p {
+    padding: 0px;
+    margin: 0px;
+    font-size: 0.8em;
+    line-height: 1.1em;
+}
+
+
+/************************************/
+/* Drag Row Styling                 */
+/************************************/
+.drag_row {
+    background-color: #75A1AE;
+}
+
+.drag_handle:hover {
+    background-image: url(../../images/vanilla/updown.gif);
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/************************************/
+/* Data Table Styling               */
+/************************************/
+table.datatable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.datatable input.fillwidth {
+    width: 100%;
+    padding: 0;
+}
+
+/************************************/
+/* Form Table Styling               */
+/************************************/
+table.form_table {
+   /* instead of 100% width table, make the table auto center 
+    * this gives our forms a more consistent look rather than letting
+    * browsers choose how much to pad each column by to reach the 100% target 
+    * */
+    margin: 0px auto;
+}
+
+.form_table tbody th {
+    text-align: right;
+}
+
+.form_table th,
+.form_table td {
+    vertical-align: top;
+}
+
+
+table.form_table tbody tr th {
+    min-width: 150px;
+    white-space: nowrap;
+}
+
+table.form_table tbody tr td {
+    max-width: 300px;
+}
+/* style that allows a form table to have a wider column */
+table.wide tbody tr td {
+    max-width: 500px;
+}
+/* set the min with for the tracker form table to keep the hidden species input to 
+   the right of the species input for the ketchup popups */
+table.tracker_form_table tbody tr td,
+table.taxon_edit_form_table tbody tr td {
+    /*min-width: 155px;*/
+}
+
+.form_table textarea {
+    height: 7em;
+    width: 20em;
+}
+
+/*************************/
+/* Attribute Input Table */
+/*************************/
+.attribute_input_table tbody td {
+    vertical-align: middle;
+    margin: 0;
+    padding: 0.2em 0.5em 0.2em 0.5em;
+}
+
+.attribute_input_table tbody td.drag_handle {
+    text-align: center;
+    width: 18px;
+    padding:0;
+}
+
+.attribute_input_table tbody td input[type=text],
+.attribute_input_table tbody td select {
+    width: 95%;
+    word-wrap: normal;
+}
+
+#attribute_input_table tbody td,
+#attribute_input_table tbody th {
+    max-width: 120px;
+    word-wrap: normal;
+}
+
+#editAttributesAttributeContainer #attribute_input_table td,
+#editAttributesAttributeContainer #attribute_input_table th {
+    max-width: 100px;
+}
+
+.deleteRow {
+    background-color: #F96B6A;
+}
+
+/************************************/
+/* Form Fieldset Styling            */
+/************************************/
+
+legend {
+    margin: 5px;
+    padding: 5px;
+}
+
+/************************************/
+/* Plus Minus Styling               */
+/************************************/
+
+.plusminus {
+    width: 16px;
+    height: 16px;
+    background-image: url(../../images/icons/plusminus.png);
+    background-position: left;
+    display: block;
+    margin: auto;
+}
+
+.plusminus_plus {
+    background-position: left;
+}
+
+.plusminus_minus {
+    background-position: right;
+}
+
+
+/************************************/
+/* Generic Styling                  */
+/************************************/
+.hidden {
+    display: none;
+    visibility: hidden;
+}
+
+.invisible {
+    visibility: hidden;
+}
+
+.left {
+    float: left;
+}
+
+.right {
+    float: right;
+}
+
+.clear {
+    clear:both;
+}
+
+.textleft {
+    text-align: left;
+}
+
+.textright {
+    text-align: right;
+}
+
+.textcenter {
+   text-align: center;
+}
+
+.textjustify {
+    text-align: justify;
+}
+
+.verttop {
+    vertical-align: top;
+}
+
+.vertmiddle {
+    vertical-align: middle;
+}
+
+.plaintext {
+    font-weight: normal;
+}
+
+.italics {
+    font-style: italic;
+}
+
+.strong {
+    font-weight: bold;
+}
+
+.fillwidth {
+    width: 100%;
+}
+
+.nowrap {
+    white-space: nowrap;
+}
+
+.prewrap {
+    white-space: pre-wrap;
+}
+
+.noborder {
+    border-top-width: 0px;
+    border-right-width: 0px;
+    border-bottom-width: 0px;
+    border-left-width: 0px;
+}
+
+.scientificName {
+    font-style: italic;
+    white-space: nowrap;
+}
+
+.error{
+    color: red;
+}
+
+.success {
+    color: green;
+}
+
+.nohighlight:focus { 
+    outline:none; 
+}
+
+.hr {
+   border-width: 1px 0px 0px 0px;
+   border-color: #CCCCCC;
+   border-style: solid;
+   margin: 1em 0;
+}
+
+@media only screen and (max-device-width: 480px) {
+    .rollover * img.rolloff {
+        display:inline;
+    }
+
+    /*.rollover *:hover img.rolloff {
+        display:none;
+    }*/
+
+    .rollover * img.rollon {
+        display:none;
+    }
+
+    /*.rollover *:hover img.rollon {
+        display:inline;
+    }*/
+}
+
+@media only screen and (max-device-width: 768px) {
+    .rollover * img.rolloff {
+        display:inline;
+    }
+
+    /*.rollover *:hover img.rolloff {
+        display:none;
+    }*/
+
+    .rollover * img.rollon {
+        display:none;
+    }
+
+    /*.rollover *:hover img.rollon {
+        display:inline;
+    }*/
+}
+
+@media only screen and (min-device-width: 769px) {
+    .rollover * img.rolloff {
+        display:inline;
+    }
+
+    .rollover *:hover img.rolloff {
+        display:none;
+    }
+
+    .rollover * img.rollon {
+        display:none;
+    }
+
+    .rollover *:hover img.rollon {
+        display:inline;
+    }
+}
+
+.buttonpanel {
+    padding: 0.5em 0em 0.5em 0em;
+}
+
+/* used when you want the buttons to appear to the right of a form.
+ */
+.buttonPanelRight{
+    /* Using negative margin here because having a float:right element inside a 
+     * jquery-ui dialog will cause the dialog to blow up to 100% screen width
+     * in IE7. Using a negative margin like this allows us to bump up the 
+     * button panel without taking it out of normal document flow.
+     * 
+     * Yes, i know it's a hack.
+     */
+    margin-top:-47px;
+}
+
+.widgetSearchForm {
+    padding: 0 0 1em 0;
+}
+
+.max_size_img {
+    max-width: 250px;
+    max-height: 140px;
+    
+    -webkit-box-shadow: 2px 2px 2px #DCDCDC;
+    -moz-box-shadow: 2px 2px 2px #DCDCDC;
+    box-shadow: 2px 2px 2px #DCDCDC;
+}
+
+/************************************/
+/* Default Styling                  */
+/************************************/
+html {
+    background: #ECECEC;
+}
+
+/* so the embedded widget blend seamlessly into target page */
+html.embed {
+    background: transparent;
+}
+
+h1 {
+    color: #333333;
+    font-size: 200%;
+    font-weight: bold;
+    line-height: 100%;
+    padding: 10px 0;
+    margin: 0.25em; 
+}
+
+h2 {
+    color: #333333;
+    font-size: 165%;
+    font-weight: bold;
+    line-height: 100%;
+    padding: 10px 0;
+    margin: 0.25em;
+}
+
+h3 {
+    color: #333333;
+    font-size: 135%;
+    font-weight: bold;
+    padding: 10px 0;
+    margin: 0.25em;
+}
+
+/* overriding the YUI defaults */
+table {
+    margin-bottom: 0;
+}
+
+.sep {
+    border-top: 1px solid #D3D3D3;
+}
+
+.sepBottom {
+    border-bottom: 1px solid #D3D3D3;
+}
+
+.sepBottomDotted {
+    border-bottom: 1px dotted #D3D3D3; 
+}
+
+.wrapper {
+    padding-top: 0px;
+    margin: 0px auto;
+    width: 868px;
+}
+
+.warning_header {
+    color: red;
+}
+
+/**************************/
+/* Dashboard styling      */
+/**************************/
+.dashboardContainer {
+    width: 100%;
+    background-color: #FFFFFF;
+    -webkit-border-bottom-right-radius: 20px;
+    -webkit-border-bottom-left-radius: 20px;
+    -moz-border-radius-bottomright: 20px;
+    -moz-border-radius-bottomleft: 20px;
+    border-bottom-right-radius: 20px;
+    border-bottom-left-radius: 20px;
+}
+
+.dashboardFooter {
+    clear: both;
+}
+
+.dashboard {
+    width: 0px;
+    float: left;
+    background-color: #8b883c;
+}
+
+.contentwrapper {
+    background-color: #FFFFFF;
+    background-repeat: repeat;
+    padding: 20px;
+}
+
+a:link, a:visited, a:visited.neverVisited {
+    color:#0088CC;
+}
+
+a:link, a:visited {
+    text-decoration:none;
+}
+
+a:link.delete, a:visited.delete {
+    color: red;
+}
+
+.pageContent {
+    color: #333333;
+    font-size: 12px;
+    line-height: 135%;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.message {
+    color: red;
+}
+
+th, td {
+    border: none;
+    border-collapse: collapse;
+}
+
+input[type=text], input[type=password], textarea {
+    padding: 0px 0px 0px 4px;
+
+    /* Rounded Border */
+    border: 1px solid #787C89;
+    -webkit-border-radius: 4px;
+    -khtml-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+}
+
+textarea {
+    resize: both;
+}
+
+input[type=text], input[type=password] {
+    resize: horizontal;
+}
+
+input[readonly],
+input[disabled] {
+    background-color: #DDDDDD;
+}
+
+.map_wrapper {
+    color: #484848;
+    /* IE7 fix for slideToggling the map wrapper */
+    zoom:1;
+}
+
+/* Make the lat and lon coordinates on the bottom right, white */
+.map_wrapper .olControlMousePosition {
+    color: #FFFFFF;
+}
+
+.mapLogoMax {
+    position: fixed;
+    bottom: 100px;
+    left: 2px;
+    z-index: 1600;
+}
+
+.mapLogoMin {
+    display:none;
+}
+
+.shrinkMapLink {
+    border-radius: 0.5em;
+     -webkit-border-radius: 0.5em;
+    -khtml-border-radius: 0.5em;
+    -moz-border-radius: 0.5em;
+
+    background: white;
+   
+    padding: 0.2em 1em 0.2em 1em;
+    
+    position: fixed;
+    top: 3px;
+    right: 3px;
+    z-index: 3100;
+}
+
+.align_radio input[type=radio]{
+    vertical-align: text-bottom;
+}
+
+.align_checkbox input[type=checkbox]{
+    vertical-align: text-bottom;
+}
+
+/************************************/
+/* Signin  Styling                  */
+/************************************/
+#signin input[type=text],
+#signin input[type=password] {
+    border: 1px solid #5D5D5D;
+}
+
+/************************************/
+/* Geocode Styling                  */
+/************************************/
+.geocode {
+
+    text-align: center;
+    margin: 0px auto;
+    position: relative;
+    z-index: 1200;
+    bottom: 45px;
+    width: 500px;
+    height: 20px;
+}
+
+.geocode input[type=text] {
+    width: 75%;
+    height: 21px;
+    background-color: #e1e1e1;
+    border-color: #000000;
+}
+
+.geocode input[type=submit] {
+    width: 80px;
+    height: 23px;
+    vertical-align: bottom;
+}
+
+/************************************/
+/* Admin Survey Taxonomy, Users     */
+/************************************/
+
+table.surveyOptionTable th {
+    width:45%;
+}
+
+table.surveyOptionTable td {
+    width:55%;
+}
+
+#userSelectionTypeFieldSet,
+#speciesListTypeFieldSet {
+    padding-left: 4em;
+}
+
+#userSelectionTypeFieldSet label,
+#speciesListTypeFieldSet label {
+    padding-left: 0.5em;
+}
+
+.public_read_access_section {
+	padding-left: 4em;
+}
+
+/* Taxonomy */
+#add_species_wrapper {
+    padding-left: 33%;
+}
+
+.speciesListChoice {
+    padding: 0.2em 0em 0.2em 0em;
+}
+
+.speciesListChoice label {
+    width: 25%;
+}
+
+ul.ui-menu li.ui-menu-item {
+    list-style-type: none;
+}
+
+.cssLayoutFileActionLink {
+    padding: 0 0 0 0.5em
+}
+
+.formFieldLayoutExample {
+    padding: 1em 1em 1em 1em;
+    font-weight: bold;
+}
+
+/************************************/
+/* Location Table                   */
+/************************************/
+
+#locationTable {
+    margin-top: 1em;
+}
+
+#locationTable input {
+    width: 100%;
+}
+
+/************************************/
+/* Yearly Sightings                 */
+/************************************/
+.yearlysightings {
+    border:collapse;
+}
+
+table.yearlysightings {
+    width: 100%;
+}
+
+.yearlysightings th {
+    text-align: center;
+}
+
+.yearlysightings td.errorCell {
+    background-color: #FF4040;
+}
+
+.yearlysightings td {
+    text-align: center;
+    border:collapse;
+    border: 1px solid #C0C0C0;
+    margin: 0;
+    padding: 0;
+    width: 8.3%
+}
+
+.yearlysightings .today {
+    background-color: #FFE2B4;
+}
+
+.yearlysightings input[type=text] {
+    border: none;
+    width: 100%;
+    height: 100%;
+    resize: none;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    background-color: transparent;
+}
+
+/************************************/
+/* Single Site Multi Species        */
+/************************************/
+#add_sighting_panel {
+    padding-bottom: 8px;
+}
+
+#sightingTable {
+    margin: 0;
+}
+
+#sightingTable td {
+    border:collapse;
+    border: 1px solid #C0C0C0;
+    margin: 0;
+    padding: 3px 5px 3px 3px;
+    white-space: normal;
+    max-width: 300px;
+}
+
+/* Making the text boxes consistent with others on the survey page */
+/* Set width to 99% so that hidden input field with ketchup on it will not
+   cause the height to increase */
+#sightingTable input[type=text], 
+#sightingTable input[type=password],
+#sightingTable textarea {
+    border-width: 1;
+    width: 91%;
+    resize: none;
+    margin: 0;
+    padding: 0;
+}
+
+#sightingTable input[type=text], 
+#sightingTable input[type=password] {
+    text-align: center;
+}
+
+#sightingTable textarea {
+    text-align: left;
+}
+
+#sightingsContainer {
+    overflow-x: auto;
+    margin-bottom: 1em;
+}
+
+/* Special cases where the size is partially known */
+/* Set width to 99% so that hidden input field with ketchup on it will not
+   cause the height to increase */
+#sightingTable input[type=text].ui-autocomplete-input {
+    width: 91%;
+}
+
+/* Set width to 99% so that hidden input field with ketchup on it will not
+   cause the height to increase */
+#sightingTable input[type=text].datepicker {
+    width: 91%;
+}
+
+#sightingTable input[type=file] {
+    /* Styling of file input is not really that well supported
+    test carefully on all browsers if you style this element. */
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    background-color: transparent;
+    width: 20em;
+}
+
+#sightingTable textarea {
+    height: 7em;
+    width: 20em;
+}
+
+/************************************/
+/* Attribute input styling          */
+/************************************/
+
+/* For lining up the ketchup popup to the input */
+#sightingTable input[type=text].speciesIdInput, 
+input[type=text].speciesIdInput {
+    visibility: hidden;
+    width:0px;
+    padding:0px 0 0 0;
+    margin:0 0 0 -9px;
+    border-width:0;
+}
+
+/************************************/
+/* Atlas Sighting Form              */
+/************************************/
+.atlasSighting {
+}
+
+.atlasSighting .leftCol {
+    padding: 8px;
+    width: 428px;
+}
+
+.atlasSighting .leftCol h3 {
+    width: 74%;
+}
+
+.atlasSighting .leftCol h3 img {
+    position: absolute;
+    right: 8px;
+}
+
+.atlasSighting .rightCol {
+    background-color: #D3D3D3;
+    padding: 8px;
+    width: 367px;
+}
+
+.atlasSighting .atlasmap {
+    width: 367px;
+    height: 367px;
+}
+
+.atlasSighting .atlasgeocode {
+    bottom: auto;
+    padding: 0px 0px 12px 0px;
+    margin: 0;
+    text-align: left;
+    width: auto;    
+}
+
+.atlasSighting .atlasgeocode input[type="text"] {
+    background-color: white;
+}
+
+.atlasSighting .atlasgeocode input[type="submit"] {
+    width: auto;
+    height: auto;
+}
+
+.atlasSighting .atlasSightingRecordLocations {
+    padding-bottom: 8px;
+}
+
+.atlasSighting p.mapHints {
+    padding-top: 1em;
+    margin-botton: 0em;
+}
+
+.atlasSighting #locationName {
+    height: 3em;
+}
+
+.atlasSighting #bookmarkLocation {
+    margin-left: 0px;
+}
+
+.atlasSighting #location {
+    max-width: 100%;
+    min-width: 12.5em;
+}
+
+.atlasSighting #defaultLocation,
+.atlasSighting label[for=defaultLocation] {
+    vertical-align: middle;
+}
+
+/** Left Col Stuff **/
+.atlasSighting .form_table tbody th {
+    text-align: left;
+}
+
+.atlasSighting .form_table tbody td {
+    width: 100%;
+}
+
+/************************************/
+/* Atlas Import Species Page        */
+/************************************/
+.atlas_import_container {
+    margin: 10px;
+}
+
+.atlas_import_container textarea,
+.atlas_import_container table {
+    width: 100%;
+}
+
+.atlas_import_container table.form_table tbody tr th {
+    max-width: 150px;
+}
+
+.checkbox_container input {
+    float: left;
+}
+
+/************************************/
+/* Thresholds                       */
+/************************************/
+#conditionContainer fieldset {
+    padding: 0;
+    margin: 0;
+    display: inline;
+}
+
+#conditionContainer fieldset .radio {
+    padding-right: 0.5em;
+}
+
+.storyline {
+    font-size: 1.2em;
+    margin-bottom: 0;
+    margin-top: 2em;
+}
+
+/************************************/
+/* Preference Category              */
+/************************************/
+.preference_category .datatable input[type=text],
+.preference_category .datatable input[type=password],
+.preference_category .datatable textarea {
+    width: 100%;
+    padding-left: 0px;
+    padding-right: 0px;
+}
+
+.preference_category {
+    padding: 0 0 2em 0;
+}
+
+/************************************/
+/* Browser Detection                */
+/************************************/
+#browser {
+    margin-bottom: 1em;
+}
+
+/************************************/
+/* Taxonomy Styling                 */
+/************************************/
+.taxonPropertiesTable th {
+    font-size: 1.4em;
+    border-bottom: 1px dotted white;
+}
+
+table.datatable td {
+    max-width: 310px;
+    word-wrap: break-word;
+}
+
+/************************************/
+/* Taxon Group                      */
+/************************************/
+#taxon_group_listing {
+    margin-top: 1em;
+}
+
+#taxon_group_listing .thumb {
+    text-align: center;
+}
+
+#taxon_group_listing .name {
+    width: 100%;
+}
+
+/************************************/
+/* Field Guide                      */
+/************************************/
+
+.field_guide_group {
+    padding: 1em;
+}
+
+div.rightCol{
+  width: 250px;
+  float: right;
+}
+div.leftCol{
+  width: 560px;
+  float: left;
+}
+
+h3.field_guide_header {
+    border-bottom-width: 1px;
+    border-bottom-style: dotted;
+}
+
+.imageProperties {
+    width: 400px;
+}
+table.scientificClassification {
+  border: solid 1px;
+  background: #fff;
+  padding: 1em;
+}
+table.scientificClassification tr.taxonomicHierarchy td {
+  max-width: 250px;
+  overflow: auto;
+}
+table.scientificClassification caption {
+  border: solid 1px;
+  background: #fff;
+}
+ul.hierarchy, ul.hierarchy ul {
+    background: url(../../images/icons/taxontree/vline.png) repeat-y;
+    margin: 0;
+    padding: 0;
+}
+ul.hierarchy li,
+ul.hierarchy ul {
+  list-style: none;
+}
+ul.hierarchy a {
+  display: block;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+ul.hierarchy ul {
+    margin-left: 4px;
+}
+ul.hierarchy a.active,
+ul.hierarchy a:visited.active{
+  color: black;
+}
+ul.hierarchy li {
+    margin: 0;
+    padding: 0 12px;
+    line-height: 20px;
+    background: url(../../images/icons/taxontree/node.png) no-repeat;
+    font-weight: bold;
+}
+ul.hierarchy li .commonName {
+  font-weight: normal;
+}
+
+ul.hierarchy li.last {
+    background: #fff url(../../images/icons/taxontree/lastnode.png) no-repeat;
+}
+
+/*************************************/
+/* Image Gallery Editing             */
+/*************************************/
+.imageGalleryEditImageContainer {
+    width:252px;
+    padding:2px;
+    border-style:dashed;
+    border-width:1px;
+}
+
+.imageGalleryInput {
+    width:252px;
+}
+
+/************************************/
+/* ALA Sightings                    */
+/************************************/
+.facet {
+    border-width: 1px 1px 0px 1px;
+    border-style: solid;
+    border-color: #2D4977;
+}
+
+.facet:last-child {
+    border-bottom-width: 1px;
+}
+
+.facetOptions {
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+    
+    border-top: 1px solid #2D4977;
+}
+
+.facet h4 {
+    line-height: 2em;
+    background-color: #C2D1E0;
+}
+
+.facet .tree_node {
+    background-image: url(../../images/icons/tree_node.gif);  
+    background-repeat:no-repeat;
+    background-position: bottom left;    
+    width: 9px;
+    height: 9px;
+    
+    display: block;
+    float: left;
+    position: relative;
+    top: 0.5em;
+    margin: 2px;
+}
+
+.facet .tree_node_expanded {
+    background-position: bottom right;
+}
+
+.facet .select_all {
+    padding: 0px 4px 0px 0px;
+}
+
+.facetCol {
+    width: 27%;
+}
+
+.resultCol {
+    width: 72.9%;
+}
+
+.tabPane {
+    padding-left: 8px;
+}
+
+.alaSightingsContent .map_wrapper {
+}
+
+#atlasSightingsMap {
+    /*width: 572px;
+    height: 362px;*/
+}
+
+.alaSightingsContent #searchButton {
+    /* Make the button slightly thinner to fit the space allocated */
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+
+.alaSightingsContent .columnBanner {
+    font-size: 1.5em;
+    background-color: #C2D1E0;
+    border-width: 1px 0px 1px 0px;
+    border-style: solid; 
+    border-color: #2D4977;
+    padding: 0.5em 0.5em 0.5em 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.alaSightingsTable {
+    width: 100%;
+}
+
+#alaSightingsTableHeader {
+    font-size: 1em;
+    font-weight: bolder;
+}
+
+div.alaSightingsTableHeader {
+    margin-top: 8px;
+}
+
+div.alaSightingsTableHeaderDoubleLine {
+    margin-top: 5px;
+}
+
+div.alaSightingsTableHeaderDoubleLineArrows {
+    margin-top: 5px;
+}
+
+/* for single line header items */
+.sortArrows {
+    margin-top: 5px;
+}
+
+/* for double line header items */
+.alaSightingsTableHeaderDoubleLine .sortArrows {
+    margin-top: 10px;
+}
+
+.alaSightingsTable tr {
+    border-bottom: 1px solid #D9D9D9;
+    padding: 0.5em 0em 0.5em 0em; 
+}
+
+.alaSightingsTable .recordType,
+.alaSightingsTable .scientificName,
+.alaSightingsTable .commonName {
+    white-space: inherit;
+}
+
+.alaSightingsTableViewContent,
+.alaSightingsMapViewContent {
+}
+
+.alaSightingsContent .sortPanel {
+    background-color: #F0F0F0;
+    border-width: 0px 0px 1px 0px;
+    border-style: solid;
+    border-color: #D9D9D9;
+}
+
+.alaSightingsTableViewContent .bulkActionContainer {
+    padding-top: 1em;
+    padding-bottom: 2em;
+}
+
+.alaSightingsTableViewContent .bulkActionContainer a {
+    padding-left: 1em;
+    padding-right: 1em;
+}
+
+.alaSightingsTable .typeColumn {
+    width: 10%;
+}
+
+.alaSightingsTable .dateColumn {
+    width: 10%;
+}
+
+.alaSightingsTable .sciNameColumn {
+    width: 20%;
+}
+
+.alaSightingsTable .commonNameColumn {
+    width: 20%
+}
+
+.alaSightingsTable .locationColumn {
+    width: 20%
+}
+
+.alaSightingsTable .userColumn {
+    width: 15%
+}
+
+.alaSightingsTable .altRow {
+    background-color: #E0E8F0;
+}
+
+/**********************/
+/* Tab View           */
+/**********************/
+
+.controlPanel {
+    border-bottom: 1px solid #2D4977;
+}
+
+.displayTab {
+    padding: 0.0em 1.5em 0.0em 1.5em;
+    line-height: 2em;
+    margin: 0px 0px 0px 4px;
+    
+    border-style: solid;
+    border-color: #2D4977;
+    border-width: 1px 1px 0px 1px;
+}
+
+/* Override padding for the advanced review screen to allow the tabs to fit */
+.alaSightingsContent .displayTab {
+    padding: 0.0em 0.8em 0.0em 0.8em;
+}
+
+.displayTab:hover {
+    background-color: #D0DCE4;
+}
+
+.displayTabSelected {
+    font-weight: bold;
+    color: #333333;
+}
+
+/**********************/
+/* My Sightings       */
+/**********************/
+
+#sightings_criteria {
+    width: 85%;
+    margin: 0 0 0 0;
+}
+
+#sightings_criteria .interrogative {
+    font-size: 1.2em;
+    text-align: left;
+    padding-left: 3em;
+}
+
+#sightings_criteria th {
+    width: 15%;
+    padding: 0.2em;
+}
+
+#sightings_criteria td {
+    width: 35%;
+    padding: 0.2em;
+}
+
+.pagenumber {
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+}
+
+.record_dialog_content {
+    white-space: nowrap;
+    
+}
+
+.record_dialog_content th,
+.record_dialog_content td {
+    padding: 0.2em;
+}
+
+.record_dialog_content_cell {
+    white-space: normal;
+}
+
+.order_type {
+    padding-top: 0.5em;
+}
+
+.criteria_link {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+#permalink_input {
+    margin: 10px;
+}
+
+.recordCountPanel {
+    margin-top: 0.5em;
+}
+
+.searchCriteriaSpacer {
+    height: 9px;
+}
+
+.searchButtonContainer {
+    float:right;
+    position:relative;
+    top:-38px;
+}
+
+select#survey_id {
+    width: 200px;
+}
+
+/***********************/
+/* open layers toolbar */
+/***********************/
+.olControlEditingToolbar .olControlModifyFeatureItemInactive { 
+  background-position: -1px 0px; 
+}
+.olControlEditingToolbar .olControlModifyFeatureItemActive { 
+  background-position: -1px -23px ;
+}
+
+/************************************/
+/* User sending msg to another user */
+/************************************/
+.messageUserContainer {
+    width:387px;
+}
+
+.messageUserContainer input[type=text], textarea {
+    width:280px;
+}
+
+.messageUserContainer textarea {
+    height:100px;
+}
+
+.messageUserMiniMap {
+    width:400px;
+    height:300px;
+}
+
+/**************************************/
+/*   bulk data download templates and */
+/*   upload records                   */
+/**************************************/
+table.bulkDataTableForm tbody tr th {
+    width: 30%
+}
+
+/****************************************/
+/* Edit Taxonomic Groups 2 column layout */
+/****************************************/
+.editTaxonGroupLeftColumn {
+    padding: 10px;
+}
+
+.editTaxonGroupRightColumn {
+    padding: 10px 0 0 50px;
+}
+
+#secondaryGroups,
+#secondaryGroups tr,
+#secondaryGroups tr td,
+#addSecondaryGroup tr,
+#addSecondaryGroup td {
+    margin: 0;
+    padding: 0;
+}
+.deleteSecondaryGroup {
+    margin-left: 0;
+    padding: 0 0 0 10px;
+}
+
+.hiddenTextField[name=secondaryGroups],
+.hiddenTextField[name=taxonGroupPk] {
+    visibility:hidden;
+    width:1px;
+    padding:0;
+    margin:0;
+    border-width:0;
+}
+.hiddenTextField[name=taxonGroupPk] {
+    width:15px;
+}
+
+#taxonGroupMembers .heading {
+    font-weight: bold;
+    margin-right: 1em;
+}
+
+#bulkTaxaActions {
+    position:relative;
+    margin-top: 10px;
+}
+#bulkTaxaActions .form_action {
+    position:absolute;
+    right: 0px;
+}
+#bulkTaxaActions label {
+    margin-left: 10px;
+}
+/*******************/
+/* Search taxonomy */
+/*******************/
+.searchTaxonomyHeader {
+    width: 80px;
+}
+
+/************************/
+/* Portal preferences   */
+/************************/
+
+table.preference_table_header {
+    width: 100%
+}
+
+table.preference_table_header td.right_cell {
+    width: 350px;
+}
+
+table.preference_table {
+    padding: 0 0 1em 0;
+}
+
+.preference_table td.description_col {
+    padding: 6px 8px 6px 6px;
+}
+
+.preference_table td.description_col div {
+
+}
+
+.preference_table td.description_col dl {
+    margin-left: 0em;
+}
+
+.preference_table td.description_col dl dd {
+    margin-left: 1em;
+}
+
+.preference_table td.description_col textarea {
+    /* IE7 hack */
+    width: 99%;
+}
+
+.preference_table td.key_col {
+    width: 200px;
+    padding: 6px;
+}
+
+.preference_table td.key_col input[type=text] {
+    width: 200px;
+}
+
+.preference_table td.value_col {
+    width: 200px;
+    padding: 6px;
+}
+
+.preference_table td.value_col input[type=text] {
+    width: 200px;
+}
+
+.preference_table td.delete_col {
+    width: 50px;
+}
+
+/************************************/
+/* Report Styling                   */
+/************************************/
+.report_descriptor {
+    max-width: 80%;
+}
+
+/************************************/
+/* Custom Forms Styling             */
+/************************************/
+.delete_customform_container {
+    padding: 0.5em 0em 0.5em 0em;
+}
+
+/************************************/
+/* Menu Layout Styling              */
+/************************************/
+
+/* Suckerfish Menu Structure */
+#horiz-menu a {
+    display: block;
+    float: left;
+    height: 20px;
+    line-height: 20px;
+    padding: 0 15px;
+    text-decoration: none;
+    cursor: pointer;
+    background: none;
+}
+
+#horiz-menu ul {
+    margin: 0;
+    padding: 0;
+}
+
+#horiz-menu li {
+    margin: 0;
+    padding: 0;
+    padding-right: 2px;
+    float: left;
+    list-style: none;
+    position: relative;
+    z-index: 100;
+}
+
+#horiz-menu a:link,
+#horiz-menu a:visited {
+    display: block;
+    float: left;
+    padding: 0 30px;
+}
+
+/* Level 1 Menus */
+
+/* Menu Transitions */
+ul.menu ul li a {
+    padding-left: 30px;
+}
+
+ul.menu ul ul li a {
+    padding-left:40px;
+}
+
+ul.menu ul ul ul li a {
+    padding-left:55px;
+}
+
+ul.menu ul ul ul ul li a{
+    padding-left:70px;
+}
+
+#horiz-menu li li a:link,
+#horiz-menu li li a:visited{
+    padding: 0;
+    text-indent: 10px;
+    border: 0;
+}
+
+#horiz-menu ul li {
+    position: relative;
+}
+
+#horiz-menu li ul {
+    top: 30px;
+    position: absolute;
+    z-index: 10000;
+    left: -999em;
+    margin: 0;
+    padding: 0;
+}
+
+/* margin for pullouts */
+#horiz-menu li:hover ul ul,
+#horiz-menu li:hover ul ul ul,
+#horiz-menu li:hover ul ul ul ul,
+#horiz-menu li.sfhover ul ul,
+#horiz-menu li.sfhover ul ul ul,
+#horiz-menu li.sfhover ul ul ul ul {
+    left: -999em;
+}
+
+#horiz-menu li:hover ul,
+#horiz-menu li li:hover ul,
+#horiz-menu li li li:hover ul,
+#horiz-menu li li li li:hover ul,
+#horiz-menu li.sfhover ul,
+#horiz-menu li li.sfhover ul,
+#horiz-menu li li li.sfhover ul,
+#horiz-menu li li li li.sfhover ul{
+    left: 0;
+}
+
+#horiz-menu li:hover,
+#horiz-menu li.sfhover {
+      left: 0;
+}
+
+/***************************/
+/* general highlight style */
+/***************************/
+.bdrsHighlight {
+    background-color: #FFECA3;
+}
+
+/***************************/
+/* breadcrumbs             */
+/***************************/
+.breadcrumbSeparator {
+    font-weight:bold;
+}
+
+/***************************/
+/* General cursor style    */
+/***************************/
+.cursorPointer {
+    cursor:pointer;
+}
+
+/***************************/
+/* Jquery UI adjustments.. */
+/***************************/
+
+/* up and down arrow adjust used to move
+ * arrows closer to each other and bump
+ * the top arrow across so the up/down arrows
+ * line up vertically.
+ */
+.ui-upArrowAdjust {
+    margin-left: 1px;
+    margin-bottom: -9px;
+}
+
+.ui-downArrowAdjust {
+    margin-top: -9px;
+}
+
+/* style for the Gaia logo on the About page */
+.gaia_logo {
+    height: 100px;
+    -webkit-border-radius: 8px;
+    -khtml-border-radius: 8px;
+    -moz-border-radius: 8px;
+    border-radius: 8px;
+}
+
+/*******************/
+/* blockUI styling */
+/*******************/
+div.blockUI.blockMsg.blockPage {
+    width: 30%;
+    top: 40%;
+    left: 35%;
+    text-align: center;
+    color: #000;
+    cursor: wait;
+    border: none;
+    padding: 15px;
+    background: #000000;
+    -webkit-border-radius: 8px;
+    -khtml-border-radius: 8px;
+    -moz-border-radius: 8px;
+    border-radius: 8px;
+    opacity: .5;
+}
+
+div.blockUI.blockMsg.blockPage h1 {
+    color:white;
+}
+
+/**********************************************/
+/* allows multiple line high rows in a jqgrid
+/**********************************************/
+.auto-row-height-jqgrid  .ui-jqgrid  tr.jqgrow td {
+    white-space: normal;
+    height:auto;
+    vertical-align:top;
+    padding-top:2px;
+    font-size:0.9em;
+}
+
+.auto-row-height-jqgrid  .ui-jqgrid .ui-jqgrid-htable th div {
+    height:auto;
+    overflow:hidden;
+    padding-right:4px;
+    padding-top:2px;
+    position:relative;
+    vertical-align:text-top;
+    white-space:normal;
+}
+
+/***********************************************/
+/* Styling for the jquery ui accordion widget  */
+/***********************************************/
+.ui-accordion .ui-accordion-header.ui-state-default {
+    background:#484848;
+}
+.ui-accordion .ui-accordion-header.ui-state-default a {
+    color:#ffffff;
+    font-size:1.1em;
+    font-weight:bold;
+}
+.ui-accordion .ui-accordion-header.ui-state-active a {
+    font-size:1.1em;
+    font-weight: bold;
+}
+
+/*****************************************/
+/* Styling for map settings editor       */
+/*****************************************/
+#attribute_input_table tbody td.checkColumn {
+    width: 75px;
+}
+
+
+/************************************************/
+/* Styling for comments                         */
+/************************************************/
+.comments {
+    margin-top: 20px;
+    padding: 0px 16px 16px 16px;
+    /* Rounded Border */
+    border: 1px solid #DADADA;
+    -webkit-border-radius: 8px;
+    -khtml-border-radius: 8px;
+    -moz-border-radius: 8px;
+    border-radius: 8px;
+    background-color: #F0F0F0;
+    color: #666666;
+}
+
+.commentHeader {
+    position: relative;
+    font-size: 0.9em;
+}
+
+.commentHeader .actions {
+    position: absolute;
+    right: 0px;
+}
+
+.comments ul {
+    margin: 0 0 0 2em;
+    list-style: none;
+}
+
+.comments li {
+    margin-top: 1em;
+    margin-bottom: 1em;
+    list-style: none;
+}
+
+.comments .userName {
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+.comments addCommentForm {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.comments .deleted {
+    color: #d3d3d3;
+}
+
+.comments .warning {
+    padding-left: 1em;
+}
+
+.comments .commentBody {
+    white-space: pre-wrap;
+}
+
+.jcollapsible {
+    font-size: 1.1em;
+}
+
+/***********************************************/
+/* Styles for the data index schedule          */
+/***********************************************/
+
+.scheduleRow {
+    padding: 5px;
+    overflow: hidden;
+}
+
+/***********************************************/
+/* Style for messages on Location Review page  */
+/***********************************************/
+#resultsMessages {
+    float: left;
+    color: red;
+}
+
+/************************************************/
+/* Style for census method attribute tables     */
+/************************************************/
+
+/* makes the tracker form table and group attributes on taxon edit page 
+   span the width of the page, necessary for displaying census method 
+   attributes properly */
+table.tracker_form_table,
+#taxonAttributeTable .form_table {
+    width: 100%;
+}
+
+/* keeps the tracker form and group attributes editing form centered on the page */
+table.tracker_form_table tbody tr th,
+#taxonAttributeTable .form_table tbody tr th {
+    width: 45%;
+}
+
+div#censusMethodAttributeRowTable table tbody tr th {
+    background-color: transparent !important;
+    white-space: normal;
+    width: auto;
+}
+
+table.censusMethodAttributeTable tbody tr th,
+table.datatable tbody table.censusMethodAttributeTable tbody tr th {
+    white-space: normal;
+    width: auto;
+}
+
+table.censusMethodAttributeTable tbody td,
+table.censusMethodAttributeTable thead td,
+table.censusMethodAttributeTable tbody th,
+table.censusMethodAttributeTable thead th {
+    border: collapse;
+    border: 1px solid #C0C0C0;
+    margin: 0;
+    padding: 3px 5px 3px 3px;
+    white-space: normal;
+    width: auto;
+}
+
+table.censusMethodAttributeTable tbody tr th,
+table.censusMethodAttributeTable tbody tr td {
+    min-width: 100px;
+}
+
+table.censusMethodAttributeTable tbody td,
+table.censusMethodAttributeTable thead th {
+    text-align: center;
+}
+
+.table_caption {
+    font-weight: bold;
+    margin-bottom: .5em;
+    text-align: center;
+}
+
+table table table caption,
+table table .table_caption {
+    display: none;
+}
+
+table.censusMethodAttributeTable caption {
+    font-weight: bold;
+}
+
+.scrollable {
+    width: 100%;
+    height: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+/* Making the text boxes consistent with others on the survey page */
+/* Set width to 99% so that hidden input field with ketchup on it will not
+   cause the height to increase */
+table.censusMethodAttributeTable input[type=text], 
+table.censusMethodAttributeTable input[type=password],
+table.censusMethodAttributeTable textarea {
+    border-width: 1;
+    width: 91%;
+    resize: none;
+    margin: 0;
+    padding: 0;
+}
+
+table.censusMethodAttributeTable input[type="text"].speciesIdInput, 
+input[type="text"].speciesIdInput {
+    visibility: hidden;
+    width: 0px;
+    padding: 0px 0 0 0;
+    margin: 0 0 0 -9px;
+    border-width: 0;
+}
+
+table.censusMethodAttributeTable input[type=text], 
+table.censusMethodAttributeTable input[type=password] {
+    text-align: center;
+}
+
+table.censusMethodAttributeTable textarea {
+    text-align: left;
+}
+
+/* Special cases where the size is partially known */
+/* Set width to 99% so that hidden input field with ketchup on it will not
+   cause the height to increase */
+table.censusMethodAttributeTable input[type=text].ui-autocomplete-input {
+    width: 91%;
+}
+
+/* Set width to 99% so that hidden input field with ketchup on it will not
+   cause the height to increase */
+table.censusMethodAttributeTable input[type=text].datepicker {
+    width: 91%;
+}
+
+table.censusMethodAttributeTable input[type=file] {
+    /* Styling of file input is not really that well supported
+    test carefully on all browsers if you style this element. */
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    background-color: transparent;
+    width: 20em;
+}
+
+table.censusMethodAttributeTable textarea {
+    height: 7em;
+    min-width: 20em;
+}
+/* For lining up the ketchup popup to the input */
+.attribute_input_table tbody td input[type="text"].hiddenKetchup,
+.hiddenKetchup {
+    visibility: hidden;
+    width:0px;
+    padding:0px 0 0 0;
+    margin:0 0 0 -9px;
+    border-width:0;
+}
+table.form_table tbody tr th.deleteColumn, 
+table.censusMethodAttributeTable thead tr th.deleteColumn {
+    width: auto;
+}
+
+table.censusMethodAttributeTable {
+	width: auto;
+}
+
+table.censusMethodAttributeTable tbody tr td {
+	max-width: 500px;
+}
+
+/***********************************************/
+/* map layer editing                           */
+/***********************************************/
+#mapLayerForm table {
+    width: 100%;
+}
+
+#mapLayerForm th {
+    width: 25%;
+    text-align: left;
+}
+
+#mapLayerForm .long_input {
+    width: 40em;
+}
+
+/***********************************************/
+/* field name review                           */
+/***********************************************/
+#field_name_review_choose_survey {
+    padding-bottom: 1em;
+}
+
+td.field_name_review_sci_name_cell {
+    width: 27em;
+}
+
+input.field_name_review_sci_name_input {
+    width: 25em;
+}
+
+/*************************************************/
+/* jquery timepicker                             */
+/*************************************************/
+/* Hiding the 'Done' button to avoid breaking the tab order of forms */
+.ui-datepicker-close {
+    display: none;
+} 
+
+div.ui-datepicker-buttonpane button.ui-priority-secondary { 
+    opacity: 1;
+    filter: Alpha(Opacity=100);
+}
