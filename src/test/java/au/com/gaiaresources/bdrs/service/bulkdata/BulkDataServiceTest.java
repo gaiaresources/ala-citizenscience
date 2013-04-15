@@ -1,43 +1,5 @@
 package au.com.gaiaresources.bdrs.service.bulkdata;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigDecimal;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.security.sasl.AuthenticationException;
-
-import junit.framework.Assert;
-
-import org.apache.log4j.Logger;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
-import org.springframework.security.authentication.encoding.PasswordEncoder;
-import org.springframework.util.StringUtils;
-
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
@@ -72,8 +34,42 @@ import au.com.gaiaresources.bdrs.service.lsid.LSIDService;
 import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.util.SpatialUtil;
 import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
-
 import com.vividsolutions.jts.geom.Point;
+import junit.framework.Assert;
+import org.apache.log4j.Logger;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
+import org.springframework.security.authentication.encoding.PasswordEncoder;
+import org.springframework.util.StringUtils;
+
+import javax.security.sasl.AuthenticationException;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class BulkDataServiceTest extends AbstractControllerTest {
     
@@ -121,6 +117,8 @@ public class BulkDataServiceTest extends AbstractControllerTest {
     Attribute surveyAttr2;
     Attribute surveyAttr4;
     Attribute surveyAttr3;
+
+    Attribute censusMethodCol;
 
     User user;
     List<User> userList;
@@ -1196,6 +1194,94 @@ public class BulkDataServiceTest extends AbstractControllerTest {
         Assert.assertEquals("wrong child orphan attribute value", 
                             getAttributeValueByAttrId(recChild, orphanAttr.getId()).getStringValue(), "child");
     }
+
+    @Test
+    public void testDownloadXlsWithCensusMethodAttributes() throws IOException, ParseException,
+            MissingDataException, InvalidSurveySpeciesException,
+            DataReferenceException, AmbiguousDataException {
+
+        CensusMethod censusMethodForAttribute = createCensusMethod("censusMethodForAttribute", Taxonomic.NONTAXONOMIC);
+        Attribute cma1 = createAttribute("cma_attribute1", "cma desc1", true, AttributeScope.SURVEY, false, "IN");
+        Attribute cma2 = createAttribute("cma_attribute2", "cma desc2", true, AttributeScope.SURVEY, false, "ST");
+        censusMethodForAttribute.getAttributes().add(cma1);
+        censusMethodForAttribute.getAttributes().add(cma2);
+
+        censusMethodCol = createAttribute("matrix", AttributeType.CENSUS_METHOD_COL, false, AttributeScope.SURVEY, false);
+        censusMethodCol.setCensusMethod(censusMethodForAttribute);
+
+        survey.getAttributes().add(censusMethodCol);
+
+        setRequired(survey, false);
+        Calendar cal = Calendar.getInstance();
+        cal.set(2011, 2, 27, 14, 42, 0);
+        Point point = spatialUtil.createPoint(-40, 120);
+        Map<Attribute, Object> attributeValues = new HashMap<Attribute, Object>();
+        Map<Attribute, Object> cmAttributeValues = new HashMap<Attribute, Object>();
+        cmAttributeValues.put(cma1, 3);
+        cmAttributeValues.put(cma2, "cma2");
+        attributeValues.put(censusMethodCol, cmAttributeValues);
+        Record rec = createRecord(survey, point, user, species, cal
+                .getTime(), cal.getTime().getTime(), null, null, "", false, false, "", "",
+                200, attributeValues);
+        rec.setRecordVisibility(RecordVisibility.PUBLIC);
+
+        List<Record> recListToDownload = new ArrayList<Record>();
+        recListToDownload.add(rec);
+
+        ScrollableRecords sc = new ScrollableRecordsList(recListToDownload);
+
+        File spreadSheetTmp = File.createTempFile(
+                "BulkDataServiceTest.testExportEditXls", ".xls");
+        FileOutputStream outStream = new FileOutputStream(spreadSheetTmp);
+        registerStream(outStream);
+
+        // exportSurveyRecords evicts objects from the hibernate session interally.
+        // this is the only test in this test suite that relies on items created
+        // before the call the exportSurveyRecords, so we flush here to make sure
+        // the items are properly persisted
+        sessionFactory.getCurrentSession().flush();
+
+        bulkDataService.exportSurveyRecords(sessionFactory.getCurrentSession(), survey, sc, outStream);
+
+        InputStream inStream = new FileInputStream(spreadSheetTmp);
+        registerStream(inStream);
+        Workbook wb = new HSSFWorkbook(inStream);
+
+        Sheet obSheet = wb.getSheet(AbstractBulkDataService.RECORD_SHEET_NAME);
+
+        List<String> headerList = this.getHeaderList(obSheet, HEADER_ROW_IDX);
+
+        // Not counting the census method attribute, there are 22 columns of data produced for each record
+        // of the survey.
+        // We expect the census method attribute to have been flattened out (and the nested attributes
+        // appearing as columns) in the same way that normal census methods are treated.  The main difference
+        // is that column based census method attributes can have multiple rows - this should result in one
+        // full Record row per census method row, with non-census method data duplicated.
+        final int NUM_BASE_COLUMNS = 17;
+        final int NUM_CENSUS_METHOD_COLUMNS = 4;
+        final int NUM_CENSUS_METHOD_COL_ATTRIBUTES = 2;
+        final int NUM_TRAILING_COLUMNS = 1;  // There is an empty column at the end.
+        final int TOTAL_HEADER_COLUMNS = NUM_BASE_COLUMNS+NUM_CENSUS_METHOD_COL_ATTRIBUTES+NUM_CENSUS_METHOD_COLUMNS+NUM_TRAILING_COLUMNS;
+        final int TOTAL_DATA_COLUMNS = TOTAL_HEADER_COLUMNS - NUM_TRAILING_COLUMNS;
+
+        final int CMA_1_INDEX = NUM_BASE_COLUMNS;
+        final int CMA_2_INDEX = NUM_BASE_COLUMNS+1;
+        Assert.assertEquals(TOTAL_HEADER_COLUMNS, headerList.size());
+
+        // The matrix typed attributes will be before the census method attributes.
+        Assert.assertEquals("cma desc1", headerList.get(CMA_1_INDEX));
+        Assert.assertEquals("cma desc2", headerList.get(CMA_2_INDEX));
+
+        // Row 3 has the actual data.
+        Row dataRow = obSheet.getRow(3);
+        Assert.assertEquals(TOTAL_DATA_COLUMNS, dataRow.getLastCellNum());
+
+        // Now the data
+        Assert.assertEquals(3.0, dataRow.getCell(CMA_1_INDEX).getNumericCellValue());
+        Assert.assertEquals("cma2", dataRow.getCell(CMA_2_INDEX).getStringCellValue());
+
+    }
+
 
     @Test
     public void testImportSurveyCensusMethodRecordInRecord()
@@ -2359,6 +2445,15 @@ public class BulkDataServiceTest extends AbstractControllerTest {
         r = recDAO.save(r);
         return r;
     }
+
+    private Record createCensusMethodAttributeRecord(Record parent) {
+        Record child = new Record();
+        child.setUser(parent.getUser());
+        child = recDAO.save(child);
+
+        return child;
+
+    }
     
     public  Set<AttributeValue> saveAttributeValues(Record r, Map<Attribute, Object> attributeMap){
         Set<AttributeValue> atts = new HashSet<AttributeValue>();
@@ -2419,6 +2514,14 @@ public class BulkDataServiceTest extends AbstractControllerTest {
                     // don't save a string value for census method attributes
                     // their value is a collection of records containing the 
                     // attribute values of the census method
+                    Record child = createCensusMethodAttributeRecord(r);
+                    Set<Record> children = attribute.getRecords();
+                    if (children == null) {
+                        children = new HashSet<Record>();
+                        attribute.setRecords(children);
+                    }
+                    children.add(child);
+                    child.setAttributes(saveAttributeValues(child, (Map<Attribute, Object>) attValue.getValue()));
                     break;
                 default:
                     throw new IllegalArgumentException(
