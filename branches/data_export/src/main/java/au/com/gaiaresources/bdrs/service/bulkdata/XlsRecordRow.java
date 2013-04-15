@@ -1,24 +1,5 @@
 package au.com.gaiaresources.bdrs.service.bulkdata;
 
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-
-import org.apache.log4j.Logger;
-import org.apache.poi.hssf.util.CellReference;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.springframework.util.StringUtils;
-
 import au.com.gaiaresources.bdrs.config.AppContext;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
@@ -37,6 +18,24 @@ import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.service.lsid.LSIDService;
 import au.com.gaiaresources.bdrs.service.property.PropertyService;
+import org.apache.log4j.Logger;
+import org.apache.poi.hssf.util.CellReference;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.springframework.util.StringUtils;
+
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 public class XlsRecordRow extends StyledRowImpl implements RecordRow {
 
@@ -67,8 +66,7 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
     /**
      * Stores necessary object locally and creates a map with header values for the non hidden fields.
      * @param propertyService to access key value pairs from a properties file
-     * @param surveyService 
-     * @param censusMethodDAO
+     * @param surveyService
      * @param bulkDataReadWriteService
      * @param survey
      */
@@ -125,7 +123,6 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
      * Stores necessary object locally and creates a map with header values.
      * @param propertyService to access key value pairs from a properties file
      * @param surveyService
-     * @param censusMethodDAO
      * @param bulkDataReadWriteService
      */
      @Deprecated
@@ -189,7 +186,6 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
                 Cell superRowCell = superHeaderRow.createCell(colIndex);
                 setCellStyle(superRowCell, recordHeaderStyle);
             }
-            
             headerCell = row.createCell(colIndex++);
             headerCell.setCellValue(entry.getKey());
             setCellStyle(headerCell, recordHeaderStyle);
@@ -203,15 +199,21 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
         colIndex = writeAttributeHeader(attributesForHeader, superHeaderRow, row, colIndex, recordHeaderStyle);
         
         for (CensusMethod cm : censusMethods) {
-            if(!cm.getAttributes().isEmpty()) {
-                Cell censusMethodTitleCell = superHeaderRow.createCell(colIndex);
-                censusMethodTitleCell.setCellValue(bdrws.formatCensusMethodNameId(cm));
-                setCellStyle(censusMethodTitleCell, recordHeaderStyle);
-                colIndex = writeAttributeHeader(cm.getAttributes(), superHeaderRow, row, colIndex, recordHeaderStyle);
-            }
+            colIndex = writeCensusMethodHeader(superHeaderRow, row, recordHeaderStyle, colIndex, cm);
         }
     }
-    
+
+    private int writeCensusMethodHeader(Row superHeaderRow, Row row, CellStyle recordHeaderStyle, int colIndex, CensusMethod cm) {
+        if(!cm.getAttributes().isEmpty()) {
+            Cell censusMethodTitleCell = superHeaderRow.createCell(colIndex);
+            censusMethodTitleCell.setCellValue(bdrws.formatCensusMethodNameId(cm));
+            setCellStyle(censusMethodTitleCell, recordHeaderStyle);
+            colIndex = writeAttributeHeader(cm.getAttributes(), superHeaderRow, row, colIndex, recordHeaderStyle);
+        }
+        return colIndex;
+    }
+
+
     private int writeAttributeHeader(List<Attribute> attrList, Row superHeaderRow, Row row, int colIndex, CellStyle recordHeaderStyle) {
         
         List<Attribute> sortedAttributes = new ArrayList<Attribute>(attrList);
@@ -228,13 +230,15 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
                     Cell superRowCell = superHeaderRow.createCell(colIndex);
                     setCellStyle(superRowCell, recordHeaderStyle);
                 }
-                
                 String headerName = attrib.getDescription();
                 Cell headerCell = row.createCell(colIndex++);
                 headerCell.setCellValue(headerName);
                 setCellStyle(headerCell, recordHeaderStyle);
                 
                 headerAttributes.add(attrib);
+            }
+            else if (AttributeType.isCensusMethodType(attrib.getType())) {
+                colIndex = writeCensusMethodHeader(superHeaderRow, row, recordHeaderStyle, colIndex, attrib.getCensusMethod());
             }
         }
         return colIndex;
@@ -246,8 +250,27 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
         }
     }
 
+    /** {@inheritDoc} */
+    public int writeRecord(LSIDService lsidService, Sheet observationSheet, int rowIndex, Record record) {
 
-    public void writeRow(LSIDService lsidService, Row row, Record rec) {
+        int rowCount = 0;
+        List<List<Record>> flattenedCensusMethodRecords = new RecordCensusMethodHelper().cartesianProduct(record);
+
+        if (flattenedCensusMethodRecords.isEmpty()) {
+            // No census method attribute values.
+            writeRow(lsidService, observationSheet.createRow(rowIndex+rowCount), record, new ArrayList<Record>());
+            rowCount++;
+        }
+        else {
+            for (List<Record> childRecords : flattenedCensusMethodRecords) {
+                writeRow(lsidService, observationSheet.createRow(rowIndex+rowCount), record, childRecords);
+                rowCount++;
+            }
+        }
+        return rowCount;
+    }
+
+    protected void writeRow(LSIDService lsidService, Row row, Record rec, List<Record> children) {
         int colIndex = 0;
 
         colIndex = writeRowId(lsidService, row, rec, colIndex);
@@ -296,8 +319,10 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
         if(!new RecordProperty(survey, RecordPropertyType.NOTES, metadataDAO).isHidden()) {
         	colIndex = writeRowNotes(row, rec, colIndex);
         }
-        
-        colIndex = writeRowAttributes(row, rec, colIndex);
+        List<Record> allRecords = new ArrayList<Record>();
+        allRecords.add(rec);
+        allRecords.addAll(children);
+        writeRowAttributes(row, allRecords, colIndex);
     }
 
     protected int writeRowNotes(Row row, Record rec, int colIndex) {
@@ -482,11 +507,13 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
         return colIndex;
     }
 
-    protected int writeRowAttributes(Row row, Record rec, int colIndex) {
+    protected int writeRowAttributes(Row row, List<Record> records, int colIndex) {
 
         Map<Attribute, AttributeValue> recordAttributeMap = new HashMap<Attribute, AttributeValue>();
-        for (AttributeValue attrVal : rec.getAttributes()) {
-            recordAttributeMap.put(attrVal.getAttribute(), attrVal);
+        for (Record record : records) {
+            for (AttributeValue attrVal : record.getAttributes()) {
+                recordAttributeMap.put(attrVal.getAttribute(), attrVal);
+            }
         }
 
         Cell cell;

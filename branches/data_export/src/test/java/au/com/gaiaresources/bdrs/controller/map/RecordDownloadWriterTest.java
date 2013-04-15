@@ -1,20 +1,15 @@
 package au.com.gaiaresources.bdrs.controller.map;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.LinkedList;
-import java.util.List;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
+import au.com.gaiaresources.bdrs.json.JSONArray;
+import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.json.JSONSerializer;
+import au.com.gaiaresources.bdrs.model.record.Record;
+import au.com.gaiaresources.bdrs.model.record.impl.ScrollableRecordsList;
+import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.service.web.JsonService;
+import au.com.gaiaresources.bdrs.spatial.AbstractShapefileTest;
+import au.com.gaiaresources.bdrs.spatial.ShapeFileReader;
 import junit.framework.Assert;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.junit.Before;
@@ -26,15 +21,17 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import au.com.gaiaresources.bdrs.json.JSONArray;
-import au.com.gaiaresources.bdrs.json.JSONObject;
-import au.com.gaiaresources.bdrs.json.JSONSerializer;
-import au.com.gaiaresources.bdrs.model.record.Record;
-import au.com.gaiaresources.bdrs.model.record.impl.ScrollableRecordsList;
-import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.service.web.JsonService;
-import au.com.gaiaresources.bdrs.spatial.AbstractShapefileTest;
-import au.com.gaiaresources.bdrs.spatial.ShapeFileReader;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.LinkedList;
+import java.util.List;
 
 public class RecordDownloadWriterTest extends AbstractShapefileTest {
 	
@@ -262,6 +259,12 @@ public class RecordDownloadWriterTest extends AbstractShapefileTest {
         
         JSONObject obj = extractJsonDescription(response);
         Assert.assertNotNull(obj);
+    }
+
+
+    @Test
+    public void testDownloadRecordWithCensusMethodAttributes() {
+
     }
     
     private JSONObject extractJsonDescription(MockHttpServletResponse response) throws ParserConfigurationException, SAXException, IOException {
