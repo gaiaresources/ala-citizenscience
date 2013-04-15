@@ -176,7 +176,6 @@ public class AttributeDeserializer {
                 String prefix = AttributeScope.isRecordScope(attribute.getScope())  ? entryPrefix : "";
                 Object attrNameObj = attrNameMap.get(attribute);
                 if (attrNameObj instanceof List) {
-                    int nameIndex = 0;
                     String filename = "";
                     List<String> fileNameList = null;
                     if (attrFilenameMap.get(attribute) instanceof List) {
@@ -184,14 +183,16 @@ public class AttributeDeserializer {
                     } else {
                         filename = (String) attrFilenameMap.get(attribute);
                     }
-                    for (String name : (List<String>) attrNameObj) {
+                    List<String> attributeNames = (List<String>)attrNameObj;
+                    for (int nameIndex = 0; nameIndex< attributeNames.size(); nameIndex++) {
+                        String name = attributeNames.get(nameIndex);
                         // only save this attribute for this record if it matches
                         // the prefix + attribute_id
                         String paramName = WebFormAttributeParser.getParamKey(entryPrefix, attribute);
                         if (name.equals(paramName)) {
                             if (fileNameList != null
                                     && fileNameList.size() > nameIndex) {
-                                filename = fileNameList.get(nameIndex++);
+                                filename = fileNameList.get(nameIndex);
                             }
                             savedOne |= saveAttribute(prefix, name, filename, attribute, attributable, dataMap, fileMap, currentUser, recAtts, attrValuesToDelete, moderationOnly, attrNameMap, attrFilenameMap, entryPrefix, scope, save);
                         }
@@ -203,6 +204,8 @@ public class AttributeDeserializer {
         }
         return savedOne;
     }
+
+
 
     /**
      * Parses and saves an attribute value.

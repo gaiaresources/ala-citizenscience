@@ -323,6 +323,7 @@ public abstract class AttributeParser {
         } else if (AttributeType.isCensusMethodType(attrType)) {
             // census method types do not have a string value, but should be added or updated
             addOrUpdateAttribute = true;
+            attributeValue.setStringValue("");
         } else {
             addOrUpdateAttribute = false;
         }

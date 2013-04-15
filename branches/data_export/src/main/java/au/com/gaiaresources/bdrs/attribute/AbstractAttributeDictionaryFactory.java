@@ -1,16 +1,5 @@
 package au.com.gaiaresources.bdrs.attribute;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import org.apache.log4j.Logger;
-import org.springframework.util.StringUtils;
-
 import au.com.gaiaresources.bdrs.controller.record.WebFormAttributeParser;
 import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
 import au.com.gaiaresources.bdrs.model.location.Location;
@@ -23,6 +12,16 @@ import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import edu.emory.mathcs.backport.java.util.Collections;
+import org.apache.log4j.Logger;
+import org.springframework.util.StringUtils;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Abstract class to handle creation of attribute to parameter name mapping.
@@ -226,7 +225,7 @@ public abstract class AbstractAttributeDictionaryFactory implements
                 }
                 // get the records from the attribute value
                 AttributeValue attrVal = attrValueMap.get(attribute);
-                Set<Record> recs = attrVal != null ? attrVal.getRecords() : null;
+                List<Record> recs = attrVal != null ? attrVal.getOrderedRecords() : null;
                 int rowIndex = 0;
                 int maxRowCount = 1;
                 // the paramkey for census method types is not file type, using false here
@@ -348,7 +347,7 @@ public abstract class AbstractAttributeDictionaryFactory implements
      * @return a String representing the name of the parameter for the attribute in the request map
      */
     private String getParamKey(String prefix, Attribute attribute, boolean isFileDictionary) {
-        if (isFileDictionary) {
+        if (isFileDictionary && !AttributeType.isCensusMethodType(attribute.getType())) {
             return WebFormAttributeParser.getFileKey(prefix, attribute);
         } else {
             return WebFormAttributeParser.getParamKey(prefix, attribute);
