@@ -758,3 +758,12 @@ begin;
 create index attribute_name_index on ATTRIBUTE (NAME);
 rollback;
 </code>
+
+== Future revision (needs to be documented somewhere) ==
+<code language="sql">
+begin;
+alter table INDEX_SCHEDULE add column TASK_TYPE varchar(8) unique;
+create index task_type_index on INDEX_SCHEDULE (TASK_TYPE);
+update INDEX_SCHEDULE set TASK_TYPE='INDEX';
+rollback;
+</code>
