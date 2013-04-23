@@ -1,33 +1,5 @@
 package au.com.gaiaresources.bdrs.model.record.impl;
 
-import java.beans.PropertyDescriptor;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.annotation.PostConstruct;
-import javax.persistence.Transient;
-
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.log4j.Logger;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.type.CustomType;
-import org.hibernatespatial.GeometryUserType;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
-
 import au.com.gaiaresources.bdrs.db.QueryOperation;
 import au.com.gaiaresources.bdrs.db.impl.AbstractDAOImpl;
 import au.com.gaiaresources.bdrs.db.impl.HqlQuery;
@@ -61,9 +33,34 @@ import au.com.gaiaresources.bdrs.service.db.DeletionService;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 import au.com.gaiaresources.bdrs.util.Pair;
 import au.com.gaiaresources.bdrs.util.StringUtils;
-
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
+import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.log4j.Logger;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.type.CustomType;
+import org.hibernatespatial.GeometryUserType;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import javax.annotation.PostConstruct;
+import javax.persistence.Transient;
+import java.beans.PropertyDescriptor;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Repository
 public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
@@ -1235,6 +1232,15 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
     
     @Override
     public List<Record> getRecordByAttributeValue(Session sesh, Integer surveyId, String attrName, String attrVal) {
+        return findRecordsByAttributeValue(sesh, surveyId, attrName, attrVal, null, null);
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Record> findRecordsByAttributeValue(Session sesh, Integer surveyId, String attrName, String attrVal, Date startDate, Date endDate) {
         if (sesh == null) {
             sesh = getSession();
         }
@@ -1247,12 +1253,28 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         if (StringUtils.nullOrEmpty(attrVal)) {
             throw new IllegalArgumentException("String cannot be null or empty");
         }
-        Query q = sesh.createQuery("select distinct r from Record r join r.attributes av where r.survey.id = ? and av.attribute.name = ? and av.stringValue = ?");
-        q.setParameter(0, surveyId);
-        q.setParameter(1, attrName);
-        q.setParameter(2, attrVal);
+
+        StringBuilder query = new StringBuilder("select distinct r from Record r join r.attributes av where r.survey.id = :surveyId" +
+                " and av.attribute.name = :attributeName and av.stringValue = :attributeValue");
+        if (startDate != null) {
+            query.append(" and r.when >= :startDate");
+        }
+        if (endDate != null) {
+            query.append(" and r.when <= :endDate");
+        }
+        Query q = sesh.createQuery(query.toString());
+        q.setParameter("surveyId", surveyId);
+        q.setParameter("attributeName", attrName);
+        q.setParameter("attributeValue", attrVal);
+        if (startDate != null) {
+            q.setParameter("startDate", startDate);
+        }
+        if (endDate != null){
+            q.setParameter("endDate", endDate);
+        }
         return q.list();
     }
+
     
     /*
      * (non-Javadoc)
