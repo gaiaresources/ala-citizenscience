@@ -14,6 +14,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -55,14 +56,22 @@ public class AttributeServiceTest extends AbstractControllerTest {
         final String attributeName = "attribute";
         final String attributeValue = "val";
         final List<Record> records = new ArrayList<Record>();
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy");
+        final Date start = dateFormat.parse("01 Jan 2001");
+        final Date end = dateFormat.parse("01 Jan 2099");
+
+
         Record r1 = new Record();
         Date now = new Date();
         r1.setWhen(now);
         r1.setNotes("Test");
         records.add(r1);
 
+
+
         context.checking(new Expectations() {{
-            oneOf(recordDAO).getRecordByAttributeValue(null, surveyId, attributeName, attributeValue);
+            oneOf(recordDAO).findRecordsByAttributeValue(null, surveyId, attributeName, attributeValue, start, end);
             will(returnValue(records));
         }});
 
@@ -72,6 +81,8 @@ public class AttributeServiceTest extends AbstractControllerTest {
         request.setParameter("surveyId", Integer.toString(surveyId));
         request.setParameter("attributeName", attributeName);
         request.setParameter("attributeValue", attributeValue);
+        request.setParameter("startDate", "01 Jan 2001");
+        request.setParameter("endDate", "01 Jan 2099");
 
 
         this.handle(request, response);
@@ -112,17 +123,24 @@ public class AttributeServiceTest extends AbstractControllerTest {
     public void testInvalidParams() throws Exception {
         setUpMocks();
 
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy");
+        final Date start = dateFormat.parse("01 Jan 2001");
+        final Date end = dateFormat.parse("01 Jan 2099");
+
         context.checking(new Expectations() {{
             oneOf(userDAO).getUserByRegistrationKey(ident);
             will(returnValue(new User()));
         }});context.checking(new Expectations() {{
-            oneOf(recordDAO).getRecordByAttributeValue(null, 0, "", "");
+            oneOf(recordDAO).findRecordsByAttributeValue(null, 0, "", "", start, end);
             will(throwException(new IllegalArgumentException("invalid parameter")));
         }});
 
         request.setMethod("GET");
         request.setRequestURI("/webservice/attribute/recordsByAttributeValue.htm");
         request.setParameter("ident", ident);
+        request.setParameter("startDate", "01 Jan 2001");
+        request.setParameter("endDate", "01 Jan 2099");
+
 
         this.handle(request, response);
 

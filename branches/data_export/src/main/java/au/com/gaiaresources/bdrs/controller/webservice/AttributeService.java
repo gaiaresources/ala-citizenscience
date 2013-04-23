@@ -114,6 +114,8 @@ public class AttributeService extends AbstractController {
                                             @RequestParam(value="surveyId", defaultValue="0") int surveyId,
                                             @RequestParam(value="attributeName", defaultValue="") String attributeName,
                                             @RequestParam(value="attributeValue", defaultValue="") String attributeValue,
+                                            @RequestParam(value = "startDate", defaultValue = "01 Jan 1970") Date startDate,
+                                            @RequestParam(value = "endDate", defaultValue = "01 Jan 9999") Date endDate,
                                             HttpServletResponse response) throws IOException {
 
         if (!validateUser(response, ident)) {
@@ -122,7 +124,7 @@ public class AttributeService extends AbstractController {
         JSONObject result = new JSONObject();
 
         try {
-            List<Record> records = recordDAO.getRecordByAttributeValue(null, surveyId, attributeName, attributeValue);
+            List<Record> records = recordDAO.findRecordsByAttributeValue(null, surveyId, attributeName, attributeValue, startDate, endDate);
             JSONArray jsonRecords = new JSONArray();
             for (Record record : records) {
                 jsonRecords.add(record.flatten());

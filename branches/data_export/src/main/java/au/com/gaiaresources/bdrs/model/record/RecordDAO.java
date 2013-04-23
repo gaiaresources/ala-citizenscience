@@ -341,7 +341,21 @@ public interface RecordDAO extends FacetDAO {
      * @return List of records that matches parameters.
      */
     List<Record> getRecordByAttributeValue(Session sesh, Integer surveyId, String attrName, String attrVal);
-    
+
+    /**
+     * Query for records sighted between specified dates that contain an attribute value for a named attribute,
+     * with a specified attribute value (only the string value is compared).
+     *
+     * @param sesh session - can be null.
+     * @param surveyId survey ID to limit search. Not nullable.
+     * @param attrName attribute name to limit search. Not Nullable or empty.
+     * @param attrVal attribute STRING value to limit search. Will not work for numeric values! Not nullable or empty.
+     * @param startDate only records with a when date at or after this date will be returned.
+     * @param endDate only records with a when date before or on this date will be returned.
+     * @return List of records that matches parameters.
+     */
+    List<Record> findRecordsByAttributeValue(Session sesh, Integer surveyId, String attrName, String attrVal, Date startDate, Date endDate);
+
     /**
      * Query for records where an attribute value has an attribute id.
      * Orders results by alphabetic attribute value string value.
