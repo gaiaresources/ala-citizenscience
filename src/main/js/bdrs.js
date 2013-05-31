@@ -3366,6 +3366,8 @@ bdrs.initSubmitDisabler = function() {
     jQuery(form).delegate("input", "change", unbindDisableHandler);
     jQuery(form).delegate("textarea", "focus", unbindDisableHandler);
     jQuery(form).delegate("textarea", "change", unbindDisableHandler);
+    jQuery(form).delegate("select", "focus", unbindDisableHandler);
+    jQuery(form).delegate("select", "change", unbindDisableHandler);
 };
 
 /**
