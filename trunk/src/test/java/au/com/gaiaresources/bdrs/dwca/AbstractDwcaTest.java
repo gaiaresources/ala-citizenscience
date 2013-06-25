@@ -154,6 +154,7 @@ public abstract class AbstractDwcaTest extends AbstractGridControllerTest {
             Assert.fail("Census method elements should not be exported in DwC-A");
         case IMAGE:
         case AUDIO:
+        case VIDEO:
         case FILE:
             return APPLICATION_URL + defaultPortal.getPortalContextPath()+"/files/download.htm?" + av.getFileURL();
         default:

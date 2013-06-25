@@ -121,7 +121,10 @@ public class SurveyImportExportService extends AbstractImportExportService<Surve
         for (AttributeValue attrVal : attributeValues) {
             Map<String, Object> flat = attrVal.flatten();
             AttributeType type = attrVal.getAttribute().getType();
-            if (AttributeType.IMAGE.equals(type) || AttributeType.FILE.equals(type) || AttributeType.AUDIO.equals(type)) {
+            if (AttributeType.IMAGE.equals(type) 
+                    || AttributeType.FILE.equals(type) 
+                    || AttributeType.AUDIO.equals(type)
+                    || AttributeType.VIDEO.equals(type)) {
                 flat.put(ImportHandler.FILE_CONTENT_KEY, encodeBase64(attrVal, attrVal.getStringValue()));
             } else if (AttributeType.isCensusMethodType(type)) {
                 // flatten the records for the attribute value

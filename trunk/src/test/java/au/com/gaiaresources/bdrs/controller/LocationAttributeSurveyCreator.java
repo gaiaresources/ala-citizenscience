@@ -460,6 +460,7 @@ public class LocationAttributeSurveyCreator {
                         attrVal.setBooleanValue(Boolean.TRUE.toString());
                         break;
                     case AUDIO:
+                    case VIDEO:
                     case FILE:
                         attrVal.setStringValue("testDataFile.dat");
                         fileData = createImage(-1, -1, attrVal.getStringValue());
@@ -616,6 +617,7 @@ public class LocationAttributeSurveyCreator {
                         recAttr.setBooleanValue(Boolean.TRUE.toString());
                         break;
                     case AUDIO:
+                    case VIDEO:
                     case FILE:
                         recAttr.setStringValue("testDataFile.dat");
                         fileData = createImage(-1, -1, recAttr.getStringValue());
@@ -716,6 +718,7 @@ public class LocationAttributeSurveyCreator {
                             recAttr.setStringValue(Boolean.FALSE.toString());
                             break;
                         case AUDIO:
+                        case VIDEO:
                         case FILE:
                             recAttr.setStringValue("testGroupDataFile.dat");
                             fileData = createImage(-1, -1, recAttr.getStringValue());

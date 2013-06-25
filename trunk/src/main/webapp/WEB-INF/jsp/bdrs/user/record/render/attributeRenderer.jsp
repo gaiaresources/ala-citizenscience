@@ -586,7 +586,7 @@
             </c:when>
         </c:choose>
     </c:when>
-    <c:when test="${ formField.attribute.type == 'FILE' || formField.attribute.type == 'AUDIO'}">
+    <c:when test="${ formField.attribute.type == 'FILE' || formField.attribute.type == 'AUDIO' || formField.attribute.type == 'VIDEO' }">
         
         <c:if test="${ formField.attributeValue != null && formField.attributeValue.stringValue != null }">
             <div id="${sectionName}">

@@ -689,6 +689,7 @@ public class ShapeFileWriter {
                     // not supported
                     case IMAGE:
                     case AUDIO:
+                    case VIDEO:
                     case FILE:
                     case CENSUS_METHOD_ROW:
                     case CENSUS_METHOD_COL:
@@ -752,6 +753,7 @@ public class ShapeFileWriter {
                         // not supported
                         case IMAGE:
                         case AUDIO:
+                        case VIDEO:
                         case FILE:
                         case CENSUS_METHOD_ROW:
                         case CENSUS_METHOD_COL:

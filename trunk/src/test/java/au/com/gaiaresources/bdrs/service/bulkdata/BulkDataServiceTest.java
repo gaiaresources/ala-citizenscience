@@ -939,6 +939,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
                 break;
             case IMAGE:
             case AUDIO:
+            case VIDEO:
             case FILE:
                 throw new UnsupportedOperationException(
                         "Spreadsheet upload of file data is not supported.");
@@ -2221,6 +2222,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
                 break;
             case IMAGE:
             case AUDIO:
+            case VIDEO:
             case FILE:
                 throw new UnsupportedOperationException(
                         "Spreadsheet upload of file data is not supported.");
@@ -2372,6 +2374,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
                 switch (attValue.getKey().getType()) {
                 case IMAGE:
                 case AUDIO:
+                case VIDEO:
                 case FILE:
 //                    attrFile = fileAttributeMap.get(attValue.getKey());
 //                    // attrFile will always have size zero unless the file

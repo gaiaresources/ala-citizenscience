@@ -61,6 +61,7 @@ public class BulkDataReadWriteServiceImpl implements BulkDataReadWriteService {
                 break;
             case IMAGE:
             case AUDIO:
+            case VIDEO:
             case FILE:
                 throw new UnsupportedOperationException(
                         "Spreadsheet download of file data is not supported.");
