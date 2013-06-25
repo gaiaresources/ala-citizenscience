@@ -1080,12 +1080,22 @@ public class ApplicationService extends AbstractController {
                     attrVal.setStringValue("");
                 }
                 break;
-                
             case AUDIO:
                 if(value != null && !value.isEmpty()) {
                     base64 = value;
                     // The mobile only uploads 3gp audio.
                     filename = String.format("%s.3gp", UUID.randomUUID().toString());
+                    attrVal.setStringValue(filename);
+                } else {
+                    filename = null;
+                    base64 = null;
+                    attrVal.setStringValue("");
+                }
+                break;
+            case VIDEO:
+                if(value != null && !value.isEmpty()) {
+                    base64 = value;
+                    filename = String.format(UUID.randomUUID().toString());
                     attrVal.setStringValue(filename);
                 } else {
                     filename = null;

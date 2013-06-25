@@ -1083,6 +1083,7 @@ public abstract class AbstractBulkDataService {
                 break;
             case IMAGE:
             case AUDIO:
+            case VIDEO:
             case FILE:
                 throw new UnsupportedOperationException(
                         "Spreadsheet upload of file data is not supported.");

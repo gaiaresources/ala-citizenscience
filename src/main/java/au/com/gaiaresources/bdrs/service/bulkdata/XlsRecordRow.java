@@ -221,6 +221,7 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
             if (!AttributeType.FILE.equals(attrib.getType())
                     && !AttributeType.IMAGE.equals(attrib.getType())
                     && !AttributeType.AUDIO.equals(attrib.getType())
+                    && !AttributeType.VIDEO.equals(attrib.getType())
                     && !AttributeType.isHTMLType(attrib.getType())
                     && !AttributeType.isCensusMethodType(attrib.getType())) {
                 
@@ -528,6 +529,7 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
                 if (!AttributeType.FILE.equals(attrib.getType())
                         && !AttributeType.IMAGE.equals(attrib.getType())
                         && !AttributeType.AUDIO.equals(attrib.getType())
+                        && !AttributeType.VIDEO.equals(attrib.getType())
                         && !AttributeType.isHTMLType(attrib.getType())
                         && !AttributeType.isCensusMethodType(attrib.getType())) {
 
@@ -558,6 +560,7 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
                     if (!AttributeType.FILE.equals(attrib.getType())
                             && !AttributeType.IMAGE.equals(attrib.getType())
                             && !AttributeType.AUDIO.equals(attrib.getType())
+                            && !AttributeType.VIDEO.equals(attrib.getType())
                             && !AttributeType.isHTMLType(attrib.getType())
                             && !AttributeType.isCensusMethodType(attrib.getType())) {
                         
@@ -759,6 +762,7 @@ public class XlsRecordRow extends StyledRowImpl implements RecordRow {
                         break;
                     case IMAGE:
                     case AUDIO:
+                    case VIDEO:
                     case FILE:
                         throw new UnsupportedOperationException(
                                 "Spreadsheet upload of file data is not supported.");

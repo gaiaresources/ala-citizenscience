@@ -608,7 +608,9 @@ public class RecordDwcaWriter {
             for (AttributeValue av : r.getAttributes()) {
                 if (StringUtils.notEmpty(av.getStringValue())) {
                     AttributeType type = av.getAttribute().getType();
-                    if (type == AttributeType.IMAGE || type == AttributeType.AUDIO) {
+                    if (type == AttributeType.IMAGE 
+                            || type == AttributeType.AUDIO
+                            || type == AttributeType.VIDEO) {
                         if (media.length() > 0) {
                             media.append(MEDIA_SEPARATOR);
                         }
@@ -703,6 +705,7 @@ public class RecordDwcaWriter {
 
             case IMAGE:
             case AUDIO:
+            case VIDEO:
             case FILE:
                 // returns the full URL 
                 return redirService.getFileDownloadUrl(av, true);

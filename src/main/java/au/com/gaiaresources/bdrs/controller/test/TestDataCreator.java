@@ -466,7 +466,10 @@ public class TestDataCreator implements TestDataConstants {
                 taxonAttr = new AttributeValue();
                 taxonAttr.setAttribute(attr);
                 
-                if(AttributeType.IMAGE.equals(attr.getType()) || AttributeType.FILE.equals(attr.getType()) || AttributeType.AUDIO.equals(attr.getType())) {
+                if(AttributeType.IMAGE.equals(attr.getType()) 
+                        || AttributeType.FILE.equals(attr.getType()) 
+                        || AttributeType.AUDIO.equals(attr.getType())
+                        || AttributeType.VIDEO.equals(attr.getType())) {
                     byte[] data;
                     String contentType;
                     String filename;
@@ -515,7 +518,10 @@ public class TestDataCreator implements TestDataConstants {
                 
                 byte[] data = null;
                 String filename = null;
-                if(AttributeType.IMAGE.equals(attr.getType()) || AttributeType.FILE.equals(attr.getType()) || AttributeType.AUDIO.equals(attr.getType())) {
+                if(AttributeType.IMAGE.equals(attr.getType()) 
+                        || AttributeType.FILE.equals(attr.getType()) 
+                        || AttributeType.AUDIO.equals(attr.getType())
+                        || AttributeType.VIDEO.equals(attr.getType())) {
                     if(AttributeType.IMAGE.equals(attr.getType())) {
                         data = getRandomImage(testDataDirPref, 640, 480);
                         data = data == null ? createImage(640, 480, attr.getDescription()) : data;
@@ -536,7 +542,10 @@ public class TestDataCreator implements TestDataConstants {
                 attVals.add(taxonAttr);
                 
                 // Taxon Attribute must be saved before the file can be saved.
-                if(AttributeType.IMAGE.equals(attr.getType()) || AttributeType.FILE.equals(attr.getType()) || AttributeType.AUDIO.equals(attr.getType())) {
+                if(AttributeType.IMAGE.equals(attr.getType()) 
+                        || AttributeType.FILE.equals(attr.getType()) 
+                        || AttributeType.AUDIO.equals(attr.getType())
+                        || AttributeType.VIDEO.equals(attr.getType())) {
                     fileService.createFile(taxonAttr.getClass(), taxonAttr.getId(), filename, data);
                 }
             }

@@ -100,6 +100,7 @@ public class XlsLocationRow extends StyledRowImpl {
                 if (!AttributeType.FILE.equals(attrType)
                     && !AttributeType.IMAGE.equals(attrType)
                     && !AttributeType.AUDIO.equals(attrType)
+                    && !AttributeType.VIDEO.equals(attrType)
                     && !AttributeType.isHTMLType(attrType)
                     && !AttributeType.isCensusMethodType(attrType)) {
                 
@@ -191,6 +192,7 @@ public class XlsLocationRow extends StyledRowImpl {
             if (!AttributeType.FILE.equals(attrType)
                 && !AttributeType.IMAGE.equals(attrType)
                 && !AttributeType.AUDIO.equals(attrType)
+                && !AttributeType.VIDEO.equals(attrType)
                 && !AttributeType.isHTMLType(attrType)
                 && !AttributeType.isCensusMethodType(attrType)) {
                 
@@ -285,6 +287,7 @@ public class XlsLocationRow extends StyledRowImpl {
                         break;
                     case IMAGE:
                     case AUDIO:
+                    case VIDEO:
                     case FILE:
                         throw new UnsupportedOperationException(
                                 "Spreadsheet upload of file data is not supported.");

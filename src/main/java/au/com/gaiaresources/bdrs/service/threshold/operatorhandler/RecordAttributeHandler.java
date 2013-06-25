@@ -61,6 +61,7 @@ public class RecordAttributeHandler implements OperatorHandler {
                     case IMAGE:
                     case FILE:
                     case AUDIO:
+                    case VIDEO:
                     case BARCODE:
                     case REGEX:
                     case TIME:

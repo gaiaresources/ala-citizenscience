@@ -53,7 +53,10 @@ public class AttributeValueImportHandler extends SimpleImportHandler implements 
     public void postSave(Session sesh, JSONObject importData, Map<Class, Map<Integer, PersistentImpl>> persistentLookup, JSONObject jsonPersistent, Object bean) {
         AttributeValue attrVal = (AttributeValue) bean;
         AttributeType type = attrVal.getAttribute().getType();
-        if (AttributeType.IMAGE.equals(type) == false && AttributeType.FILE.equals(type) == false && AttributeType.AUDIO.equals(type) == false) {
+        if (!AttributeType.IMAGE.equals(type)
+                && !AttributeType.FILE.equals(type)
+                && !AttributeType.AUDIO.equals(type)
+                && !AttributeType.VIDEO.equals(type)) {
             return;
         }
 

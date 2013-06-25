@@ -250,6 +250,7 @@ public class JsonService {
             // allow download of files and image attribute types
             case IMAGE:
             case AUDIO:
+            case VIDEO:
             case FILE:
                 obj.accumulate(JSON_KEY_ATTR_VALUE, getAttributeValueFileDownloadLink(av, contextPath));
                 break;

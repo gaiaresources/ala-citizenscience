@@ -40,6 +40,7 @@ public enum AttributeType implements E, JSONEnum {
     IMAGE("IM", "Image File"),
     AUDIO("AU", "Audio File"),
     FILE("FI", "Data File"),
+    VIDEO("VI", "Video File"),
 
     SPECIES("SP", "Species"),
     

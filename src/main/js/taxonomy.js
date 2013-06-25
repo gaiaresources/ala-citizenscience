@@ -291,7 +291,7 @@ bdrs.taxonomy.displayTaxonProperties = function(taxon,
             
             attrVal = attrToAttrValMap[groupAttr.id];
             var attr_type = bdrs.model.taxa.attributeType.code[groupAttr.typeCode]
-            if(groupAttr.type === 'FILE' || groupAttr.type === 'AUDIO') {
+            if(groupAttr.type === 'FILE' || groupAttr.type === 'AUDIO' || groupAttr.type === 'VIDEO') {
                 displayElem = '<a href="'+bdrs.portalContextPath+'/files/download.htm?'+attrVal.fileURL+'">' +
                                 attrVal.stringValue + '</a>';
             } else if(groupAttr.type === 'IMAGE') {

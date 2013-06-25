@@ -633,6 +633,7 @@ public abstract class AbstractControllerTest extends AbstractTransactionalTest {
             }
             case IMAGE:
             case AUDIO:
+            case VIDEO:
             case FILE:
             {
                 // the string value becomes the file name
@@ -749,6 +750,7 @@ public abstract class AbstractControllerTest extends AbstractTransactionalTest {
             }
             case IMAGE:
             case AUDIO:
+            case VIDEO:
             case FILE:
             {
                 // the string value becomes the file name
@@ -973,6 +975,7 @@ public abstract class AbstractControllerTest extends AbstractTransactionalTest {
         case MULTI_SELECT:
         case IMAGE:
         case AUDIO:
+        case VIDEO:
         case FILE:
             Assert.assertEquals("string av should be equal = " + a.getTypeCode(), (String)expectedValue, recAttr.getStringValue());
             break;
@@ -1046,6 +1049,7 @@ public abstract class AbstractControllerTest extends AbstractTransactionalTest {
         attrList.add(createAttribute(namePrefix + "_" + (attIndex++), AttributeType.REGEX, attrRequired, scope, isTag));
         attrList.add(createAttribute(namePrefix + "_" + (attIndex++), AttributeType.HTML_NO_VALIDATION, attrRequired, scope, isTag));
         attrList.add(createAttribute(namePrefix + "_" + (attIndex++), AttributeType.AUDIO, attrRequired, scope, isTag));
+        attrList.add(createAttribute(namePrefix + "_" + (attIndex++), AttributeType.VIDEO, attrRequired, scope, isTag));
         if (hasCMAttrs) {
             attrList.add(createAttribute(namePrefix + "_" + (attIndex++), AttributeType.CENSUS_METHOD_ROW, attrRequired, scope, isTag));
             attrList.add(createAttribute(namePrefix + "_" + (attIndex++), AttributeType.CENSUS_METHOD_COL, attrRequired, scope, isTag));

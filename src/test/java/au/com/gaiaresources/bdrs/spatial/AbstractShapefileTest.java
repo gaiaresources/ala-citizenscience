@@ -483,6 +483,7 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
             
         case IMAGE:
         case AUDIO:
+        case VIDEO:
         case FILE:
         case CENSUS_METHOD_ROW:
         case CENSUS_METHOD_COL:
@@ -567,6 +568,7 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
             
         case IMAGE:
         case AUDIO:
+        case VIDEO:
         case FILE:
         case CENSUS_METHOD_ROW:
         case CENSUS_METHOD_COL:
@@ -619,6 +621,7 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
             
         case IMAGE:
         case AUDIO:
+        case VIDEO:
         case FILE:
         case CENSUS_METHOD_ROW:
         case CENSUS_METHOD_COL:

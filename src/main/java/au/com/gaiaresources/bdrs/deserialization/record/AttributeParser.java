@@ -97,6 +97,7 @@ public abstract class AttributeParser {
                 return true;
         case IMAGE:
         case AUDIO:
+        case VIDEO:
         case FILE:
             validationType = attribute.isRequired() ? ValidationType.REQUIRED_NONBLANK_STRING : ValidationType.STRING;
             MultipartFile file = fileMap.get(fileKey);
@@ -258,6 +259,7 @@ public abstract class AttributeParser {
                     break;
                 case IMAGE:
                 case AUDIO:
+                case VIDEO:
                 case FILE:
                     
                     // attrValue is empty when a file is cleared or the client 
