@@ -632,27 +632,27 @@ public class RecordFormValidatorTest extends AbstractControllerTest {
     	
     	RecordFormValidator validatorMga = new RecordFormValidator(propertyService, taxaDAO, surveyMga, taxaService);
     	
-    	assertValid(validatorMga, ValidationType.COORD_Y, "90", true, null);
-    	assertValid(validatorMga, ValidationType.COORD_Y, "90.1", true, null);
-    	assertValid(validatorMga, ValidationType.COORD_Y, "-90", true, null);
-    	assertValid(validatorMga, ValidationType.COORD_Y, "-90.1", true, null);
-    	assertValid(validatorMga, ValidationType.COORD_X, "180", true, null);
-    	assertValid(validatorMga, ValidationType.COORD_X, "-180", true, null);
-    	assertValid(validatorMga, ValidationType.COORD_X, "180.1", true, null);
-    	assertValid(validatorMga, ValidationType.COORD_X, "-180.1", true, null);
+    	assertValid(validatorMga, ValidationType.COORD_Y, "9999999", true, null);
+    	assertValid(validatorMga, ValidationType.COORD_Y, "9999999.1", false, null);
+    	assertValid(validatorMga, ValidationType.COORD_Y, "0", true, null);
+    	assertValid(validatorMga, ValidationType.COORD_Y, "-1", false, null);
+    	assertValid(validatorMga, ValidationType.COORD_X, "100000", true, null);
+    	assertValid(validatorMga, ValidationType.COORD_X, "99999", false, null);
+    	assertValid(validatorMga, ValidationType.COORD_X, "999999", true, null);
+    	assertValid(validatorMga, ValidationType.COORD_X, "1000000", false, null);
     	assertValid(validatorMga, ValidationType.COORD_X, "", true, null);
     	assertValid(validatorMga, ValidationType.COORD_Y, "", true, null);
     	
-    	assertValid(validatorMga, ValidationType.REQUIRED_COORD_Y, "90", true, null);
-    	assertValid(validatorMga, ValidationType.REQUIRED_COORD_Y, "90.1", true, null);
-    	assertValid(validatorMga, ValidationType.REQUIRED_COORD_Y, "-90", true, null);
-    	assertValid(validatorMga, ValidationType.REQUIRED_COORD_Y, "-90.1", true, null);
-    	assertValid(validatorMga, ValidationType.REQUIRED_COORD_X, "180", true, null);
-    	assertValid(validatorMga, ValidationType.REQUIRED_COORD_X, "-180", true, null);
-    	assertValid(validatorMga, ValidationType.REQUIRED_COORD_X, "180.1", true, null);
-    	assertValid(validatorMga, ValidationType.REQUIRED_COORD_X, "-180.1", true, null);
-    	assertValid(validatorMga, ValidationType.REQUIRED_COORD_X, "", false, null);
-    	assertValid(validatorMga, ValidationType.REQUIRED_COORD_Y, "", false, null);
+        assertValid(validatorMga, ValidationType.REQUIRED_COORD_Y, "9999999", true, null);
+        assertValid(validatorMga, ValidationType.REQUIRED_COORD_Y, "9999999.1", false, null);
+        assertValid(validatorMga, ValidationType.REQUIRED_COORD_Y, "0", true, null);
+        assertValid(validatorMga, ValidationType.REQUIRED_COORD_Y, "-1", false, null);
+        assertValid(validatorMga, ValidationType.REQUIRED_COORD_X, "100000", true, null);
+        assertValid(validatorMga, ValidationType.REQUIRED_COORD_X, "99999", false, null);
+        assertValid(validatorMga, ValidationType.REQUIRED_COORD_X, "999999", true, null);
+        assertValid(validatorMga, ValidationType.REQUIRED_COORD_X, "1000000", false, null);
+        assertValid(validatorMga, ValidationType.REQUIRED_COORD_X, "", false, null);
+        assertValid(validatorMga, ValidationType.REQUIRED_COORD_Y, "", false, null);
     }
     
     private void assertValid(RecordFormValidator rfv, ValidationType type, 

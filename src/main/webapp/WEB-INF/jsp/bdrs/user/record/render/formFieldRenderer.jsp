@@ -81,7 +81,14 @@
                     </c:if>
                   <tr>
                       <th>
-                          <label for="latitude">${ selectedCrs.yname }</label>
+                          <c:choose>
+                              <c:when test="${ formField.crs.xfirst }">
+                                  <label for="longitude">${ selectedCrs.xname }</label>
+                              </c:when>
+                              <c:otherwise>
+                                  <label for="latitude">${ selectedCrs.yname }</label>
+                              </c:otherwise>
+                          </c:choose>
                       </th>
                       <td>
                           <c:if test="${ not crsFieldRequired }">
@@ -90,7 +97,8 @@
                           <tiles:insertDefinition name="coordFormField">
                                <tiles:putAttribute name="crs" value="${ formField.crs }"/>
                                     <tiles:putAttribute name="crs" value="${ formField.crs }"/>
-                                    <tiles:putAttribute name="isLatitude" value="true"/>
+                                    <tiles:putAttribute name="isLongitude" value="${ formField.crs.xfirst  }"/>
+                                    <tiles:putAttribute name="isLatitude" value="${ not formField.crs.xfirst  }" />
                                     <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
                                     <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
                                     <tiles:putAttribute name="readOnly" value="${ readOnly }"/>
@@ -104,13 +112,21 @@
                   </tr>
                   <tr>
                       <th>
-                          <label for="longitude">${ selectedCrs.xname }</label>
+                          <c:choose>
+                              <c:when test="${ formField.crs.xfirst }">
+                                  <label for="latitude">${ selectedCrs.yname }</label>
+                              </c:when>
+                              <c:otherwise>
+                                  <label for="longitude">${ selectedCrs.xname }</label>
+                              </c:otherwise>
+                          </c:choose>
                       </th>
                       <td>
                            <tiles:insertDefinition name="coordFormField">
                                <tiles:putAttribute name="crs" value="${ formField.crs }"/>
                                     <tiles:putAttribute name="crs" value="${ formField.crs }"/>
-                                    <tiles:putAttribute name="isLongitude" value="true"/>
+                                    <tiles:putAttribute name="isLongitude" value="${ not formField.crs.xfirst  }"/>
+                                    <tiles:putAttribute name="isLatitude" value="${ formField.crs.xfirst  }" />
                                     <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
                                     <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
                                     <tiles:putAttribute name="readOnly" value="${ readOnly }"/>
