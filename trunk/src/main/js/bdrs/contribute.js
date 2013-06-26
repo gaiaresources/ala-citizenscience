@@ -278,7 +278,7 @@ bdrs.contribute.singleSiteMultiTaxa.addSighting = function(sightingIndexSelector
     var sightingIndexElem = jQuery(sightingIndexSelector);
     var sightingIndex = parseInt(sightingIndexElem.val(), 10);
     sightingIndexElem.val(sightingIndex+1);
-    
+
     var surveyId = jQuery(surveyIdSelector).val();
     
     var url = bdrs.portalContextPath+"/bdrs/user/singleSiteMultiTaxa/sightingRow.htm";
@@ -291,6 +291,7 @@ bdrs.contribute.singleSiteMultiTaxa.addSighting = function(sightingIndexSelector
         jQuery(sightingTableBody).append(newRow);
         
         bdrs.contribute.singleSiteMultiTaxa.attachRowControls(sightingIndex, surveyId, speciesRequired, numberRequired, showScientificName);
+        newRow.ketchup();
     });
 };
 
@@ -336,7 +337,7 @@ bdrs.contribute.singleSiteMultiTaxa.attachRowControls = function(sightingIndex, 
     }
     
     var row = jQuery("#"+sightingIndex+"_sightingIndexRow");
-    
+
     search_elem.parents("tr").ketchup();
 }
 
@@ -378,7 +379,7 @@ bdrs.contribute.singleSiteAllTaxa.addSighting = function(sightingIndexSelector, 
         },
         async: false
   });
-  
+
   jQuery(sightingTableBody).ketchup();
   
   // update the sightingIndex field to match the attribute count
