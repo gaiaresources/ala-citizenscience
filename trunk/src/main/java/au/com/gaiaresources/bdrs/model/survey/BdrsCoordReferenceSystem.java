@@ -14,21 +14,21 @@ import au.com.gaiaresources.bdrs.util.StringUtils;
  * CRS enum including hints on how to render a coordinate widget
  */
 public enum BdrsCoordReferenceSystem implements JSONEnum {
-	
-	WGS84(4326, "WGS 84, Lat/Lon", "Latitude", "Longitude", "", -180d, -90d, 180d, 90d, 6),
-	MGA50(28350, "GDA94 Zone 50", "Northings", "Eastings", "50", null, null, null, null, 3),
-	MGA51(28351, "GDA94 Zone 51", "Northings", "Eastings", "51", null, null, null, null, 3),
-	MGA52(28352, "GDA94 Zone 52", "Northings", "Eastings", "52", null, null, null, null, 3),
-	MGA53(28353, "GDA94 Zone 53", "Northings", "Eastings", "53", null, null, null, null, 3),
-	MGA54(28354, "GDA94 Zone 54", "Northings", "Eastings", "54", null, null, null, null, 3),
-	MGA55(28355, "GDA94 Zone 55", "Northings", "Eastings", "55", null, null, null, null, 3),
-	MGA56(28356, "GDA94 Zone 56", "Northings", "Eastings", "56", null, null, null, null, 3),
-	MGA57(28357, "GDA94 Zone 57", "Northings", "Eastings", "57", null, null, null, null, 3),
-	MGA58(28358, "GDA94 Zone 58", "Northings", "Eastings", "58", null, null, null, null, 3),
+
+	WGS84(4326, false, "WGS 84, Lat/Lon", "Latitude", "Longitude", "", -180d, -90d, 180d, 90d, 6),
+	MGA50(28350, true, "GDA94 Zone 50", "Northings", "Eastings", "50", 100000d, 0d, 999999d, 9999999d, 3),
+	MGA51(28351, true, "GDA94 Zone 51", "Northings", "Eastings", "51", 100000d, 0d, 999999d, 9999999d, 3),
+	MGA52(28352, true, "GDA94 Zone 52", "Northings", "Eastings", "52", 100000d, 0d, 999999d, 9999999d, 3),
+	MGA53(28353, true, "GDA94 Zone 53", "Northings", "Eastings", "53", 100000d, 0d, 999999d, 9999999d, 3),
+	MGA54(28354, true, "GDA94 Zone 54", "Northings", "Eastings", "54", 100000d, 0d, 999999d, 9999999d, 3),
+	MGA55(28355, true, "GDA94 Zone 55", "Northings", "Eastings", "55", 100000d, 0d, 999999d, 9999999d, 3),
+	MGA56(28356, true, "GDA94 Zone 56", "Northings", "Eastings", "56", 100000d, 0d, 999999d, 9999999d, 3),
+	MGA57(28357, true, "GDA94 Zone 57", "Northings", "Eastings", "57", 100000d, 0d, 999999d, 9999999d, 3),
+	MGA58(28358, true, "GDA94 Zone 58", "Northings", "Eastings", "58", 100000d, 0d, 999999d, 9999999d, 3),
 	// MGA, zone not defined. Use -1 for all coordinate reference system 'groups'.
-	MGA(-1, "GDA94", "Northings", "Eastings", "", null, null, null, null, 3,
+	MGA(-1, true,"GDA94", "Northings", "Eastings", "", 100000d, 0d, 999999d, 9999999d, 3,
 			MGA50, MGA51, MGA52, MGA53, MGA54, MGA55, MGA56, MGA57, MGA58);
-	
+
 	public static final int DEFAULT_SRID = 4326;
 	
 	private static final int NO_SPECIFIED_ZONE = -1;	
@@ -44,11 +44,13 @@ public enum BdrsCoordReferenceSystem implements JSONEnum {
 	private Double maxX;
 	private Double maxY;
 	private int truncateDecimalPlaces;
+	private boolean xfirst;
 
 	/**
 	 * Private constructor.
 	 * 
 	 * @param srid SRID code.
+	 * @param xfirst x coordinate is shown first
 	 * @param displayName Name to be displayed in user interfaces.
 	 * @param yName name of the y coordinate.
 	 * @param xName name of the x coordinate.
@@ -60,7 +62,7 @@ public enum BdrsCoordReferenceSystem implements JSONEnum {
 	 * @param dp decimal places to round to when displaying to user.
 	 * @param zones list of children BdrsCoordReferenceSystem enums
 	 */
-	private BdrsCoordReferenceSystem(int srid, String displayName, String yName, String xName, String zoneName, 
+	private BdrsCoordReferenceSystem(int srid, boolean xfirst, String displayName, String yName, String xName, String zoneName, 
 			Double minX, Double minY, Double maxX, Double maxY, int dp,
 			BdrsCoordReferenceSystem... zones) {
 		
@@ -69,6 +71,8 @@ public enum BdrsCoordReferenceSystem implements JSONEnum {
 		this.yName = yName;
 		this.xName = xName;
 		this.zoneName =  zoneName;
+		
+		this.xfirst = xfirst;
 		
 		this.minX = minX;
 		this.minY = minY;
@@ -232,16 +236,37 @@ public enum BdrsCoordReferenceSystem implements JSONEnum {
 		}
 	}
 	
+	/**
+	 * Get the EPSG code
+	 * @return EPSG code
+	 */
 	public String getEpsgCode() {
 		return sridToEpsg(srid);
 	}
 	
+	/**
+	 * Convert an SRID to an EPSG code
+	 * @param srid srid to convert
+	 * @return EPSG code
+	 */
 	public static String sridToEpsg(int srid) {
 		return String.format("EPSG:%d", srid);
 	}
 
+	/**
+	 * Number of decimal places to truncate to.
+	 * @return Number of decimal places to truncate to.
+	 */
 	public int getTruncateDecimalPlaces() {
 		return truncateDecimalPlaces;
+	}
+	
+	/**
+	 * Should the x coordinate come before the y coordinate?
+	 * @return true if x comes before y
+	 */
+	public boolean isXfirst() {
+	    return xfirst;
 	}
 
     @Override

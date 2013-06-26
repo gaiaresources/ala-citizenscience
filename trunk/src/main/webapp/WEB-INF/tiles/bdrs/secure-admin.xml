@@ -551,6 +551,11 @@
         <put-attribute name="title" value="NSW Flora Import"/>
         <put-attribute name="content" value="/WEB-INF/jsp/bdrs/admin/taxonomy/nswFloraImport.jsp" />
     </definition>
+
+    <definition name="taxonLibNswFaunaImport" extends="admin-template">
+        <put-attribute name="title" value="NSW Fauna Import"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/bdrs/admin/taxonomy/nswFaunaImport.jsp" />
+    </definition>
 	
 	<definition name="taxonLibMaxImport" extends="admin-template">
         <put-attribute name="title" value="Max Import"/>

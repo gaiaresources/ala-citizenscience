@@ -28,16 +28,21 @@ import au.com.gaiaresources.taxonlib.model.StringSearchType;
 
 public class BdrsNswFloraImporterTest extends TaxonomyImportTest {
 
-    private Date now;
+    protected Date now;
 
     @Autowired
-    private TaxaDAO taxaDAO;
+    protected TaxaDAO taxaDAO;
     @Autowired
-    private SpeciesProfileDAO spDAO;
+    protected SpeciesProfileDAO spDAO;
 
     private Logger log = Logger.getLogger(getClass());
 
-    private void doImport(String file) throws Exception {
+    /**
+     * Do the import
+     * @param file File to import
+     * @throws Exception Exception thrown during import
+     */
+    protected void doImport(String file) throws Exception {
         InputStream csvStream = null;
         try {
             csvStream = NswFloraImporter.class.getResourceAsStream(file);
@@ -55,6 +60,14 @@ public class BdrsNswFloraImporterTest extends TaxonomyImportTest {
                 }
             }
         }
+    }
+
+    /**
+     * Get the taxon group name to which we are importing.
+     * @return taxon group name
+     */
+    protected String getTaxonGroupName() {
+        return BdrsNswFloraImporter.TAXON_GROUP_NAME;
     }
 
     // this just tests whether we have funky exceptions thrown and also to check how long this takes...
@@ -98,6 +111,9 @@ public class BdrsNswFloraImporterTest extends TaxonomyImportTest {
             
             for (ITaxonName tn : expectedNames) {
                 IndicatorSpecies is = taxaDAO.getIndicatorSpeciesBySourceDataID(null, NswFloraImporter.SOURCE, tn.getId().toString());
+                // make sure the species has the correct taxon group
+                assertTaxonGroup(is);
+
                 Assert.assertNotNull("indicator species null for " + tn.getDisplayName(), is);
             }
         }
@@ -193,6 +209,7 @@ public class BdrsNswFloraImporterTest extends TaxonomyImportTest {
                 IndicatorSpecies is = taxaDAO.getIndicatorSpeciesBySourceDataID(null, NswFloraImporter.SOURCE, tn.getId().toString());
                 Assert.assertNotNull("indicator species null for "
                         + tn.getDisplayName(), is);
+                assertTaxonGroup(is);
             }
         }
 
@@ -233,6 +250,10 @@ public class BdrsNswFloraImporterTest extends TaxonomyImportTest {
         {
             // 101 is our test item with the species profile items...
             IndicatorSpecies sp101 = taxaDAO.getIndicatorSpeciesByScientificName("Rhodanthe microglossa forma. Awesome");
+
+            // make sure the species has the correct taxon group
+            assertTaxonGroup(sp101);
+
             Assert.assertNotNull("expect indicator species", sp101);
             Assert.assertEquals("wrong common name", "common name two", sp101.getCommonName());
 
@@ -246,34 +267,62 @@ public class BdrsNswFloraImporterTest extends TaxonomyImportTest {
             Assert.assertEquals("wrong rank", au.com.gaiaresources.bdrs.model.taxa.TaxonRank.INFRASPECIES, sp101.getTaxonRank());
 
             IndicatorSpecies sp101_species = sp101.getParent();
+
+            // make sure the species has the correct taxon group
+            assertTaxonGroup(sp101_species);
+
             Assert.assertNotNull("sp101 species cant be null", sp101_species);
             Assert.assertEquals("wrong sci name", "Rhodanthe microglossa", sp101_species.getScientificName());
             Assert.assertEquals("wrong common name", "common name one", sp101_species.getCommonName());
             Assert.assertEquals("wrong rank", au.com.gaiaresources.bdrs.model.taxa.TaxonRank.SPECIES, sp101_species.getTaxonRank());
 
             IndicatorSpecies sp101_genus = sp101_species.getParent();
+
+            // make sure the species has the correct taxon group
+            assertTaxonGroup(sp101_genus);
+
             Assert.assertNotNull("sp101 genus cant be null", sp101_genus);
             Assert.assertEquals("wrong sci name", "Rhodanthe", sp101_genus.getScientificName());
             Assert.assertEquals("wrong common name", "", sp101_genus.getCommonName());
             Assert.assertEquals("wrong rank", au.com.gaiaresources.bdrs.model.taxa.TaxonRank.GENUS, sp101_genus.getTaxonRank());
 
             IndicatorSpecies sp101_family = sp101_genus.getParent();
+
+            // make sure the species has the correct taxon group
+            assertTaxonGroup(sp101_family);
+
             Assert.assertNotNull("sp101 family cant be null", sp101_family);
             Assert.assertEquals("wrong sci name", "Afamily", sp101_family.getScientificName());
             Assert.assertEquals("wrong common name", "", sp101_family.getCommonName());
             Assert.assertEquals("wrong rank", au.com.gaiaresources.bdrs.model.taxa.TaxonRank.FAMILY, sp101_family.getTaxonRank());
 
-            //IndicatorSpecies sp100 = taxaDAO.getIndicatorSpeciesBySourceDataID(null, NswFloraImporter.NSW_FLORA_SOURCE, "100");
             IndicatorSpecies sp100 = taxaDAO.getIndicatorSpeciesByScientificName("Rhodanthe microglossa");
+
+            // make sure the species has the correct taxon group
+            assertTaxonGroup(sp100);
+
             Assert.assertNotNull("expect indicator species", sp100);
             Assert.assertEquals("wrong rank", au.com.gaiaresources.bdrs.model.taxa.TaxonRank.SPECIES, sp100.getTaxonRank());
 
             // make sure 101 and 102 share a common parent..
             IndicatorSpecies sp102 = taxaDAO.getIndicatorSpeciesByScientificName("Rhodanthe microglossa forma. Cowabunga");
+
+            // make sure the species has the correct taxon group
+            assertTaxonGroup(sp102);
+
             Assert.assertNotNull("sp102 cant be null", sp102);
             IndicatorSpecies sp102_species = sp102.getParent();
+
+            // make sure the species has the correct taxon group
+            assertTaxonGroup(sp102_species);
+
             Assert.assertNotNull("sp102 species cant be null", sp102_species);
             Assert.assertEquals("wrong ids", sp102_species.getId(), sp101_species.getId());
         }
+    }
+
+    private void assertTaxonGroup(IndicatorSpecies sp) {
+        // make sure the species has the correct taxon group
+        Assert.assertEquals("wrong taxon group name", this.getTaxonGroupName(), sp.getTaxonGroup().getName());
     }
 }

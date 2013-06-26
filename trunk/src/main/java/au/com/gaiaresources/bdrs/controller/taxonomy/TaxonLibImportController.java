@@ -44,10 +44,12 @@ public class TaxonLibImportController extends AbstractController {
 	public static final String TAXON_LIB_SELECT_IMPORT_VIEW = "taxonLibSelectImport";
 	
 	public static final String NSW_FLORA_IMPORT_URL = "/bdrs/admin/taxonomy/nswFloraImport.htm";
+    public static final String NSW_FAUNA_IMPORT_URL = "/bdrs/admin/taxonomy/nswFaunaImport.htm";
 	public static final String MAX_IMPORT_URL = "/bdrs/admin/taxonomy/maxImport.htm";
 	public static final String AFD_IMPORT_URL = "/bdrs/admin/taxonomy/afdImport.htm";
 	
 	public static final String NSW_IMPORT_VIEW = "taxonLibNswFloraImport";
+    public static final String NSW_FAUNA_IMPORT_VIEW = "taxonLibNswFaunaImport";
 	public static final String MAX_IMPORT_VIEW = "taxonLibMaxImport";
 	public static final String AFD_IMPORT_VIEW = "taxonLibAfdImport";
 
@@ -81,6 +83,7 @@ public class TaxonLibImportController extends AbstractController {
 	private Logger log = Logger.getLogger(getClass());
 	
 	public enum TaxonLibImportSource {
+        NSW_FAUNA,
 		NSW_FLORA,
 		MAX,
 		AFD
@@ -111,6 +114,19 @@ public class TaxonLibImportController extends AbstractController {
 	public ModelAndView renderNswFloraImport(HttpServletRequest request, HttpServletResponse response) {
 		return new ModelAndView(NSW_IMPORT_VIEW);
 	}
+
+    /**
+     * Renders the NSW Flora importer page.
+     *
+     * @param request Request.
+     * @param response Response.
+     * @return ModelAndView to render the page.
+     */
+    @RolesAllowed({Role.ROOT})
+    @RequestMapping(value=NSW_FAUNA_IMPORT_URL, method = RequestMethod.GET)
+    public ModelAndView renderNswFaunaImport(HttpServletRequest request, HttpServletResponse response) {
+        return new ModelAndView(NSW_FAUNA_IMPORT_VIEW);
+    }
 	
 	/**
 	 * Renders the MAX importer page.
@@ -169,6 +185,9 @@ public class TaxonLibImportController extends AbstractController {
                 switch (importSource) {
                 case NSW_FLORA:
                     runNswFloraImport(request, taxonLibSession);
+                    break;
+                case NSW_FAUNA:
+                    runNswFaunaImport(request, taxonLibSession);
                     break;
                 case MAX:
                     runMaxImport(request, taxonLibSession);
@@ -230,6 +249,23 @@ public class TaxonLibImportController extends AbstractController {
 		BdrsNswFloraImporter importer = new BdrsNswFloraImporter(tls, new Date(), sessionFactory, taxaDAO, spDAO);
 		importer.runImport(file.getInputStream());
 	}
+
+    /**
+     * Runs the NSW fauna import.
+     *
+     * @param request The request object that contains the uploaded files
+     * @param tls The TaxonLibSession.
+     * @throws Exception
+     */
+    private void runNswFaunaImport(MultipartHttpServletRequest request, ITaxonLibSession tls) throws Exception {
+        // Should run in a single transaction
+        MultipartFile file = request.getFile("taxonomyFile");
+        if (file == null) {
+            throw new MissingFileException("NSW Fauna");
+        }
+        BdrsNswFaunaImporter importer = new BdrsNswFaunaImporter(tls, new Date(), sessionFactory, taxaDAO, spDAO);
+        importer.runImport(file.getInputStream());
+    }
 	
 	/**
 	 * Runs the Max import

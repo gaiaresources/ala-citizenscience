@@ -44,6 +44,22 @@ public class TaxonLibImportControllerTest extends AbstractControllerTest {
 		
 		assertViewName(mv, TaxonLibImportController.NSW_IMPORT_VIEW);
 	}
+
+    /**
+     * Basic test for page rendering.
+     * @throws Exception
+     */
+    @Test
+    public void testRenderNswFauna() throws Exception {
+        login("root", "password", new String[] { Role.ROOT });
+
+        request.setRequestURI(TaxonLibImportController.NSW_FAUNA_IMPORT_URL);
+        request.setMethod("GET");
+
+        ModelAndView mv = handle(request, response);
+
+        assertViewName(mv, TaxonLibImportController.NSW_FAUNA_IMPORT_VIEW);
+    }
 	
 	/**
 	 * Basic test for page rendering.

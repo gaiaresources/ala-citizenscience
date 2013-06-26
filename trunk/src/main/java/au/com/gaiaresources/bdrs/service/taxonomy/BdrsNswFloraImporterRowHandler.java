@@ -21,8 +21,6 @@ import java.util.*;
 public class BdrsNswFloraImporterRowHandler implements
 		NswFloraImporterRowHandler {
 
-	private static final String TAXON_GROUP_NAME = "NSW Flora";
-
     static final SpeciesProfileBuilder[] PROFILE_BUILDER = new SpeciesProfileBuilder[] {
             new SpeciesProfileBuilder(NswFloraRow.ColumnName.AUTHOR, "Author"),
             new SpeciesProfileNaturalisedStatusBuilder("Naturalised Status"),
@@ -41,11 +39,14 @@ public class BdrsNswFloraImporterRowHandler implements
     private SpeciesProfileDAO spDAO;
     private SessionFactory sessionFactory;
     private Session operatingSession = null;
+    private String taxonGroupName;
 
     private TaxonGroup taxonGroup;
     private Map<String, IndicatorSpecies> indicatorSpeciesCache = new HashMap<String, IndicatorSpecies>();
 
-	public BdrsNswFloraImporterRowHandler(ITaxonLibSession taxonLibSession, Date now,  SessionFactory sessionFactory, TaxaDAO taxaDAO, SpeciesProfileDAO spDAO) {
+	public BdrsNswFloraImporterRowHandler(ITaxonLibSession taxonLibSession, Date now,
+                                          SessionFactory sessionFactory, TaxaDAO taxaDAO,
+                                          SpeciesProfileDAO spDAO, String taxonGroupName) {
 		if (taxonLibSession == null) {
 			throw new IllegalArgumentException("TaxonLibSession cannot be null");
 		}
@@ -61,6 +62,7 @@ public class BdrsNswFloraImporterRowHandler implements
 		if (spDAO == null) {
 			throw new IllegalArgumentException("SpeciesProfileDAO cannot be null");
 		}
+        this.taxonGroupName = taxonGroupName;
         this.taxonLibSession = taxonLibSession;
 		this.temporalContext = taxonLibSession.getTemporalContext(now);
         this.sessionFactory = sessionFactory;
@@ -199,11 +201,11 @@ public class BdrsNswFloraImporterRowHandler implements
         }
 
         if(taxonGroup == null) {
-            taxonGroup = taxaDAO.getTaxonGroup(this.operatingSession, TAXON_GROUP_NAME);
+            taxonGroup = taxaDAO.getTaxonGroup(this.operatingSession, taxonGroupName);
             if (taxonGroup == null) {
                 // lazy create
                 taxonGroup = new TaxonGroup();
-                taxonGroup.setName(TAXON_GROUP_NAME);
+                taxonGroup.setName(taxonGroupName);
                 taxonGroup.setBehaviourIncluded(false);
                 taxonGroup.setLastAppearanceIncluded(false);
                 taxonGroup.setNumberIncluded(false);

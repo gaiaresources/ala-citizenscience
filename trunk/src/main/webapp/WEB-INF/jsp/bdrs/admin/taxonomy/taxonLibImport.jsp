@@ -28,6 +28,11 @@
         </a>
     </li>
     <li>
+        <a href="${portalContextPath}/bdrs/admin/taxonomy/nswFaunaImport.htm">
+            NSW Fauna
+        </a>
+    </li>
+    <li>
         <a href="${portalContextPath}/bdrs/admin/taxonomy/maxImport.htm">
             Max
         </a>
