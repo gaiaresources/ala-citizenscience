@@ -477,8 +477,8 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 				AbstractBulkDataService.LOCATION_SHEET_SURVEY_LOCATION); // Type
 		row.createCell(colIndex++).setCellValue("I am a new location"); // Location
 																		// Name
-		row.createCell(colIndex++).setCellValue("-20"); // Latitude
-		row.createCell(colIndex++).setCellValue("-20"); // Longitude
+		row.createCell(colIndex++).setCellValue("7000000"); // Latitude
+		row.createCell(colIndex++).setCellValue("500000"); // Longitude
 		// EPSG:28352 (case insensitive)
 		row.createCell(colIndex++).setCellValue("EpSg:"+BdrsCoordReferenceSystem.MGA52.getSrid());
 		row.createCell(colIndex++).setCellValue("I am a little teapot"); // Attribute
@@ -493,7 +493,7 @@ public class BulkDataServiceTest extends AbstractControllerTest {
         int initialLocCount = survey.getLocations().size();
         BulkUpload bulkUpload = bulkDataService.importBulkData(survey,
                 inStream2);
-        
+
         Assert.assertEquals("expect no errors", 0, bulkUpload.getErrorLocationUploadList().size());
 
         Assert.assertEquals(2, bulkUpload.getLocationUploads().size());
@@ -512,9 +512,9 @@ public class BulkDataServiceTest extends AbstractControllerTest {
 			if (!otherLoc.getId().equals(loc.getId())) {
 				otherLocationFound = true;
 				Assert.assertNull(otherLoc.getUser());
-				Assert.assertEquals(-20.0, otherLoc.getLocation().getCentroid()
+				Assert.assertEquals(7000000d, otherLoc.getLocation().getCentroid()
 						.getY());
-				Assert.assertEquals(-20.0, otherLoc.getLocation().getCentroid()
+				Assert.assertEquals(500000d, otherLoc.getLocation().getCentroid()
 						.getX());
 				Assert.assertEquals("wrong srid", 28352, otherLoc.getLocation().getSRID());
 				Assert.assertEquals("I am a new location", otherLoc.getName());
