@@ -95,7 +95,6 @@
                               <input type="hidden" name="${ formField.prefix }srid" value="${ formField.crs.srid }" />
                           </c:if>
                           <tiles:insertDefinition name="coordFormField">
-                               <tiles:putAttribute name="crs" value="${ formField.crs }"/>
                                     <tiles:putAttribute name="crs" value="${ formField.crs }"/>
                                     <tiles:putAttribute name="isLongitude" value="${ formField.crs.xfirst  }"/>
                                     <tiles:putAttribute name="isLatitude" value="${ not formField.crs.xfirst  }" />
@@ -123,18 +122,17 @@
                       </th>
                       <td>
                            <tiles:insertDefinition name="coordFormField">
-                               <tiles:putAttribute name="crs" value="${ formField.crs }"/>
-                                    <tiles:putAttribute name="crs" value="${ formField.crs }"/>
-                                    <tiles:putAttribute name="isLongitude" value="${ not formField.crs.xfirst  }"/>
-                                    <tiles:putAttribute name="isLatitude" value="${ formField.crs.xfirst  }" />
-                                    <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
-                                    <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
-                                    <tiles:putAttribute name="readOnly" value="${ readOnly }"/>
-                                    <tiles:putAttribute name="selectedSrid" value="${ selectedSrid }" />
-                                    <tiles:putAttribute name="xCoord" value="${ xCoord }" />
-                                    <tiles:putAttribute name="yCoord" value="${ yCoord }" />
-                                    <tiles:putAttribute name="editEnabled" value="${ editEnabled }"/>
-                                    <tiles:putAttribute name="required" value="${ formField.required }" />
+                                <tiles:putAttribute name="crs" value="${ formField.crs }"/>
+                                <tiles:putAttribute name="isLongitude" value="${ not formField.crs.xfirst  }"/>
+                                <tiles:putAttribute name="isLatitude" value="${ formField.crs.xfirst  }" />
+                                <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
+                                <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
+                                <tiles:putAttribute name="readOnly" value="${ readOnly }"/>
+                                <tiles:putAttribute name="selectedSrid" value="${ selectedSrid }" />
+                                <tiles:putAttribute name="xCoord" value="${ xCoord }" />
+                                <tiles:putAttribute name="yCoord" value="${ yCoord }" />
+                                <tiles:putAttribute name="editEnabled" value="${ editEnabled }"/>
+                                <tiles:putAttribute name="required" value="${ formField.required }" />
                            </tiles:insertDefinition>
                       </td>
                   </tr>
