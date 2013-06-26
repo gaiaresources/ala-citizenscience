@@ -82,47 +82,76 @@
                             </div>
                         </div>
                     </c:if>
-                  <div id="ff_latitude" class="form_field_pair">
+
+                  <%
+                    // declared above
+                    //BdrsCoordReferenceSystem crs = ((RecordPropertyFormField)formField).getCrs();
+                    if (crs.isXfirst()) {
+                       pageContext.setAttribute("coordFieldId", "ff_longitude");
+                       pageContext.setAttribute("coordFieldName", crs.getXname());
+                    } else {
+                       pageContext.setAttribute("coordFieldId", "ff_latitude");
+                       pageContext.setAttribute("coordFieldName", crs.getYname());
+                    }
+                  %>
+
+                  <div id="${ coordFieldId }" class="form_field_pair">
                       <div class="form_field_label">
-                          <label for="latitude">${ selectedCrs.yname }</label>
+                           <label for="${ coordFieldId }">${ coordFieldName }</label>
                       </div>
                       <div class="form_field_input">
                           <c:if test="${ not crsFieldRequired }">
                               <input type="hidden" name="${ formField.prefix }srid" value="${ formField.crs.srid }" />
                           </c:if>
                           <tiles:insertDefinition name="coordFormField">
-                               <tiles:putAttribute name="crs" value="${ formField.crs }"/>
-                                    <tiles:putAttribute name="crs" value="${ formField.crs }"/>
-                                    <tiles:putAttribute name="isLatitude" value="true"/>
-                                    <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
-                                    <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
-                                    <tiles:putAttribute name="readOnly" value="${ readOnly }"/>
-                                    <tiles:putAttribute name="selectedSrid" value="${ selectedSrid }" />
-                                    <tiles:putAttribute name="xCoord" value="${ xCoord }" />
-                                    <tiles:putAttribute name="yCoord" value="${ yCoord }" />
-                                    <tiles:putAttribute name="editEnabled" value="${ editEnabled }"/>
-                                    <tiles:putAttribute name="required" value="${ formField.required }" />
+                              <tiles:putAttribute name="crs" value="${ formField.crs }"/>
+                              <tiles:putAttribute name="isLongitude" value="${ formField.crs.xfirst  }"/>
+                              <tiles:putAttribute name="isLatitude" value="${ not formField.crs.xfirst  }" />
+                              <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
+                              <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
+                              <tiles:putAttribute name="readOnly" value="${ readOnly }"/>
+                              <tiles:putAttribute name="selectedSrid" value="${ selectedSrid }" />
+                              <tiles:putAttribute name="xCoord" value="${ xCoord }" />
+                              <tiles:putAttribute name="yCoord" value="${ yCoord }" />
+                              <tiles:putAttribute name="editEnabled" value="${ editEnabled }"/>
+                              <tiles:putAttribute name="required" value="${ formField.required }" />
                            </tiles:insertDefinition>
                       </div>
                   </div>
-                  <div id="ff_longitude" class="form_field_pair">
+
+                  <%
+                      // declared above
+                      //BdrsCoordReferenceSystem crs = ((RecordPropertyFormField)formField).getCrs();
+                      if (crs.isXfirst()) {
+                          pageContext.setAttribute("coordFieldId", "ff_latitude");
+                          pageContext.setAttribute("coordFieldName", crs.getYname());
+                      } else {
+                          pageContext.setAttribute("coordFieldId", "ff_longitude");
+                          pageContext.setAttribute("coordFieldName", crs.getXname());
+                      }
+                  %>
+
+                  <div id="${ coordFieldId }" class="form_field_pair">
                       <div class="form_field_label">
-                          <label for="longitude">${ selectedCrs.xname }</label>
+                          <label for="${ coordFieldId }">${ coordFieldName }</label>
                       </div>
                       <div class="form_field_input">
-                           <tiles:insertDefinition name="coordFormField">
-                               <tiles:putAttribute name="crs" value="${ formField.crs }"/>
-                                    <tiles:putAttribute name="crs" value="${ formField.crs }"/>
-                                    <tiles:putAttribute name="isLongitude" value="true"/>
-                                    <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
-                                    <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
-                                    <tiles:putAttribute name="readOnly" value="${ readOnly }"/>
-                                    <tiles:putAttribute name="selectedSrid" value="${ selectedSrid }" />
-                                    <tiles:putAttribute name="xCoord" value="${ xCoord }" />
-                                    <tiles:putAttribute name="yCoord" value="${ yCoord }" />
-                                    <tiles:putAttribute name="editEnabled" value="${ editEnabled }"/>
-                                    <tiles:putAttribute name="required" value="${ formField.required }" />
-                           </tiles:insertDefinition>
+                          <c:if test="${ not crsFieldRequired }">
+                              <input type="hidden" name="${ formField.prefix }srid" value="${ formField.crs.srid }" />
+                          </c:if>
+                          <tiles:insertDefinition name="coordFormField">
+                              <tiles:putAttribute name="crs" value="${ formField.crs }"/>
+                              <tiles:putAttribute name="isLongitude" value="${ not formField.crs.xfirst  }"/>
+                              <tiles:putAttribute name="isLatitude" value="${ formField.crs.xfirst  }" />
+                              <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
+                              <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
+                              <tiles:putAttribute name="readOnly" value="${ readOnly }"/>
+                              <tiles:putAttribute name="selectedSrid" value="${ selectedSrid }" />
+                              <tiles:putAttribute name="xCoord" value="${ xCoord }" />
+                              <tiles:putAttribute name="yCoord" value="${ yCoord }" />
+                              <tiles:putAttribute name="editEnabled" value="${ editEnabled }"/>
+                              <tiles:putAttribute name="required" value="${ formField.required }" />
+                          </tiles:insertDefinition>
                       </div>
                   </div>
               </c:if>
