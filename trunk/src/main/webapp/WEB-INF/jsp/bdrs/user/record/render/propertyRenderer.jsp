@@ -16,6 +16,7 @@
 
 <tiles:useAttribute name="formPrefix" ignore="true" />
 <tiles:useAttribute name="editEnabled" ignore="true" />
+<tiles:useAttribute name="speciesEditable" ignore="true" />
 
 <%@page import="au.com.gaiaresources.bdrs.model.record.Record"%>
 <%@page import="au.com.gaiaresources.bdrs.model.method.Taxonomic"%>
@@ -34,7 +35,7 @@
     <c:when test="<%= RecordPropertyType.SPECIES.getName().equals(formField.getPropertyName()) %>">
 		<tiles:insertDefinition name="speciesFormField">
         	<tiles:putAttribute name="formField" value="${formField}"/>
-            <tiles:putAttribute name="editEnabled" value="${ editEnabled }"/>
+            <tiles:putAttribute name="editEnabled" value="${ editEnabled && (speciesEditable == null || speciesEditable) }"/>
 			<tiles:putAttribute name="errorMap" value="${ errorMap }"/>
 			<tiles:putAttribute name="valueMap" value="${ valueMap }"/>
 			<tiles:putAttribute name="isProperty" value="true" />

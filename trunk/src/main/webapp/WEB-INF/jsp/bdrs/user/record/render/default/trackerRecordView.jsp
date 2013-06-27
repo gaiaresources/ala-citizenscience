@@ -197,20 +197,7 @@
     jQuery(window).load(function() {
         // Species Autocomplete
         var recordIdElem = jQuery("[name=recordId]");
-        var speciesAutocompleteArgs = {
-            surveySpeciesSearchSelector: "#id_survey_species_search",
-            speciesIdSelector: "[name=species]",
-            // The form field category for taxon group attributes
-            taxonAttrRowSelector:".taxon_group_attr",
-            surveyId: jQuery("[name=surveyId]").val(),
-            recordId: (recordIdElem.length > 0 && recordIdElem.val().length > 0) ? recordIdElem.val() : undefined,
-            editable: "${recordWebFormContext.editable}",
-            attributeTbodySelector: ".tracker_form_table tbody", 
-            showScientificName: ${showScientificName}
-        };
-        bdrs.contribute.initSpeciesAutocomplete(speciesAutocompleteArgs);
-        
-        
+
         jQuery("#number").change(function(data) {
             jQuery("#survey_species_search").trigger("blur");
         });

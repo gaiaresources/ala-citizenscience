@@ -88,4 +88,9 @@ public class SingleSiteAllTaxaControllerTest extends SingleSiteMultiTaxaControll
     public void testRecordFormLocations() throws Exception {
         super.testRecordLocations("/bdrs/user/singleSiteAllTaxa.htm", false, SurveyFormRendererType.SINGLE_SITE_ALL_TAXA, false);
     }
+
+    @Override
+    protected boolean isSpeciesEditable() {
+        return false;
+    }
 }

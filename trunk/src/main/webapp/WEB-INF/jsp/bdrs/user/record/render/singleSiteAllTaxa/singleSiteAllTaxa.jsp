@@ -99,6 +99,7 @@
                         <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
                         <tiles:putAttribute name="editEnabled" value="${ recordWebFormContext.editable }" />
                         <tiles:putAttribute name="isModerationOnly" value="${ recordWebFormContext.moderateOnly }" />
+                        <tiles:putAttribute name="speciesEditable" value="<%= false %>" />
                     </tiles:insertDefinition>
                 </c:forEach>
             </tbody>

@@ -178,6 +178,13 @@ bdrs.advancedReview.getInitViewStyleTableFcn = function(tableSelector) {
             }
             
             tbody.append(row);
+
+            // clicking on any cell except the last one should open
+            var clickableCells = row.find('.openRecord');
+            clickableCells.click(function(ev) {
+                window.open(bdrs.contextPath + '/bdrs/user/surveyRenderRedirect.htm?surveyId='
+                    +record.survey.id+'&recordId='+record.id, '_self');
+            });
             
             if (bdrs.advancedReview.getCheckedState(record.id)) {
                 row.find(".recordIdCheckbox").prop("checked", true);

@@ -13,13 +13,13 @@ bdrs.advancedReview.KML_URL = "/review/sightings/advancedReviewKMLSightings.htm?
 bdrs.advancedReview.DOWNLOAD_URL = "/review/sightings/advancedReviewDownload.htm?";
 
 bdrs.advancedReview.TABLE_ROW_TMPL = '\
-<tr id="record_row_${ id }">\
-    <td>${ censusMethod ? censusMethod.type : "Observation" }</td>\
-    <td><a href="${ contextPath }/bdrs/user/surveyRenderRedirect.htm?surveyId=${ survey.id }&recordId=${ id }">${ _when }</a></td>\
-    <td class=\"scientificName\">${ species ? species.scientificName : "N/A" }</td>\
-    <td class=\"commonName\">${ species ? species.commonName : "N/A" }</td>\
-    <td>${ geometry ? latitude : "N/A" }, ${ geometry ? longitude : "N/A" }</td>\
-    <td>${ user.name }</td>\
+<tr class="openRecordParent" id="record_row_${ id }">\
+    <td class=\"openRecord\">${ censusMethod ? censusMethod.type : "Observation" }</td>\
+    <td class=\"openRecord\">${ _when }</td>\
+    <td class=\"openRecord scientificName\">${ species ? species.scientificName : "N/A" }</td>\
+    <td class=\"openRecord commonName\">${ species ? species.commonName : "N/A" }</td>\
+    <td class=\"openRecord\">${ geometry ? latitude : "N/A" }, ${ geometry ? longitude : "N/A" }</td>\
+    <td class=\"openRecord\">${ user.name }</td>\
     {{if authenticated}}\
        <td><input title=\"Select / deselect this record\" type=\"checkbox\" class=\"recordIdCheckbox\" value=\"${ id }\" \
        {{if user.id !== authenticatedUserId && !(authenticatedRole === \"ROLE_ROOT\" || authenticatedRole === \"ROLE_ADMIN\" || authenticatedRole === \"ROLE_SUPERVISOR\") }}\

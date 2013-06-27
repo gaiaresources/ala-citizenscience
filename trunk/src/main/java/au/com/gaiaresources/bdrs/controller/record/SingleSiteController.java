@@ -19,6 +19,7 @@ import au.com.gaiaresources.bdrs.model.record.RecordService;
 import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
 import au.com.gaiaresources.bdrs.model.record.impl.AdvancedRecordFilter;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
+import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
@@ -86,6 +87,7 @@ public abstract class SingleSiteController extends RecordController {
     public static final String PARAM_SIGHTING_INDEX = "sightingIndex";
     
     public static final String ROW_VIEW = "singleSiteMultiTaxaRow";
+    public static final String ROW_SPECIES_EDITABLE = "speciesEditable";
     
     public static final String MSG_CODE_SUCCESS_MY_SIGHTINGS = "bdrs.record.singlesitemultitaxa.save.success.mySightings";
     public static final String MSG_CODE_SUCCESS_STAY_ON_FORM = "bdrs.record.singlesitemultitaxa.save.success.stayOnForm";
@@ -301,6 +303,11 @@ public abstract class SingleSiteController extends RecordController {
         mv.addObject("survey", survey);
         mv.addObject(RecordWebFormContext.MODEL_WEB_FORM_CONTEXT, context);
         mv.addObject("sightingIndex", prefix);
+
+        boolean editRowSpecies = survey.getFormRendererType() != SurveyFormRendererType.SINGLE_SITE_ALL_TAXA &&
+                survey.getFormRendererType() != SurveyFormRendererType.SINGLE_SITE_ALL_TAXA_CSS_LAYOUT;
+
+        mv.addObject(ROW_SPECIES_EDITABLE, editRowSpecies);
         // by definition editing must be enabled for items to be added to the
         // sightings table.
         mv.addObject(RecordWebFormContext.MODEL_EDIT, true);
