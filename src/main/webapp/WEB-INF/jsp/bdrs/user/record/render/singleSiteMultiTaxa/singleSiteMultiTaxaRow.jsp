@@ -8,6 +8,7 @@
 <tiles:useAttribute name="recordFormFieldCollection" classname="au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordFormFieldCollection" ignore="true" />
 <tiles:useAttribute name="editEnabled" ignore="true" />
 <tiles:useAttribute name="isModerationOnly" classname="java.lang.Boolean" ignore="true" />
+<tiles:useAttribute name="speciesEditable" classname="java.lang.Boolean" ignore="true" />
 
 <%-- when there is a record form field collection use it, it's filled with data. Otherwise use the formFieldList object to create the empty row --%>
 
@@ -58,6 +59,7 @@
                            <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
                            <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
                            <tiles:putAttribute name="editEnabled" value="${ fieldEditable }" />
+                           <tiles:putAttribute name="speciesEditable" value="${ speciesEditable }" />
                        </tiles:insertDefinition>
                   </td>
                </c:if>
@@ -71,6 +73,7 @@
                        <tiles:putAttribute name="editEnabled" value="${ fieldEditable }" />
                        <tiles:putAttribute name="isModerationOnly" value="${ isModerationOnly }" />
                        <tiles:putAttribute name="recordId" value="${recordFormFieldCollection.recordId}" />
+                       <tiles:putAttribute name="speciesEditable" value="${ speciesEditable }" />
                    </tiles:insertDefinition>
                </td>
         </c:when>

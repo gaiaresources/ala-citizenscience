@@ -190,6 +190,9 @@ public class SingleSiteMultiTaxaControllerTest extends RecordFormTest {
             ModelAndView mv = handle(request, response);
             ModelAndViewAssert.assertViewName(mv, viewName);
 
+            Boolean speciesEditable = (Boolean)mv.getModelMap().get(SingleSiteController.ROW_SPECIES_EDITABLE);
+            Assert.assertEquals("wrong species editable flag", this.isSpeciesEditable(), speciesEditable.booleanValue());
+
             String expectedPrefix = String.format(SingleSiteMultiTaxaController.PREFIX_TEMPLATE, i);
             ModelAndViewAssert.assertModelAttributeAvailable(mv, RecordWebFormContext.MODEL_WEB_FORM_CONTEXT);
 
@@ -401,5 +404,13 @@ public class SingleSiteMultiTaxaControllerTest extends RecordFormTest {
     @Override
     protected MockHttpServletRequest createMockHttpServletRequest() {
         return super.createUploadRequest();
+    }
+
+    /**
+     * Returns whether the species should be editable or not on an editable form.
+     * @return true if species is editable
+     */
+    protected boolean isSpeciesEditable() {
+        return true;
     }
 }

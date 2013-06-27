@@ -1538,6 +1538,15 @@ div.alaSightingsTableHeaderDoubleLineArrows {
     background-color: #E0E8F0;
 }
 
+.openRecord {
+    cursor:pointer;
+}
+
+.alaSightingsTable .openRecordParent:hover {
+    background-color:#707478;
+    color:white;
+}
+
 /**********************/
 /* Tab View           */
 /**********************/

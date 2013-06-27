@@ -50,26 +50,6 @@
 <c:choose>
     <c:when test="${fieldEditable}">
         <c:choose>
-            <%-- This is a temporary workaround to make species editable on a tracker survey without
-                 breaking the single site all taxa survey.  The side effect is that the species
-                 will not be editable on a single site multi taxa survey, which it should be. --%>
-			<%-- Adding the extra checks for the contents of the form prefix to allow editing of species attribute
-			     fields on the tracker form. Problem of the single site multi taxa survey being uneditable still exists
-				 and now extends to species attributes --%>
-			<%-- WARNING : reliance on string literals in the following when test!!!! --%>
-            <c:when test="${ formField.species != null && ((not empty formPrefix && not (formPrefix == \"censusMethodAttr_\" || formPrefix == \"taxonGroupAttr_\" ) ) || not empty pageContext.request.parameterMap['speciesId'])}">
-            	<%-- this empty field is required for species attribute parsing. it does not effect species property --%>
-                <input type="hidden" id="${speciesNameInputId}" name="${speciesNameInputName}" value="<c:out value="${ formField.species.scientificName }"/>"/>
-				<input type="hidden" id="${speciesIdInputId}" name="${speciesIdInputName}" value="${ formField.species.id }"/>
-                <c:choose>
-                    <c:when test="${showScientificName}">
-                        <span class="scientificName"><c:out value="${ formField.species.scientificName }"/></span>
-                    </c:when>
-                    <c:otherwise>
-                        <span class="commonName"><c:out value="${ formField.species.commonName }"/></span>
-                    </c:otherwise>
-                </c:choose>
-            </c:when>
 			<%-- note there is an additional check here for formField.isRequired. --%>
 			<%-- If there is only a single species in the survey but it is not a required field --%>
 			<%-- the field will NOT be pre populated --%>
@@ -173,6 +153,12 @@
         <%-- not editable... --%>
         <c:choose>
             <c:when test="${ formField.species != null }">
+
+                <!-- put in hidden fields anyway as sometimes the species is not editable within an editable form -->
+                <!-- this is used in the single site all taxa form -->
+                <input type="hidden" id="${speciesNameInputId}" name="${speciesNameInputName}" value="<c:out value="${ formField.species.scientificName }"/>"/>
+                <input type="hidden" id="${speciesIdInputId}" name="${speciesIdInputName}" value="${ formField.species.id }"/>
+
                 <c:choose>
                     <c:when test="${showScientificName}">
                         <span class="scientificName"><c:out value="${ formField.species.scientificName }"/></span>
@@ -190,10 +176,8 @@
 </c:choose>
 
 <%-- do appropriate initialisation --%>
-<c:if test="${not isProperty eq 'true'}">
 <script type="text/javascript">
 	jQuery(function() {
 		bdrs.contribute.initSpeciesAttributeAutocomplete('#${speciesNameInputId}', '#${speciesIdInputId}', ${formField.survey != null ? formField.survey.id : 0}, ${showScientificName});
 	});
 </script>
-</c:if>	
