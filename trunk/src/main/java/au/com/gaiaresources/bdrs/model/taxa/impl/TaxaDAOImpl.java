@@ -186,14 +186,39 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
         if (survey.getSpecies().size() == 0) {
             return getTaxonGroups();
         } else {
-            
+
             return find("select distinct g from IndicatorSpecies i join i.taxonGroup g where i in (select elements(b.species) from Survey b where b = ?)", survey);
-//            StringBuilder builder = new StringBuilder();
-//            builder.append("select distinct g");
-//            builder.append(" from TaxonGroup g, IndicatorSpecies i, Survey s");
-//            builder.append(" where i.taxonGroup=g");
-//            builder.append(" and i.id in (select id from s.species) and s=?");
-//            return find(builder.toString(), survey);
+        }
+    }
+
+    /**
+     * Gets all primary AND secondary groups for a survey
+     * @param survey survey to search in
+     * @return list of unique taxon groups
+     */
+    public List<TaxonGroup> getAllTaxonGroups(Survey survey) {
+        if (survey.getSpecies().size() == 0) {
+            return getTaxonGroups();
+        } else {
+            // Do a union in code....
+            List<TaxonGroup> primaryGroups = find("select distinct g from IndicatorSpecies i " +
+                    "join i.taxonGroup g where i in (select elements(b.species) " +
+                    "from Survey b where b = ?)", survey);
+
+            List<TaxonGroup> secondaryGroups = find("select distinct g from IndicatorSpecies i " +
+                    "join i.secondaryGroups g where i in (select elements(b.species) " +
+                    "from Survey b where b = ?)", survey);
+
+            Set<TaxonGroup> tgSet = new HashSet<TaxonGroup>(primaryGroups.size() + secondaryGroups.size());
+
+            for (TaxonGroup tg : primaryGroups) {
+                tgSet.add(tg);
+            }
+            for (TaxonGroup tg : secondaryGroups) {
+                tgSet.add(tg);
+            }
+
+            return new ArrayList<TaxonGroup>(tgSet);
         }
     }
 
