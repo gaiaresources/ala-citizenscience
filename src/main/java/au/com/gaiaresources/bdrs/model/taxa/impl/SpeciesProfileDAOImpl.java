@@ -53,6 +53,10 @@ public class SpeciesProfileDAOImpl extends AbstractDAOImpl implements
         return s;
     }
 
+    public SpeciesProfile getById(Integer id) {
+        return getByID(SpeciesProfile.class, id);
+    }
+
     @Override
     public List<SpeciesProfile> getSpeciesProfileForSpecies(int id) {
         return find("select i.infoItems from IndicatorSpecies i where i.id = ?", id);

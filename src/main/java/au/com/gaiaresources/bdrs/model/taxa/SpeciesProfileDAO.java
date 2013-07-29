@@ -7,6 +7,14 @@ import au.com.gaiaresources.bdrs.db.TransactionDAO;
 import java.util.List;
 
 public interface SpeciesProfileDAO extends TransactionDAO {
+
+    /**
+     * Get species profile by primary key
+     * @param id primary key
+     * @return species profile is exists, otherwise null.
+     */
+    SpeciesProfile getById(Integer id);
+
     SpeciesProfile createSpeciesProfile(String header, String content,
             String type);
 

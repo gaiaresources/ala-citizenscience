@@ -65,7 +65,7 @@ public interface TaxaDAO extends TransactionDAO {
      * @param id The id if the attribute to update.
      * @param name The new name of the attribute.
      * @param type The new data type of the attribute.
-     * @param reqired Is this attribute required.
+     * @param required Is this attribute required.
      * @return <code>TaxonGroupAttribute</code>.
      */
     Attribute updateAttribute(Integer id, String name, AttributeType type, boolean required);
@@ -75,7 +75,7 @@ public interface TaxaDAO extends TransactionDAO {
      * @param name The new name of the attribute.
      * @param description The new description of the attribute.
      * @param type The new data type of the attribute.
-     * @param reqired Is this attribute required.
+     * @param required Is this attribute required.
      * @return <code>TaxonGroupAttribute</code>.
      */
     Attribute updateAttribute(Integer id, String name, String description, AttributeType type, boolean required);
@@ -441,7 +441,7 @@ public interface TaxaDAO extends TransactionDAO {
      * @param sesh the session to use to retrieve the IndicatorSpecies
      * @param survey the survey associated with the indicator species.
      * @param start the first indicator species.
-     * @param count the maximum number of indicator species to return.
+     * @param maxSize the maximum number of indicator species to return.
      * @return the indicator species associated with the specified survey.
      */
     List<IndicatorSpecies> getIndicatorSpeciesBySurvey(Session sesh, Survey survey, int start, int maxSize);
@@ -453,7 +453,7 @@ public interface TaxaDAO extends TransactionDAO {
      * @param sesh the session to use to retrieve the IndicatorSpecies
      * @param survey the survey associated with the indicator species.
      * @param start the first indicator species.
-     * @param count the maximum number of indicator species to return.
+     * @param maxSize the maximum number of indicator species to return.
      * @param excludeSpeciesInSurveys exclude all species in the list of surveys, can be null.
      * @return the indicator species associated with the specified survey.
      */
@@ -606,4 +606,11 @@ public interface TaxaDAO extends TransactionDAO {
      * @return A single species that matches the search parameters.
      */
     IndicatorSpecies getSpeciesForSurvey(Session sesh, Survey s, String sciName);
+
+    /**
+     * Gets all primary AND secondary groups for a survey
+     * @param survey survey to search in
+     * @return list of unique taxon groups
+     */
+    List<TaxonGroup> getAllTaxonGroups(Survey survey);
 }

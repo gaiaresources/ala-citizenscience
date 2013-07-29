@@ -7,6 +7,8 @@ import au.com.gaiaresources.bdrs.file.FileService;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONException;
 import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.model.file.ManagedFile;
+import au.com.gaiaresources.bdrs.model.file.ManagedFileDAO;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
@@ -17,15 +19,7 @@ import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeValueDAO;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeValueUtil;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaService;
-import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
+import au.com.gaiaresources.bdrs.model.taxa.*;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.security.UserDetails;
@@ -86,6 +80,13 @@ public class ApplicationService extends AbstractController {
     public static final String JSON_KEY_CENSUS_METHODS = "censusMethods";
     public static final String JSON_KEY_RECORD_PROP = "recordProperties";
     public static final String JSON_KEY_LOCATIONS = "locations";
+    public static final String JSON_KEY_SPECIES_INFO_ITEMS = "profileItems";
+    public static final String JSON_KEY_TAXON_GROUPS = "taxonGroups";
+
+    public static final String JSON_KEY_TAXON_GROUP_ID = "taxonGroupId";
+    public static final String JSON_KEY_SECONDARY_TAXON_GROUPS = "secondaryTaxonGroups";
+
+    public static final String JSON_KEY_MANAGED_FILE = "managedFile";
     
     public static final String PARAM_IDENT = "ident";
     
@@ -155,6 +156,9 @@ public class ApplicationService extends AbstractController {
     
     @Autowired
     private LocationDAO locationDAO;
+
+    @Autowired
+    private ManagedFileDAO managedFileDAO;
     
     @Autowired
     private SurveyImportExportService surveyImportExportService;
@@ -473,6 +477,8 @@ public class ApplicationService extends AbstractController {
                     }
                 }
             }
+
+            Set<TaxonGroup> groupsInSpecies = new HashSet<TaxonGroup>();
             
             int speciesDownloadCount = taxaDAO.countActualSpeciesForSurvey(s, surveysOnDevice);
             List<IndicatorSpecies> list = taxaDAO.getIndicatorSpeciesBySurvey(null, s, first, maxResults, surveysOnDevice);
@@ -480,6 +486,10 @@ public class ApplicationService extends AbstractController {
             JSONArray jsonSpeciesArray = new JSONArray();
             Map<String, Object> speciesMap = null;
             for (IndicatorSpecies sp : list) {
+
+                groupsInSpecies.add(sp.getTaxonGroup());
+                groupsInSpecies.addAll(sp.getSecondaryGroups());
+
                 // handcraft map for json
                 // if we need taxon group, other items that require table joins we need to look at
                 // going back to adding left fetch join to the hibernate query for performance.
@@ -492,10 +502,52 @@ public class ApplicationService extends AbstractController {
                 speciesMap.put("commonName", sp.getCommonName());
                 speciesMap.put("author", sp.getAuthor());
                 speciesMap.put("year", sp.getYear());
+                speciesMap.put(ApplicationService.JSON_KEY_TAXON_GROUP_ID, sp.getTaxonGroup().getId());
+                List<Integer> secondaryGroupIds = new ArrayList<Integer>(sp.getSecondaryGroups().size());
+                for (TaxonGroup secondaryGroup : sp.getSecondaryGroups()) {
+                    secondaryGroupIds.add(secondaryGroup.getId());
+                }
+                speciesMap.put(ApplicationService.JSON_KEY_SECONDARY_TAXON_GROUPS, secondaryGroupIds);
+
+                // add the species profile list
+                JSONArray speciesProfileList = new JSONArray();
+                for (SpeciesProfile profile : sp.getInfoItems()) {
+                    // don't use flatten. be minimal in what we send back.
+                    JSONObject profileJson = new JSONObject();
+                    profileJson.put("header", profile.getHeader());
+                    profileJson.put("description", profile.getDescription());
+                    profileJson.put("type", profile.getType());
+                    profileJson.put("content", profile.getContent());
+                    profileJson.put("id", profile.getId());
+                    profileJson.put("weight", profile.getWeight());
+
+                    if (profile.isImgType()) {
+                        // uuid is stored in content property.
+                        ManagedFile theFile = managedFileDAO.getManagedFile(profile.getContent());
+                        if (theFile != null) {
+                            profileJson.put(JSON_KEY_MANAGED_FILE, JSONObject.fromMapToJSONObject(theFile.flatten()));
+                        }
+                    }
+
+                    speciesProfileList.add(profileJson);
+                }
+                speciesMap.put(JSON_KEY_SPECIES_INFO_ITEMS, speciesProfileList);
                 
                 jsonSpeciesArray.add(speciesMap);
             }
             result.put("list", jsonSpeciesArray);
+
+            JSONArray taxonGroupJsonArray = new JSONArray();
+            for (TaxonGroup tg : groupsInSpecies) {
+                 JSONObject taxonGroupJson = new JSONObject();
+                taxonGroupJson.put("id", tg.getId());
+                taxonGroupJson.put("name", tg.getName());
+                taxonGroupJson.put("image", tg.getImage());
+                taxonGroupJson.put("thumbNail", tg.getThumbNail());
+                taxonGroupJsonArray.add(taxonGroupJson);
+            }
+
+            result.put(JSON_KEY_TAXON_GROUPS, taxonGroupJsonArray);
         }
         this.writeJson(response, result.toString());
     }
