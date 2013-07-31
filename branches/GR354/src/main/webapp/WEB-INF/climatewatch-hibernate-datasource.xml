@@ -11,10 +11,10 @@
 	<!-- Database -->
     <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
 
-        <property name="driverClassName" value="${bdrs.db.driver}"/>
-        <property name="url" value="${bdrs.db.url}"/>
-        <property name="username" value="${bdrs.db.user.name}"/>
-        <property name="password" value="${bdrs.db.user.password}"/>
+        <property name="driverClassName" value="org.postgresql.Driver"/>
+        <property name="url" value="jdbc:postgresql://localhost:5432/ala-citizenscience"/>
+        <property name="username" value="postgres"/>
+        <property name="password" value="postgres"/>
         <property name="maxActive" value="200"/>
         <property name="testOnBorrow" value="true"/>
         <property name="testOnReturn" value="true"/>
@@ -25,8 +25,8 @@
     <bean id="sessionFactory" parent="abstractSessionFactory">
         <property name="hibernateProperties">
             <props merge="true">
-                <prop key="hibernate.search.default.indexBase">${bdrs.lucene.index.location}</prop>
-                <prop key="hibernate.search.indexing_strategy">${bdrs.lucene.index.strategy}</prop>
+                <prop key="hibernate.search.default.indexBase">/tmp/bdrs/lucene</prop>
+                <prop key="hibernate.search.indexing_strategy">event</prop>
             </props>
         </property>
     </bean>
