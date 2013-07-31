@@ -1,0 +1,15 @@
+<input  id="${ widget.taxon_name_input_id }" 
+        type="text" 
+        name="${ widget.taxon_name_input_name }" 
+        value="${ widget.survey_species_search_value }" 
+/>
+<input  type="text" 
+        class=" #echo ' '.join($widget.widget_class)# 
+                #if $widget.widget_validation_class 
+                    validate(#echo ','.join($widget.widget_validation_class)#)
+                #end if
+            "
+        name="${ widget.taxon_id_input_name }" 
+        value="${ widget.widget_value }"
+        id="${ widget.taxon_id_input_id }"
+/>
