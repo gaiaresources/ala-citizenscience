@@ -320,7 +320,7 @@ public class CustomFormTestUtil {
         timeFormat.setLenient(false);
 
         Assert.assertEquals(survey.getId(), record.getSurvey().getId());
-        // Coordinates are truncates to 6 decimal points
+        // Coordinates are truncated to 6 decimal points
         Assert.assertEquals(new Double(request.getParameter("latitude")).doubleValue(),
                 record.getPoint().getY(), Math.pow(10, -6));
         Assert.assertEquals(new Double(request.getParameter("longitude")).doubleValue(),

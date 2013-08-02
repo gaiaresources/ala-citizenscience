@@ -10,7 +10,7 @@
 /* Default Page Element Styling            */
 /*******************************************/
 body {
-    background-color: ${style.body.background.color};
+    background: url(${asset}images/bdrs/te_background.jpg) repeat-x top center ${style.body.background.color};
     margin: 0px;
     padding: 0px;
     display: block;
@@ -41,7 +41,7 @@ input, select, textarea {
  * the defaults.
  */
 input[type=text],input[type=password] {
-	height: 14px;
+    height: 14px;
 }
 
 /***********************************************/
@@ -57,7 +57,7 @@ button[type=button].ui-button {
     padding: 4px 16px 4px 16px;
     font-size: 1em;
     cursor: pointer;
-	/* fixes long buttons in IE7 */
+    /* fixes long buttons in IE7 */
     overflow: visible;
     
     /* Rounded Border */
@@ -70,11 +70,11 @@ button[type=button].ui-button {
 
 .ui-button .ui-button-text { 
     display: block; 
-	line-height: normal;
-	font-size: 12px;
-	height: auto;
-	padding: 0;
-	margin: 0;
+    line-height: normal;
+    font-size: 12px;
+    height: auto;
+    padding: 0;
+    margin: 0;
 }
 
 input[type=submit][disabled].form_action,
@@ -95,15 +95,15 @@ button[type=button].ui-button {
     /* Fallback */
     background-color: ${style.form.button.gradient.color.top};
     
-	/* Background svg for IE9 */
-	background: ${style.form.button.gradient.color.top} url(${asset}/css/buttonGradient.svg) 0 0 no-repeat;
+    /* Background svg for IE9 */
+    background: ${style.form.button.gradient.color.top} url(${asset}/css/buttonGradient.svg) 0 0 no-repeat;
 
     /* Color Gradient */
     background: -moz-linear-gradient(top, ${style.form.button.gradient.color.top}, ${style.form.button.gradient.color.bottom});
     background: -webkit-gradient(linear, left top, left bottom, color-stop(0, ${style.form.button.gradient.color.top}),
         color-stop(1, ${style.form.button.gradient.color.bottom}) );
-	background: linear-gradient(top, ${style.form.button.gradient.color.top}, ${style.form.button.gradient.color.bottom});
-		
+    background: linear-gradient(top, ${style.form.button.gradient.color.top}, ${style.form.button.gradient.color.bottom});
+        
     /* Drop Shadow */
     box-shadow: 0px 0px 2px ${style.form.button.shadow.color};
     -moz-box-shadow: 0px 0px 2px ${style.form.button.shadow.color};
@@ -115,8 +115,8 @@ button[type=button].ui-button:hover {
     /* Fallback */
     background-color: ${style.form.button.hover.gradient.color.top};
     
-	/* Background svg for IE9 */
-	background: ${style.form.button.hover.gradient.color.top} url(${asset}/css/buttonGradientHover.svg) 0 0 no-repeat;
+    /* Background svg for IE9 */
+    background: ${style.form.button.hover.gradient.color.top} url(${asset}/css/buttonGradientHover.svg) 0 0 no-repeat;
 
     background: -moz-linear-gradient(top, ${style.form.button.hover.gradient.color.top}, ${style.form.button.hover.gradient.color.bottom});
     background: -webkit-gradient(linear, left top, left bottom, color-stop(0, ${style.form.button.hover.gradient.color.top}),
@@ -185,10 +185,10 @@ select[multiple] {
 #horiz-menu {
     background-color: ${style.menu.background.color};
     height: ${style.menu.height};
-	
-	/* This puts the entire menu div in front of the map div for IE7 */
+    
+    /* This puts the entire menu div in front of the map div for IE7 */
     position:relative;
-	/* open layers map tool bar has z-index 1014 */
+    /* open layers map tool bar has z-index 1014 */
     z-index:1030;
 }
 
@@ -348,36 +348,36 @@ ul.menu ul ul ul ul li a{
 }
 
 .nopad_top {
-	padding-top: 0px;
-	margin-top: 0px;
+    padding-top: 0px;
+    margin-top: 0px;
 }
 
 .left_align {
-	text-align: left;
+    text-align: left;
 }
 
 .boldtext {
-	font-weight: bold;
+    font-weight: bold;
 }
-	
+    
 #survey_carousel {
     height: 275px;
 }
 
 #survey_carousel .cj_slideshow_caption_wrapper,
 #survey_carousel .cj_slideshow_caption {
-	background-color: transparent;
-	color: #333333;
-	display: block;
-	clear: both;
-	float: left;
-	font-weight: normal;
-	/*margin-top: 190px;*/
-	padding: 1em;
+    background-color: transparent;
+    color: #333333;
+    display: block;
+    clear: both;
+    float: left;
+    font-weight: normal;
+    /*margin-top: 190px;*/
+    padding: 1em;
 }
 #survey_carousel img {
-	display: block;
-	clear: both;
+    display: block;
+    clear: both;
 }
 
 #statistics h3 {
@@ -410,7 +410,7 @@ ul.menu ul ul ul ul li a{
     line-height: 0;
     background-color: ${style.header.background.color};
     
-	border-top: 1px solid transparent;
+    border-top: 1px solid transparent;
     margin-top: 12px;
     margin-bottom: 2px;
     
@@ -427,7 +427,7 @@ ul.menu ul ul ul ul li a{
 }
 
 #portalName {
-	float: left;
+    float: left;
     color: ${style.header.text.color};
     font-weight: bold;
     font-size: 200%;
@@ -442,20 +442,20 @@ ul.menu ul ul ul ul li a{
 }
 
 #welcomeText {
-	line-height: 1.5em;
-	float: right;
-	text-align:right;
-	color: ${style.header.text.color};
-	margin-right: 12px;
+    line-height: 1.5em;
+    float: right;
+    text-align:right;
+    color: ${style.header.text.color};
+    margin-right: 12px;
     margin-top: 6px;
 }
 
 #welcomeText a {
-	color: ${style.header.text.color};
+    color: ${style.header.text.color};
 }
 
 #welcomeText a:hover {
-	text-decoration: underline;
+    text-decoration: underline;
 }
 
 /************************************/
@@ -514,7 +514,7 @@ table.ui-jqgrid-btable th a {
 }
 
 div.ui-jqgrid.ui-corner-all {
-	-moz-border-radius: 0px;
+    -moz-border-radius: 0px;
     -webkit-border-radius: 0px;
     -khtml-border-radius: 0px;
     border-radius: 0px;
@@ -523,11 +523,11 @@ div.ui-jqgrid.ui-corner-all {
 /* jqgrid footer / pager */
 div.ui-jqgrid-pager.ui-state-default,
 div.ui-state-default.ui-jqgrid-hdiv {
-	-moz-border-radius: 0px;
+    -moz-border-radius: 0px;
     -webkit-border-radius: 0px;
     -khtml-border-radius: 0px;
     border-radius: 0px;
-	background: ${style.table.header.background.color};
+    background: ${style.table.header.background.color};
 }
 
 /* hide the close 'x' in the jquery ui dialogs */
@@ -535,7 +535,7 @@ div.ui-state-default.ui-jqgrid-hdiv {
  * with no ok / cancel buttons
  */
 a.ui-dialog-titlebar-close.ui-corner-all {
-	/*display: none;*/
+    /*display: none;*/
 }
 
 /* no horizontal scrollbar for jqgrid */
@@ -552,8 +552,8 @@ a.ui-dialog-titlebar-close.ui-corner-all {
 /* row highlight styling */
 .highlight, 
 tr.ui-state-highlight.ui-widget-content {
-	background: ${style.table.highlight.color};
-	border: ${style.table.border.width} ${style.table.border.style} ${style.table.border.color};
+    background: ${style.table.highlight.color};
+    border: ${style.table.border.width} ${style.table.border.style} ${style.table.border.color};
 }
 
 /************************************************/
@@ -561,7 +561,7 @@ tr.ui-state-highlight.ui-widget-content {
 /* with bdrs style buttons                      */
 /************************************************/
 .ui-dialog .ui-dialog-buttonpane {
-	padding-top: 7px;
+    padding-top: 7px;
 }
 
 /**************************/
@@ -595,11 +595,11 @@ tr.ui-state-highlight.ui-widget-content {
     min-height: 400px;
     
     -webkit-border-bottom-right-radius: ${style.content.border.radius};
-	-webkit-border-bottom-left-radius: ${style.content.border.radius};
-	-moz-border-radius-bottomright: ${style.content.border.radius};
-	-moz-border-radius-bottomleft: ${style.content.border.radius};
-	border-bottom-right-radius: ${style.content.border.radius};
-	border-bottom-left-radius: ${style.content.border.radius};
+    -webkit-border-bottom-left-radius: ${style.content.border.radius};
+    -moz-border-radius-bottomright: ${style.content.border.radius};
+    -moz-border-radius-bottomleft: ${style.content.border.radius};
+    border-bottom-right-radius: ${style.content.border.radius};
+    border-bottom-left-radius: ${style.content.border.radius};
 }
 
 .pageContent {
@@ -641,7 +641,7 @@ a:visited.delete {
 a:link.fixedLink,
 a:visited.fixedLink,
 a:hover.fixedLink {
-	color:${style.anchor.link.color};
+    color:${style.anchor.link.color};
     text-decoration: ${style.anchor.link.decoration};
 }
 

@@ -58,7 +58,7 @@ public class ExampleCustomFormTest extends AbstractGridControllerTest {
         Assert.assertEquals(config.getString(CustomFormController.JSON_CONFIG_NAME), form.getName());
         Assert.assertEquals(config.getString(CustomFormController.JSON_CONFIG_DESCRIPTION), form.getDescription());
 
-        // Should have exactly 1 message indicating that the form was added succesfully.
+        // Should have exactly 1 message indicating that the form was added successfully.
         Assert.assertEquals(1, getRequestContext().getMessageContents().size());
     }
 
@@ -119,6 +119,7 @@ public class ExampleCustomFormTest extends AbstractGridControllerTest {
         Set<User> userSet = new HashSet();
         userSet.add(currentUser);
         List<Record> recordList = recordDAO.getRecords(survey1, userSet);
+
         Assert.assertFalse(recordList.isEmpty());
         Record record = recordList.get(0);
 
