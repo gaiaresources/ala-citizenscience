@@ -631,7 +631,7 @@ public class ApplicationService extends AbstractController {
         // Attribute Values
         List<Object> locAttrBeanList = (List<Object>) PropertyUtils.getProperty(jsonLocationBean, "attributes");
         for(Object jsonLocAttrValBean : locAttrBeanList) { 
-            AttributeValue locAttrVal = syncAttributeValue(syncResponseList, jsonLocAttrValBean, attrCache);
+            AttributeValue locAttrVal = syncAttributeValue(user, syncResponseList, jsonLocAttrValBean, attrCache);
             loc.getAttributes().add(locAttrVal);
         }
         
@@ -994,7 +994,7 @@ public class ApplicationService extends AbstractController {
         
         List<Object> recAttrBeanList = (List<Object>) PropertyUtils.getProperty(jsonRecordBean, "attributeValues");
         for(Object jsonRecAttrBean : recAttrBeanList) {
-            AttributeValue recAttr = syncAttributeValue(syncResponseList, jsonRecAttrBean, attrCache);
+            AttributeValue recAttr = syncAttributeValue(user, syncResponseList, jsonRecAttrBean, attrCache);
             rec.getAttributes().add(recAttr);
         }
 
@@ -1007,7 +1007,7 @@ public class ApplicationService extends AbstractController {
         recordDAO.saveRecord(rec);
     }
     
-    private AttributeValue syncAttributeValue(List<Map<String, Object>> syncResponseList, Object jsonRecAttrBean, SoftValueHashMap attrCache)
+    private AttributeValue syncAttributeValue(User user, List<Map<String, Object>> syncResponseList, Object jsonRecAttrBean, SoftValueHashMap attrCache)
         throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException {
         String id = getJSONString(jsonRecAttrBean, "id", null);
         if(id == null) {
@@ -1126,9 +1126,12 @@ public class ApplicationService extends AbstractController {
                 break;
             case CENSUS_METHOD_ROW:
             case CENSUS_METHOD_COL:
-                JSONArray nestedValues = ((JSONObject)jsonRecAttrBean).getJSONArray("values");
-                if (nestedValues != null) {
-                    syncCensusMethodAttributeValue(syncResponseList, nestedValues, attrCache ,attrVal );
+                JSONObject censusMethodValue = (JSONObject)jsonRecAttrBean;
+                if (censusMethodValue.has("values")) {
+                    JSONArray nestedValues = censusMethodValue.getJSONArray("values");
+                    if (nestedValues != null && nestedValues.size() > 0) {
+                        syncCensusMethodAttributeValue(user, syncResponseList, nestedValues, attrCache ,attrVal );
+                    }
                 }
                 break;
             default:
@@ -1207,22 +1210,24 @@ public class ApplicationService extends AbstractController {
         return flatCensusMethod;
     }
 
-    private void syncCensusMethodAttributeValue(List<Map<String, Object>> syncResponseList, JSONArray attributeValueData, SoftValueHashMap attrCache, AttributeValue attributeValue)  {
+    private void syncCensusMethodAttributeValue(User user, List<Map<String, Object>> syncResponseList, JSONArray attributeValueData, SoftValueHashMap attrCache, AttributeValue attributeValue)  {
 
         for (int i=0; i<attributeValueData.size(); i++) {
             JSONObject nestedRow = attributeValueData.getJSONObject(i);
-            JSONArray attributes = nestedRow.getJSONArray("values");
-            // Create a record for each Row.
-            Record row = newRecord(i);
-            attributeValue.getRecords().add(row);
+            if (nestedRow != null && nestedRow.has("values")) {
+                JSONArray attributes = nestedRow.getJSONArray("values");
+                // Create a record for each Row.
+                Record row = newRecord(i, user);
+                addRecord(row, attributeValue);
 
-            for (int j=0; j<attributes.size(); j++) {
-                try {
-                AttributeValue value = syncAttributeValue(syncResponseList, attributes.get(j), attrCache);
-                row.getAttributes().add(value);
-                }
-                catch (Exception e) {
-                    throw new RuntimeException(e);
+                for (int j=0; j<attributes.size(); j++) {
+                    try {
+                    AttributeValue value = syncAttributeValue(user, syncResponseList, attributes.get(j), attrCache);
+                    row.getAttributes().add(value);
+                    }
+                    catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
 
@@ -1230,9 +1235,20 @@ public class ApplicationService extends AbstractController {
 
     }
 
-    private Record newRecord(int row) {
+    private void addRecord(Record row, AttributeValue value) {
+        Set<Record> records = value.getRecords();
+        if (records == null) {
+            records = new HashSet<Record>();
+            value.setRecords(records);
+        }
+        records.add(row);
+        row.setAttributeValue(value);
+    }
+
+    private Record newRecord(int row, User user) {
         Record record = new Record();
         record.setWeight(row);
+        record.setUser(user);
         recordDAO.saveRecord(record);
         return record;
     }
