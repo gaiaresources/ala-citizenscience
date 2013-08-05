@@ -904,11 +904,14 @@ public class ApplicationService extends AbstractController {
         Double longitude = longitudeString.trim().isEmpty() ? null : Double.parseDouble(longitudeString);
         String sridString = getJSONString(jsonRecordBean, "srid", "");
         Integer srid = sridString.trim().isEmpty() ? null : Integer.valueOf(sridString.trim());
-        
-        if (latitude != null && longitude != null) {
+        SpatialUtil spatialUtil = srid != null ? spatialUtilFactory.getLocationUtil(srid) : spatialUtilFactory.getLocationUtil();
+        String locationWkt = getJSONString(jsonRecordBean, "locationWkt", "");
+        if (StringUtils.isNotEmpty(locationWkt)) {
+            rec.setGeometry(spatialUtil.createGeometryFromWKT(locationWkt));
+        }
+        else if (latitude != null && longitude != null) {
         	// default to lat/lon if no srid specified.
-        	SpatialUtil spatialUtil = srid != null ? spatialUtilFactory.getLocationUtil(srid) : spatialUtilFactory.getLocationUtil();
-            rec.setPoint(spatialUtil.createPoint(latitude, longitude));
+        	rec.setPoint(spatialUtil.createPoint(latitude, longitude));
         }
 
         String accuracyStr = getJSONString(jsonRecordBean, "accuracy", "");
@@ -1123,7 +1126,10 @@ public class ApplicationService extends AbstractController {
                 break;
             case CENSUS_METHOD_ROW:
             case CENSUS_METHOD_COL:
-                // census method types should add a record to the attribute value
+                JSONArray nestedValues = ((JSONObject)jsonRecAttrBean).getJSONArray("values");
+                if (nestedValues != null) {
+                    syncCensusMethodAttributeValue(syncResponseList, nestedValues, attrCache ,attrVal );
+                }
                 break;
             default:
                 throw new UnsupportedOperationException("Unsupported Attribute Type: "+attr.getType().toString());
@@ -1199,5 +1205,35 @@ public class ApplicationService extends AbstractController {
         flatCensusMethod.put("censusMethods", subCensusMethodList);
         
         return flatCensusMethod;
+    }
+
+    private void syncCensusMethodAttributeValue(List<Map<String, Object>> syncResponseList, JSONArray attributeValueData, SoftValueHashMap attrCache, AttributeValue attributeValue)  {
+
+        for (int i=0; i<attributeValueData.size(); i++) {
+            JSONObject nestedRow = attributeValueData.getJSONObject(i);
+            JSONArray attributes = nestedRow.getJSONArray("values");
+            // Create a record for each Row.
+            Record row = newRecord(i);
+            attributeValue.getRecords().add(row);
+
+            for (int j=0; j<attributes.size(); j++) {
+                try {
+                AttributeValue value = syncAttributeValue(syncResponseList, attributes.get(j), attrCache);
+                row.getAttributes().add(value);
+                }
+                catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+        }
+
+    }
+
+    private Record newRecord(int row) {
+        Record record = new Record();
+        record.setWeight(row);
+        recordDAO.saveRecord(record);
+        return record;
     }
 }
