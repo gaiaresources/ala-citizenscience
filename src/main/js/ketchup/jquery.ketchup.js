@@ -214,7 +214,7 @@
 
 
   var initialPositionContainer = function(errorContainer, field) {
-    var fOffset = field.offset();
+    var fOffset = field.position();
 
     errorContainer.css({
       left: fOffset.left + field.width() - 10,
@@ -225,7 +225,7 @@
 
   var positionContainer = function(errorContainer, field) {
     errorContainer.animate({
-      top: field.offset().top - errorContainer.height()
+      top: field.position().top - errorContainer.height()
     });
   };
 
