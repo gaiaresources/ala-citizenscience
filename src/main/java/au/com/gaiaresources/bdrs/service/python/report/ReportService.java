@@ -163,7 +163,7 @@ public class ReportService extends PythonService {
             jep.set("bdrs", bdrs);
 
             // Configure and import django into the python interpreter
-           super.loadDjango(jep, bdrs);
+            super.loadDjango(jep, bdrs);
 
             // Create the map of named parameters that will be passed to the report.
             jep.eval("__bdrs_kwargs__ = {}");
@@ -175,7 +175,26 @@ public class ReportService extends PythonService {
             // Load and execute the report
             jep.runScript(new File(reportDir, PYTHON_REPORT).getAbsolutePath());
 
+            // The jep.eval line runs something like this:
+			//      try:
+			//          Report().content("""{}""", **__bdrs_kwargs__)
+			//      except Exception, e:
+			//          import sys, traceback
+			//          response = bdrs.getResponse()
+			//          response.setError(True)
+			//          response.setErrorMsg(str(e))
+			//          response.setContent(traceback.format_exc())
+			//      finally:
+			//          from django.db import connections
+			//          for conn in connections.all():
+			//              conn.close()
             jep.eval(String.format(REPORT_EXEC_TMPL, jsonParams.toString()));
+            
+            // This is what Report().content(...) is getting called with:
+			//            json_params: {"surveyId":["1"]}
+			//            args:        ()
+			//            kwargs:      {}
+
             // Terminate the interpreter
             jep.close();
 

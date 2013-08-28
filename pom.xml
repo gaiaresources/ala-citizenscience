@@ -456,13 +456,13 @@
         <dependency>
             <groupId>postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>8.4-702.jdbc4</version>
+            <version>9.1-901.jdbc4</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.postgis</groupId>
             <artifactId>postgis-jdbc</artifactId>
-            <version>1.3.1</version>
+            <version>1.3.3</version>
             <scope>provided</scope>
         </dependency>
         <!-- Log 4j -->
