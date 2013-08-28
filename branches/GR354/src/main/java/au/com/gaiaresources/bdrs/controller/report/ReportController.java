@@ -37,7 +37,6 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.zip.ZipInputStream;
 
 /**
  * This controller handles all requests for adding, listing, deleting and
@@ -166,7 +165,6 @@ public class ReportController extends AbstractController {
     public ModelAndView addReports(MultipartHttpServletRequest request,
             HttpServletResponse response) {
         
-        ZipInputStream zis = null;
         File tempReportDir = null;
         InputStream configInputStream = null;
         try {
@@ -186,6 +184,7 @@ public class ReportController extends AbstractController {
                     String reportDirName = config.optString(JSON_CONFIG_REPORT);
                     JSONArray capabilityArray = config.optJSONArray(JSON_CONFIG_CAPABILITY);
                     JSONArray viewArray = config.optJSONArray(JSON_CONFIG_VIEWS);
+                    
                     if(viewArray == null) {
                         viewArray = new JSONArray();
                     }
@@ -274,9 +273,6 @@ public class ReportController extends AbstractController {
             log.error("Unable to parse the report config file.", je);
         } finally {
             try {
-                if(zis != null) {
-                    zis.close();
-                }
                 if(configInputStream != null) {
                     configInputStream.close();
                 }

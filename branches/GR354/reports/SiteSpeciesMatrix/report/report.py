@@ -23,6 +23,12 @@ class Report:
     location called 'Other'.
     """
     def content(self, json_params, *args, **kwargs):
+        f = open('/home/adam/python-test/dump.txt', 'w')
+        f.write('json_params: ' + str(json_params) + '\n');
+        f.write('args:        ' + str(args) + '\n');
+        f.write('kwargs:      ' + str(kwargs) + '\n')
+      
+      
         params = json.loads(json_params, strict=False)
         tmpl_params = {}
         survey_array = json.loads(bdrs.getSurveyDAO().getActiveSurveys())
