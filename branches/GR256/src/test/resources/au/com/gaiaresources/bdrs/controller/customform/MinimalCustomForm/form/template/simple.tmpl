@@ -1,0 +1,97 @@
+<link rel="stylesheet" type="text/css" href="static.htm?fileName=media/css/form.css"/>
+
+<h1>${ survey.name }</h1>
+<p>${ survey.description }<p>
+<form class="vertical_form" method="POST" action="" enctype="multipart/form-data">
+    #set $record_form = $rf.create_form($rec, survey=$survey)
+        ${ record_form.record_prefix_widget.widget } 
+        ${ record_form.record_id_widget.widget } 
+
+        <table class="layout_table">
+            <tbody>
+                <tr>
+                    <td rowspan="2">
+                        <div class="element_group what_seen">
+                            <div class="group_title">1. What did you see?</div>
+                            <div class="element_set">
+                                #set global $element = record_form.widget('species')
+                                #include $element_tmpl_path
+                            </div>
+                            <div class="element_set">
+                                #set global $element = record_form.widget('number')
+                                #include $element_tmpl_path
+                            </div>
+                            <div class="element_set">
+                                #set global $element = record_form.widget('notes')
+                                #include $element_tmpl_path
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="element_group where_seen">
+                            #set $latlon = record_form.widget('geometry') 
+                            <div class="group_title">2. Where did you see it?</div>
+                            <div class="element_set">
+                                #set global $element = $latlon.latitude
+                                #include $element_tmpl_path
+                            </div>
+
+                            <div class="element_set">
+                                #set global $element = $latlon.longitude
+                                #include $element_tmpl_path
+                            </div>
+
+                            <div class="element_set">
+                                #set global $element = record_form.widget('accuracyInMeters')
+                                #include $element_tmpl_path
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="element_group what_seen">
+                            <div class="group_title">3. When did you see it?</div>
+                            <div class="element_set">
+                                #set global $element = record_form.widget('when')
+                                #include $element_tmpl_path
+                            </div>
+                            <div class="element_set">
+                                #set global $element = record_form.widget('time')
+                                #include $element_tmpl_path
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <div class="element_group">
+                            <div class="group_title">4. Just a few more questions</div>
+                            #for $attr in $survey.attributes
+                                #set $attr_form = $rf.create_form($attr, $record_form, survey=$survey)
+                                    #set $attr_widget = $attr_form.widget()
+                                        <div class="element_set">
+                                            #set global $element = $attr_form.widget()
+                                            #include $element_tmpl_path
+                                        </div>
+                                    #del attr_widget
+                                #del attr_form
+                            #end for
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    #del record_form
+
+    <div class="button_panel">
+        <div class="left">
+            <div><a class="cancel_action" href="../../map/mySightings.htm">Discard Changes</a></div>
+        </div>
+        <div class="right">
+            <div><input class="right form_action" name="submit" type="submit" value="Save Sighting"/></div>
+            <div class="clear right italics">Send your changes to the server and view your saved sighting</div>
+        </div>
+    </div>
+</form>
+

@@ -1,0 +1,11 @@
+<html>
+    <body>
+        <p>You have contacted ${userFirstName} ${userLastName} about <a href="${bdrsApplicationUrl}${viewRecordUrl}">one of their records.</a></p>
+  
+        <p>You have sent them the following text:</p>
+        
+        <hr />
+        
+        <p style="white-space: pre-wrap;">${contactText}</p>
+    </body>
+</html>

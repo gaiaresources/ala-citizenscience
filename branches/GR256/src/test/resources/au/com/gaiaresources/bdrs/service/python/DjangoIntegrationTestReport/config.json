@@ -1,0 +1,8 @@
+{
+    "name" : "Django Integration Test Report",
+    "description" : "This is a report using by the unit test framework to test integration between Django and the BDRS.",
+    "icon" : "icon.png",
+    "report" : "report",
+    "capabilities":  [],
+    "views": ["REPORT_LISTING"]
+}
