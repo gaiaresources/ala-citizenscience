@@ -11,8 +11,8 @@
     <context:annotation-config/>
 
 	<bean id="emailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
-        <property name="host" value="${bdrs.default.mail.server}"/>
-        <property name="port" value="${bdrs.default.mail.port}"/>
+        <property name="host" value="gaia"/>
+        <property name="port" value="25"/>
     </bean>
 	
 	<bean id="emailService" class="au.com.gaiaresources.bdrs.email.impl.EmailServiceImpl" init-method="init"/>
