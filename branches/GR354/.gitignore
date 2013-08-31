@@ -1,0 +1,16 @@
+
+# /
+/target
+/au
+/logs
+/.settings
+/bin
+/.idea
+/src/main/webapp/WEB-INF/climatewatch-email.xml
+/src/main/webapp/WEB-INF/climatewatch-hibernate-datasource.xml
+/.classpath
+/.project
+/C:\outputfile.png
+/C:\outputkml.kml
+/*outputfile.png
+/*outputkml.kml
