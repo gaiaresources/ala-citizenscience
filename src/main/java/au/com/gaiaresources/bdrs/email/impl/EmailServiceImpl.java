@@ -67,7 +67,7 @@ public class EmailServiceImpl implements EmailService {
     public void sendMessage(final String to, final String from, final String subject, String message, Map<String, Object> substitutionParams) 
     {
         String text = templateService.evaluate(message, substitutionParams);
-        mailSender.send(createPreparator(to, from == null ? getDefaultFromAddress() : from, subject, text));
+        mailSender.send(createPreparator(to, from == null ? getDefaultFromAddress() : from, subject, substitutionParams, text));
     }
 
     public void sendMessage(final String to, final String subject, String templateName, 
@@ -94,19 +94,19 @@ public class EmailServiceImpl implements EmailService {
             text = templateService.transformToString(templateName, EmailService.class, subsitutionParams);
         }
 
-        mailSender.send(createPreparator(to, from, subject, text));
+        mailSender.send(createPreparator(to, from, subject, subsitutionParams, text));
     }
 
     
     private MimeMessagePreparator createPreparator(final String to, final String from, 
-                                                   final String subject, final String text) 
+                                                   final String subject, final Map<String, Object> substitutionParams, final String text)
     {
         return new MimeMessagePreparator() {
             public void prepare(MimeMessage mimeMessage) throws Exception {
                 MimeMessageHelper message = new MimeMessageHelper(mimeMessage);
                 message.setTo(new InternetAddress(to));
                 message.setFrom(from);
-                message.setSubject(getSubjectPrefix() + subject);
+                message.setSubject(getSubjectPrefix(substitutionParams) + subject);
                 message.setText(text, true);
             }
         };
@@ -120,9 +120,11 @@ public class EmailServiceImpl implements EmailService {
         return emailProperties.getProperty(ERROR_MAIL_RECIPIENT_PROPERTY);
     }
     
-    private String getSubjectPrefix() {
-        if (StringUtils.notEmpty(emailProperties.getProperty(SUBJECT_PREFIX_PROPERTY))) {
-            return emailProperties.getProperty(SUBJECT_PREFIX_PROPERTY).trim() + " ";
+    private String getSubjectPrefix(Map<String, Object> substitutionParams) {
+
+        String subjectPrefix = emailProperties.getProperty(SUBJECT_PREFIX_PROPERTY);
+        if (StringUtils.notEmpty(subjectPrefix)) {
+            return templateService.evaluate(subjectPrefix.trim(), substitutionParams);
         }
         return "";
     }
