@@ -124,7 +124,7 @@ public class EmailServiceImpl implements EmailService {
 
         String subjectPrefix = emailProperties.getProperty(SUBJECT_PREFIX_PROPERTY);
         if (StringUtils.notEmpty(subjectPrefix)) {
-            return templateService.evaluate(subjectPrefix.trim(), substitutionParams);
+            return templateService.evaluate(subjectPrefix.trim(), substitutionParams) + " ";
         }
         return "";
     }
