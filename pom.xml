@@ -1064,9 +1064,9 @@
                 <!-- Google Maps API Key. Good for http://localhost:8080/* -->
                 <bdrs.google.maps.key>ABQIAAAAVf-yI1VYl3fsYYNGwKOfGBT2yXp_ZAY8_ufC3CFXhHIE1NvwkxQTUAIK7KnqImTPI8drRbqfl1uq7A</bdrs.google.maps.key>
                 <!-- Database properties -->
-                <bdrs.db.user.name>postgres</bdrs.db.user.name>
-                <bdrs.db.user.password>postgres</bdrs.db.user.password>
-                <bdrs.db.url>jdbc:postgresql://localhost:5432/ala-citizenscience</bdrs.db.url>
+                <bdrs.db.user.name>alacitizenscienceuser</bdrs.db.user.name>
+                <bdrs.db.user.password>password</bdrs.db.user.password>
+                <bdrs.db.url>jdbc:postgresql://localhost:5432/alacitizenscience</bdrs.db.url>
                 <bdrs.db.driver>org.postgresql.Driver</bdrs.db.driver>
                 <!-- Tomcat properties -->
                 <bdrs.tomcat.manager.url>http://localhost:8080/manager</bdrs.tomcat.manager.url>
@@ -1079,8 +1079,8 @@
                 <!-- File storage location -->
                 <bdrs.file.store.location>/home/adam/jobs/GR354_CRAGS/file.store.location</bdrs.file.store.location>
                 <!-- Taxonlib test properties -->
-                <taxonlib.db.username>postgres</taxonlib.db.username>
-                <taxonlib.db.password>postgres</taxonlib.db.password>
+                <taxonlib.db.username>taxonlibuser</taxonlib.db.username>
+                <taxonlib.db.password>password</taxonlib.db.password>
                 <taxonlib.db.url>localhost:5432/taxonlib</taxonlib.db.url>
                 <bdrs.lucene.index.location>/tmp/bdrs/lucene</bdrs.lucene.index.location>
                 <bdrs.lucene.index.strategy>event</bdrs.lucene.index.strategy>
