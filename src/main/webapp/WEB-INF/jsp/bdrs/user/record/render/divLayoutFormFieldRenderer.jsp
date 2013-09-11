@@ -6,6 +6,8 @@
 <%@page import="au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem"%>
 <%@page import="au.com.gaiaresources.bdrs.servlet.RequestContextHolder"%>
 <%@page import="au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyFormField"%>
+<%@page import="au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordAttributeFormField"%>
+<%@page import="au.com.gaiaresources.bdrs.model.taxa.AttributeType"%>
 
 <tiles:useAttribute name="formField" classname="au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField"/>
 <tiles:useAttribute name="locations" classname="java.util.Set" ignore="true"/>
@@ -30,19 +32,26 @@
      </c:choose>
 
 <c:choose>
-  <c:when test="<%= formField.isDisplayFormField() && !formField.isPropertyFormField() %>">
-     <%-- Fields for display only, such as, comments, horizontal rules, HTML, etc --%>
-     <c:set var="isVisible" value="true"></c:set>
-
-     <div id="ff_${ form_field_name }" class="form_field_pair">
-         <div>
-             <tiles:insertDefinition name="attributeRenderer">
-                 <tiles:putAttribute name="formField" value="${formField}"/>
-                 <tiles:putAttribute name="editEnabled" value="${ editEnabled }"/>
-             </tiles:insertDefinition>
-         </div>
-     </div>
-  </c:when>
+    <c:when test="<%= formField.isDisplayFormField() && !formField.isPropertyFormField() %>">
+        <c:choose>
+            <c:when test="<%= RecordAttributeFormField.class.isAssignableFrom(formField.getClass()) && 
+            ((RecordAttributeFormField)formField).getAttribute().getType() == AttributeType.HTML_RAW %>">
+                <%= ((RecordAttributeFormField)formField).getDescription() %>
+            </c:when>
+            <c:otherwise>
+	            <%-- Fields for display only, such as, comments, horizontal rules, HTML, etc --%>
+                <c:set var="isVisible" value="true"></c:set>
+                <div id="ff_${ form_field_name }" class="form_field_pair">
+                    <div>
+                        <tiles:insertDefinition name="attributeRenderer">
+                            <tiles:putAttribute name="formField" value="${formField}"/>
+                            <tiles:putAttribute name="editEnabled" value="${ editEnabled }"/>
+                        </tiles:insertDefinition>
+                    </div>
+                </div>
+            </c:otherwise>
+        </c:choose>
+    </c:when>
   <c:otherwise>
   <c:choose>
     <c:when test="<%= formField.isPropertyFormField() %>">
