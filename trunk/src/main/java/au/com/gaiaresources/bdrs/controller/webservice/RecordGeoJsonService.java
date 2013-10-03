@@ -1,7 +1,5 @@
 package au.com.gaiaresources.bdrs.controller.webservice;
 
-import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
-import org.hibernate.Session;
 import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.geojson.RecordMinimalMfFeature;
 import au.com.gaiaresources.bdrs.model.record.Record;
@@ -11,18 +9,20 @@ import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 import org.apache.log4j.Logger;
+import org.hibernate.Session;
 import org.json.JSONException;
+import org.json.JSONWriter;
 import org.mapfish.geo.MfFeature;
+import org.mapfish.geo.MfGeoJSONWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import org.mapfish.geo.MfGeoJSONWriter;
-import org.json.JSONWriter;
+import org.springframework.web.util.HtmlUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -75,6 +75,9 @@ public class RecordGeoJsonService extends AbstractController {
      * @param response     http response
      * @throws IOException
      */
+    // suppress the xss warning since we are supporting jsonp.
+    // the jsonp callback argument is html sanitized.
+    @SuppressWarnings({"XSS_REQUEST_PARAMETER_TO_SERVLET_WRITER"})
     @RequestMapping(value = GET_RECORD_GEOJSON_URL, method = RequestMethod.GET)
     public void getGeoJson(
             @RequestParam(value = PARAM_USERNAME, defaultValue = "") String username,
@@ -136,6 +139,7 @@ public class RecordGeoJsonService extends AbstractController {
             boolean jsonp = StringUtils.notEmpty(jsonpCallback);
 
             if (jsonp) {
+                jsonpCallback = HtmlUtils.htmlEscape(jsonpCallback);
                 response.getWriter().write(jsonpCallback + "(");
             }
 
