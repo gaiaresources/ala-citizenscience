@@ -356,6 +356,7 @@ public class ThresholdServiceTest extends AbstractGridControllerTest {
                 case BARCODE:
                 case TIME:
                 case HTML:
+                case HTML_RAW:
                 case HTML_NO_VALIDATION:
                 case HTML_COMMENT:
                 case HTML_HORIZONTAL_RULE:
@@ -497,6 +498,7 @@ public class ThresholdServiceTest extends AbstractGridControllerTest {
                             falseValue = "012t6589#";
                             break;
                         case HTML:
+                        case HTML_RAW:
                         case HTML_NO_VALIDATION:
                         case HTML_COMMENT:
                         case HTML_HORIZONTAL_RULE:
