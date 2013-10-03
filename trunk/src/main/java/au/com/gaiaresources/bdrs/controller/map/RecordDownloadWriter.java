@@ -28,17 +28,18 @@ import au.com.gaiaresources.bdrs.util.KMLUtils;
  */
 public class RecordDownloadWriter extends AbstractDownloadWriter<Record> {
     
-    private boolean serializeAttributes;
+    private boolean serializeLazyLoadedAttributes;
     
     /**
      * Create a new writer
-     * @param serializeAttributes Serialize attributes, is slow and can cause heap
+     * @param serializeLazyLoadedAttributes Serialize lazy loaded attributes,
+     *                                      is slow and can cause heap
      * problems for large numbers of records. 
      * When showing KML for maps we don't want to include attributes. 
      * When downloading the entire KML we want to include the attributes.
      */
-    public RecordDownloadWriter(boolean serializeAttributes) {
-        this.serializeAttributes = serializeAttributes;
+    public RecordDownloadWriter(boolean serializeLazyLoadedAttributes) {
+        this.serializeLazyLoadedAttributes = serializeLazyLoadedAttributes;
     }
     
     private static Logger log = Logger.getLogger(RecordDownloadWriter.class);
@@ -113,13 +114,13 @@ public class RecordDownloadWriter extends AbstractDownloadWriter<Record> {
             // evict to ensure garbage collection
             if (++recordCount % ScrollableResults.RESULTS_BATCH_SIZE == 0) {
                 
-                KMLUtils.writeRecords(writer, accessingUser, contextPath, rList, serializeAttributes);
+                KMLUtils.writeRecords(writer, accessingUser, contextPath, rList, serializeLazyLoadedAttributes);
                 rList.clear();
                 sesh.clear();
             }
         }
         // Flush the remainder out of the list.
-        KMLUtils.writeRecords(writer, accessingUser, contextPath, rList, serializeAttributes);
+        KMLUtils.writeRecords(writer, accessingUser, contextPath, rList, serializeLazyLoadedAttributes);
         sesh.clear();
         writer.write(false, out);
     }

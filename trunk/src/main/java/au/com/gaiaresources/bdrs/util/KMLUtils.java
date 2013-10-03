@@ -76,9 +76,9 @@ public class KMLUtils {
      * @param currentUser Currently logged in user
      * @param contextPath web server context path
      * @param recordList list of records to serialize
-     * @param serializeAttributes Whether to serialize attributes. Is slow and can cause heap problems for large.
+     * @param serializeLazyLoadedValues Whether to serialize lazy loaded values. Is slow and can cause heap problems for large.
      */
-    public static void writeRecords(KMLWriter writer, User currentUser, String contextPath, List<Record> recordList, boolean serializeAttributes) {
+    public static void writeRecords(KMLWriter writer, User currentUser, String contextPath, List<Record> recordList, boolean serializeLazyLoadedValues) {
         JsonService jsonService = AppContext.getBean(JsonService.class);
         
         String label;
@@ -89,7 +89,7 @@ public class KMLUtils {
         for(Record record : recordList) {
             label = String.format("Record #%d", record.getId());
             AccessControlledRecordAdapter recAdapter = new AccessControlledRecordAdapter(record, currentUser);
-            description = jsonService.toJson(recAdapter, contextPath, spatialUtilFactory, serializeAttributes).toString();
+            description = jsonService.toJson(recAdapter, contextPath, spatialUtilFactory, serializeLazyLoadedValues).toString();
             
             Geometry geom = record.getGeometry();
             if (geom != null) {
