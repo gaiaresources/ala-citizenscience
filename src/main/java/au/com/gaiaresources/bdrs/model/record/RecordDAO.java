@@ -50,7 +50,7 @@ public interface RecordDAO extends FacetDAO {
 	 * @return the records for the specified survey in the specified location.
 	 */
 	List<Record> getRecords(User user, Survey survey, Location location, Date startDate, Date endDate);
-	
+
 	/**
 	 * Retrieves the records for a survey where a certain species is recorded
 	 * 
@@ -120,6 +120,10 @@ public interface RecordDAO extends FacetDAO {
 	ScrollableRecords getScrollableRecords(User user, int groupPk, int surveyPk,
                 int taxonGroupPk, Date startDate, Date endDate, String species,
                 int pageNumber, int entriesPerPage);
+
+    ScrollableRecords getScrollableRecords(User user, List<Survey> surveys,
+                                           Date startDate, Date endDate,
+                                           int pageNumber, int entriesPerPage);
 	
 	/**
 	 * Stopping the madness of too many args when filtering for records. Encapsulate all

@@ -1,6 +1,7 @@
 package au.com.gaiaresources.bdrs.controller;
 
 import au.com.gaiaresources.bdrs.db.TransactionCallback;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.servlet.Interceptor;
 import au.com.gaiaresources.bdrs.servlet.RequestContext;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
@@ -64,7 +65,7 @@ public abstract class AbstractController {
     protected void writeJson(HttpServletRequest request, HttpServletResponse response, String json) throws IOException {
         // support for JSONP
 
-        String callback = request.getParameter("callback");
+        String callback = request.getParameter(BdrsWebConstants.JSONP_CALLBACK_PARAM);
         // support for JSONP
         if (StringUtils.notEmpty(callback)) {
             callback = HtmlUtils.htmlEscape(callback);
