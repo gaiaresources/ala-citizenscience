@@ -134,6 +134,7 @@ public abstract class AttributeParser {
             validationType = attribute.isRequired() ? ValidationType.REQUIRED_TIME : ValidationType.TIME;
             return validator.validate(parameterMap, validationType, paramKey, attribute);
         case HTML:
+        case HTML_RAW:
         case HTML_COMMENT:
         case HTML_HORIZONTAL_RULE:
             return validator.validate(parameterMap, ValidationType.HTML, paramKey, attribute);
@@ -236,6 +237,7 @@ public abstract class AttributeParser {
                 case BARCODE:
                 case REGEX:
                 case HTML:
+                case HTML_RAW:
                 case HTML_NO_VALIDATION:
                 case HTML_COMMENT:
                 case HTML_HORIZONTAL_RULE:
