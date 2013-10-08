@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletResponse;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.UnsupportedEncodingException;
 
 /**
@@ -60,6 +61,8 @@ public class RecordGeoJsonServiceTest extends AbstractControllerTest {
     private Attribute a1;
     private Attribute a2;
 
+    private TaxonGroup primaryGroup;
+    private TaxonGroup secondaryGroup;
     private IndicatorSpecies species1;
     private IndicatorSpecies species2;
 
@@ -71,6 +74,28 @@ public class RecordGeoJsonServiceTest extends AbstractControllerTest {
 
     @Before
     public void setup() {
+
+        primaryGroup = new TaxonGroup();
+        primaryGroup.setName("primary group");
+        taxaDAO.save(primaryGroup);
+
+        secondaryGroup = new TaxonGroup();
+        secondaryGroup.setName("secondary group");
+        taxaDAO.save(secondaryGroup);
+
+        species1 = new IndicatorSpecies();
+        species1.setScientificName("sp sci one");
+        species1.setCommonName("sp common one");
+        species1.setTaxonGroup(primaryGroup);
+        taxaDAO.save(species1);
+
+        species2 = new IndicatorSpecies();
+        species2.setScientificName("sp sci two");
+        species2.setCommonName("sp common two");
+        species2.setTaxonGroup(primaryGroup);
+        species2.addSecondaryGroup(secondaryGroup);
+        taxaDAO.save(species2);
+
 
         RecordFactory recordFactory = new RecordFactory(recordDAO, avDAO);
 
@@ -112,17 +137,22 @@ public class RecordGeoJsonServiceTest extends AbstractControllerTest {
         r1 = recordFactory.create(s1, mainUser);
         r1.setWhen(TestUtil.getDate(2013, 2, 2));
         r1.setGeometry(geometryFactory.createPoint(new Coordinate(1,2)));
+        r1.setSpecies(species1);
 
         r2 = recordFactory.create(s2, mainUser);
         r2.setWhen(TestUtil.getDate(2013, 2, 4));
         r2.setGeometry(geometryFactory.createPoint(new Coordinate(1,2)));
+        r2.setSpecies(species2);
 
         r3 = recordFactory.create(s1, otherUser);
         r3.setWhen(TestUtil.getDate(2013, 2, 6));
         r3.setGeometry(geometryFactory.createPoint(new Coordinate(1,2)));
+        r3.setSpecies(species1);
+
         r4 = recordFactory.create(s2, otherUser);
         r4.setWhen(TestUtil.getDate(2013, 2, 8));
         r4.setGeometry(geometryFactory.createPoint(new Coordinate(1,2)));
+        r4.setSpecies(species2);
     }
 
     @Test
@@ -157,7 +187,69 @@ public class RecordGeoJsonServiceTest extends AbstractControllerTest {
         }
     }
 
+    @Test
+    public void testSpeciesFilter() throws Exception {
+
+        request.setParameter(RecordGeoJsonService.PARAM_USERNAME, mainUser.getName());
+        request.setParameter(RecordGeoJsonService.PARAM_SPECIES_NAME, species1.getScientificName());
+        request.addParameter(RecordGeoJsonService.PARAM_LIMIT, "100");
+        request.setRequestURI(RecordGeoJsonService.GET_RECORD_GEOJSON_URL);
+        request.setMethod("GET");
+
+        this.handle(request, response);
+        {
+            // assertions
+            JSONArray featureJsonArray = getFeatureArray(response);
+            Assert.assertEquals("wrong count", 1, featureJsonArray.size());
+            this.assertHasRecord(featureJsonArray, r1);
+        }
+
+        request.setParameter(RecordGeoJsonService.PARAM_SPECIES_NAME, species1.getCommonName());
+        response = new MockHttpServletResponse();
+
+        this.handle(request, response);
+        {
+            // assertions
+            JSONArray featureJsonArray = getFeatureArray(response);
+            Assert.assertEquals("wrong count", 1, featureJsonArray.size());
+            this.assertHasRecord(featureJsonArray, r1);
+        }
+    }
+
+    @Test
+    public void testTaxonGroupFilter() throws Exception {
+        request.setParameter(RecordGeoJsonService.PARAM_GROUP_NAME, primaryGroup.getName());
+        request.addParameter(RecordGeoJsonService.PARAM_LIMIT, "100");
+        request.setRequestURI(RecordGeoJsonService.GET_RECORD_GEOJSON_URL);
+        request.setMethod("GET");
+
+        this.handle(request, response);
+        {
+            // assertions
+            JSONArray featureJsonArray = getFeatureArray(response);
+            Assert.assertEquals("wrong count", 4, featureJsonArray.size());
+            this.assertHasRecord(featureJsonArray, r1);
+            this.assertHasRecord(featureJsonArray, r2);
+            this.assertHasRecord(featureJsonArray, r3);
+            this.assertHasRecord(featureJsonArray, r4);
+        }
+
+        request.setParameter(RecordGeoJsonService.PARAM_GROUP_NAME, secondaryGroup.getName());
+        response = new MockHttpServletResponse();
+
+        this.handle(request, response);
+        {
+            // assertions
+            JSONArray featureJsonArray = getFeatureArray(response);
+            Assert.assertEquals("wrong count", 2, featureJsonArray.size());
+            this.assertHasRecord(featureJsonArray, r2);
+            this.assertHasRecord(featureJsonArray, r4);
+        }
+    }
+
     private JSONArray getFeatureArray(MockHttpServletResponse response) throws UnsupportedEncodingException {
+        Assert.assertEquals("wrong http return code. msg : " + response.getContentAsString(),
+                HttpServletResponse.SC_OK, response.getStatus());
         JSONObject json = JSONObject.fromStringToJSONObject(response.getContentAsString());
         Assert.assertEquals("wrong type" ,"FeatureCollection", json.getString("type"));
         return json.getJSONArray("features");

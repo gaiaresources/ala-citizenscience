@@ -7,6 +7,8 @@ import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
+import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
@@ -31,6 +33,7 @@ import java.io.Writer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -53,6 +56,8 @@ public class RecordGeoJsonService extends AbstractController {
     public static final String PARAM_START_DATE = "startDate";
     public static final String PARAM_END_DATE = "endDate";
     public static final String PARAM_SURVEY_IDS = "surveyId";
+    public static final String PARAM_GROUP_NAME = "groupName";
+    public static final String PARAM_SPECIES_NAME = "speciesName";
 
     private Logger log = Logger.getLogger(getClass());
 
@@ -62,6 +67,8 @@ public class RecordGeoJsonService extends AbstractController {
     private UserDAO userDAO;
     @Autowired
     private SurveyDAO surveyDAO;
+    @Autowired
+    private TaxaDAO taxaDAO;
 
     /**
      * Returns a geo json object of records that meet the passed parameters
@@ -87,6 +94,8 @@ public class RecordGeoJsonService extends AbstractController {
             @RequestParam(value = PARAM_END_DATE, required = false)
             String endDateStr,
             @RequestParam(value = PARAM_SURVEY_IDS, required = false) int[] surveyIds,
+            @RequestParam(value = PARAM_GROUP_NAME, required = false) String groupName,
+            @RequestParam(value = PARAM_SPECIES_NAME, required = false) String speciesName,
             HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
@@ -122,6 +131,23 @@ public class RecordGeoJsonService extends AbstractController {
                 }
             }
 
+            List<Integer> speciesList;
+            if (StringUtils.notEmpty(speciesName) || StringUtils.notEmpty(groupName)) {
+
+                speciesList = taxaDAO.searchIndicatorSpeciesPk(groupName, speciesName, true);
+                if (speciesList.isEmpty()) {
+                    // return with error
+                    response.setContentType("text/html");
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    response.getWriter().write("No species returned for species search string : "
+                            + HtmlUtils.htmlEscape(speciesName) + " and group search string : "
+                            + HtmlUtils.htmlEscape(groupName));
+                    return;
+                }
+            } else {
+                speciesList = Collections.EMPTY_LIST;
+            }
+
             User u = userDAO.getUser(username);
             List<Survey> surveys = new ArrayList<Survey>();
             if (surveyIds != null) {
@@ -133,7 +159,8 @@ public class RecordGeoJsonService extends AbstractController {
                 }
             }
 
-            ScrollableRecords records = recordDAO.getScrollableRecords(u, surveys, startDate, endDate, 0, limit);
+            ScrollableRecords records = recordDAO.getScrollableRecords(u, surveys,
+                    speciesList, startDate, endDate, 0, limit);
 
             String jsonpCallback = request.getParameter(BdrsWebConstants.JSONP_CALLBACK_PARAM);
             boolean jsonp = StringUtils.notEmpty(jsonpCallback);
@@ -153,7 +180,7 @@ public class RecordGeoJsonService extends AbstractController {
             }
         } catch (JSONException ex) {
             log.error("Error creating GeoJSON feed");
-            response.setStatus(500);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             response.getWriter().write("Error creating GeoJSON feed : " + ex.getMessage());
             response.setContentType("text/html");
         }
