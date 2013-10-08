@@ -1121,6 +1121,7 @@ public class ApplicationService extends AbstractController {
                 }
                 break;
             case HTML:
+            case HTML_RAW:
             case HTML_NO_VALIDATION:
             case HTML_COMMENT:
             case HTML_HORIZONTAL_RULE:
