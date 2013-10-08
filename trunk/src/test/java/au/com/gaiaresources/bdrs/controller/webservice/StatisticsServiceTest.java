@@ -156,7 +156,7 @@ public class StatisticsServiceTest extends AbstractControllerTest {
     }
 
     @Test
-    public void testStatistics() throws Exception {
+    public void testLatestStatistics() throws Exception {
 
         request.setRequestURI(StatisticsService.LATEST_STATS_URL);
         request.setMethod("GET");
@@ -177,6 +177,35 @@ public class StatisticsServiceTest extends AbstractControllerTest {
         Assert.assertEquals("wrong user cont", 2, userCount.intValue());
 
         Record lr = recordDAO.getLatestRecord();
+
+        Assert.assertEquals("wrong latest record id", lr.getId().intValue(), recordId.intValue());
+
+        String sciName = latestRecord.getString("species");
+
+        Assert.assertEquals("wrong sci name", lr.getSpecies().getScientificName(), sciName);
+    }
+
+    @Test
+    public void testLatestStatisticsForUser() throws Exception {
+
+        request.setRequestURI(StatisticsService.LATEST_STATS_URL);
+        request.setMethod("GET");
+        request.setParameter(StatisticsService.PARAM_USER_NAME, mainUser.getName());
+
+        this.handle(request, response);
+
+        JSONObject json = JSONObject.fromStringToJSONObject(response.getContentAsString());
+
+        Integer recordCount = json.getInt("userRecordCount");
+        Integer uniqueSpeciesCount = json.getInt("userUniqueSpeciesCount");
+
+        JSONObject latestRecord = json.getJSONObject("userLatestRecord");
+        Integer recordId = latestRecord.getInt("recordId");
+
+        Assert.assertEquals("wrong record count", 2, recordCount.intValue());
+        Assert.assertEquals("wrong unique species count", 1, uniqueSpeciesCount.intValue());
+
+        Record lr = recordDAO.getLatestRecord(mainUser);
 
         Assert.assertEquals("wrong latest record id", lr.getId().intValue(), recordId.intValue());
 

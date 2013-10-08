@@ -68,6 +68,17 @@ public interface RecordDAO extends FacetDAO {
 
 	Integer countUniqueSpecies();
 
+    /**
+     * Gets last modified record for a user
+     * @param user
+     * @return Record if one exists. Null otherwise.
+     */
+    Record getLatestRecord(User user);
+
+    /**
+     * Gets last modified record on the server
+     * @return Record if one exists. Null otherwise.
+     */
 	Record getLatestRecord();
 
 	/**
@@ -121,7 +132,21 @@ public interface RecordDAO extends FacetDAO {
                 int taxonGroupPk, Date startDate, Date endDate, String species,
                 int pageNumber, int entriesPerPage);
 
+    /**
+     * Get scrollable records with the following criteria
+     * A null or empty parameter will ignore that parameter.
+     *
+     * @param user Record owner
+     * @param surveys Survey of the record
+     * @param species Primary species of the record
+     * @param startDate Start date range
+     * @param endDate End date range
+     * @param pageNumber Page number to return
+     * @param entriesPerPage Limits the number of returned records
+     * @return ScrollableRecords
+     */
     ScrollableRecords getScrollableRecords(User user, List<Survey> surveys,
+                                           List<Integer> species,
                                            Date startDate, Date endDate,
                                            int pageNumber, int entriesPerPage);
 	
