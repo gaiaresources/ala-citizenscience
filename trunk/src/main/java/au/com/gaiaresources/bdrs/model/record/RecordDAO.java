@@ -394,4 +394,13 @@ public interface RecordDAO extends FacetDAO {
      * @return List of matching records.
      */
     List<Record> getFieldNameRecords(Session sesh, Integer userId, Integer surveyId, TaxaService taxaService);
+
+
+    /**
+     * Search by group. Order by 'when' date
+     * @param group Search for this group.
+     * @return List of records
+     */
+    ScrollableRecords getRecordByGroup(RecordGroup group);
+
 }

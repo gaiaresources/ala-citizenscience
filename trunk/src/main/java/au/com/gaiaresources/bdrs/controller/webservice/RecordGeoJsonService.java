@@ -1,9 +1,11 @@
 package au.com.gaiaresources.bdrs.controller.webservice;
 
 import au.com.gaiaresources.bdrs.controller.AbstractController;
+import au.com.gaiaresources.bdrs.geojson.RecordGroupLineMfFeature;
 import au.com.gaiaresources.bdrs.geojson.RecordMinimalMfFeature;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
+import au.com.gaiaresources.bdrs.model.record.RecordGroup;
 import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
@@ -12,6 +14,8 @@ import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 import au.com.gaiaresources.bdrs.util.StringUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
@@ -32,10 +36,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -58,6 +59,7 @@ public class RecordGeoJsonService extends AbstractController {
     public static final String PARAM_SURVEY_IDS = "surveyId";
     public static final String PARAM_GROUP_NAME = "groupName";
     public static final String PARAM_SPECIES_NAME = "speciesName";
+    public static final String PARAM_GROUPED = "grouped";
 
     private Logger log = Logger.getLogger(getClass());
 
@@ -78,6 +80,10 @@ public class RecordGeoJsonService extends AbstractController {
      * @param startDateStr the earliest date of returned records. If null, no limit.
      * @param endDateStr   the latest date of returned records . If null, no limit.
      * @param surveyIds    filter by survey IDs. If empty, return all surveys.
+     * @param grouped      when true, only displays records with record groups.
+     *                     Draws these records as a line, ordered by record 'when' date.
+     *                     when false, will draw ignore groups even if they exist
+     *                     and draw all records as points.
      * @param request      http request
      * @param response     http response
      * @throws IOException
@@ -96,6 +102,8 @@ public class RecordGeoJsonService extends AbstractController {
             @RequestParam(value = PARAM_SURVEY_IDS, required = false) int[] surveyIds,
             @RequestParam(value = PARAM_GROUP_NAME, required = false) String groupName,
             @RequestParam(value = PARAM_SPECIES_NAME, required = false) String speciesName,
+            @RequestParam(value = PARAM_GROUPED, required = false, defaultValue = "false")
+            boolean grouped,
             HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
@@ -170,7 +178,8 @@ public class RecordGeoJsonService extends AbstractController {
                 response.getWriter().write(jsonpCallback + "(");
             }
 
-            writeGeoJson(getRequestContext().getHibernate(), response.getWriter(), records);
+            writeGeoJson(getRequestContext().getHibernate(),
+                    response.getWriter(), records, grouped);
 
             if (jsonp) {
                 response.getWriter().write(");");
@@ -190,13 +199,17 @@ public class RecordGeoJsonService extends AbstractController {
      * @param sesh hibernate session
      * @param w writer
      * @param records records to serialize
+     * @param grouped when true, only displays records with record groups.
+     *                Draws these records as a line, ordered by record 'when' date.
+     *                when false, will draw ignore groups even if they exist
+     *                and draw all records as points.
      */
-    public void writeGeoJson(Session sesh, Writer w, ScrollableRecords records) throws JSONException {
+    public void writeGeoJson(Session sesh, Writer w, ScrollableRecords records, boolean grouped) throws JSONException {
 
         JSONWriter jsonWriter = new JSONWriter(w);
         MfGeoJSONWriter geoJSONWriter = new MfGeoJSONWriter(jsonWriter);
 
-        // for more efficient writing...
+        // Use json stream writing methods for more efficient writing...
         jsonWriter.object();
         jsonWriter.key("type");
         jsonWriter.value("FeatureCollection");
@@ -204,18 +217,55 @@ public class RecordGeoJsonService extends AbstractController {
         jsonWriter.key("features");
         jsonWriter.array();
 
+        // defaults to srid = 4326
+        SpatialUtilFactory spatialUtilFactory = new SpatialUtilFactory();
+        SpatialUtil spatialUtil = spatialUtilFactory.getLocationUtil();
+
+        Set<Integer> includedGroupIds = new HashSet<Integer>();
         while (records.hasMoreElements()) {
             Record r = records.nextElement();
 
-            MfFeature feature = new RecordMinimalMfFeature(r);
+            if (!grouped) {
+                if (r.getGeometry() != null) {
+                    MfFeature feature = new RecordMinimalMfFeature(r, spatialUtil);
+                    geoJSONWriter.encodeFeature(feature);
+                }
+            } else {
+                // record must have a group
+                RecordGroup recordGroup = r.getRecordGroup();
+                if (recordGroup != null) {
+                    if (!includedGroupIds.contains(recordGroup.getId())) {
+                        includedGroupIds.add(recordGroup.getId());
+                        ScrollableRecords sr = recordDAO.getRecordByGroup(recordGroup);
 
-            geoJSONWriter.encodeFeature(feature);
+                        MfFeature lineFeature =
+                                new RecordGroupLineMfFeature(r.getRecordGroup(), sr,
+                                        spatialUtil, sesh);
+                        geoJSONWriter.encodeFeature(lineFeature);
+
+                        /*
+                        List<Record> recList = new ArrayList<Record>();
+
+                        while (sr.hasMoreElements()) {
+                            recList.add(sr.nextElement());
+                            sesh.clear();
+                        }
+
+                        // must have 2 points for track
+                        if (recList.size() > 1) {
+                            MfFeature lineFeature =
+                                    new RecordGroupLineMfFeature(r.getRecordGroup(), recList);
+                            geoJSONWriter.encodeFeature(lineFeature);
+                        } // else we cant draw a line. ignore this record group.
+                        */
+                    }
+                } // else we ignore the record
+            }
 
             sesh.clear();
         }
 
         jsonWriter.endArray();
-
         jsonWriter.endObject();
     }
 }
