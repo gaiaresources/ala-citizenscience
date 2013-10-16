@@ -4,6 +4,7 @@ import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
 import org.json.JSONException;
 import org.json.JSONWriter;
 import org.mapfish.geo.MfFeature;
@@ -19,12 +20,17 @@ import org.mapfish.geo.MfGeometry;
 public class RecordMinimalMfFeature extends MfFeature {
 
     private Record record;
+    private SpatialUtil spatialUtil;
 
-    public RecordMinimalMfFeature(Record r) {
+    public RecordMinimalMfFeature(Record r, SpatialUtil spatialUtil) {
         if (r == null) {
             throw new IllegalArgumentException("Record cannot be null");
         }
+        if (spatialUtil == null) {
+            throw new IllegalArgumentException("Spatial util cannot be null");
+        }
         this.record = r;
+        this.spatialUtil = spatialUtil;
     }
 
     @Override
@@ -40,7 +46,7 @@ public class RecordMinimalMfFeature extends MfFeature {
         if (record.getGeometry() == null) {
             return null;
         }
-        return new MfGeometry(record.getGeometry());
+        return new MfGeometry(spatialUtil.transform(record.getGeometry()));
     }
 
     @Override
