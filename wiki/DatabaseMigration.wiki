@@ -767,3 +767,27 @@ create index task_type_index on INDEX_SCHEDULE (TASK_TYPE);
 update INDEX_SCHEDULE set TASK_TYPE='INDEX';
 rollback;
 </code>
+
+= r500 =
+adding record_group table
+<code language="sql>
+
+-- Adding record group table
+create table RECORD_GROUP (RECORD_GROUP_ID  serial not null, WEIGHT int4, CREATED_AT timestamp, UPDATED_AT timestamp, CREATED_BY int4, UPDATED_BY int4, type text, START_DATE timestamp, END_DATE timestamp, USER_ID int4, PORTAL_ID int4, SURVEY_ID int4, primary key (RECORD_GROUP_ID));
+
+alter table RECORD add column RECORD_GROUP_ID int4;
+
+alter table RECORD add constraint RECORD_RECORD_GROUP_FK foreign key (RECORD_GROUP_ID) references RECORD_GROUP;
+create index record_group_type_index on RECORD_GROUP (type);
+
+alter table RECORD_GROUP add constraint FK425580F1C136AD4E foreign key (PORTAL_ID) references PORTAL;
+alter table RECORD_GROUP add constraint RECORD_GROUP_USER_FK foreign key (USER_ID) references USER_DEFINITION;
+alter table RECORD_GROUP add constraint RECORD_GROUP_SURVEY_FK foreign key (SURVEY_ID) references SURVEY;
+
+create table RECORD_GROUP_METADATA (RECORD_GROUP_RECORD_GROUP_ID int4 not null, metadata_ID int4 not null, primary key (RECORD_GROUP_RECORD_GROUP_ID, metadata_ID));
+
+alter table RECORD_GROUP_METADATA add constraint FK58369ABD510B318B foreign key (metadata_ID) references METADATA;
+alter table RECORD_GROUP_METADATA add constraint FK58369ABD490DA25A foreign key (RECORD_GROUP_RECORD_GROUP_ID) references RECORD_GROUP;
+
+
+</code>
