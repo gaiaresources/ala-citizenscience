@@ -544,6 +544,7 @@ public class ApplicationServiceUploadTest extends AbstractControllerTest {
                         break;
                     case TIME:
                     case HTML:
+                    case HTML_RAW:
                     case HTML_NO_VALIDATION:
                     case HTML_COMMENT:
                     case HTML_HORIZONTAL_RULE:
@@ -736,6 +737,7 @@ public class ApplicationServiceUploadTest extends AbstractControllerTest {
                     recAttr.put("value", "12:34");
                     break;
                 case HTML:
+                case HTML_RAW:
                 case HTML_NO_VALIDATION:
                 case HTML_COMMENT:
                 case HTML_HORIZONTAL_RULE:
