@@ -605,6 +605,7 @@ public abstract class AbstractControllerTest extends AbstractTransactionalTest {
                 break;
             }
             case HTML:
+            case HTML_RAW:
             case HTML_NO_VALIDATION:
             case HTML_COMMENT:
             case HTML_HORIZONTAL_RULE:
@@ -968,6 +969,7 @@ public abstract class AbstractControllerTest extends AbstractTransactionalTest {
         case STRING_AUTOCOMPLETE:
         case TEXT:
         case HTML:
+        case HTML_RAW:
         case HTML_NO_VALIDATION:
         case HTML_COMMENT:
         case HTML_HORIZONTAL_RULE:
