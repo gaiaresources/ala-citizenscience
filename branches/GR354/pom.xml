@@ -1091,7 +1091,7 @@
                 <bdrs.recaptcha.public.key>6LfbwwQAAAAAAEiDp_pgbdLzIOgVLpTpA3kqUfXF</bdrs.recaptcha.public.key>
                 <bdrs.recaptcha.private.key>6LfbwwQAAAAAAF5wVuk8nLcOanKCwvA_-rmtvNIL</bdrs.recaptcha.private.key>
                 <!-- File storage location -->
-                <bdrs.file.store.location>/home/adam/jobs/GR354_CRAGS/file.store.location</bdrs.file.store.location>
+                <bdrs.file.store.location>/home/adam/bdrs.file.store.location</bdrs.file.store.location>
                 <!-- Taxonlib test properties -->
                 <taxonlib.db.username>taxonlibuser</taxonlib.db.username>
                 <taxonlib.db.password>password</taxonlib.db.password>
