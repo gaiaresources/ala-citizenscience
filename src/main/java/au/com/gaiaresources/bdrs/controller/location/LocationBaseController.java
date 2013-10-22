@@ -260,6 +260,7 @@ public class LocationBaseController extends RecordController {
     @RequestMapping(value = "/bdrs/admin/survey/locationListing.htm", method = RequestMethod.GET)
     public ModelAndView editSurveyLocationListing(HttpServletRequest request, HttpServletResponse response,
             @RequestParam(value=BdrsWebConstants.PARAM_SURVEY_ID, required = true) int surveyId) {
+    	System.out.println("Test");
         Survey survey = getSurvey(surveyId);
         if (survey == null) {
             return SurveyBaseController.nullSurveyRedirect(getRequestContext());
@@ -271,8 +272,14 @@ public class LocationBaseController extends RecordController {
 
     @RolesAllowed( {Role.POWERUSER,Role.SUPERVISOR,Role.ADMIN} )
     @RequestMapping(value = "/bdrs/admin/survey/locationListing.htm", method = RequestMethod.POST)
-    public ModelAndView submitSurveyLocationListing(HttpServletRequest request, HttpServletResponse response,
-            @RequestParam(value=BdrsWebConstants.PARAM_SURVEY_ID, required = true) int surveyId) {
+    public ModelAndView submitSurveyLocationListing(
+    		HttpServletRequest request, 
+    		HttpServletResponse response,
+            @RequestParam(value=BdrsWebConstants.PARAM_SURVEY_ID, required = true) int surveyId
+            
+    		
+    		) {
+        
         Survey survey = getSurvey(surveyId);
         if (survey == null) {
             return SurveyBaseController.nullSurveyRedirect(getRequestContext());
@@ -289,7 +296,7 @@ public class LocationBaseController extends RecordController {
         }
 
         survey.setLocations(locationList);
-        
+
         boolean predefined_locations_only = request.getParameter("restrict_locations") != null;
         Metadata predefinedLocMetadataData = survey.getMetadataByKey(Metadata.PREDEFINED_LOCATIONS_ONLY);
         

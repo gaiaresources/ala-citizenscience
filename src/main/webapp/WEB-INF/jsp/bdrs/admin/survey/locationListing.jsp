@@ -5,11 +5,23 @@
 <jsp:useBean id="survey" type="au.com.gaiaresources.bdrs.model.survey.Survey" scope="request"/>
 <h1>Edit Project: Locations</h1>
 <cw:getContent key="admin/editProject/editLocations" />
-<form method="POST" action="${portalContextPath}/bdrs/admin/survey/locationListing.htm">
+<form method="POST" action="${portalContextPath}/bdrs/admin/survey/locationListing.htm" enctype="multipart/form-data">
     <input type="hidden" name="surveyId" value="${ survey.id }"/>
-    <div class="input_container">
+    <div class="textright input_container">
+    	<div class="buttonpanel">
+    		<input type="file" name="input_csv" />
+    		<input title="Import locations from a CSV file." id="importLocationsButton" class="form_action" type="submit" value="Import Locations" />
+    	</div>
         <div class="textright buttonpanel">
-            <input title="Add a location from another project." id="addExistingLocationButton" class="form_action" type="button" value="Add Existing Location" /><input title="Create a new location for this project." class="form_action" type="button" value="Create Location" onclick="window.document.location='${portalContextPath}/bdrs/admin/survey/editLocation.htm?surveyId=${ survey.id }';"/>
+        	<input title="Add a location from another project." id="addExistingLocationButton" class="form_action" type="button" value="Add Existing Location" />
+        </div>
+        <div class="textright buttonpanel">	
+            <input 
+            	title="Create a new location for this project."
+            	class="form_action"
+            	type="button" 
+            	value="Create Location"
+            	onclick="window.document.location='${portalContextPath}/bdrs/admin/survey/editLocation.htm?surveyId=${ survey.id }';"/>
         </div>
         <table id="location_listing" class="datatable">
             <thead>
