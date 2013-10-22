@@ -684,7 +684,9 @@ public class ApplicationService extends AbstractController {
         List<Object> locAttrBeanList = (List<Object>) PropertyUtils.getProperty(jsonLocationBean, "attributes");
         for(Object jsonLocAttrValBean : locAttrBeanList) { 
             AttributeValue locAttrVal = syncAttributeValue(syncResponseList, jsonLocAttrValBean, attrCache);
-            loc.getAttributes().add(locAttrVal);
+            if (locAttrVal != null) {
+                loc.getAttributes().add(locAttrVal);
+            }
         }
         
         // Save the client ID.
@@ -1049,7 +1051,9 @@ public class ApplicationService extends AbstractController {
         List<Object> recAttrBeanList = (List<Object>) PropertyUtils.getProperty(jsonRecordBean, "attributeValues");
         for(Object jsonRecAttrBean : recAttrBeanList) {
             AttributeValue recAttr = syncAttributeValue(syncResponseList, jsonRecAttrBean, attrCache);
-            rec.getAttributes().add(recAttr);
+            if (recAttr != null) {
+                rec.getAttributes().add(recAttr);
+            }
         }
 
         // Save the client ID.
@@ -1076,6 +1080,15 @@ public class ApplicationService extends AbstractController {
         if(attr == null) {
             attr = taxaDAO.getAttribute(attrPk);
             attrCache.put(attrPk, attr);
+        }
+
+        // This attribute is still null. We have a situation where
+        // the attribute exists on the device but not on the server.
+        // We have gotten out of sync somewhere - do not store this
+        // incoming data.
+        if (attr == null) {
+            log.error("Device requested attribute PK " + attrPk + " but it does not exist");
+            return null;
         }
 
         AttributeValue attrVal = attrValPk < 1 ? new AttributeValue() : attributeValueDAO.get(attrValPk);
