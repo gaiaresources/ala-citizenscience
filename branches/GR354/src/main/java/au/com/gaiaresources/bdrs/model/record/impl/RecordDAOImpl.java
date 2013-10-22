@@ -8,6 +8,7 @@ import javax.annotation.PostConstruct;
 import javax.persistence.Transient;
 
 import au.com.gaiaresources.bdrs.db.QueryCriteria;
+import au.com.gaiaresources.bdrs.model.record.*;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.Query;
@@ -32,10 +33,6 @@ import au.com.gaiaresources.bdrs.geometry.GeometryBuilder;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
-import au.com.gaiaresources.bdrs.model.record.Record;
-import au.com.gaiaresources.bdrs.model.record.RecordDAO;
-import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
-import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
 import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
@@ -1222,10 +1219,8 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         
         // need to left join species in the case species is null - we still want the record returned.
         q = new HqlQuery("select r from Record r left join r.species");
-        
-        if (parentId != null) {
-            q.and(Predicate.eq("r.parentRecord.id", parentId));
-        }
+        q.and(Predicate.eq("r.parentRecord.id", parentId));
+
         if (censusMethodId != null) {
             q.and(Predicate.eq("r.censusMethod.id", censusMethodId));
         }
@@ -1364,6 +1359,17 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
 
         hqlQuery.applyNamedArgsToQuery(query);
 
+        return new ScrollableRecordsImpl(query);
+    }
+
+    @Override
+    public ScrollableRecords getRecordByGroup(RecordGroup group) {
+
+        HqlQuery hqlQuery = new HqlQuery("select r from Record r");
+        hqlQuery.and(Predicate.eq("r.recordGroup", group, "group"));
+        hqlQuery.order("when", "asc", "r");
+        Query query = getSession().createQuery(hqlQuery.getQueryString());
+        hqlQuery.applyNamedArgsToQuery(query);
         return new ScrollableRecordsImpl(query);
     }
 }

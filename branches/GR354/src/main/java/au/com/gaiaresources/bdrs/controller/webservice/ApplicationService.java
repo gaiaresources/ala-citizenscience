@@ -17,6 +17,8 @@ import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
+import au.com.gaiaresources.bdrs.model.record.RecordGroup;
+import au.com.gaiaresources.bdrs.model.record.RecordGroupDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.*;
@@ -82,6 +84,8 @@ public class ApplicationService extends AbstractController {
     public static final String JSON_KEY_LOCATIONS = "locations";
     public static final String JSON_KEY_SPECIES_INFO_ITEMS = "profileItems";
     public static final String JSON_KEY_TAXON_GROUPS = "taxonGroups";
+
+    public static final String UPLOAD_JSON_KEY_SURVEY_ID = "survey_id";
 
     public static final String JSON_KEY_TAXON_GROUP_ID = "taxonGroupId";
     public static final String JSON_KEY_SECONDARY_TAXON_GROUPS = "secondaryTaxonGroups";
@@ -159,6 +163,9 @@ public class ApplicationService extends AbstractController {
 
     @Autowired
     private ManagedFileDAO managedFileDAO;
+
+    @Autowired
+    private RecordGroupDAO recordGroupDAO;
     
     @Autowired
     private SurveyImportExportService surveyImportExportService;
@@ -743,7 +750,7 @@ public class ApplicationService extends AbstractController {
             if(ident == null) {
                 throw new NullPointerException("Missing POST parameter 'ident'.");
             }
-            
+
             String jsonData = request.getParameter("syncData");
 
             if(jsonData == null) {
@@ -752,6 +759,21 @@ public class ApplicationService extends AbstractController {
 
             User user = authenticate(ident);
             if (user != null) {
+
+                JSONArray recordGroupJsonArray;
+                String recordGroupData = request.getParameter("recordGroupData");
+
+                if (recordGroupData != null) {
+                    recordGroupJsonArray = JSONArray.fromString(recordGroupData);
+                } else {
+                    // This is to ensure backwards compatibility with
+                    // mobile tools prior to the addition of record groups
+                    // 2013-10-15
+                    recordGroupJsonArray = new JSONArray();
+                }
+
+                List<Map<String, Object>> recordGroupResponseList =
+                        syncRecordGroups(recordGroupJsonArray, user);
 
                 JSONObject status = new JSONObject();
 
@@ -763,9 +785,13 @@ public class ApplicationService extends AbstractController {
                 JSONArray clientData = JSONArray.fromString(jsonData);
 
                 SoftValueHashMap attrCache = new SoftValueHashMap();
+                SoftValueHashMap recordGroupCache = new SoftValueHashMap();
                 for(Object jsonRecordBean : clientData) {
-                    syncRecord(syncResponseList, jsonRecordBean, user, attrCache, spatialUtilFactory);
+                    syncRecord(syncResponseList,
+                            jsonRecordBean, user, attrCache, recordGroupCache, spatialUtilFactory);
                 }
+
+                syncResponseList.addAll(recordGroupResponseList);
                 
                 status.put("sync_result", syncResponseList);
                 int recordsForUser = recordDAO.countRecords(user);
@@ -807,6 +833,54 @@ public class ApplicationService extends AbstractController {
             this.writeJson(request, response, jsonObj.toString());
             return null;
         }
+    }
+
+    private List<Map<String, Object>> syncRecordGroups(JSONArray recordGroupArray, User user) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+
+        List<Map<String, Object>> result =
+                new ArrayList<Map<String, Object>>(recordGroupArray.size());
+
+        for (int i=0; i<recordGroupArray.size(); ++i) {
+            JSONObject recordGroupJson = recordGroupArray.getJSONObject(i);
+            int recordGroupId = recordGroupJson.optInt("server_id", 0);
+            String recordGroupClientId = recordGroupJson.getString("id");
+            RecordGroup group;
+            if (recordGroupId != 0) {
+                group = recordGroupDAO.getRecordGroup(recordGroupId);
+            } else {
+                group = recordGroupDAO.getRecordGroupByClientID(recordGroupClientId);
+            }
+
+            if (group == null) {
+                group = new RecordGroup();
+                group = recordGroupDAO.save(group);
+            }
+
+            group.setUser(user);
+            int surveyId = recordGroupJson.optInt("survey_id", 0);
+            group.setSurvey(surveyDAO.getSurvey(surveyId));
+            group.setType(recordGroupJson.optString("type", ""));
+
+            // Save the client ID.
+            Metadata md = recordGroupDAO.getRecordGroupMetadataForKey(group,
+                    Metadata.RECORD_GROUP_CLIENT_ID_KEY);
+            md.setValue(recordGroupClientId);
+            md = metadataDAO.save(md);
+            group.getMetadata().add(md);
+
+            group.setStartDate(getJSONDate(recordGroupJson, "startDate", null));
+            group.setEndDate(getJSONDate(recordGroupJson, "endDate", null));
+
+            Map<String, Object> responseObj = new HashMap<String, Object>();
+            responseObj.put("id", recordGroupClientId);
+            responseObj.put("server_id", group.getId());
+            responseObj.put("klass", RecordGroup.class.getSimpleName());
+            result.add(responseObj);
+        }
+
+        this.getRequestContext().getHibernate().flush();
+
+        return result;
     }
 
     /**
@@ -932,13 +1006,15 @@ public class ApplicationService extends AbstractController {
         }
     }
     
-    private void syncRecord(List<Map<String, Object>> syncResponseList, Object jsonRecordBean, User user, SoftValueHashMap attrCache,
+    private void syncRecord(List<Map<String, Object>> syncResponseList,
+            Object jsonRecordBean, User user, SoftValueHashMap attrCache,
+            SoftValueHashMap recordGroupCache,
     		SpatialUtilFactory spatialUtilFactory)
         throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, IOException {
 
         String clientID = getJSONString(jsonRecordBean, "id", null);
         if(clientID == null) {
-            throw new NullPointerException();
+            throw new IllegalArgumentException("Record must have a client id");
         }
         
         Integer recordPk = getJSONInteger(jsonRecordBean, "server_id", 0);
@@ -1054,6 +1130,31 @@ public class ApplicationService extends AbstractController {
             if (recAttr != null) {
                 rec.getAttributes().add(recAttr);
             }
+        }
+
+        JSONObject jsonObj = (JSONObject)jsonRecordBean;
+        if (jsonObj.has("recordGroup")) {
+            JSONObject recordGroupJson = jsonObj.getJSONObject("recordGroup");
+            String recordGroupClientId = recordGroupJson.getString("id");
+            int recordGroupId = recordGroupJson.optInt("server_id", 0);
+            RecordGroup group;
+            if (recordGroupId != 0) {
+                group = (RecordGroup)recordGroupCache.get(recordGroupId);
+                if (group == null) {
+                    group = recordGroupDAO.getRecordGroup(recordGroupId);
+                }
+            } else {
+                group = (RecordGroup)recordGroupCache.get(recordGroupClientId);
+                if (group == null) {
+                    group = recordGroupDAO.getRecordGroupByClientID(recordGroupClientId);
+                }
+            }
+            if (group != null && group.getId() != null) {
+                // add to cache
+                recordGroupCache.put(group.getId(), group);
+                recordGroupCache.put(recordGroupClientId, group);
+            }
+            rec.setRecordGroup(group);
         }
 
         // Save the client ID.

@@ -49,6 +49,7 @@
 		        <value>au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies</value>
 		        <value>au.com.gaiaresources.bdrs.model.taxa.SpeciesProfile</value>
 		        <value>au.com.gaiaresources.bdrs.model.record.Record</value>
+		        <value>au.com.gaiaresources.bdrs.model.record.RecordGroup</value>
                 <value>au.com.gaiaresources.bdrs.model.record.Comment</value>
 
 
