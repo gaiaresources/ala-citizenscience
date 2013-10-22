@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.text.ParseException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map.Entry;
 
 import javax.annotation.security.RolesAllowed;
 import javax.security.sasl.AuthenticationException;
@@ -119,8 +118,7 @@ public class BulkDataController extends AbstractController {
         filename.append(".xls");
 
         response.setContentType("application/vnd.ms-excel");
-        response.setHeader("Content-Disposition", "attachment;filename="
-                + filename);
+        response.setHeader("Content-Disposition", "attachment;filename=" + filename);
 
         bulkDataService.exportSurveyTemplate(getRequestContext().getHibernate(), survey, response.getOutputStream());
     }
@@ -162,7 +160,7 @@ public class BulkDataController extends AbstractController {
                             errorDescription = "Please correct the errors below and retry your upload";
 
                         } else {
-                            // Too many errors occured. Is this even the right spreadsheet?
+                            // Too many errors occurred. Is this even the right spreadsheet?
                             errorMessage = "More than "+BulkDataService.PARSE_ERROR_LIMIT+" errors were encountered while parsing the spreadsheet.";
                             errorDescription = "Please ensure the spreadsheet is in the correct format and retry your upload";
                         }
@@ -176,7 +174,7 @@ public class BulkDataController extends AbstractController {
                     // Failed to have the right content type
                     fileError = true;
                     errorMessage = "The uploaded file was not an XLS file.";
-                    errorDescription = "Please retry your upload with a XLS file";
+                    errorDescription = "Please retry your upload with an XLS file";
                     log.warn(errorMessage);
                 }
             } else {
