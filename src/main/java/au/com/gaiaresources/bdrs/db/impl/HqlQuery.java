@@ -2,10 +2,15 @@ package au.com.gaiaresources.bdrs.db.impl;
 
 import au.com.gaiaresources.bdrs.json.JSONEnum;
 import au.com.gaiaresources.bdrs.json.JSONEnumUtil;
+import org.apache.log4j.Logger;
+import org.hibernate.Query;
+import org.hibernate.Session;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -219,4 +224,17 @@ public class HqlQuery extends Predicate {
         return footer.contains("ORDER BY");
     }
 
+    /**
+     * Applys only the named arguments to a hibernate query.
+     * @param hibernateQuery hibernate query to modify
+     */
+    public void applyNamedArgsToQuery(Query hibernateQuery) {
+        for (Map.Entry<String, Object> argPair : getNamedArgs().entrySet()) {
+            if (argPair.getValue() instanceof Collection) {
+                hibernateQuery.setParameterList(argPair.getKey(), (Collection) argPair.getValue());
+            } else {
+                hibernateQuery.setParameter(argPair.getKey(), argPair.getValue());
+            }
+        }
+    }
 }

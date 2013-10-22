@@ -241,13 +241,32 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
     }
 
     @Override
-    public Record getLatestRecord() {
-        List results = find("select r from Record r where r.updatedAt != null order by r.updatedAt desc", new Object[0], 1);
+    public Record getLatestRecord(User user) {
+
+        HqlQuery hqlQuery = new HqlQuery("select r from Record r");
+        hqlQuery.and(new Predicate("r.updatedAt != null"));
+        if (user != null) {
+            hqlQuery.and(Predicate.eq("r.user", user, "myuser"));
+        }
+        hqlQuery.order("updatedAt", "desc", "r");
+
+        Query q = getSession().createQuery(hqlQuery.getQueryString());
+        hqlQuery.applyNamedArgsToQuery(q);
+
+        q.setMaxResults(1);
+
+        List results = q.list();
+
         if(results.isEmpty()) {
             return null;
         } else {
             return (Record)results.get(0);
         }
+    }
+
+    @Override
+    public Record getLatestRecord() {
+        return getLatestRecord(null);
     }
 
     @Override
@@ -1315,6 +1334,7 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
 
     @Override
     public ScrollableRecords getScrollableRecords(User user, List<Survey> surveys,
+                                                  List<Integer> species,
                                            Date startDate, Date endDate,
                                            int pageNumber, int entriesPerPage) {
 
@@ -1326,6 +1346,9 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         if (surveys != null && !surveys.isEmpty()) {
             hqlQuery.and(Predicate.in("r.survey", surveys, "surveys"));
         }
+        if (species != null && !species.isEmpty()) {
+            hqlQuery.and(Predicate.in("r.species.id", species, "species"));
+        }
         if (startDate != null) {
             hqlQuery.and(Predicate.expr("r.when >= :startDate", startDate, "startDate"));
         }
@@ -1335,18 +1358,12 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
 
         hqlQuery.order("when", "desc", "r");
 
-
         Query query = getSession().createQuery(hqlQuery.getQueryString());
 
         query.setMaxResults(entriesPerPage);
 
-        for (Map.Entry<String, Object> argPair : hqlQuery.getNamedArgs().entrySet()) {
-            if (argPair.getValue() instanceof Collection) {
-                query.setParameterList(argPair.getKey(), (Collection)argPair.getValue());
-            } else {
-                query.setParameter(argPair.getKey(), argPair.getValue());
-            }
-        }
+        hqlQuery.applyNamedArgsToQuery(query);
+
         return new ScrollableRecordsImpl(query);
     }
 }
