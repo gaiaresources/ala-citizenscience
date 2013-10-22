@@ -522,6 +522,16 @@ public interface TaxaDAO extends TransactionDAO {
     List<IndicatorSpecies> getDistinctRecordedTaxaForSurvey(int surveyId);
 
     /**
+     * Returns PK of species that match the search criteria
+     *
+     * @param groupName Taxon group name
+     * @param taxonName Species scientific name OR common name
+     * @param includeSecondaryGroups Include secondary groups in the search
+     * @return List of primary keys
+     */
+    public List<Integer> searchIndicatorSpeciesPk(String groupName, String taxonName, boolean includeSecondaryGroups);
+
+    /**
      * Returns a List of IndicatorSpecies that:
      * <ol>
      *     <li>are in a Taxon Group that has a name containing the string supplied in the groupName parameter.</li>
