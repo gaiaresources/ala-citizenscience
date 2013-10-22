@@ -1,10 +1,12 @@
 package au.com.gaiaresources.bdrs.controller.location;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -19,6 +21,11 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.ws.http.HTTPException;
 
 import org.apache.log4j.Logger;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.stereotype.Controller;
@@ -27,6 +34,7 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -71,7 +79,11 @@ import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 import au.com.gaiaresources.bdrs.util.SpatialUtil;
 import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
+import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.PrecisionModel;
 
 @Controller
 public class LocationBaseController extends RecordController {
@@ -258,9 +270,11 @@ public class LocationBaseController extends RecordController {
     
     @RolesAllowed( {Role.POWERUSER,Role.SUPERVISOR,Role.ADMIN} )
     @RequestMapping(value = "/bdrs/admin/survey/locationListing.htm", method = RequestMethod.GET)
-    public ModelAndView editSurveyLocationListing(HttpServletRequest request, HttpServletResponse response,
-            @RequestParam(value=BdrsWebConstants.PARAM_SURVEY_ID, required = true) int surveyId) {
-    	System.out.println("Test");
+    public ModelAndView editSurveyLocationListing(
+			HttpServletRequest request, 
+			HttpServletResponse response,
+			@RequestParam(value=BdrsWebConstants.PARAM_SURVEY_ID, 
+			required = true) int surveyId) {
         Survey survey = getSurvey(surveyId);
         if (survey == null) {
             return SurveyBaseController.nullSurveyRedirect(getRequestContext());
@@ -270,15 +284,89 @@ public class LocationBaseController extends RecordController {
         return mv;
     }
 
+    @RolesAllowed( {Role.POWERUSER, Role.SUPERVISOR, Role.ADMIN} )
+    @RequestMapping(value = "/bdrs/admin/survey/locationUpload.htm", method = RequestMethod.POST)
+    public ModelAndView locationUpload(
+    		MultipartHttpServletRequest req,
+            HttpServletResponse res,
+            @RequestParam(value=BdrsWebConstants.PARAM_SURVEY_ID, required=true) int surveyId) {
+    	User user = getRequestContext().getUser();
+    	Survey survey = getSurvey(surveyId);
+                
+    	ModelAndView view = new ModelAndView("locationListing");
+    	
+    	String message = "";
+
+    	try {
+    		MultipartFile uploadedFile = req.getFile("input_csv");
+
+    		if (uploadedFile != null) {
+    			if ("application/vnd.ms-excel".equals(uploadedFile.getContentType())) {
+    				InputStream inp = uploadedFile.getInputStream();
+    				try {
+    					Workbook wb = WorkbookFactory.create(inp);
+    		            Sheet locationSheet = wb.getSheetAt(0);
+
+    		            for (int i = 1; i <= locationSheet.getLastRowNum(); i++) {
+    		            	Row row = locationSheet.getRow(i);
+
+    		            	Location location = new Location(); 
+    		            	location.setName(row.getCell(0).getStringCellValue());
+    		            	
+    		            	PrecisionModel precisionModel = new PrecisionModel(PrecisionModel.FLOATING);
+    		            	
+    		            	int srid = (int)row.getCell(3).getNumericCellValue();
+    		            	
+    		            	GeometryFactory geometryFactory = new GeometryFactory(precisionModel, srid);
+    		            	Point point = geometryFactory.createPoint(
+    		            			new Coordinate(
+    		            					row.getCell(1).getNumericCellValue(),
+    		            					row.getCell(2).getNumericCellValue()));
+    		            	
+    		            	location.setLocation(point);
+    		            	location.setSurveys(Arrays.asList(survey));
+    		            	location.setUser(user);
+
+    		            	location = locationDAO.save(location);
+    		            	
+    		            	survey.setLocations(Arrays.asList(location));
+    		            	surveyDAO.save(survey);
+
+    		            	message = "Import completed successfully.";
+    		            }
+    		        }
+    				catch (InvalidFormatException ife) {
+    		            throw new IllegalArgumentException(ife);
+    		        }
+    			}
+    			else {
+                    // Failed to have the right content type.
+                    message = "The uploaded file was not an XLS file.";
+                    log.warn(message);
+                }
+            }
+    		else {
+                // Failed to upload a file.
+    			message = "Spreadsheet file is required.";
+                log.error(message);
+            }
+    		
+    	}
+    	catch (Exception e) {
+    		System.out.println("Unhandled exception: " + e.toString());
+    	}
+
+    	view.addObject("survey", survey);
+    	view.addObject("message", message);
+        return view;
+    }
+    
     @RolesAllowed( {Role.POWERUSER,Role.SUPERVISOR,Role.ADMIN} )
     @RequestMapping(value = "/bdrs/admin/survey/locationListing.htm", method = RequestMethod.POST)
     public ModelAndView submitSurveyLocationListing(
     		HttpServletRequest request, 
     		HttpServletResponse response,
-            @RequestParam(value=BdrsWebConstants.PARAM_SURVEY_ID, required = true) int surveyId
-            
-    		
-    		) {
+            @RequestParam(value=BdrsWebConstants.PARAM_SURVEY_ID, required = true) int surveyId) {
         
         Survey survey = getSurvey(surveyId);
         if (survey == null) {
@@ -287,7 +375,7 @@ public class LocationBaseController extends RecordController {
         List<Location> locationList = new ArrayList<Location>();
 
         // Updated Locations
-        if(request.getParameter("location") != null ) {
+        if (request.getParameter("location") != null ) {
             for(String rawPK : request.getParameterValues("location")) {
                 int pk = Integer.parseInt(rawPK);
                 Location location = locationDAO.getLocation(pk);
