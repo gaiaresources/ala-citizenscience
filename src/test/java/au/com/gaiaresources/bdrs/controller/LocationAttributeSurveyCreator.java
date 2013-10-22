@@ -440,6 +440,7 @@ public class LocationAttributeSurveyCreator {
                         attrVal.setStringValue("12:34");
                         break;
                     case HTML:
+                    case HTML_RAW:
                     case HTML_NO_VALIDATION:
                     case HTML_COMMENT:
                     case HTML_HORIZONTAL_RULE:
@@ -597,6 +598,7 @@ public class LocationAttributeSurveyCreator {
                         recAttr.setStringValue("12:34");
                         break;
                     case HTML:
+                    case HTML_RAW:
                     case HTML_NO_VALIDATION:
                     case HTML_COMMENT:
                     case HTML_HORIZONTAL_RULE:
@@ -691,6 +693,7 @@ public class LocationAttributeSurveyCreator {
                             recAttr.setStringValue("12:34");
                             break;
                         case HTML:
+	                    case HTML_RAW:
                         case HTML_NO_VALIDATION:
                         case HTML_COMMENT:
                         case HTML_HORIZONTAL_RULE:
