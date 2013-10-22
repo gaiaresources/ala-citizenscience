@@ -1003,6 +1003,11 @@ public class ApplicationService extends AbstractController {
             rec.setCensusMethod(censusMethodDAO.get(censusMethodPk));
         }
 
+        Integer parentRecordPk = getJSONInteger(jsonRecordBean, "parentRecord_id", null);
+        if(parentRecordPk != null) {
+            rec.setParentRecord(recordDAO.getRecord(parentRecordPk));
+        }
+
         Integer surveyPk = getJSONInteger(jsonRecordBean, "survey_id", null);
         
         String scientificName = getJSONString(jsonRecordBean, "scientificName", null);

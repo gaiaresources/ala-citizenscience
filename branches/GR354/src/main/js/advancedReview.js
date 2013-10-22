@@ -181,10 +181,18 @@ bdrs.advancedReview.getInitViewStyleTableFcn = function(tableSelector) {
 
             // clicking on any cell except the last one should open
             var clickableCells = row.find('.openRecord');
-            clickableCells.click(function(ev) {
-                window.open(bdrs.contextPath + '/bdrs/user/surveyRenderRedirect.htm?surveyId='
-                    +record.survey.id+'&recordId='+record.id, '_self');
-            });
+            if(clickableCells.length > 0 && record !== undefined && record.survey !== undefined) {
+                clickableCells.click({
+                    recordId: record.id,
+                    surveyId: record.survey.id
+                }, function(ev) {
+                    var data = ev.data;
+                    var recordId = data.recordId;
+                    var surveyId = data.surveyId;
+                    window.open(bdrs.contextPath + '/bdrs/user/surveyRenderRedirect.htm?surveyId='+
+                        surveyId+'&recordId='+recordId, '_self');
+                });
+            }
             
             if (bdrs.advancedReview.getCheckedState(record.id)) {
                 row.find(".recordIdCheckbox").prop("checked", true);
