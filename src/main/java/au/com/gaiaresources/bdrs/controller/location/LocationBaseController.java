@@ -322,14 +322,16 @@ public class LocationBaseController extends RecordController {
     		            			new Coordinate(
     		            					row.getCell(1).getNumericCellValue(),
     		            					row.getCell(2).getNumericCellValue()));
-    		            	
+
     		            	location.setLocation(point);
     		            	location.setSurveys(Arrays.asList(survey));
     		            	location.setUser(user);
 
     		            	location = locationDAO.save(location);
     		            	
-    		            	survey.setLocations(Arrays.asList(location));
+    		            	List<Location> locations = survey.getLocations();
+    		            	locations.add(location);
+    		            	survey.setLocations(locations);
     		            	surveyDAO.save(survey);
 
     		            	message = "Import completed successfully.";
