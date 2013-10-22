@@ -156,7 +156,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord,
      * {@inheritDoc}
      */
     @CompactAttribute
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "INDICATOR_SPECIES_ID", nullable = true)
     @ForeignKey(name = "RECORD_SPECIES_FK")
     @Index(name = "RECORD_N1")
@@ -172,7 +172,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord,
         this.species = species;
     }
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PARENT_RECORD_ID", nullable = true)
     @ForeignKey(name = "PARENT_RECORD_TO_RECORD_FK")
     public Record getParentRecord() {
@@ -255,7 +255,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord,
      * {@inheritDoc}
      */
     @CompactAttribute
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "INDICATOR_USER_ID", nullable = false)
     @ForeignKey(name = "RECORD_USER_FK")
     /**
@@ -276,7 +276,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord,
      * @return {@link Location}
      */
     @CompactAttribute
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "LOCATION_ID")
     @ForeignKey(name = "RECORD_LOCATION_FK")
     public Location getLocation() {
@@ -602,7 +602,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord,
 
     // Many to many is a work around (read hack) to prevent a unique
     // constraint being applied on the metadata id.
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     public Set<Metadata> getMetadata() {
         return metadata;
     }
