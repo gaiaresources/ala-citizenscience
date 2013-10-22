@@ -90,4 +90,9 @@ public class BdrsWebConstants {
      * Form field category. Form field is for a taxon attribute (used when editing taxonomy)
      */
     public static final String TAXON_ATTR_CATEGORY = "taxon_attr";
+    /**
+     * Parameter name that holds the name of the callback function for
+     * jsonp requests
+      */
+    public static final String JSONP_CALLBACK_PARAM = "callback";
 }

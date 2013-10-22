@@ -217,16 +217,16 @@ public class GeoMapLayerControllerGetLayerTest extends AbstractControllerTest {
             Assert.assertNotNull(obj);
             
             Assert.assertFalse("attribute array should not be included", obj.has(JsonService.JSON_KEY_ATTRIBUTES));
-            
-            Assert.assertEquals("Standard Taxonomic", obj.getString(JsonService.RECORD_KEY_CENSUS_METHOD));
+
+            Assert.assertFalse("Census method dict should not be included", obj.has(JsonService.RECORD_KEY_CENSUS_METHOD));
         }
         {
             JSONObject obj = getFeature(JsonService.JSON_ITEM_TYPE_RECORD, recordPublic.getId().longValue(), items);
             Assert.assertNotNull(obj);
             
             Assert.assertFalse("attribute array should not be included", obj.has(JsonService.JSON_KEY_ATTRIBUTES));
-            
-            Assert.assertEquals("Standard Taxonomic", obj.getString(JsonService.RECORD_KEY_CENSUS_METHOD));
+
+            Assert.assertFalse("Census method dict should not be included", obj.has(JsonService.RECORD_KEY_CENSUS_METHOD));
         }
     }
     
@@ -256,8 +256,8 @@ public class GeoMapLayerControllerGetLayerTest extends AbstractControllerTest {
             Assert.assertNotNull(obj);
             
             Assert.assertFalse("attribute array should not be included", obj.has(JsonService.JSON_KEY_ATTRIBUTES));
-            
-            Assert.assertEquals("Standard Taxonomic", obj.getString(JsonService.RECORD_KEY_CENSUS_METHOD));
+
+            Assert.assertFalse("Census method dict should not be included", obj.has(JsonService.RECORD_KEY_CENSUS_METHOD));
         }
         {
             JSONObject obj = getFeature(JsonService.JSON_ITEM_TYPE_RECORD, recordControlled.getId().longValue(), items);
@@ -289,8 +289,8 @@ public class GeoMapLayerControllerGetLayerTest extends AbstractControllerTest {
             Assert.assertNotNull(obj);
             
             Assert.assertFalse("attribute array should not be included", obj.has(JsonService.JSON_KEY_ATTRIBUTES));
-            
-            Assert.assertEquals("Standard Taxonomic", obj.getString(JsonService.RECORD_KEY_CENSUS_METHOD));
+
+            Assert.assertFalse("Census method dict should not be included", obj.has(JsonService.RECORD_KEY_CENSUS_METHOD));
         }
         {
             JSONObject obj = getFeature(JsonService.JSON_ITEM_TYPE_RECORD, recordControlled.getId().longValue(), items);
