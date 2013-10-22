@@ -5,13 +5,30 @@
 <jsp:useBean id="survey" type="au.com.gaiaresources.bdrs.model.survey.Survey" scope="request"/>
 <h1>Edit Project: Locations</h1>
 <cw:getContent key="admin/editProject/editLocations" />
-<form method="POST" action="${portalContextPath}/bdrs/admin/survey/locationListing.htm" enctype="multipart/form-data">
+
+<form method="POST" action="${portalContextPath}/bdrs/admin/survey/locationUpload.htm" enctype="multipart/form-data">
+	<input type="hidden" name="surveyId" value="${ survey.id }"/>
+
+	<div class="input_container">
+		<span style="display: inline-block; width:55%;">
+			${ message }
+		</span>
+    	<span class="buttonpanel textright">
+    		<input type="file" name="input_csv" />
+    		<input
+    			title="Import locations from a CSV file." 
+   				id="importLocationsButton" 
+   				class="form_action" 
+   				type="submit"
+   				value="Import Locations"
+   				onclick="if (!$(this).siblings('input[type=&quot;file&quot;]').val()) { alert('Please choose a file to upload.'); return false; }" />
+    	</span>
+   	</div>
+</form>
+
+<form method="POST" action="${portalContextPath}/bdrs/admin/survey/locationListing.htm">
     <input type="hidden" name="surveyId" value="${ survey.id }"/>
     <div class="textright input_container">
-    	<div class="buttonpanel">
-    		<input type="file" name="input_csv" />
-    		<input title="Import locations from a CSV file." id="importLocationsButton" class="form_action" type="submit" value="Import Locations" />
-    	</div>
         <div class="textright buttonpanel">
         	<input title="Add a location from another project." id="addExistingLocationButton" class="form_action" type="button" value="Add Existing Location" />
         </div>
@@ -62,7 +79,7 @@
     <div class="textright buttonpanel">
         <input type="submit" class="form_action" value="Save"/><input type="submit" class="form_action" name="saveAndContinue" value="Save And Continue"/>
     </div>
-</form><%-- divs used to instantitate grid and dialog --%>
+</form><%-- divs used to instantiate grid and dialog --%>
 <div id="surveyLocationListingDialog">
     <table id="surveyLocationListingGrid">
     </table>
@@ -71,15 +88,13 @@
 </div>
 <%-- files included in bdrs.js using bdrs.require --%>
 <script type="text/javascript">
-    
     jQuery(function() {
-        bdrs.location.createGetSurveyLocationsForUserDialogGrid('#surveyLocationListingGrid', 
-    															'#surveyLocationListingPager',
-    															'#surveyLocationListingDialog',
-    															'#addExistingLocationButton',
-    															'#location_listing tbody',
-    															${survey.id});
-    	
+        bdrs.location.createGetSurveyLocationsForUserDialogGrid(
+			'#surveyLocationListingGrid', 
+			'#surveyLocationListingPager',
+			'#surveyLocationListingDialog',
+			'#addExistingLocationButton',
+			'#location_listing tbody',
+			${survey.id});
     });
-    
 </script>

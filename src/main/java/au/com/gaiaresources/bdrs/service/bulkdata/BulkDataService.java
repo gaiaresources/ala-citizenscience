@@ -1,9 +1,6 @@
 package au.com.gaiaresources.bdrs.service.bulkdata;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 
 @Service 
