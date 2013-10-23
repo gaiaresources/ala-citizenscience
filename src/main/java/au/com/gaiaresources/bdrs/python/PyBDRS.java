@@ -18,6 +18,7 @@ import au.com.gaiaresources.bdrs.model.portal.Portal;
 import au.com.gaiaresources.bdrs.model.portal.PortalDAO;
 import au.com.gaiaresources.bdrs.model.python.AbstractPythonRenderable;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
+import au.com.gaiaresources.bdrs.model.record.RecordGroupDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeOptionDAO;
@@ -26,17 +27,7 @@ import au.com.gaiaresources.bdrs.model.taxa.SpeciesProfileDAO;
 import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.python.deserializer.PyRecordDeserializerResult;
-import au.com.gaiaresources.bdrs.python.model.PyAttributeDAO;
-import au.com.gaiaresources.bdrs.python.model.PyAttributeOptionDAO;
-import au.com.gaiaresources.bdrs.python.model.PyAttributeValueDAO;
-import au.com.gaiaresources.bdrs.python.model.PyCensusMethodDAO;
-import au.com.gaiaresources.bdrs.python.model.PyLocationDAO;
-import au.com.gaiaresources.bdrs.python.model.PyMetadataDAO;
-import au.com.gaiaresources.bdrs.python.model.PyPortalDAO;
-import au.com.gaiaresources.bdrs.python.model.PyRecordDAO;
-import au.com.gaiaresources.bdrs.python.model.PySpeciesProfileDAO;
-import au.com.gaiaresources.bdrs.python.model.PySurveyDAO;
-import au.com.gaiaresources.bdrs.python.model.PyTaxaDAO;
+import au.com.gaiaresources.bdrs.python.model.*;
 import au.com.gaiaresources.bdrs.python.taxonlib.PyTemporalContext;
 import au.com.gaiaresources.bdrs.service.taxonomy.BdrsTaxonLibException;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
@@ -85,6 +76,7 @@ public class PyBDRS {
     private PyAttributeValueDAO pyAttributeValueDAO;
     private PyMetadataDAO pyMetadataDAO;
     private PySpeciesProfileDAO pySpeciesProfileDAO;
+    private PyRecordGroupDAO pyRecordGroupDAO;
 
     private FileService fileService;
 
@@ -117,7 +109,8 @@ public class PyBDRS {
                   SurveyDAO surveyDAO, CensusMethodDAO censusMethodDAO,
                   TaxaDAO taxaDAO, RecordDAO recordDAO, PortalDAO portalDAO, AttributeDAO attributeDAO,
                   AttributeOptionDAO attributeOptionDAO, AttributeValueDAO attributeValueDAO,
-                  MetadataDAO metadataDAO, LocationDAO locationDAO, SpeciesProfileDAO speciesProfileDAO) {
+                  MetadataDAO metadataDAO, LocationDAO locationDAO, SpeciesProfileDAO speciesProfileDAO,
+                  RecordGroupDAO recordGroupDAO) {
         this.request = request;
         this.fileService = fileService;
         this.renderable = renderable;
@@ -141,6 +134,7 @@ public class PyBDRS {
         this.pyAttributeValueDAO = new PyAttributeValueDAO(attributeValueDAO);
         this.pyMetadataDAO = new PyMetadataDAO(metadataDAO);
         this.pySpeciesProfileDAO = new PySpeciesProfileDAO(speciesProfileDAO);
+        this.pyRecordGroupDAO = new PyRecordGroupDAO(recordGroupDAO);
     }
 
     /**
@@ -281,6 +275,15 @@ public class PyBDRS {
      */
     public PySpeciesProfileDAO getSpeciesProfileDAO() {
         return pySpeciesProfileDAO;
+    }
+
+    /**
+     * Returns the python wrapped {@link RecordGroupDAO}
+     *
+     * @return the python wrapped {@link RecordGroupDAO}
+     */
+    public PyRecordGroupDAO getRecordGroupDAO() {
+        return pyRecordGroupDAO;
     }
 
     /**

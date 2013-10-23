@@ -932,6 +932,23 @@ class Record(models.Model):
     class Meta:
         db_table = u'record'
 
+class RecordGroup(models.Model):
+    record_group_id = models.IntegerField(primary_key=True)
+    created_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(null=True, blank=True)
+    created_by = models.IntegerField(null=True, blank=True)
+    updated_by = models.IntegerField(null=True, blank=True)
+    start_date = models.DateTimeField(null=True, blank=True)
+    end_date = models.DateTimeField(null=True, blank=True)
+    type = models.TextField(null=True, blank=True)
+    user = models.ForeignKey('UserDefinition',null=True,blank=True)
+    survey = models.ForeignKey('Survey', null=True, blank=True)
+    portal = models.ForeignKey('Portal', null=True, blank=True)
+
+    objects = PortalManager()
+
+    class Meta:
+        db_table = u'record_group'
 
 class GeoMap(models.Model):
     geo_map_id = models.IntegerField(primary_key=True)
