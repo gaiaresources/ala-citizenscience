@@ -918,6 +918,9 @@ class Record(models.Model):
     indicator_survey = models.ForeignKey('Survey', null=True, blank=True)
     location = models.ForeignKey('Location', null=True, blank=True)
 
+    record_group = models.ForeignKey('RecordGroup',null=True,
+        db_column='record_group_id',blank=True)
+
     parent_attribute_value = models.ForeignKey('AttributeValue',
         null=True, db_column='parent_attribute_value', blank=True)
 
@@ -934,6 +937,7 @@ class Record(models.Model):
 
 class RecordGroup(models.Model):
     record_group_id = models.IntegerField(primary_key=True)
+    weight = models.IntegerField(null=True, blank=True)
     created_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(null=True, blank=True)
     created_by = models.IntegerField(null=True, blank=True)
@@ -944,6 +948,9 @@ class RecordGroup(models.Model):
     user = models.ForeignKey('UserDefinition',null=True,blank=True)
     survey = models.ForeignKey('Survey', null=True, blank=True)
     portal = models.ForeignKey('Portal', null=True, blank=True)
+
+    metadata = models.ManyToManyField('Metadata',
+            through='RecordGroupMetadata', related_name='recordGroups')
 
     objects = PortalManager()
 
