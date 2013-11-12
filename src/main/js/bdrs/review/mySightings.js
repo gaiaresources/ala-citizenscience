@@ -388,6 +388,12 @@ bdrs.review.mysightings.table_tab_display_change_handler = function(event, is_se
 					formatted_date = "";
 				}
 	            rec._when = formatted_date.replace(/ /gi, "&nbsp;");
+				// If the date isn't set then just use N/A. We need a value here so that the
+				// link to the record still works.
+				if(!rec._when) {
+	            	rec._when = "N/A";
+	            }
+
 	            if(rec.species === null || rec.species === undefined) {
 	                rec.species = bdrs.review.mysightings.NON_TAXONOMIC_SPECIES_PLACEHOLDER;
 	            }
