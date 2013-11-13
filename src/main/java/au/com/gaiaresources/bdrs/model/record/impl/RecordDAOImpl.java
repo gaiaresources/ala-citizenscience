@@ -2,21 +2,13 @@ package au.com.gaiaresources.bdrs.model.record.impl;
 
 import java.beans.PropertyDescriptor;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.Transient;
 
+import au.com.gaiaresources.bdrs.db.QueryCriteria;
+import au.com.gaiaresources.bdrs.model.record.*;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.Query;
@@ -41,10 +33,6 @@ import au.com.gaiaresources.bdrs.geometry.GeometryBuilder;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
-import au.com.gaiaresources.bdrs.model.record.Record;
-import au.com.gaiaresources.bdrs.model.record.RecordDAO;
-import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
-import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
 import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
@@ -173,7 +161,8 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
     public List<Record> getRecordIntersect(Geometry intersectGeom,
             RecordVisibility visibility, boolean held) {
         StringBuilder builder = new StringBuilder();
-        builder.append("from Record rec where intersects(:geom, rec.geometry) = true and rec.recordVisibility = :vis and rec.held = :held");
+        // use st_ prefix in spatial funcs for macos compatibility
+        builder.append("from Record rec where st_intersects(:geom, rec.geometry) = true and rec.recordVisibility = :vis and rec.held = :held");
         Query q = getSession().createQuery(builder.toString());
         q.setParameter("geom", intersectGeom, GeometryUserType.TYPE);
         q.setParameter("vis", visibility);
@@ -186,8 +175,9 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
     	if (withinGeom.getSRID() != BdrsCoordReferenceSystem.DEFAULT_SRID) {
     		throw new IllegalArgumentException("geom argument not in default srid, " + withinGeom.getSRID());
     	}
-    	
-    	Query q = getSession().createQuery("from Record r where within(transform(r.location.location," + BdrsCoordReferenceSystem.DEFAULT_SRID + "), ?) = true");
+
+        // use st_ prefix in spatial funcs for macos compatibility
+    	Query q = getSession().createQuery("from Record r where st_within(st_transform(r.location.location," + BdrsCoordReferenceSystem.DEFAULT_SRID + "), ?) = true");
     	// the geometry comes first
         CustomType geometryType = new CustomType(GeometryUserType.class, null);
         q.setParameter(0, withinGeom, geometryType);
@@ -248,13 +238,32 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
     }
 
     @Override
-    public Record getLatestRecord() {
-        List results = find("select r from Record r where r.updatedAt != null order by r.updatedAt desc", new Object[0], 1);
+    public Record getLatestRecord(User user) {
+
+        HqlQuery hqlQuery = new HqlQuery("select r from Record r");
+        hqlQuery.and(new Predicate("r.updatedAt != null"));
+        if (user != null) {
+            hqlQuery.and(Predicate.eq("r.user", user, "myuser"));
+        }
+        hqlQuery.order("updatedAt", "desc", "r");
+
+        Query q = getSession().createQuery(hqlQuery.getQueryString());
+        hqlQuery.applyNamedArgsToQuery(q);
+
+        q.setMaxResults(1);
+
+        List results = q.list();
+
         if(results.isEmpty()) {
             return null;
         } else {
             return (Record)results.get(0);
         }
+    }
+
+    @Override
+    public Record getLatestRecord() {
+        return getLatestRecord(null);
     }
 
     @Override
@@ -335,7 +344,8 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         Geometry buffer = geometryBuilder.bufferInM(point, bufferMetre);
         
         StringBuilder sb = new StringBuilder("from Record r where");
-        sb.append(" intersects(transform(r.geometry,"+BdrsCoordReferenceSystem.DEFAULT_SRID+"), :buffer) = true");
+        // use st_ prefix in spatial funcs for macos compatibility
+        sb.append(" st_intersects(st_transform(r.geometry,"+BdrsCoordReferenceSystem.DEFAULT_SRID+"), :buffer) = true");
         sb.append(" and r.when >= :timeFrom");
         sb.append(" and r.when <= :timeUntil");
         sb.append(" and id != :recordId");
@@ -1138,7 +1148,8 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         		throw new IllegalArgumentException("intersect geom must have srid = " + 
         				BdrsCoordReferenceSystem.DEFAULT_SRID +" but was " + intersectGeom.getSRID());
         	}
-            hb.append(" and intersects(:geom,  transform(rec.geometry," + BdrsCoordReferenceSystem.DEFAULT_SRID +")) = true");
+            // use st_ prefix in spatial funcs for macos compatibility
+            hb.append(" and st_intersects(:geom,  st_transform(rec.geometry," + BdrsCoordReferenceSystem.DEFAULT_SRID +")) = true");
         }
         List<String> orSection = new LinkedList<String>();
         if (isPrivate != null) {
@@ -1208,10 +1219,8 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         
         // need to left join species in the case species is null - we still want the record returned.
         q = new HqlQuery("select r from Record r left join r.species");
-        
-        if (parentId != null) {
-            q.and(Predicate.eq("r.parentRecord.id", parentId));
-        }
+        q.and(Predicate.eq("r.parentRecord.id", parentId));
+
         if (censusMethodId != null) {
             q.and(Predicate.eq("r.censusMethod.id", censusMethodId));
         }
@@ -1316,6 +1325,52 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
             recList.add((Record)(objArray[0]));
         }
         return recList;
+    }
+
+    @Override
+    public ScrollableRecords getScrollableRecords(User user, List<Survey> surveys,
+                                                  List<Integer> species,
+                                           Date startDate, Date endDate,
+                                           int pageNumber, int entriesPerPage) {
+
+        HqlQuery hqlQuery = new HqlQuery("select r from Record r");
+
+        if (user != null) {
+            hqlQuery.and(Predicate.eq("r.user", user, "user"));
+        }
+        if (surveys != null && !surveys.isEmpty()) {
+            hqlQuery.and(Predicate.in("r.survey", surveys, "surveys"));
+        }
+        if (species != null && !species.isEmpty()) {
+            hqlQuery.and(Predicate.in("r.species.id", species, "species"));
+        }
+        if (startDate != null) {
+            hqlQuery.and(Predicate.expr("r.when >= :startDate", startDate, "startDate"));
+        }
+        if (endDate != null) {
+            hqlQuery.and(Predicate.expr("r.when <= :endDate", endDate, "endDate"));
+        }
+
+        hqlQuery.order("when", "desc", "r");
+
+        Query query = getSession().createQuery(hqlQuery.getQueryString());
+
+        query.setMaxResults(entriesPerPage);
+
+        hqlQuery.applyNamedArgsToQuery(query);
+
+        return new ScrollableRecordsImpl(query);
+    }
+
+    @Override
+    public ScrollableRecords getRecordByGroup(RecordGroup group) {
+
+        HqlQuery hqlQuery = new HqlQuery("select r from Record r");
+        hqlQuery.and(Predicate.eq("r.recordGroup", group, "group"));
+        hqlQuery.order("when", "asc", "r");
+        Query query = getSession().createQuery(hqlQuery.getQueryString());
+        hqlQuery.applyNamedArgsToQuery(query);
+        return new ScrollableRecordsImpl(query);
     }
 }
 

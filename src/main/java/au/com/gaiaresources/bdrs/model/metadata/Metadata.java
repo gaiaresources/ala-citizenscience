@@ -139,6 +139,7 @@ public class Metadata extends PortalPersistentImpl {
     public static final String RECORD_PROPERTY_FIELD_METADATA_KEY_TEMPLATE = "Record.%s";
     
     public static final String RECORD_CLIENT_ID_KEY = "Record.ClientID";
+    public static final String RECORD_GROUP_CLIENT_ID_KEY = "RecordGroup.ClientID";
     
     /**
      * The unique key for the metadata item storing the client ID for an 

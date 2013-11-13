@@ -200,8 +200,9 @@ public class JsonServiceTest extends AbstractSpringContextTest {
     public void testRecordToJsonAsNonOwnerNoSerializeAttributes() {
         AccessControlledRecordAdapter recAdapter = new AccessControlledRecordAdapter(record, nonOwner);
         JSONObject obj = jsonService.toJson(recAdapter, CONTEXT_PATH, spatialUtilFactory, false);
-        
-        Assert.assertEquals(owner.getFirstName() + " " + owner.getLastName(), obj.getString(JsonService.RECORD_KEY_USER));
+
+        Assert.assertFalse("should not have owner field", obj.has(JsonService.RECORD_KEY_USER));
+
         Assert.assertEquals(owner.getId().intValue(), obj.getInt(JsonService.RECORD_KEY_USER_ID));
         
         Assert.assertFalse(obj.containsKey(JsonService.RECORD_KEY_SPECIES));

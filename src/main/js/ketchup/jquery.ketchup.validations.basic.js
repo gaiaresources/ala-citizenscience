@@ -366,7 +366,7 @@ $.fn.ketchup.validation('timeOrBlank', function(element, value) {
 	return timeRegex.test(value);
 });
 
-var attrOptionIntWithRangeRegex = /^([\d]+),([\d]+)$/;
+var attrOptionIntWithRangeRegex = /^(\-?[\d]+),(\-?[\d]+)$/;
 
 $.fn.ketchup.validation('attrOptionIntWithRange', function(element, value) {
 	if (element.val().length === 0) {

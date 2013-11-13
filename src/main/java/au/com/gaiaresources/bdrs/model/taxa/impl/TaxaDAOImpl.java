@@ -1158,6 +1158,30 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
         return q.list();
     }
 
+    @Override
+    public List<Integer> searchIndicatorSpeciesPk(String groupName, String taxonName, boolean includeSecondaryGroups) {
+
+        HqlQuery hqlQuery = new HqlQuery("select distinct i.id from IndicatorSpecies i");
+        if (StringUtils.notEmpty(taxonName)) {
+            Predicate speciesNamePredicate = Predicate.expr("UPPER(i.scientificName) like UPPER(:taxonName)", taxonName, "taxonName");
+            speciesNamePredicate.or(Predicate.expr("UPPER(i.commonName) like UPPER(:taxonName)", taxonName, "taxonName"));
+            hqlQuery.and(speciesNamePredicate);
+        }
+        if (StringUtils.notEmpty(groupName)) {
+            Predicate groupPredicate = Predicate.expr("UPPER(i.taxonGroup.name) like UPPER(:groupName)", groupName, "groupName");
+            if (includeSecondaryGroups) {
+                hqlQuery.leftJoin("i.secondaryGroups", "sg");
+                groupPredicate.or(Predicate.expr("UPPER(sg.name) like UPPER(:groupName)", groupName, "groupName"));
+            }
+            hqlQuery.and(groupPredicate);
+        }
+
+        Query q = getSession().createQuery(hqlQuery.getQueryString());
+        hqlQuery.applyNamedArgsToQuery(q);
+
+        return q.list();
+    }
+
     /**
      * Helper method that turns a search term into an SQL search term such that:
      * <ul>

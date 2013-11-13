@@ -14,16 +14,6 @@
     </properties>
     <repositories>
         <repository>
-            <id>tmatesoft-releases</id>
-            <url>http://maven.tmatesoft.com/content/repositories/releases/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <repository>
             <id>maven.gaiaresources</id>
             <url>http://maven.gaiaresources.com.au</url>
         </repository>
@@ -201,11 +191,6 @@
             <artifactId>xom</artifactId>
             <version>1.1</version>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
-            <version>20090211</version>
         </dependency>
         <!-- Tiles -->
         <dependency>
@@ -456,13 +441,13 @@
         <dependency>
             <groupId>postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>9.1-901.jdbc4</version>
+            <version>8.4-702.jdbc4</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.postgis</groupId>
             <artifactId>postgis-jdbc</artifactId>
-            <version>1.3.3</version>
+            <version>1.3.1</version>
             <scope>provided</scope>
         </dependency>
         <!-- Log 4j -->
@@ -566,7 +551,7 @@
         <dependency>
             <groupId>com.google.code.maven-svn-revision-number-plugin</groupId>
             <artifactId>maven-svn-revision-number-plugin</artifactId>
-            <version>1.7</version>
+            <version>1.6</version>
         </dependency>
         <!-- File Type Detection -->
         <dependency>
@@ -663,7 +648,7 @@
             <plugin>
                 <groupId>com.google.code.maven-svn-revision-number-plugin</groupId>
                 <artifactId>maven-svn-revision-number-plugin</artifactId>
-                <version>1.7</version>
+                <version>1.6</version>
                 <executions>
                     <execution>
                         <goals>
@@ -678,14 +663,6 @@
                         </entry>
                     </entries>
                 </configuration>
-                <!-- forcing svnkit:1.7+ -->
-                <dependencies>
-                    <dependency>
-                        <groupId>org.tmatesoft.svnkit</groupId>
-                        <artifactId>svnkit</artifactId>
-                        <version>1.7.4</version> <!-- please check for the latest version -->
-                    </dependency>
-                </dependencies>
             </plugin>
             <!-- Source code is 1.6 -->
             <plugin>
@@ -1093,9 +1070,9 @@
                 <!-- File storage location -->
                 <bdrs.file.store.location>/home/adam/bdrs.file.store.location</bdrs.file.store.location>
                 <!-- Taxonlib test properties -->
-                <taxonlib.db.username>taxonlibuser</taxonlib.db.username>
-                <taxonlib.db.password>password</taxonlib.db.password>
-                <taxonlib.db.url>localhost:5432/taxonlib</taxonlib.db.url>
+                <taxonlib.db.username>postgres</taxonlib.db.username>
+                <taxonlib.db.password>postgres</taxonlib.db.password>
+                <taxonlib.db.url>localhost:5432/taxonlib-test</taxonlib.db.url>
                 <bdrs.lucene.index.location>/tmp/bdrs/lucene</bdrs.lucene.index.location>
                 <bdrs.lucene.index.strategy>event</bdrs.lucene.index.strategy>
                 <!-- Logging Properties -->

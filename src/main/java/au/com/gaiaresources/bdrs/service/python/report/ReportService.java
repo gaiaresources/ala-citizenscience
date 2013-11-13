@@ -7,6 +7,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import au.com.gaiaresources.bdrs.model.record.RecordGroupDAO;
 import au.com.gaiaresources.bdrs.model.taxa.*;
 import jep.Jep;
 import jep.JepException;
@@ -104,6 +105,8 @@ public class ReportService extends PythonService {
     private MetadataDAO metadataDAO;
     @Autowired
     private SpeciesProfileDAO speciesProfileDAO;
+    @Autowired
+    private RecordGroupDAO recordGroupDAO;
     
     private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
 
@@ -144,7 +147,7 @@ public class ReportService extends PythonService {
                     fileService, report, RequestContextHolder.getContext().getUser(),
                     surveyDAO, censusMethodDAO,
                     taxaDAO, recordDAO, portalDAO, attributeDAO, attributeOptionDAO, attributeValueDAO,
-                    metadataDAO, locationDAO, speciesProfileDAO);
+                    metadataDAO, locationDAO, speciesProfileDAO, recordGroupDAO);
             JSONObject jsonParams = toJSONParams(request);
             // Fire up a new Python interpreter
             StringBuilder pythonPath = new StringBuilder();

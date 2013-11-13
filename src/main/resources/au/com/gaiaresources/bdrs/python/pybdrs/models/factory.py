@@ -25,6 +25,7 @@ class PersistentFactory:
             Taxon: self.lazy_load_taxon,
             SpeciesProfile: self.lazy_load_species_profile,
             TaxonGroup: self.lazy_load_taxon_group,
+            RecordGroup: self.lazy_load_record_group,
         }
 
     def lazy_load_list(self, model_klazz, pk_list):
@@ -125,3 +126,10 @@ class PersistentFactory:
             data = self._bdrs.getSpeciesProfileDAO().getById(pk)
             data = json.loads(data, strict=False)
         return SpeciesProfile(self, data)
+
+    def lazy_load_record_group(self, pk, data=None):
+        if data is None:
+            pk = int(pk, 10) if type(pk) == str or type(pk) == unicode else pk
+            data = self._bdrs.getRecordGroupDAO().getById(pk)
+            data = json.loads(data, strict=False)
+        return RecordGroup(self, data)
