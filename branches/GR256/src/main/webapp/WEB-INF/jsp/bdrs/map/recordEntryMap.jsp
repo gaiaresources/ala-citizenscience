@@ -130,10 +130,10 @@
             var geom = OpenLayers.Geometry.fromWKT(wkt.val());
             if (geom) {
                 geom.transform(layerProj, bdrs.map.GOOGLE_PROJECTION);
-    
+
                 var feature = new OpenLayers.Feature.Vector(geom);
                 layer.addFeatures(feature);
-                
+
                 // zoom the map to show the currently selected location
                 var geobounds = feature.geometry.getBounds();
                 var zoom = bdrs.map.baseMap.getZoomForExtent(geobounds);
@@ -141,7 +141,7 @@
                 bdrs.map.recordOriginalCenterZoom(bdrs.map.baseMap);
             }
         } else if((lat && lon && lat.val() && lon.val()) && (lat.val().length > 0 && lon.val().length > 0)) {
-            // if there is a lat/lon point, but no wkt string, use them to 
+            // if there is a lat/lon point, but no wkt string, use them to
             // determine zoom level and map center
             var lonLat = new OpenLayers.LonLat(
                     parseFloat(lon.val()), parseFloat(lat.val()));
@@ -149,7 +149,7 @@
                                       bdrs.map.GOOGLE_PROJECTION);
             point = new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat);
             layer.addFeatures(new OpenLayers.Feature.Vector(point));
-            
+
             var geobounds = point.getBounds();
             var zoom = bdrs.map.baseMap.getZoomForExtent(geobounds);
             zoom = zoom > bdrs.map.DEFAULT_POINT_ZOOM_LEVEL ? bdrs.map.DEFAULT_POINT_ZOOM_LEVEL : zoom;
@@ -194,6 +194,16 @@
 
             bdrs.map.centerMap(bdrs.map.baseMap);
             bdrs.map.recordOriginalCenterZoom(bdrs.map.baseMap);
+        }
+
+        // Correct map centering on IE8.
+        // At the time of writing, only Google maps has an internal mapObject.
+        if(bdrs.map.baseLayer.mapObject !== undefined) {
+            var handler = function() {
+                GEvent.removeListener(window._gmap_tilesloaded_event);
+                bdrs.map.baseMap.baseLayer.redraw();
+            };
+            window._gmap_tilesloaded_event = GEvent.addListener(bdrs.map.baseLayer.mapObject, "tilesloaded", handler);
         }
     });
 

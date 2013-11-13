@@ -68,7 +68,7 @@ public class IndicatorSpecies extends PortalPersistentImpl implements Attributab
     }
 
     @CompactAttribute
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY)
     @Override
     public Set<AttributeValue> getAttributes() {
         return attributes;
@@ -128,7 +128,7 @@ public class IndicatorSpecies extends PortalPersistentImpl implements Attributab
      * {@inheritDoc}
      */
     @CompactAttribute
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "TAXON_GROUP_ID", nullable = false)
     @ForeignKey(name = "IND_SPECIES_TAXON_GROUP_FK")
     @IndexedEmbedded
@@ -159,7 +159,7 @@ public class IndicatorSpecies extends PortalPersistentImpl implements Attributab
         this.regions = regions;
     }
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PARENT_ID")
     public IndicatorSpecies getParent() {
         return parent;

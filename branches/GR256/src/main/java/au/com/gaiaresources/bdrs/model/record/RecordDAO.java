@@ -50,7 +50,7 @@ public interface RecordDAO extends FacetDAO {
 	 * @return the records for the specified survey in the specified location.
 	 */
 	List<Record> getRecords(User user, Survey survey, Location location, Date startDate, Date endDate);
-	
+
 	/**
 	 * Retrieves the records for a survey where a certain species is recorded
 	 * 
@@ -68,6 +68,17 @@ public interface RecordDAO extends FacetDAO {
 
 	Integer countUniqueSpecies();
 
+    /**
+     * Gets last modified record for a user
+     * @param user
+     * @return Record if one exists. Null otherwise.
+     */
+    Record getLatestRecord(User user);
+
+    /**
+     * Gets last modified record on the server
+     * @return Record if one exists. Null otherwise.
+     */
 	Record getLatestRecord();
 
 	/**
@@ -120,6 +131,24 @@ public interface RecordDAO extends FacetDAO {
 	ScrollableRecords getScrollableRecords(User user, int groupPk, int surveyPk,
                 int taxonGroupPk, Date startDate, Date endDate, String species,
                 int pageNumber, int entriesPerPage);
+
+    /**
+     * Get scrollable records with the following criteria
+     * A null or empty parameter will ignore that parameter.
+     *
+     * @param user Record owner
+     * @param surveys Survey of the record
+     * @param species Primary species of the record
+     * @param startDate Start date range
+     * @param endDate End date range
+     * @param pageNumber Page number to return
+     * @param entriesPerPage Limits the number of returned records
+     * @return ScrollableRecords
+     */
+    ScrollableRecords getScrollableRecords(User user, List<Survey> surveys,
+                                           List<Integer> species,
+                                           Date startDate, Date endDate,
+                                           int pageNumber, int entriesPerPage);
 	
 	/**
 	 * Stopping the madness of too many args when filtering for records. Encapsulate all
@@ -365,4 +394,13 @@ public interface RecordDAO extends FacetDAO {
      * @return List of matching records.
      */
     List<Record> getFieldNameRecords(Session sesh, Integer userId, Integer surveyId, TaxaService taxaService);
+
+
+    /**
+     * Search by group. Order by 'when' date
+     * @param group Search for this group.
+     * @return List of records
+     */
+    ScrollableRecords getRecordByGroup(RecordGroup group);
+
 }

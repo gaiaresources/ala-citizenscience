@@ -657,7 +657,7 @@ public class RecordService extends AbstractController {
      *
      * @param ident ident of user.
      * @param recordPk record PK.
-     * @param serializeAttributeValues whether to serialize attribute values or not. defaults to true.
+     * @param serializeLazyLoadedAttributes whether to serialize attribute values or not. defaults to true.
      * @param request HttpServletRequest.
      * @param response HttpServletReponse.
      * @throws IOException Error writing to output stream.
@@ -666,7 +666,7 @@ public class RecordService extends AbstractController {
     public void getRecordByIdV2(
             @RequestParam(value = PARAM_IDENT, required = false) String ident,
             @RequestParam(value = BdrsWebConstants.PARAM_RECORD_ID, defaultValue = "0", required = true) int recordPk,
-            @RequestParam(value = "serializeAv", required = false, defaultValue = "true") boolean serializeAttributeValues,
+            @RequestParam(value = "serializeAv", required = false, defaultValue = "true") boolean serializeLazyLoadedAttributes,
             HttpServletRequest request, HttpServletResponse response) throws IOException {
         User user = userDAO.getUserByRegistrationKey(ident);
 
@@ -675,11 +675,11 @@ public class RecordService extends AbstractController {
         // Filter data based on user permissions. Null user is OK
         AccessControlledRecordAdapter ar = new AccessControlledRecordAdapter(record, user);
 
-        JSONObject recJson = jsonService.toJson(ar, request.getContextPath(), new SpatialUtilFactory(), serializeAttributeValues);
+        JSONObject recJson = jsonService.toJson(ar, request.getContextPath(), new SpatialUtilFactory(),
+                serializeLazyLoadedAttributes);
 
         // return JSON
-        response.setContentType("application/json");
-        response.getWriter().write(recJson.toString());
+        writeJson(request, response, recJson.toString());
     }
 
     @RequestMapping(value = "/webservice/record/getRecordAttributeById.htm", method = RequestMethod.GET)

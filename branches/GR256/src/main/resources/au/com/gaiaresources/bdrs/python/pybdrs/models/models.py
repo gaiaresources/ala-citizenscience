@@ -409,6 +409,22 @@ insert_accessors(Survey, {
     'metadata': Metadata,
 })
 
+class RecordGroup(PortalPersistent):
+    DEFAULT_RECORDGROUP_DATA = {
+        'metadata': [],
+    }
+
+    def __init__(self, factory, data={}):
+        super(RecordGroup, self).__init__(factory, DEFAULT_RECORDGROUP_DATA)
+
+insert_accessors(RecordGroup, {
+    'type': str,
+    'startDate': datetime,
+    'endDate': datetime,
+    'survey': Survey,
+    #'user': User,
+    'metadata': Metadata
+})
 
 class Record(PortalPersistent):
     DEFAULT_RECORD_DATA = {
@@ -473,6 +489,7 @@ insert_accessors(Record, {
     #'reviewRequests': ReviewRequest,
     'metadata': Metadata,
     #'comments': Comment,
+    'recordGroup': RecordGroup,
 })
 
 insert_accessors(Location, {

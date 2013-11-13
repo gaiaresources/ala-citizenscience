@@ -19,15 +19,7 @@ import au.com.gaiaresources.bdrs.model.user.User;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
 import org.apache.log4j.Logger;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.Filter;
-import org.hibernate.annotations.FilterDef;
-import org.hibernate.annotations.FilterDefs;
-import org.hibernate.annotations.Filters;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
-import org.hibernate.annotations.ParamDef;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.*;
 
 import javax.persistence.AttributeOverride;
 import javax.persistence.CascadeType;
@@ -156,7 +148,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord,
      * {@inheritDoc}
      */
     @CompactAttribute
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "INDICATOR_SPECIES_ID", nullable = true)
     @ForeignKey(name = "RECORD_SPECIES_FK")
     @Index(name = "RECORD_N1")
@@ -172,7 +164,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord,
         this.species = species;
     }
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PARENT_RECORD_ID", nullable = true)
     @ForeignKey(name = "PARENT_RECORD_TO_RECORD_FK")
     public Record getParentRecord() {
@@ -204,6 +196,19 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord,
      */
     public void setChildRecords(Set<Record> value) {
         childRecords = value;
+    }
+
+    private RecordGroup recordGroup;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @ForeignKey(name="RECORD_RECORD_GROUP_FK")
+    @JoinColumn(name="RECORD_GROUP_ID", nullable = true)
+    public RecordGroup getRecordGroup() {
+        return recordGroup;
+    }
+
+    public void setRecordGroup(RecordGroup recordGroup) {
+        this.recordGroup = recordGroup;
     }
 
     /**
@@ -255,7 +260,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord,
      * {@inheritDoc}
      */
     @CompactAttribute
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "INDICATOR_USER_ID", nullable = false)
     @ForeignKey(name = "RECORD_USER_FK")
     /**
@@ -276,7 +281,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord,
      * @return {@link Location}
      */
     @CompactAttribute
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "LOCATION_ID")
     @ForeignKey(name = "RECORD_LOCATION_FK")
     public Location getLocation() {
@@ -602,7 +607,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord,
 
     // Many to many is a work around (read hack) to prevent a unique
     // constraint being applied on the metadata id.
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     public Set<Metadata> getMetadata() {
         return metadata;
     }

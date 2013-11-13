@@ -215,7 +215,10 @@ public class DjangoModelTest extends AbstractGridControllerTest {
 
             // System.out.println(String.format("Testing %s for property name %s", mappedClass.getName(), propertyName));
             if(!propertyType.isCollectionType() && !isReverseOwnerOneToOne(pd)) {
-                hibernateColumnName = getColumnName(mappedClass, pd).toLowerCase();
+                String colName = getColumnName(mappedClass, pd);
+                Assert.assertNotNull(String.format("colName null for prop name %s in class %s", propertyName,
+                        mappedClass.getName()), colName);
+                hibernateColumnName = colName.toLowerCase();
                 message = String.format("Failed to find field with column name %s in class %s",
                         hibernateColumnName, mappedClass.getName());
                 Assert.assertTrue(message, djangoColumnNames.remove(hibernateColumnName));
