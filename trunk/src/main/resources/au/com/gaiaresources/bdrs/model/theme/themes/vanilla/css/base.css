@@ -6,6 +6,8 @@
 /* such as colors, menu, button styling, etc.                            */
 /*************************************************************************/
 
+.olLayerGooglePoweredBy {z-index:1 !important;}
+
 /*******************************************/
 /* Default Page Element Styling            */
 /*******************************************/

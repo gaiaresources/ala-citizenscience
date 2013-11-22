@@ -25,8 +25,14 @@ import org.apache.log4j.Logger;
 import org.hibernate.Filter;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
 import org.springframework.security.authentication.encoding.PasswordEncoder;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -86,6 +92,11 @@ public class UserService extends AbstractController {
 
     @Autowired
     private AbstractBulkDataService bulkDataService;
+    
+    @Autowired
+    @Qualifier("authenticationManager")
+    AuthenticationManager authenticationManager;
+
 
     /**
      * <p>
@@ -497,5 +508,35 @@ public class UserService extends AbstractController {
                         + Long.valueOf(System.currentTimeMillis()) + ".xls");
         bulkDataService.exportUsers(userList, response
                 .getOutputStream());
+    }
+
+    /**
+     * This method takes user credentials and performs authentication using spring-security. If the user is successfully
+     * authenticated, the string 'success' is written to the outputstream.
+     * On failure, a 401 is returned. Please note, this, like the user login, is best handled over https.
+     * @param username post parameter with the user's name
+     * @param password post parameter of the user's password
+     * @param request the HttpServletRequest object
+     * @param response the HttpServletResponse object.
+     * @throws IOException in the case that something goes wrong with the browser connection.
+     */
+    @RequestMapping(value = "/webservice/user/ajaxAuthenticate.htm", method = RequestMethod.POST)
+    public void login(@RequestParam("j_username") String username,
+                      @RequestParam("j_password") String password,
+                      HttpServletRequest request,
+                      HttpServletResponse response) throws IOException {
+ 
+        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(username, password);
+     
+        try {
+            Authentication auth = authenticationManager.authenticate(token);
+            SecurityContextHolder.getContext().setAuthentication(auth);
+
+            response.setContentType("text/plain");
+            response.getWriter().write("1");
+
+        } catch (BadCredentialsException e) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+        }
     }
 }
