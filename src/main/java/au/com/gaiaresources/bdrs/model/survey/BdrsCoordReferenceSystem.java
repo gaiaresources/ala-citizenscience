@@ -16,15 +16,15 @@ import au.com.gaiaresources.bdrs.util.StringUtils;
 public enum BdrsCoordReferenceSystem implements JSONEnum {
 
 	WGS84(4326, false, "WGS 84, Lat/Lon", "Latitude", "Longitude", "", -180d, -90d, 180d, 90d, 6),
-	MGA50(28350, true, "GDA94 Zone 50", "Northings", "Eastings", "50", 100000d, 0d, 999999d, 9999999d, 3),
-	MGA51(28351, true, "GDA94 Zone 51", "Northings", "Eastings", "51", 100000d, 0d, 999999d, 9999999d, 3),
-	MGA52(28352, true, "GDA94 Zone 52", "Northings", "Eastings", "52", 100000d, 0d, 999999d, 9999999d, 3),
-	MGA53(28353, true, "GDA94 Zone 53", "Northings", "Eastings", "53", 100000d, 0d, 999999d, 9999999d, 3),
-	MGA54(28354, true, "GDA94 Zone 54", "Northings", "Eastings", "54", 100000d, 0d, 999999d, 9999999d, 3),
-	MGA55(28355, true, "GDA94 Zone 55", "Northings", "Eastings", "55", 100000d, 0d, 999999d, 9999999d, 3),
-	MGA56(28356, true, "GDA94 Zone 56", "Northings", "Eastings", "56", 100000d, 0d, 999999d, 9999999d, 3),
-	MGA57(28357, true, "GDA94 Zone 57", "Northings", "Eastings", "57", 100000d, 0d, 999999d, 9999999d, 3),
-	MGA58(28358, true, "GDA94 Zone 58", "Northings", "Eastings", "58", 100000d, 0d, 999999d, 9999999d, 3),
+	MGA50(28350, true, "GDA94 Zone 50", "Northings", "Eastings", "50", 100000d, 1116915d, 999999d, 9999999d, 3),
+	MGA51(28351, true, "GDA94 Zone 51", "Northings", "Eastings", "51", 100000d, 1116915d, 999999d, 9999999d, 3),
+	MGA52(28352, true, "GDA94 Zone 52", "Northings", "Eastings", "52", 100000d, 1116915d, 999999d, 9999999d, 3),
+	MGA53(28353, true, "GDA94 Zone 53", "Northings", "Eastings", "53", 100000d, 1116915d, 999999d, 9999999d, 3),
+	MGA54(28354, true, "GDA94 Zone 54", "Northings", "Eastings", "54", 100000d, 1116915d, 999999d, 9999999d, 3),
+	MGA55(28355, true, "GDA94 Zone 55", "Northings", "Eastings", "55", 100000d, 1116915d, 999999d, 9999999d, 3),
+	MGA56(28356, true, "GDA94 Zone 56", "Northings", "Eastings", "56", 100000d, 1116915d, 999999d, 9999999d, 3),
+	MGA57(28357, true, "GDA94 Zone 57", "Northings", "Eastings", "57", 100000d, 1116915d, 999999d, 9999999d, 3),
+	MGA58(28358, true, "GDA94 Zone 58", "Northings", "Eastings", "58", 100000d, 1116915d, 999999d, 9999999d, 3),
 	// MGA, zone not defined. Use -1 for all coordinate reference system 'groups'.
 	MGA(-1, true,"GDA94", "Northings", "Eastings", "", 100000d, 0d, 999999d, 9999999d, 3,
 			MGA50, MGA51, MGA52, MGA53, MGA54, MGA55, MGA56, MGA57, MGA58);

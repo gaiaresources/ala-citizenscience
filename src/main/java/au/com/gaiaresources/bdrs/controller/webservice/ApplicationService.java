@@ -128,6 +128,8 @@ public class ApplicationService extends AbstractController {
     public static final String PARAM_NAME = "name";
     
     public static final String PARAM_SURVEY_TEMPLATE = "survey_template";
+
+    public static final String PARAM_INCLUDE_PROFILE = "includeProfile";
     
     private Logger log = Logger.getLogger(getClass());
 
@@ -462,7 +464,8 @@ public class ApplicationService extends AbstractController {
     public void surveySpeciesDownload(HttpServletRequest request, HttpServletResponse response,
             @RequestParam(value=BdrsWebConstants.PARAM_SURVEY_ID, required=true) Integer surveyId,
             @RequestParam(value=PARAM_FIRST, required=true) Integer first,
-            @RequestParam(value=PARAM_MAX_RESULTS, required=true) Integer maxResults) throws IOException {
+            @RequestParam(value=PARAM_MAX_RESULTS, required=true) Integer maxResults,
+            @RequestParam(value=PARAM_INCLUDE_PROFILE, defaultValue="true") Boolean includeProfile) throws IOException {
         
         Survey s = surveyDAO.get(surveyId);
         JSONObject result = new JSONObject();
@@ -517,28 +520,30 @@ public class ApplicationService extends AbstractController {
                 speciesMap.put(ApplicationService.JSON_KEY_SECONDARY_TAXON_GROUPS, secondaryGroupIds);
 
                 // add the species profile list
-                JSONArray speciesProfileList = new JSONArray();
-                for (SpeciesProfile profile : sp.getInfoItems()) {
-                    // don't use flatten. be minimal in what we send back.
-                    JSONObject profileJson = new JSONObject();
-                    profileJson.put("header", profile.getHeader());
-                    profileJson.put("description", profile.getDescription());
-                    profileJson.put("type", profile.getType());
-                    profileJson.put("content", profile.getContent());
-                    profileJson.put("id", profile.getId());
-                    profileJson.put("weight", profile.getWeight());
+                if (includeProfile) {
+                    JSONArray speciesProfileList = new JSONArray();
+                    for (SpeciesProfile profile : sp.getInfoItems()) {
+                        // don't use flatten. be minimal in what we send back.
+                        JSONObject profileJson = new JSONObject();
+                        profileJson.put("header", profile.getHeader());
+                        profileJson.put("description", profile.getDescription());
+                        profileJson.put("type", profile.getType());
+                        profileJson.put("content", profile.getContent());
+                        profileJson.put("id", profile.getId());
+                        profileJson.put("weight", profile.getWeight());
 
-                    if (profile.isImgType()) {
-                        // uuid is stored in content property.
-                        ManagedFile theFile = managedFileDAO.getManagedFile(profile.getContent());
-                        if (theFile != null) {
-                            profileJson.put(JSON_KEY_MANAGED_FILE, JSONObject.fromMapToJSONObject(theFile.flatten()));
+                        if (profile.isImgType()) {
+                            // uuid is stored in content property.
+                            ManagedFile theFile = managedFileDAO.getManagedFile(profile.getContent());
+                            if (theFile != null) {
+                                profileJson.put(JSON_KEY_MANAGED_FILE, JSONObject.fromMapToJSONObject(theFile.flatten()));
+                            }
                         }
-                    }
 
-                    speciesProfileList.add(profileJson);
+                        speciesProfileList.add(profileJson);
+                    }
+                    speciesMap.put(JSON_KEY_SPECIES_INFO_ITEMS, speciesProfileList);
                 }
-                speciesMap.put(JSON_KEY_SPECIES_INFO_ITEMS, speciesProfileList);
                 
                 jsonSpeciesArray.add(speciesMap);
             }
