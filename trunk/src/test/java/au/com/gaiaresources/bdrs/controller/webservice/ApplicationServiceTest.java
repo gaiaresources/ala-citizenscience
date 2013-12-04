@@ -521,6 +521,33 @@ public class ApplicationServiceTest extends AbstractControllerTest {
     }
 
     @Test
+    public void testGetSpeciesForSurveyWithAllSpeciesNoProfileItems() throws Exception {
+        request.setMethod("GET");
+        request.setRequestURI(ApplicationService.DOWNLOAD_SURVEY_SPECIES_URL);
+        request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, allSurvey.getId().toString());
+        request.setParameter(ApplicationService.PARAM_FIRST, "1");
+        request.setParameter(ApplicationService.PARAM_MAX_RESULTS, "1");
+        request.setParameter(ApplicationService.PARAM_INCLUDE_PROFILE, "false");
+
+        this.handle(request, response);
+
+        JSONObject json = JSONObject.fromStringToJSONObject(response.getContentAsString());
+
+        Assert.assertEquals("wrong count in json", 5, json.getInt("count"));
+        JSONArray jsonSpeciesArray = json.getJSONArray("list");
+        Assert.assertEquals("wrong list size", 1, jsonSpeciesArray.size());
+        JSONObject jsonSpecies = jsonSpeciesArray.getJSONObject(0);
+        Assert.assertEquals("wrong species id", frog2.getId().intValue(), jsonSpecies.getInt("server_id"));
+
+        // assert info items
+        for (int i = 0; i < jsonSpeciesArray.size(); ++i) {
+            assertNoInfoItems(jsonSpeciesArray.getJSONObject(i));
+        }
+
+        assertTaxonGroups(json);
+    }
+
+    @Test
     public void testGetSpeciesExcludeSelf() throws Exception {
         request.setMethod("GET");
         request.setRequestURI(ApplicationService.DOWNLOAD_SURVEY_SPECIES_URL);
@@ -719,6 +746,10 @@ public class ApplicationServiceTest extends AbstractControllerTest {
             // we are using flatten - well tested, so assuming this works to save a little time writing assertions.
             Assert.assertTrue("needs managed file", obj.has(ApplicationService.JSON_KEY_MANAGED_FILE));
         }
+    }
+
+    public void assertNoInfoItems(JSONObject speciesJson) {
+        assert(!speciesJson.has(ApplicationService.JSON_KEY_SPECIES_INFO_ITEMS));
     }
 
     public void assertTaxonGroups(JSONObject responseObj) {
