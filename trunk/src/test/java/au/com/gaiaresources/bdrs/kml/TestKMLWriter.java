@@ -90,7 +90,8 @@ public class TestKMLWriter {
                 writer.createPlacemark("PolygonTest", "" + e + d, p);
             }
         }
-        
-        writer.write(false, new FileOutputStream(new File("C:\\outputkml.kml")));
+        File temp = File.createTempFile("outputkml", "kml");
+        temp.deleteOnExit(); 
+        writer.write(false, new FileOutputStream(temp));
     }
 }
