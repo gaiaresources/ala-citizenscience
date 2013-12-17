@@ -202,6 +202,7 @@ public class User extends PortalPersistentImpl implements Comparable<User> {
     // Many to many is a work around (read hack) to prevent a unique
     // constraint being applied on the metadata id.
     @ManyToMany(fetch = FetchType.LAZY)
+    @CompactAttribute
     public Set<Metadata> getMetadata() {
         return metadata;
     }

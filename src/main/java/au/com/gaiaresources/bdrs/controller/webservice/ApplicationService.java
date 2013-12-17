@@ -1031,6 +1031,10 @@ public class ApplicationService extends AbstractController {
             }
         } else {
             rec = recordDAO.getRecord(recordPk);
+            if (rec == null) {
+                log.error("Sync record: Retrieved null record for record pk = " + recordPk);
+                throw new IllegalStateException("Record cannot be null here");
+            }
         }
 
         String latitudeString = getJSONString(jsonRecordBean, "latitude", "");

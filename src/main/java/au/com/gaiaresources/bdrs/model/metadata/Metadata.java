@@ -9,6 +9,7 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import au.com.gaiaresources.bdrs.annotation.CompactAttribute;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -133,8 +134,6 @@ public class Metadata extends PortalPersistentImpl {
      * Template that is used to generate Metadata keys. Metadata are keyed
      * against the property name which results in keys such as
      * <i>Record.species</i> or <i>Record.location</i>.
-     * 
-     * @see RecordPropertyAttributeFormField#RECORD_PROPERTY_NAMES
      */
     public static final String RECORD_PROPERTY_FIELD_METADATA_KEY_TEMPLATE = "Record.%s";
     
@@ -178,7 +177,8 @@ public class Metadata extends PortalPersistentImpl {
     	this.key = key;
     	this.value = value;
     }
-    
+
+    @CompactAttribute
     @Column(name="KEY", nullable=false)
     public String getKey() {
         return key;
@@ -188,6 +188,7 @@ public class Metadata extends PortalPersistentImpl {
         this.key = key;
     }
 
+    @CompactAttribute
     @Column(name="VALUE", nullable=false)
     @Index(name="metadata_value_index")
     @Field

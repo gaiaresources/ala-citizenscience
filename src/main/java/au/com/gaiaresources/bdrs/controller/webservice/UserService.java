@@ -1,51 +1,19 @@
 package au.com.gaiaresources.bdrs.controller.webservice;
 
-import java.io.IOException;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import javax.annotation.security.RolesAllowed;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.ws.http.HTTPException;
-
-import au.com.gaiaresources.bdrs.json.JSONArray;
-import au.com.gaiaresources.bdrs.json.JSONException;
-import au.com.gaiaresources.bdrs.json.JSONObject;
-import au.com.gaiaresources.bdrs.json.JSONSerializer;
-
-import au.com.gaiaresources.bdrs.util.StringUtils;
-import org.apache.log4j.Logger;
-import org.hibernate.Filter;
-import org.hibernate.Session;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
-import org.springframework.security.authentication.encoding.PasswordEncoder;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-
 import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
 import au.com.gaiaresources.bdrs.db.impl.PaginationFilter;
 import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
+import au.com.gaiaresources.bdrs.json.JSONArray;
+import au.com.gaiaresources.bdrs.json.JSONException;
+import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.json.JSONSerializer;
 import au.com.gaiaresources.bdrs.model.group.Group;
 import au.com.gaiaresources.bdrs.model.group.GroupDAO;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
+import au.com.gaiaresources.bdrs.model.metadata.Metadata;
+import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.portal.Portal;
 import au.com.gaiaresources.bdrs.model.portal.PortalDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
@@ -55,7 +23,35 @@ import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.bulkdata.AbstractBulkDataService;
 import au.com.gaiaresources.bdrs.servlet.RequestContext;
 import au.com.gaiaresources.bdrs.servlet.filter.PortalSelectionFilter;
+import au.com.gaiaresources.bdrs.util.StringUtils;
+import org.apache.log4j.Logger;
+import org.hibernate.Filter;
+import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
+import org.springframework.security.authentication.encoding.PasswordEncoder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.HtmlUtils;
+
+import javax.annotation.security.RolesAllowed;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.ws.http.HTTPException;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -70,6 +66,8 @@ public class UserService extends AbstractController {
     public static final String PARAM_ACTIVE = "active";
     public static final String PARAM_CONTAINS = "contains";
     public static final String PARAM_PARENT_GROUP_ID = "parentGroupId";
+
+    public static final String JSON_KEY_USER_META_DATA = "user_metadata";
 
     private static final String BYTE_ENCODING = "UTF-8";
 
@@ -89,6 +87,9 @@ public class UserService extends AbstractController {
 
     @Autowired
     private SurveyDAO surveyDAO;
+
+    @Autowired
+    private MetadataDAO mdDAO;
 
     @Autowired
     private AbstractBulkDataService bulkDataService;
@@ -293,6 +294,22 @@ public class UserService extends AbstractController {
                         if (details.has("active")) {
                             userDAO.makeUserActive(user, true);
                         }
+
+                        if (details.has(JSON_KEY_USER_META_DATA)) {
+                            JSONObject umdJson = details.getJSONObject(JSON_KEY_USER_META_DATA);
+                            for (Object userMetaDataKey : umdJson.keySet()) {
+                                String keyStr = (String)userMetaDataKey;
+                                Metadata md = user.getMetadataObj(keyStr);
+                                if (md == null) {
+                                    md = new Metadata();
+                                    md.setKey(keyStr);
+                                    md.setValue("");
+                                    md = mdDAO.save(md);
+                                    user.addMetaDataObj(md);
+                                }
+                                md.setValue(umdJson.getString(keyStr));
+                            }
+                        }
                     } else {
                         ob.put("userExists", true);
                     }
@@ -358,7 +375,7 @@ public class UserService extends AbstractController {
         Md5PasswordEncoder encoder = new Md5PasswordEncoder();
 
         if (user != null && encoder.isPasswordValid(user.getPassword(), password, null)) {
-            validationResponse.put("user", user.flatten(1, true, true));
+            validationResponse.put("user", user.flatten(3, true, true));
             validationResponse.put("ident", user.getRegistrationKey());
             validationResponse.put("portal_id", user.getPortal().getId());
             JSONArray locations = new JSONArray();
