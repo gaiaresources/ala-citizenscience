@@ -3,17 +3,10 @@
  */
 package au.com.gaiaresources.bdrs.controller.webservice;
 
-import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Collection;
-
-import au.com.gaiaresources.bdrs.json.JSON;
+import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
-import au.com.gaiaresources.bdrs.json.JSONSerializer;
-
+import au.com.gaiaresources.bdrs.model.user.User;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Before;
@@ -22,12 +15,12 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
 import org.springframework.security.authentication.encoding.PasswordEncoder;
 
-import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
-import au.com.gaiaresources.bdrs.model.group.Group;
-import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.model.user.User;
-
 import javax.servlet.http.HttpServletResponse;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * @author timo
@@ -157,6 +150,14 @@ public class UserServiceTest extends AbstractControllerTest {
         details.put("password", password);
         details.put("active", "1"); // make user active immediately.
 
+        Map<String, String> metadataMap = new HashMap<String, String>();
+        metadataMap.put("one", "two");
+        metadataMap.put("key with space", "value with space");
+
+        JSONObject userMetaData = JSONObject.fromMapToJSONObject(metadataMap);
+
+        details.put(UserService.JSON_KEY_USER_META_DATA, userMetaData);
+
         String query = details.toString();
 
         MessageDigest m = MessageDigest.getInstance("MD5");
@@ -181,7 +182,6 @@ public class UserServiceTest extends AbstractControllerTest {
 
         Assert.assertFalse("we should get a return ident", jsonResponse.getString("ident").isEmpty());
 
-
         // try to make another user with the same name
         request = this.createStandardRequest();
         response = new MockHttpServletResponse();
@@ -197,7 +197,6 @@ public class UserServiceTest extends AbstractControllerTest {
         JSONObject existingUserResponse = JSONObject.fromStringToJSONObject(response.getContentAsString());
         Assert.assertTrue("user exists flag should be true", existingUserResponse.getBoolean("userExists"));
 
-
         // now see if we can log in...
         request = this.createStandardRequest();
 
@@ -212,14 +211,37 @@ public class UserServiceTest extends AbstractControllerTest {
 
         JSONObject validationResponse = JSONObject.fromStringToJSONObject(response.getContentAsString());
 
+        logger.debug("validationResponse : " + validationResponse.toJSONString());
+
         Assert.assertTrue("user key should exist", validationResponse.has("user"));
         JSONObject validUser = validationResponse.getJSONObject("user");
         Assert.assertEquals("Content type should be application/json", "application/json", response.getContentType());
         Assert.assertEquals("wrong username", username, validUser.getString("name"));
         Assert.assertEquals("wrong lastname", lastname, validUser.getString("lastName"));
 
+        {
+            // assert returned metadata
+            JSONArray returnedUserMetaData = validUser.getJSONArray("metadata");
+
+            Iterator metadataIterator = returnedUserMetaData.iterator();
+            while (metadataIterator.hasNext()) {
+                JSONObject jsonMetadata = (JSONObject)metadataIterator.next();
+
+                String mdKey = jsonMetadata.getString("key");
+                Assert.assertNotNull("mdKey cant be null", mdKey);
+                String expectedValue = metadataMap.get(mdKey);
+                Assert.assertNotNull(expectedValue);
+                Assert.assertEquals("wrong metadata value for key : " + mdKey,
+                        expectedValue, jsonMetadata.getString("value"));
+            }
+        }
+
         User u = userDAO.getUser(username);
         Assert.assertTrue("user should be active", u.isActive());
+
+        // check user meta data...
+        Assert.assertEquals("wrong metadata value", "two", u.getMetadataValue("one"));
+        Assert.assertEquals("wrong metadata value", "value with space", u.getMetadataValue("key with space"));
     }
 
     @Test
