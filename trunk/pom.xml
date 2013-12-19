@@ -680,15 +680,6 @@
                         </entry>
                     </entries>
                 </configuration>
-                <!-- forcing svnkit:1.7+ -->
-                <dependencies>
-                    <dependency>
-                        <groupId>org.tmatesoft.svnkit</groupId>
-                        <artifactId>svnkit</artifactId>
-                        <version>1.7.4</version>
-                        <!-- please check for the latest version -->
-                    </dependency>
-                </dependencies>
             </plugin>
             <!-- Source code is 1.6 -->
             <plugin>
