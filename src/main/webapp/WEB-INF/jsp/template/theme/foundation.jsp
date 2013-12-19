@@ -80,7 +80,7 @@
             <%-- Include EPSG definitions. If more definitions are required add to EPSG.js --%>
             <script src="${pageContext.request.contextPath}/js${version}/proj4js/lib/defs/EPSG.js" type="text/javascript"></script>
             <script src="${pageContext.request.contextPath}/js${version}/ol/OpenLayers.js" type="text/javascript"></script>
-            <script src="http://maps.google.com/maps?file=api&amp;v=2&amp;&amp;sensor=false&amp;key=${bdrsGoogleMapsKey}" type="text/javascript"></script>
+            <script src="http://maps.google.com/maps/api/js?v=3&amp;sensor=false&amp;key=${bdrsGoogleMapsKey}" type="text/javascript"></script>
             <script src="${pageContext.request.contextPath}/js${version}/BdrsCluster.js" type="text/javascript"></script>
 			<script src="${pageContext.request.contextPath}/js${version}/BdrsLayerSwitcher.js" type="text/javascript"></script>
         </c:if>

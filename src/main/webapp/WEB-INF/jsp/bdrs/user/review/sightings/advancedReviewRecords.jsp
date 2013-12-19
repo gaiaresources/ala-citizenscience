@@ -56,5 +56,11 @@
       <c:if test="${ downloadViewSelected }">
       bdrs.advancedReview.downloadSightingsWidgetInit("#facetForm");
        </c:if>
+
+      <c:if test="${ mapViewSelected }">
+
+       </c:if>
+
+
    });
 </script>
