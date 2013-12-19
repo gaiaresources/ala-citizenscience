@@ -195,16 +195,6 @@
             bdrs.map.centerMap(bdrs.map.baseMap);
             bdrs.map.recordOriginalCenterZoom(bdrs.map.baseMap);
         }
-
-        // Correct map centering on IE8.
-        // At the time of writing, only Google maps has an internal mapObject.
-        if(bdrs.map.baseLayer.mapObject !== undefined) {
-            var handler = function() {
-                GEvent.removeListener(window._gmap_tilesloaded_event);
-                bdrs.map.baseMap.baseLayer.redraw();
-            };
-            window._gmap_tilesloaded_event = GEvent.addListener(bdrs.map.baseLayer.mapObject, "tilesloaded", handler);
-        }
     });
 
 	<tiles:insertDefinition name="initBaseMapLayersFcn">

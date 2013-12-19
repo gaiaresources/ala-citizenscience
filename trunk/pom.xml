@@ -680,6 +680,15 @@
                         </entry>
                     </entries>
                 </configuration>
+                <!-- forcing svnkit:1.7+ -->
+                <dependencies>
+                    <dependency>
+                        <groupId>org.tmatesoft.svnkit</groupId>
+                        <artifactId>svnkit</artifactId>
+                        <version>1.7.4</version>
+                        <!-- please check for the latest version -->
+                    </dependency>
+                </dependencies>
             </plugin>
             <!-- Source code is 1.6 -->
             <plugin>
@@ -1068,9 +1077,7 @@
                 <!-- Application address properties -->
                 <bdrs.application.url>http://localhost:8080/BDRS</bdrs.application.url>
                 <!-- Google Maps API Key. Good for http://localhost:8080/* -->
-                <bdrs.google.maps.key>
-                    ABQIAAAAVf-yI1VYl3fsYYNGwKOfGBT2yXp_ZAY8_ufC3CFXhHIE1NvwkxQTUAIK7KnqImTPI8drRbqfl1uq7A
-                </bdrs.google.maps.key>
+                <bdrs.google.maps.key></bdrs.google.maps.key>
                 <!-- Database properties -->
                 <bdrs.db.user.name>postgres</bdrs.db.user.name>
                 <bdrs.db.user.password>postgres</bdrs.db.user.password>
