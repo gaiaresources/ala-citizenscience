@@ -6,8 +6,6 @@
 
 <tiles:useAttribute id="customJS" name="customJavaScript" classname="java.util.List"/>
 <tiles:useAttribute id="customCSS" name="customCss" classname="java.util.List"/>
-<tiles:useAttribute id="ketchupVersion" name="ketchupVersion"/>
-
 <jsp:useBean id="context" scope="request" type="au.com.gaiaresources.bdrs.servlet.RequestContext"></jsp:useBean>
 <tiles:importAttribute name="maps"/>
 
