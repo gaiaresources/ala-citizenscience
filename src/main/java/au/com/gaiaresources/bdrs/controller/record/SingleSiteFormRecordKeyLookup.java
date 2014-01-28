@@ -18,6 +18,14 @@ public class SingleSiteFormRecordKeyLookup implements RecordKeyLookup {
     }
 
     /* (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.deserialization.record.RecordKeyLookup#getGpsAltitudeKey()
+     */
+    @Override
+    public String getGpsAltitudeKey() {
+        return SingleSiteController.PARAM_GPS_ALTITUDE;
+    }
+
+    /* (non-Javadoc)
      * @see au.com.gaiaresources.bdrs.deserialization.record.RecordKeyLookup#getAttributeNameTemplate()
      */
     @Override

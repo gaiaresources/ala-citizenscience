@@ -267,6 +267,9 @@ public class TrackerControllerTest extends RecordFormTest {
                 case ACCURACY:
                 	Assert.assertEquals("Accuracy (meters)", recordProperty.getDescription());
                 	break;
+                case GPS_ALTITUDE:
+                    Assert.assertEquals("GPS Altitude", recordProperty.getDescription());
+                    break;
                 case NUMBER:
                 	Assert.assertEquals("Individual Count", recordProperty.getDescription());
                 	break;

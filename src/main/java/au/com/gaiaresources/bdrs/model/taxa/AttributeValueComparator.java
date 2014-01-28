@@ -18,18 +18,16 @@ public class AttributeValueComparator implements Comparator<AttributeValue>, Ser
 
     @Override
     public int compare(AttributeValue arg0, AttributeValue arg1) {
-        if (arg0 == null) {
-            return 1;
+        int weight0 = Integer.MAX_VALUE;
+        if(arg0 != null && arg0.getAttribute() != null) {
+            weight0 = arg0.getAttribute().getWeight();
         }
-        if (arg1 == null) {
-            return 1;
+
+        int weight1 = Integer.MAX_VALUE;
+        if(arg1 != null && arg1.getAttribute() != null) {
+            weight1 = arg1.getAttribute().getWeight();
         }
-        if (arg0.getAttribute() == null) {
-            return 1;
-        }
-        if (arg1.getAttribute() == null) {
-            return 1;
-        }
-        return arg0.getAttribute().getWeight() - arg1.getAttribute().getWeight(); 
+
+        return weight0 - weight1;
     }
 }

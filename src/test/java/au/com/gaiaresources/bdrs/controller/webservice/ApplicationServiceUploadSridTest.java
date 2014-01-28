@@ -97,6 +97,6 @@ public class ApplicationServiceUploadSridTest extends AbstractControllerTest {
     			+"\"attributeValues\":[]"  // no attribute values
     			+",\"scientificName\":\"Eucalyptus ovata\",\"when\":1336437300000,"
     			+"\"number\":10,\"srid\":\""+srid+"\",\"longitude\":\""+x+"\",\"latitude\":\""+y+"\","
-    			+"\"notes\":\"qqqqq\",\"survey_id\":"+survey.getId()+",\"accuracy\":\"25.0\"}]";
+    			+"\"notes\":\"qqqqq\",\"survey_id\":"+survey.getId()+",\"gpsAltitude\":\"5.0\",\"accuracy\":\"25.0\"}]";
 	}
 }

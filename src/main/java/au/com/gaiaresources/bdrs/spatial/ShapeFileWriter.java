@@ -257,6 +257,7 @@ public class ShapeFileWriter {
             }
             
             context.addDouble(klu.getAccuracyKey(), null, "The estimated accuracy in meters of the sighting");
+            context.addDouble(klu.getGpsAltitudeKey(), null, "The estimated altitude of the sighting");
             
             // DwC fields - position/location is unneeded of course
             if (taxonomic) {
@@ -329,6 +330,10 @@ public class ShapeFileWriter {
                     
                     if (recAdapter.getAccuracyInMeters() != null) {
                         featureAttr.put(klu.getAccuracyKey(), recAdapter.getAccuracyInMeters());
+                    }
+
+                    if (recAdapter.getGpsAltitude() != null) {
+                        featureAttr.put(klu.getGpsAltitudeKey(), recAdapter.getGpsAltitude());
                     }
                     
                     if (recAdapter.getSpecies() != null) {

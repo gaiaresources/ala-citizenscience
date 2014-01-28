@@ -381,7 +381,7 @@ public class ApplicationServiceUploadTest extends AbstractControllerTest {
     			+"{\"value\":\"banana\",\"id\":2,\"server_id\":0,\"attribute_id\":"+a2.getId()+"}]"
     			+",\"scientificName\":\"Eucalyptus ovata\",\"when\":1336437300000,"
     			+"\"number\":10,\"longitude\":\"115.842424\",\"latitude\":\"-31.938391\","
-    			+"\"notes\":\"qqqqq\",\"survey_id\":"+survey.getId()+",\"accuracy\":\"25.0\"}]";
+    			+"\"notes\":\"qqqqq\",\"survey_id\":"+survey.getId()+",\"gpsAltitude\":\"15.0\",\"accuracy\":\"25.0\"}]";
     	
     	request.setMethod("POST");
         request.setRequestURI("/webservice/application/clientSync.htm");
@@ -639,6 +639,7 @@ public class ApplicationServiceUploadTest extends AbstractControllerTest {
         rec.put("latitude", record == null ? -31.95222 : -32.96233);
         rec.put("longitude", record == null ? 115.85889 : 117.9422);
         rec.put("accuracy", record == null ? 5: 15);
+        rec.put("gpsAltitude", record == null ? 10: 25);
         rec.put("when", System.currentTimeMillis());
         rec.put("lastDate", rand.nextBoolean() ? null : System.currentTimeMillis());
         rec.put("notes", record == null ? "notes" : "edited notes");

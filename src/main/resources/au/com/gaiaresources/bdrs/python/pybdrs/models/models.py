@@ -470,6 +470,7 @@ insert_accessors(Record, {
     #'location': Location,
     'geometry': BaseGeometry,
     'accuracyInMeters': float,
+    'gpsAltitude': float,
     'held': bool,
     #'recordVisibility': RecordVisibility,
     'when': datetime,

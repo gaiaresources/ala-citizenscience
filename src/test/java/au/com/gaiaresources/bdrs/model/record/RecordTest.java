@@ -23,7 +23,7 @@ public class RecordTest {
        a2.setWeight(1);
        Attribute a3 = new Attribute();
        a3.setWeight(0);
-       
+
        AttributeValue av1 = new AttributeValue();
        av1.setAttribute(a1);
        AttributeValue av2 = new AttributeValue();
@@ -43,7 +43,7 @@ public class RecordTest {
        rec.setAttributes(avSet);
        
        List<AttributeValue> avList = rec.getOrderedAttributes();
-       
+
        Assert.assertEquals(4, avList.size());
        Assert.assertEquals(av3, avList.get(0));
        Assert.assertEquals(av2, avList.get(1));

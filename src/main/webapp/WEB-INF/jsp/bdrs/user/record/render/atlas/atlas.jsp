@@ -134,6 +134,16 @@
                     <tiles:putAttribute name="isModerationOnly" value="${ recordWebFormContext.moderateOnly }"/>
                 </tiles:insertDefinition>
 
+                <c:set var="formField" value="<%= formFieldMap.get(RecordPropertyType.GPS_ALTITUDE) %>"/>
+                <tiles:insertDefinition name="formFieldRenderer">
+                    <tiles:putAttribute name="formField" value="${ formField }"/>
+                    <tiles:putAttribute name="label" value="GPS Altitude"/>
+                    <tiles:putAttribute name="errorMap" value="${ errorMap }"/>
+                    <tiles:putAttribute name="valueMap" value="${ valueMap }"/>
+                    <tiles:putAttribute name="editEnabled" value="${ recordWebFormContext.editable }"/>
+                    <tiles:putAttribute name="isModerationOnly" value="${ recordWebFormContext.moderateOnly }"/>
+                </tiles:insertDefinition>
+
                 <c:set var="formField" value="<%= formFieldMap.get(RecordPropertyType.ACCURACY) %>"/>
                 <tiles:insertDefinition name="formFieldRenderer">
                     <tiles:putAttribute name="formField" value="${ formField }"/>

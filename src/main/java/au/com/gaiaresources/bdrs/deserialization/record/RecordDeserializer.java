@@ -317,6 +317,13 @@ public class RecordDeserializer {
                     validator.validate(params, ValidationType.DOUBLE, klu.getAccuracyKey(), null, recordProperty);
                 }
 
+                recordProperty = new RecordProperty(survey, RecordPropertyType.GPS_ALTITUDE, metadataDAO);
+                if (recordProperty.isRequired()) {
+                    validator.validate(params, ValidationType.REQUIRED_DOUBLE, klu.getGpsAltitudeKey(), null, recordProperty);
+                } else {
+                    validator.validate(params, ValidationType.DOUBLE, klu.getGpsAltitudeKey(), null, recordProperty);
+                }
+
                 validator.validate(params, ValidationType.INTEGER, klu.getRecordIdKey(), null);
 
                 recordProperty = new RecordProperty(survey, RecordPropertyType.TIME, metadataDAO);
@@ -598,6 +605,9 @@ public class RecordDeserializer {
 
             String accuracyStr = entry.getValue(klu.getAccuracyKey());
             record.setAccuracyInMeters(StringUtils.notEmpty(accuracyStr) ? Double.parseDouble(accuracyStr) : null);
+
+            String gpsAltitudeStr = entry.getValue(klu.getGpsAltitudeKey());
+            record.setGpsAltitude(StringUtils.notEmpty(gpsAltitudeStr) ? Double.parseDouble(gpsAltitudeStr) : null);
         }
         // Attach the record Attributes
         List<TypedAttributeValue> attrValuesToDelete = new ArrayList<TypedAttributeValue>();

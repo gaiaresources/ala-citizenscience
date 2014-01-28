@@ -15,6 +15,7 @@ public class ShapefileFields {
     public static final String COMMENTS = "comments";
     public static final String RECORD_ID = "record_id";
     public static final String ACCURACY = "accuracy";
+    public static final String GPS_ALTITUDE = "gps_alt";
     public static final String TIME = "time";
     
     public static final String SURVEY_ID = "surveyId";

@@ -53,6 +53,14 @@ public class AccessControlledRecordAdapter implements ReadOnlyRecord {
     }
 
     @Override
+    public Double getGpsAltitude() {
+        if (hideDetails) {
+            return null;
+        }
+        return record.getGpsAltitude();
+    }
+
+    @Override
     public Set<AttributeValue> getAttributes() {
         if (hideDetails) {
             return Collections.EMPTY_SET;

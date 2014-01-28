@@ -44,6 +44,10 @@ public abstract class AbstractTypedAttributeValue extends PortalPersistentImpl i
     @Override
     public String toString() {
         Attribute a = getAttribute();
+        if(a == null || a.getType() == null) {
+            return getStringValue();
+        }
+
         switch (a.getType()) {
         case INTEGER:
         case INTEGER_WITH_RANGE:
@@ -92,7 +96,7 @@ public abstract class AbstractTypedAttributeValue extends PortalPersistentImpl i
         case CENSUS_METHOD_COL:
             return "";
         default:
-            throw new IllegalStateException("attribute type not handled : " + a.getTypeCode());
+            return "Attribute type not handled : " + a.getTypeCode();
         }
     }
         

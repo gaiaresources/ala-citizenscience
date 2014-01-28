@@ -349,6 +349,43 @@
         </c:choose>
           
     </c:when>
+
+    <c:when test="<%= RecordPropertyType.GPS_ALTITUDE.getName().equals(formField.getPropertyName()) %>">
+        <c:choose>
+            <c:when test="${fieldEditable}">
+
+                <c:if test="<%= errorMap != null && errorMap.containsKey(formField.getPrefix()+\"gpsAltitude\") %>">
+                    <p class="error">
+                        <c:out value="<%= errorMap.get(formField.getPrefix()+\"gpsAltitude\") %>"/>
+                    </p>
+                </c:if>
+                <input id="gpsAltitude" type="text" name="${ formPrefix }gpsAltitude"
+                     <c:choose>
+                            <c:when test="${ not formField.required }">
+                                class="validate(numberOrBlank)"
+                            </c:when>
+                            <c:otherwise>
+                                class="validate(number)"
+                            </c:otherwise>
+                        </c:choose>
+                    <c:if test="${ formField.record != null}">
+                        <c:choose>
+                            <c:when test="<%= valueMap != null && valueMap.containsKey(formField.getPrefix()+\"gpsAltitude\") %>">
+                                value="<c:out value="<%= valueMap.get(formField.getPrefix()+\"gpsAltitude\") %>"/>"
+                            </c:when>
+                            <c:when test="${ formField.record != null }">
+                                value="<c:out value="${ formField.record.gpsAltitude }"/>"
+                            </c:when>
+                        </c:choose>
+                    </c:if>
+                />
+            </c:when>
+            <c:otherwise>
+                <span><c:out value="${ formField.record.gpsAltitude }"/></span>
+            </c:otherwise>
+        </c:choose>
+    </c:when>
+
     <c:when test="<%= RecordPropertyType.CREATED.getName().equals(formField.getPropertyName()) %>">
         <c:if test="${not empty record.createdAt}">
             <fmt:formatDate dateStyle="MEDIUM" type="date" value="${record.createdAt}"/> <fmt:formatDate pattern="HH:mm" value="${record.createdAt}"/> by <c:out value="${record.user.fullName}"/>

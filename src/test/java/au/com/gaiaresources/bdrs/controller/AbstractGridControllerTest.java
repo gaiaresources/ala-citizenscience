@@ -621,6 +621,11 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
             // not handled, return nothing for now 
             return String.format("%d,%d", lat, lon);
         }
+        case GPS_ALTITUDE:
+            if (assign) {
+                rec.setGpsAltitude(new Double(seed));
+            }
+            return Integer.toString(seed);
         case ACCURACY:
             if (assign) {
                 rec.setAccuracyInMeters(new Double(seed));
@@ -759,6 +764,14 @@ public abstract class AbstractGridControllerTest extends AbstractControllerTest 
                     Assert.assertEquals("record.accuracy does not match", Double.parseDouble(expectedValue), rec.getAccuracyInMeters(), DEFAULT_TOLERANCE);
                 }
                 break;
+            case GPS_ALTITUDE:
+                    if (expectedValue == null) {
+                        Assert.assertNull("record.gpsAltitude expected to be null", rec.getGpsAltitude());
+                    } else {
+                        Assert.assertNotNull("record.gpsAltitude cannot be null", rec.getGpsAltitude());
+                        Assert.assertEquals("record.gpsAltitude does not match", Double.parseDouble(expectedValue), rec.getGpsAltitude(), DEFAULT_TOLERANCE);
+                    }
+                    break;
             case WHEN:
             {
                 String dateExpectedValue = expectedValueMap.get(RecordPropertyType.WHEN);

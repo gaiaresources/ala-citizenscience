@@ -16,6 +16,7 @@ public enum RecordPropertyType implements JSONEnum {
     NUMBER("Number", "Individual Count"),
     LOCATION("Location"),
     POINT("Point"),
+    GPS_ALTITUDE("GpsAltitude", "GPS Altitude"),
     ACCURACY("AccuracyInMeters","Accuracy (meters)"),
     WHEN("When","Date"),
     TIME("Time"),

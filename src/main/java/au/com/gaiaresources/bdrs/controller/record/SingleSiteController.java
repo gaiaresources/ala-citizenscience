@@ -72,6 +72,7 @@ public abstract class SingleSiteController extends RecordController {
     public static final String PARAM_ROW_PREFIX = "rowPrefix";
 
     public static final String PARAM_ACCURACY = "accuracyInMeters";
+    public static final String PARAM_GPS_ALTITUDE = "gpsAltitude";
     
     public static final String PARAM_SPECIES = "species";
     public static final String PARAM_NUMBER = "number";

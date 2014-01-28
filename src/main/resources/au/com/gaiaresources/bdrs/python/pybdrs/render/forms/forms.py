@@ -12,6 +12,7 @@ class RecordForm(Form):
         'notes': 'textarea',
         'number': 'integer',
         'accuracyInMeters': 'number',
+        'gpsAltitude': 'number',
         'when': 'historical_date',
         'time': 'time',
         'species': 'taxon',

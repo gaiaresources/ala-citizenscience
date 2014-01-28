@@ -93,6 +93,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord,
         list.add(RecordPropertyType.LOCATION);
         list.add(RecordPropertyType.POINT);
         list.add(RecordPropertyType.ACCURACY);
+        list.add(RecordPropertyType.GPS_ALTITUDE);
         list.add(RecordPropertyType.WHEN);
         list.add(RecordPropertyType.TIME);
         list.add(RecordPropertyType.NOTES);
@@ -109,6 +110,7 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord,
     private Location location;
     private Geometry geometry;
     private Double AccuracyInMeters;
+    private Double gpsAltitude;
     private Boolean held = false;
     private RecordVisibility recordVisibility = RecordVisibility.OWNER_ONLY;
 
@@ -335,6 +337,23 @@ public class Record extends PortalPersistentImpl implements ReadOnlyRecord,
     public void setAccuracyInMeters(Double accuracy) {
         this.AccuracyInMeters = accuracy;
     }
+
+    @CompactAttribute
+    @Column(name = "GPS_ALTITUDE", nullable = true)
+    /**
+     * @return the GPS altitude where this record was captured.
+     */
+    public Double getGpsAltitude() {
+        return this.gpsAltitude;
+    }
+
+    /**
+     * @param altitude the GPS altitude where this record was captured.
+     */
+    public void setGpsAltitude(Double altitude) {
+        this.gpsAltitude = altitude;
+    }
+
 
     @CompactAttribute
     @Column(name = "HELD", nullable = false)

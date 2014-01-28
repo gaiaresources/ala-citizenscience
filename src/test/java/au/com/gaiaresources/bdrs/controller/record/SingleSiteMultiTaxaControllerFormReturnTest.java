@@ -508,6 +508,9 @@ public class SingleSiteMultiTaxaControllerFormReturnTest extends
             req.addParameter(prefix+SingleSiteController.PARAM_LONGITUDE, latLonSplit[1]);
             break;
         }
+        case GPS_ALTITUDE:
+            req.addParameter(prefix+SingleSiteController.PARAM_GPS_ALTITUDE,  value);
+            break;
         case ACCURACY:
             req.addParameter(prefix+SingleSiteController.PARAM_ACCURACY,  value);
             break;

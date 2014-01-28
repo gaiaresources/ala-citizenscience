@@ -47,6 +47,8 @@ public interface ReadOnlyRecord {
 
     public Double getAccuracyInMeters();
 
+    public Double getGpsAltitude();
+
     public Boolean isHeld();
 
     public Boolean getHeld();
