@@ -791,3 +791,12 @@ alter table RECORD_GROUP_METADATA add constraint FK58369ABD490DA25A foreign key 
 
 
 </code>
+
+
+= r544 =
+Adding GPS Altitude
+<code language="sql>
+BEGIN;
+    alter table record add column gps_altitude float8;
+ROLLBACK;
+</code>
