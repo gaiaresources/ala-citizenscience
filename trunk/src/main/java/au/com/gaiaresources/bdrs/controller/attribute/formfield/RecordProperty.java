@@ -228,7 +228,9 @@ public class RecordProperty extends PersistentImpl {
              } else if (propertySetting == RecordPropertySetting.DESCRIPTION) {
              	value = recordPropertyType.getDefaultDescription();
              } else if (propertySetting == RecordPropertySetting.REQUIRED) {
-            	 if (this.recordPropertyType == RecordPropertyType.ACCURACY || this.recordPropertyType.isReadOnly()) {
+            	 if (   this.recordPropertyType == RecordPropertyType.ACCURACY ||
+                         this.recordPropertyType == RecordPropertyType.GPS_ALTITUDE ||
+                        this.recordPropertyType.isReadOnly()) {
             		 value = "false";
             	 } else {
             		 value = "true"; 

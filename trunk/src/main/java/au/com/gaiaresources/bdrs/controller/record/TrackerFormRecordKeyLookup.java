@@ -57,6 +57,11 @@ public class TrackerFormRecordKeyLookup implements RecordKeyLookup {
     }
 
     @Override
+    public String getGpsAltitudeKey() {
+        return TrackerController.PARAM_GPS_ALTITUDE;
+    }
+
+    @Override
     public String getDateKey() {
         return TrackerController.PARAM_DATE;
     }

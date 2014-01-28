@@ -63,6 +63,7 @@ public class ContentService {
         tmp.put("public/help", "public_help.vm");
         tmp.put("public/privacyStatement", "public_privacyStatement.vm");
         tmp.put("public/termsAndConditions", "termsAndConditions.vm");
+        tmp.put("public/review", "public_review.vm");
         
         tmp.put("root/portalListing", "root_portalListing.vm");
         tmp.put("root/portalEdit", "root_portalEdit.vm");
@@ -86,6 +87,7 @@ public class ContentService {
         tmp.put("user/singleSiteMultiTaxaTable", "user_singleSiteMultiTaxaTable.vm");
         tmp.put("user/recordSightingMapDescription", "user_recordSightingMapDescription.vm");
         tmp.put("user/widgetBuilder", "user_widgetBuilder.vm");
+        tmp.put("user/contribute", CONTENT_PACKAGE + "user_contribute.vm");
         
         /* In content package resources */
         tmp.put("admin/home", CONTENT_PACKAGE + "admin_home.vm");

@@ -901,6 +901,7 @@ class Record(models.Model):
     when_date = models.DateTimeField(null=True, blank=True)
     geom = models.GeometryField(null=True, blank=True)
     accuracy = models.FloatField(null=True, blank=True)
+    gps_altitude = models.FloatField(null=True, blank=True)
     held = models.NullBooleanField(null=True, blank=True)
     last_date = models.DateTimeField(null=True, blank=True)
     last_time = models.BigIntegerField(null=True, blank=True)

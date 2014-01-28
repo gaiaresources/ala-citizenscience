@@ -11,6 +11,11 @@ public class ShapefileRecordKeyLookup implements RecordKeyLookup {
     }
 
     @Override
+    public String getGpsAltitudeKey() {
+        return ShapefileFields.GPS_ALTITUDE;
+    }
+
+    @Override
     public String getCensusMethodAttributePrefix() {
         return AttributeParser.DEFAULT_PREFIX;
     }

@@ -112,6 +112,12 @@ public interface RecordKeyLookup {
      * @return
      */
     String getAccuracyKey();
+
+    /**
+     * The gps altitude of the recording
+     * @return
+     */
+    String getGpsAltitudeKey();
     
     /**
      * The bdrs location name where the recording was taken. This may be used to 

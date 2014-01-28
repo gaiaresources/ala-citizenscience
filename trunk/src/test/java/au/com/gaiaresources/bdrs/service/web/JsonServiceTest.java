@@ -95,6 +95,7 @@ public class JsonServiceTest extends AbstractSpringContextTest {
         record.setUser(owner);
         record.setWhen(cal.getTime());
         record.setAccuracyInMeters(10d);
+        record.setGpsAltitude(15d);
         record.setNotes("hello world");
         
         TaxonGroup group = new TaxonGroup();

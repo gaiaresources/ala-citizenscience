@@ -1,13 +1,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="/WEB-INF/cw.tld" prefix="cw" %>
 
-<h1>Contribute</h1>
-
-<p>
-The Contribue menu lists the available Projects for this Portal.  
-By clicking on one of them, you will go to the relevant form for that Project, 
-and you can contribute your own Sightings there.  
-Currently, the list of Projects that you can access includes:
-</p>
+<cw:getContent key="user/contribute"/>
 
 <ul>
     <c:forEach items="${surveys}" var="survey">

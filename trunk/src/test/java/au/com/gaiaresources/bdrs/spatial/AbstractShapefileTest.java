@@ -231,10 +231,10 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
         secondSurvey.setStartDate(surveyStartDate);
         surveyDAO.save(secondSurvey);
         
-        r1 = createRecord(survey, null, locService.convertToMultiGeom(geomBuilder.createRectangle(0, 0, 10, 10)), species, cal.getTime(), owner, 9001, null, 1d, RecordVisibility.CONTROLLED);
-        r2 = createRecord(survey, taxaCm, locService.convertToMultiGeom(geomBuilder.createPoint(20, 20)), species, cal.getTime(), owner, 9002, null, 2d, RecordVisibility.CONTROLLED);
-        r3 = createRecord(secondSurvey, null, locService.convertToMultiGeom(geomBuilder.createLine(-10, -10, 0, 0)), null, cal.getTime(), owner, null, null, null, RecordVisibility.CONTROLLED);        
-        r4 = createRecord(survey, cm, locService.convertToMultiGeom(geomBuilder.createPoint(15, 15)), null, cal.getTime(), owner, null, null, null, RecordVisibility.CONTROLLED);
+        r1 = createRecord(survey, null, locService.convertToMultiGeom(geomBuilder.createRectangle(0, 0, 10, 10)), species, cal.getTime(), owner, 9001, null, 1d, 2d, RecordVisibility.CONTROLLED);
+        r2 = createRecord(survey, taxaCm, locService.convertToMultiGeom(geomBuilder.createPoint(20, 20)), species, cal.getTime(), owner, 9002, null, 2d, 4d, RecordVisibility.CONTROLLED);
+        r3 = createRecord(secondSurvey, null, locService.convertToMultiGeom(geomBuilder.createLine(-10, -10, 0, 0)), null, cal.getTime(), owner, null, null, null, null, RecordVisibility.CONTROLLED);
+        r4 = createRecord(survey, cm, locService.convertToMultiGeom(geomBuilder.createPoint(15, 15)), null, cal.getTime(), owner, null, null, null, null, RecordVisibility.CONTROLLED);
         
         // create GeoMap
         geoMapService.getForSurvey(survey);
@@ -242,7 +242,7 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
     }
     
     protected Record createRecord(Survey survey, CensusMethod cm, Geometry geom, IndicatorSpecies species, 
-            Date when, User user, Integer number, String notes, Double accuracy, RecordVisibility recVis) throws ParseException {
+            Date when, User user, Integer number, String notes, Double accuracy, Double gpsAltitude, RecordVisibility recVis) throws ParseException {
         Record record = new Record();
         
         if (survey == null) {
@@ -252,6 +252,7 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
         Set<AttributeValue> avSet = new HashSet<AttributeValue>();
         // lets add some records to the surveys!
         record.setAccuracyInMeters(1d);
+        record.setGpsAltitude(5d);
         record.setBehaviour("jumping");
         record.setSurvey(survey);
         record.setCensusMethod(taxaCm);
@@ -322,6 +323,7 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
             
             assertFeatureStringValue(feature, klu.getNotesKey(), record.getNotes());
             assertFeatureDoubleValue(feature, klu.getAccuracyKey(), record.getAccuracyInMeters());
+            assertFeatureDoubleValue(feature, klu.getGpsAltitudeKey(), record.getGpsAltitude());
             
             for (AttributeValue av : record.getAttributes()) {
                 assertAttributeValue(av, feature, attrIdNameMap);
@@ -339,6 +341,7 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
             assertFeatureIntegerValue(feature, klu.getIndividualCountKey(), 0);
             assertFeatureStringValue(feature, klu.getNotesKey(), null);
             assertFeatureDoubleValue(feature, klu.getAccuracyKey(), 0d);
+            assertFeatureDoubleValue(feature, klu.getGpsAltitudeKey(), 0d);
             
             for (AttributeValue av : record.getAttributes()) {
                 assertAttributeValueEmpty(av, feature, attrIdNameMap);

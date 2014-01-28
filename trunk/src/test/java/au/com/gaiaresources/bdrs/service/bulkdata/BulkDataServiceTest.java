@@ -282,6 +282,10 @@ public class BulkDataServiceTest extends AbstractControllerTest {
                 RecordPropertyType.ACCURACY, metadataDAO);
         accuracyProperty.setRequired(false);
         accuracyProperty.setHidden(false);
+        RecordProperty gpsAltitudeProperty = new RecordProperty(uploadSurvey,
+                RecordPropertyType.GPS_ALTITUDE, metadataDAO);
+        gpsAltitudeProperty.setRequired(false);
+        gpsAltitudeProperty.setHidden(false);
         RecordProperty whenProperty = new RecordProperty(uploadSurvey,
                 RecordPropertyType.WHEN, metadataDAO);
         whenProperty.setRequired(true);

@@ -143,6 +143,10 @@ public class TrackerController extends RecordController {
      */
     public static final String PARAM_ACCURACY = "accuracyInMeters";
     /**
+     * Request param, GPS Altitude of record
+     */
+    public static final String PARAM_GPS_ALTITUDE = "gpsAltitude";
+    /**
      * Request param, name of the pre-canned location of record
      */
     public static final String PARAM_LOCATION_NAME = "locationName";

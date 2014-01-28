@@ -126,6 +126,12 @@ public class TrackerControllerDuplicateRecordTest extends AbstractGridController
             		actualValue = String.valueOf(accuracy);
             	}
                 break;
+            case GPS_ALTITUDE:
+                Double gpsAltitude = recToDupe.getGpsAltitude();
+                if (gpsAltitude != null) {
+                    actualValue = String.valueOf(gpsAltitude);
+                }
+                break;
             // skip created and updated since these values are not copied
             // and are set by the system
             case UPDATED:
