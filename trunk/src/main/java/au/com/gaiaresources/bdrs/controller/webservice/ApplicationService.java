@@ -1053,6 +1053,10 @@ public class ApplicationService extends AbstractController {
         String accuracyStr = getJSONString(jsonRecordBean, "accuracy", "");
         Double accuracy = accuracyStr.trim().isEmpty() ? null : Double.parseDouble(accuracyStr);
         rec.setAccuracyInMeters(accuracy);
+
+        String gpsAltitudeStr = getJSONString(jsonRecordBean, "gpsAltitude", "");
+        Double gpsAltitude = gpsAltitudeStr.trim().isEmpty() ? null : Double.parseDouble(gpsAltitudeStr);
+        rec.setGpsAltitude(gpsAltitude);
         
         //set location for record if exists
         Integer locationId = getJSONInteger(jsonRecordBean, "location", null);
@@ -1382,7 +1386,7 @@ public class ApplicationService extends AbstractController {
             attributeList.add(attr.flatten(1, true, true));
         }
         flatCensusMethod.put("attributes", attributeList);
-        
+
         List<Map<String, Object>> subCensusMethodList = new ArrayList<Map<String, Object>>();
         for(CensusMethod subMethod : method.getCensusMethods()) {
             subCensusMethodList.add(recurseFlattenCensusMethod(subMethod));
