@@ -859,7 +859,7 @@ input[disabled] {
     
     position: fixed;
     top: 3px;
-    right: 3px;
+    right: 48%;
     z-index: 3100;
 }
 

@@ -887,7 +887,8 @@ bdrs.map.maximiseMap = function(map, controlPanel, trigger, enlargeMapLabel, shr
         var keyHandler = function(event) {
             if(event.keyCode === 27) {
                 jQuery(event.currentTarget).unbind(event);
-                bdrs.map.maximiseMap(map, trigger, enlargeMapLabel, shrinkMapLabel, enlargeMapClass, shrinkMapClass);
+                //simulate a click on the Shrink Map link
+                jQuery("a#maximiseMapLink").click();
             }
         };
         jQuery(document).keyup(keyHandler);
