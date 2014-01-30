@@ -6,7 +6,7 @@ import au.com.gaiaresources.bdrs.db.impl.Predicate;
 
 /**
  * Represents a parameter to the selection criteria represented by the
- * {@link Facet}.
+ * {@link au.com.gaiaresources.bdrs.service.facet.Facet}.
  */
 public abstract class FacetOption {
 
@@ -14,7 +14,9 @@ public abstract class FacetOption {
     private String value;
     private Long count;
     private boolean selected;
-    
+    protected boolean visible = true;
+    protected String id;
+
     private Logger log = Logger.getLogger(getClass());
 
     /**
@@ -26,9 +28,23 @@ public abstract class FacetOption {
      */
     public FacetOption(String displayName, String value, Long count,
             boolean selected) {
+        this(displayName, value, value, count, selected);
+    }
+
+    /**
+     * Creates a new <code>FacetOption</code>
+     * @param displayName the name/heading to be displayed to the user.
+     * @param value the value that will be applied if the option is selected.
+     * @param id this will be used in the view to identify the input field.
+     * @param count the number of records that this query will affect.
+     * @param selected true if this option is applied, false otherwise.
+     */
+    public FacetOption(String displayName, String value, String id, Long count,
+                       boolean selected) {
         super();
         this.displayName = displayName;
         this.value = value;
+        this.id = id;
         this.count = count;
         this.selected = selected;
     }
@@ -114,5 +130,21 @@ public abstract class FacetOption {
     public String getIndexedQueryString() {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    public boolean isVisible() {
+        return visible;
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+    }
+
+    public String getId() {
+        return id != null ? id : getValue();
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 }
