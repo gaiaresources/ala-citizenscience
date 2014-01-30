@@ -12,9 +12,6 @@ import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
  */
 public final class JSONSerializer {
     
-    private static JSONParser parser = new JSONParser();
-    private static ContainerFactoryImpl containerFactory = new ContainerFactoryImpl();
-    
     /**
      * Utility classes should not be instantiated.
      */
@@ -31,7 +28,7 @@ public final class JSONSerializer {
      */
     public static JSON toJSON(String jsonFormattedString) {
         try {
-            Object obj = parser.parse(jsonFormattedString, containerFactory);
+            Object obj = new JSONParser().parse(jsonFormattedString, new ContainerFactoryImpl());
             if(obj instanceof JSON) {
                 return (JSON)obj;
             } else {
