@@ -168,6 +168,23 @@ bdrs.advancedReview.getInitViewStyleDivFcn = function(tableSelector) {
     };
 };
 
+bdrs.advancedReview.submitReclassify = function (recordIds, speciesId) {
+    if (recordIds.length > 0 && speciesId) {
+        var url = bdrs.portalContextPath + "/bdrs/user/reclassifyRecords.htm";
+        var params = {
+            recordId: recordIds,
+            speciesId: speciesId
+        };
+        // We need to pass along all the parameters of the
+        // global form for the reclassify controller to redirect them to the 
+        // advancedReview controller.
+        var allParams = bdrs.serializeObject("form");
+        jQuery.extend(allParams, params);
+        bdrs.postWith(url, allParams);
+    }
+};
+
+
 /**
  * Performs the bulk delete. Will return to current page with current facet settings
  */

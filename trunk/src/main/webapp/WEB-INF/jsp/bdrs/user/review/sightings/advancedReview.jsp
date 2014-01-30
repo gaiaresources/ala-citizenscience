@@ -11,7 +11,7 @@
     ${pageDescription}
 </c:if>
 
-<form id="facetForm" method="POST" action="">
+<form id="facetForm" method="POST" action="${facetFormActionURL}">
     <c:if test="${resultsType == 'location' }">
         <input type="hidden" name="locations" id="locations" value = "${ locations }"/>
         <input type="hidden" name="locationArea" id="locationArea" value = "${ locationArea }"/>
