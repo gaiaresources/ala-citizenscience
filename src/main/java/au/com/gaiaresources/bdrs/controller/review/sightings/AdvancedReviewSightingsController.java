@@ -26,6 +26,7 @@ import au.com.gaiaresources.bdrs.service.facet.LocationFacet;
 import au.com.gaiaresources.bdrs.service.facet.SurveyFacet;
 import au.com.gaiaresources.bdrs.service.facet.record.RecordSurveyFacet;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 import au.com.gaiaresources.bdrs.util.KMLUtils;
 import au.com.gaiaresources.bdrs.util.SpatialUtil;
 import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
@@ -63,6 +64,8 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
      * Report URL.
      */
     public static final String  ADVANCED_REVIEW_REPORT_URL = "/review/sightings/advancedReviewReport.htm";
+    public static final String ADVANCED_REVIEW_URL = "/review/sightings/advancedReview.htm";
+    public static final String RECORD_COUNT_URL = "/review/sightings/advancedReviewRecordCount.htm";
 
     public static final String MODEL_IMAGES_VIEW_SELECTED = "imagesViewSelected";
     public static final String VIEW_TYPE_IMAGES = "images";
@@ -154,7 +157,7 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
      * view. The map or list view will populate itself via asynchronous 
      * javascript requests. 
      */
-    @RequestMapping(value = "/review/sightings/advancedReview.htm", method = {RequestMethod.GET, RequestMethod.POST})
+    @RequestMapping(value = ADVANCED_REVIEW_URL, method = {RequestMethod.GET, RequestMethod.POST})
     public ModelAndView advancedReview(HttpServletRequest request, 
                                        HttpServletResponse response,
                                        @RequestParam(value=SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME, required=false) Integer surveyId,
@@ -187,8 +190,29 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
             mv.addObject("pageCount", countPages(resultsPerPage, imageCount));
         }
         
+        // add a parameter for the view to populate the URL of the facet form action to be sure that the form submission will
+        // come back here.
+        // This is needed since the ReclassifyController forward request to this controller.
+        String thisControllerURL = request.getContextPath() + RequestContextHolder.getContext().getPortal().getPortalContextPath() + ADVANCED_REVIEW_URL;
+        mv.addObject("facetFormActionURL", thisControllerURL);
+
         return mv;
     }
+
+    /**
+     * Return just the record count.
+     */
+    @RequestMapping(value = RECORD_COUNT_URL, method = {RequestMethod.GET, RequestMethod.POST})
+    public void getRecordCount(HttpServletRequest request,
+                                     HttpServletResponse response,
+                                     @RequestParam(value=SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME, required=false) Integer surveyId) throws IOException {
+        Map<String, String[]> params = new HashMap<String, String[]>(request.getParameterMap());
+        List<Facet> facetList = facetService.getFacetList(currentUser(), params);
+        String searchText = getParameter(request.getParameterMap(), SEARCH_QUERY_PARAM_NAME);
+        Long result = countMatchingRecords(facetList, surveyId,searchText);
+        writeJson(response, result.toString());
+    }
+
 
     /**
      * Adds the locations to the parameter map as facet selections and removes them from the parameter list.
@@ -229,9 +253,9 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
      */
     private String getLocationListInWkt(String locationArea, Map<String, String[]> newParamMap, Integer surveyId) {
         List<Facet> facetList = facetService.getLocationFacetList(currentUser(), newParamMap);
-        Query q = createLocationFacetQuery(facetList, surveyId, null, null, 
-                                           getParameter(newParamMap, SEARCH_QUERY_PARAM_NAME), 
-                                           locationArea, null);
+        Query q = createLocationFacetQuery(facetList, surveyId, null, null,
+                getParameter(newParamMap, SEARCH_QUERY_PARAM_NAME),
+                locationArea, null);
         
         // remove any facet parameters from the map
         for (Facet facet : facetList) {
@@ -400,7 +424,7 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
     private void joinRecordsWithImages(HqlQuery hqlQuery) {
         hqlQuery.join("record.attributes", ATTRIBUTE_VALUE_ALIAS);
         hqlQuery.join(ATTRIBUTE_VALUE_ALIAS+".attribute", ATTRIBUTE_ALIAS);
-        hqlQuery.and(new Predicate(ATTRIBUTE_ALIAS+".typeCode = 'IM'").and(new Predicate(ATTRIBUTE_VALUE_ALIAS+".stringValue is not null")));
+        hqlQuery.and(new Predicate(ATTRIBUTE_ALIAS + ".typeCode = 'IM'").and(new Predicate(ATTRIBUTE_VALUE_ALIAS + ".stringValue is not null")));
     }
 
     /**

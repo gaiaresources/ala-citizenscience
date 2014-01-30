@@ -14,7 +14,7 @@
 </tiles:insertDefinition>
 
 <script type="text/javascript">
-   var tableColumns = [{'sortName' : 'censusMethod.type',
+    var tableColumns = [{'sortName' : 'censusMethod.type',
                        'tdClass' : 'typeColumn',
                        'divClass' :  'left alaSightingsTableHeader',
                        'tooltip' : 'The record type',
@@ -49,18 +49,19 @@
                        'divClass' :  'left alaSightingsTableHeader',
                        'tooltip' : 'The user that logged the record.',
                        'title' : 'User'}];
-   
-   jQuery(function() {
-      
-      
-      <c:if test="${ downloadViewSelected }">
-      bdrs.advancedReview.downloadSightingsWidgetInit("#facetForm");
-       </c:if>
 
-      <c:if test="${ mapViewSelected }">
+    jQuery(function() {
+    <c:if test="${ downloadViewSelected }">
+        bdrs.advancedReview.downloadSightingsWidgetInit("#facetForm");
+    </c:if>
 
-       </c:if>
-
-
-   });
+    <c:if test="${ mapViewSelected }">
+        jQuery(window).load(function() {
+            var isWithinAreaFacetActive = jQuery("input[name^='within']").length > 0;
+            if (bdrs.map.baseMap && isWithinAreaFacetActive) {
+                bdrs.advancedReview.addSpatialSearchFeature(bdrs.map.baseMap);
+            }
+        });
+    </c:if>
+    });
 </script>

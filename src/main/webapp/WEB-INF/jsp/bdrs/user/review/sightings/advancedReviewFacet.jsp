@@ -29,16 +29,19 @@
        
        <div class="clear"></div>
     </h4>
-    
+
 	<div class="facetOptions ${ facet.inputName  }OptContainer">
 		<c:forEach var="facetOption" items="${ facet.facetOptions }" varStatus="status">
-		    <div
+		    <div id="facetOption_${ facet.inputName }"
                 <c:if test="${status.count > facet.defaultVisibleOptionCount}">
                     class="overflow" style="display:none;"
                     <c:set var="overflow" value="true"/>
                 </c:if>
+                <c:if test="${not facetOption.visible}">
+                    style="display:none;"
+                </c:if>
             >
-		        <input id="${ facet.inputName  }_${ facetOption.value }"
+		        <input id="${ facet.inputName  }_${ facetOption.id }"
                     type="checkbox" 
                     value="${ facetOption.value }" 
                     name="${ facet.optionsParameterName  }"
@@ -46,7 +49,7 @@
                         checked="checked"
                     </c:if>
                 />
-		        <label for="${ facet.inputName  }_${ facetOption.value }">
+		        <label for="${ facet.inputName  }_${ facetOption.id }">
 		            <c:out value="${ facetOption.displayName }"/>&nbsp;(<c:out value="${ facetOption.count }"/>)
 		        </label>
 		    </div>
