@@ -123,21 +123,81 @@
     </c:choose>
     
     <sec:authorize ifAnyGranted="ROLE_USER, ROLE_POWER_USER, ROLE_SUPERVISOR, ROLE_ADMIN">
-        <div class="bulkActionContainer">
-            <div class="right">
-                <c:if test="${resultsType == 'record' }">
+        <c:if test="${resultsType == 'record' }">
+            <div class="bulkActionContainer">
+                <div id="reclassifyInputPanel" class="reclassify" style="display:none; margin: 20px 0px 0px 0px;">      
+                    <table class="form_table">
+                        <tr>
+                            <th>Species</th>
+                            <td>     
+                                <input id="survey_species_search" type="text" name="survey_species_search" class="ui-autocomplete-input" autocomplete="off" role="textbox" aria-autocomplete="list" aria-haspopup="true"/>
+                                <input type="text" class="speciesIdInput" id="species_id" name="speciesId"/>
+                                <script type="text/javascript">
+                                    jQuery(function() {
+                                        bdrs.contribute.initSpeciesAttributeAutocomplete('#survey_species_search', '#species_id', 1, true);
+                                    });
+                                </script>
+                            </td>
+                            <td>
+                                <input class="form_action" type="button" name="reclassify" value="Reclassify" onclick="submitReclassify();"/>
+                                    <script type="text/javascript">
+                                        function submitReclassify() {
+                                            // selected records
+                                            var recordIds = [];
+                                            jQuery('.recordIdCheckbox:checked').each(function(index, element) {
+                                                recordIds.push(jQuery(element).val());
+                                            });
+
+                                            var speciesId = jQuery("input#species_id").val();
+                                            var speciesName = jQuery("input#survey_species_search").val();
+
+                                            var size = recordIds.length;
+                                            //check input validity
+                                            if (size === 0) {
+                                                alert("No records selected for reclassification.");
+                                                return false;
+                                            }
+                                            if (!speciesId) {
+                                                alert("No species selected for reclassification.");
+                                                return false;
+                                            }
+
+                                            var confirmMsg = "You're about to reclassify " + size + " record" + (size > 1 ? "s" : "") + " into:\n" +
+                                                             speciesName + ".\n Are you sure?"; 
+                                            if (!confirm(confirmMsg)) {
+                                                return false;
+                                            }
+                                            bdrs.advancedReview.submitReclassify(recordIds, speciesId);
+                                            return true;
+                                        }
+                                    </script>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="right">
 	                <span>Apply action to selected records: </span>
 	                <a title="Delete the selected records" href="javascript:void(0)" onclick="bdrs.advancedReview.bulkDelete()">Delete</a>
 	                <sec:authorize ifAnyGranted="ROLE_SUPERVISOR, ROLE_ADMIN">
 	                   |<a title="Hold the selected records" href="javascript:void(0)" onclick="bdrs.advancedReview.bulkModerate(true)">Hold</a>
 	                   |<a title="Release the selected records" href="javascript:void(0)" onclick="bdrs.advancedReview.bulkModerate(false)">Release</a>
+                       |<a title="Reclassify the selected records" href="javascript:void(0)" onclick="toggleReclassifyPanel();">Reclassify</a>
+                       <script type="text/javascript">
+                            function toggleReclassifyPanel(){
+                                var elt = jQuery("div#reclassifyInputPanel");
+                                if (elt) {
+                                    var newVisibility = elt.css('display') === 'none' ? 'block' : 'none';
+                                    elt.css('display', newVisibility);
+                                }
+                            }     
+                       </script>
 	                </sec:authorize>
 	                <c:if test="${viewStyle == 'DIV'}">
 	                    <input id="bulkSelectCheckbox" title="Select/deselect all" type="checkbox" />
 	                </c:if>
-                </c:if>
+                </div>
             </div>
-        </div>
+        </c:if>
     </sec:authorize>
     
     <div class="clear"></div>
