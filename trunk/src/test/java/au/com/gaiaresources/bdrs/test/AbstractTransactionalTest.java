@@ -1,11 +1,21 @@
 package au.com.gaiaresources.bdrs.test;
 
-import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Scanner;
-
+import au.com.gaiaresources.bdrs.MockFactory;
+import au.com.gaiaresources.bdrs.controller.BdrsMockHttpServletRequest;
+import au.com.gaiaresources.bdrs.db.FilterManager;
+import au.com.gaiaresources.bdrs.model.portal.Portal;
+import au.com.gaiaresources.bdrs.model.portal.PortalDAO;
+import au.com.gaiaresources.bdrs.model.portal.impl.PortalInitialiser;
+import au.com.gaiaresources.bdrs.model.theme.ThemeDAO;
+import au.com.gaiaresources.bdrs.model.user.RegistrationService;
+import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.model.user.UserDAO;
+import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.taxonomy.FileTaxonLibSessionFactory;
+import au.com.gaiaresources.bdrs.service.taxonomy.TaxonLibSessionFactory;
+import au.com.gaiaresources.bdrs.servlet.RequestContext;
+import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
+import au.com.gaiaresources.taxonlib.ITaxonLibSession;
 import org.apache.log4j.Logger;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
@@ -20,15 +30,11 @@ import org.springframework.test.context.transaction.AfterTransaction;
 import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
-import au.com.gaiaresources.bdrs.controller.BdrsMockHttpServletRequest;
-import au.com.gaiaresources.bdrs.db.FilterManager;
-import au.com.gaiaresources.bdrs.model.portal.Portal;
-import au.com.gaiaresources.bdrs.model.portal.impl.PortalInitialiser;
-import au.com.gaiaresources.bdrs.service.taxonomy.FileTaxonLibSessionFactory;
-import au.com.gaiaresources.bdrs.service.taxonomy.TaxonLibSessionFactory;
-import au.com.gaiaresources.bdrs.servlet.RequestContext;
-import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
-import au.com.gaiaresources.taxonlib.ITaxonLibSession;
+import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Scanner;
 
 
 @Transactional
@@ -49,16 +55,17 @@ public abstract class AbstractTransactionalTest extends
     // because our database read and writes rely on the RequestContext, which requires
     // a request object to instantiate properly.
     protected MockHttpServletRequest request;
+    protected Portal defaultPortal;
 
     @Autowired
     protected SessionFactory sessionFactory;
-    protected Portal defaultPortal;
 
     private boolean dropDatabase = false;
     
     private TaxonLibSessionFactory tlSeshFactory;
-    
-    // @BeforeTransaction runs before @Before
+
+
+
     @BeforeTransaction
     public final void beginTransaction() throws Exception {
     	tlSeshFactory = new FileTaxonLibSessionFactory();
@@ -74,36 +81,18 @@ public abstract class AbstractTransactionalTest extends
     }
     
     @Before
-    public void primeDatabase() {
+    public void primeDatabase() throws Exception{
         dropDatabase = false;
-        try {
-        	Session sesh = getSession();
-            Portal portal = new PortalInitialiser().initRootPortal(sesh, null);
-            defaultPortal = getDefaultPortal(sesh, portal);
-
-            FilterManager.setPortalFilter(sesh, defaultPortal);
-            FilterManager.setPartialRecordCountFilter(sesh);
-
-            RequestContext c = RequestContextHolder.getContext();
-            c.setPortal(defaultPortal);
-        } catch (Exception e) {
-            log.error("db setup error", e);
-        }
-    }
-
-    /**
-     * This method exists to provide a hook for subclasses to override if the
-     * default portal is not the root portal.
-     * @param sesh the session to be used to retrieve the default portal if necessary.
-     * @param rootPortal the root portal that has been automatically initialised.
-     * @return the default portal to be set on the request context.
-     */
-    protected Portal getDefaultPortal(Session sesh, Portal rootPortal) {
-        return rootPortal;
+        Session sesh = getSession();
+        PortalInitialiser portalInitialiser = MockFactory.newPortalInitialiser();
+        defaultPortal = portalInitialiser.initRootPortal(sesh, null);
+        FilterManager.setPortalFilter(sesh, defaultPortal);
+        FilterManager.setPartialRecordCountFilter(sesh);
+        RequestContextHolder.getContext().setPortal(defaultPortal);
     }
 
     @AfterTransaction
-    public final void rollbackTransaction() throws Exception {
+    public void rollbackTransaction() throws Exception {
     	Session sesh = getSession();
         if(RequestContextHolder.getContext().getTaxonLibSessionFactory() == null){
             // In order to get around new requestContext being created
@@ -128,11 +117,11 @@ public abstract class AbstractTransactionalTest extends
         }
         taxonLibSession.getConnection().close();
         if (dropDatabase) {
-            
+
             // the session may have been closed...
             rollbackSession(sesh);
-            
-            // check the current session in the session factory incase
+
+            // check the current session in the session factory in case
             // another session was opened without our knowledge.
             // I have observed this happening in the BulkDataServiceTest.
             rollbackSession(sessionFactory.getCurrentSession());
@@ -148,9 +137,9 @@ public abstract class AbstractTransactionalTest extends
             // do normal rollback...
             sesh.getTransaction().rollback();
         }
-        
+
     }
-    
+
     public Session getSession() {
     	return sessionFactory.getCurrentSession();
     }
@@ -177,7 +166,7 @@ public abstract class AbstractTransactionalTest extends
     	if (sesh.isOpen()) {
     		sesh.getTransaction().commit();	
     	} else {
-    		log.warn("Session is already closed, cannot commit. The session was probably commited earlier which caused the session to close");
+    		log.warn("Session is already closed, cannot commit. The session was probably committed earlier which caused the session to close");
     	}
 
         if (!sesh.isOpen()) {
@@ -189,10 +178,8 @@ public abstract class AbstractTransactionalTest extends
     }
 
     /**
-     * This function should be overriden by tests that require a multipart
+     * This function should be overridden by tests that require a multi-part
      * request.
-     * 
-     * @return
      */
     protected MockHttpServletRequest createMockHttpServletRequest() {
         return createStandardRequest();

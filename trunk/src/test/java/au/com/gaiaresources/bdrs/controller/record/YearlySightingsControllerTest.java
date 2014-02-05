@@ -24,13 +24,10 @@ import au.com.gaiaresources.bdrs.controller.attribute.formfield.FormField;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordAttributeFormField;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyFormField;
 import au.com.gaiaresources.bdrs.model.location.Location;
-import au.com.gaiaresources.bdrs.model.location.LocationDAO;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
-import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
 import au.com.gaiaresources.bdrs.model.taxa.Attribute;
 import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
@@ -52,20 +49,12 @@ import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 public class YearlySightingsControllerTest extends RecordFormTest {
 
     @Autowired
-    private SurveyDAO surveyDAO;
-    @Autowired
     private TaxaDAO taxaDAO;
     @Autowired
     private RecordDAO recordDAO;
-    @Autowired 
-    private MetadataDAO metadataDAO;
-    @Autowired
-    private LocationDAO locationDAO;
     @Autowired
     private RedirectionService redirectionService;
     
-    private SpatialUtil locationService = new SpatialUtilFactory().getLocationUtil();
-
     private Survey survey;
     private TaxonGroup taxonGroup;
     private IndicatorSpecies speciesA;
@@ -115,13 +104,13 @@ public class YearlySightingsControllerTest extends RecordFormTest {
         locationA = new Location();
         locationA.setName("Location A");        
         locationA.setUser(admin);
-        locationA.setLocation(locationService.createPoint(-40.58, 153.1));
+        locationA.setLocation(locationUtil.createPoint(-40.58, 153.1));
         locationDAO.save(locationA);
         
         locationB = new Location();
         locationB.setName("Location B");        
         locationB.setUser(admin);
-        locationB.setLocation(locationService.createPoint(-32.58, 154.2));
+        locationB.setLocation(locationUtil.createPoint(-32.58, 154.2));
         locationDAO.save(locationB);
     }
     
@@ -149,34 +138,9 @@ public class YearlySightingsControllerTest extends RecordFormTest {
         Assert.assertNotNull(formContext.getNamedFormFields().get("formFieldList"));
 
     }
-    
-    
-    @Test 
-    public void testAddRecordWithRecordIdLowerLimitOutside() throws Exception{
-    	testAddRecordWithRecordId("99");
-    }
-    
-    @Test 
-    public void testAddRecordWithRecordIdLowerLimitEdge() throws Exception{
-    	testAddRecordWithRecordId("100");
-    }
-    
-    @Test 
-    public void testAddRecordWithRecordIdInRange() throws Exception{
-    	testAddRecordWithRecordId("101");
-    }
-    
-    @Test 
-    public void testAddRecordWithRecordIdUpperLimitEdge() throws Exception{
-    	testAddRecordWithRecordId("200");
-    }
-    
-    @Test 
-    public void testAddRecordWithRecordIdUpperLimitOutside() throws Exception{
-    	testAddRecordWithRecordId("201");
-    }
-    
-    public void testAddRecordWithRecordId(String intWithRangeValue) throws Exception {
+
+    @Test
+    public void testAddRecordWithRecordId() throws Exception {
         login("admin", "password", new String[] { Role.ADMIN });
         
         DateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy");
@@ -256,33 +220,8 @@ public class YearlySightingsControllerTest extends RecordFormTest {
         }
     }
     
-    @Test 
-    public void testSubmitRecordLowerLimitOutside() throws Exception{
-    	testSubmitRecord("99");
-    }
-    
-    @Test 
-    public void testSubmitRecordLowerLimitEdge() throws Exception{
-    	testSubmitRecord("100");
-    }
-    
-    @Test 
-    public void testSubmitRecordInRange() throws Exception{
-    	testSubmitRecord("101");
-    }
-    
-    @Test 
-    public void testSubmitRecordUpperLimitEdge() throws Exception{
-    	testSubmitRecord("200");
-    }
-    
-    @Test 
-    public void testSubmitRecordUpperLimitOutside() throws Exception{
-    	testSubmitRecord("201");
-    }
-    
-
-    public void testSubmitRecord(String intWithRangeValue) throws Exception {
+    @Test
+    public void testSubmitRecord() throws Exception {
         login("admin", "password", new String[] { Role.ADMIN });
         
         request.setMethod("POST");
