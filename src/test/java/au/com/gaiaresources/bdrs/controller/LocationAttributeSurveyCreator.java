@@ -46,6 +46,11 @@ import java.util.List;
  * where appropriate.
  */
 public class LocationAttributeSurveyCreator {
+
+    public final byte[] DEFAULT_IMAGE_BYTES = createImage(-1, -1, "");
+
+    private static Logger log = Logger.getLogger(LocationAttributeSurveyCreator.class);
+
     private DateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy");
 
     private TaxonGroup taxonGroupBirds;
@@ -93,7 +98,6 @@ public class LocationAttributeSurveyCreator {
      */
     private int taxonRecordCount;
     
-    private Logger log = Logger.getLogger(getClass());
 
     /**
      * Total number of locations created by setup.
@@ -405,7 +409,7 @@ public class LocationAttributeSurveyCreator {
                 attrVal.setAttribute(attr);
                 switch (attr.getType()) {
                     case INTEGER:
-                        Integer i = Integer.valueOf(123);
+                        Integer i = 123;
                         attrVal.setNumericValue(new BigDecimal(i));
                         attrVal.setStringValue(i.toString());
                         break;
@@ -416,7 +420,7 @@ public class LocationAttributeSurveyCreator {
                         attrVal.setStringValue(intStr);
                         break;
                     case DECIMAL:
-                        Double d = new Double(123);
+                        Double d = 123.0;
                         attrVal.setNumericValue(new BigDecimal(d));
                         attrVal.setStringValue(d.toString());
                         break;
@@ -464,11 +468,11 @@ public class LocationAttributeSurveyCreator {
                     case VIDEO:
                     case FILE:
                         attrVal.setStringValue("testDataFile.dat");
-                        fileData = createImage(-1, -1, attrVal.getStringValue());
+                        fileData = getDefaultImageAsBytes();
                         break;
                     case IMAGE:
                         attrVal.setStringValue("testImgFile.png");
-                        fileData = createImage(-1, -1, attrVal.getStringValue());
+                        fileData = getDefaultImageAsBytes();
                         break;
                     case SPECIES:
                         attrVal.setSpecies(speciesA);
@@ -563,7 +567,7 @@ public class LocationAttributeSurveyCreator {
                 recAttr.setAttribute(attr);
                 switch (attr.getType()) {
                     case INTEGER:
-                        Integer i = Integer.valueOf(123);
+                        Integer i = 123;
                         recAttr.setNumericValue(new BigDecimal(i));
                         recAttr.setStringValue(i.toString());
                         break;
@@ -574,7 +578,7 @@ public class LocationAttributeSurveyCreator {
                         recAttr.setStringValue(intStr);
                         break;
                     case DECIMAL:
-                        Double d = new Double(123);
+                        Double d = 123.0;
                         recAttr.setNumericValue(new BigDecimal(d));
                         recAttr.setStringValue(d.toString());
                         break;
@@ -622,11 +626,11 @@ public class LocationAttributeSurveyCreator {
                     case VIDEO:
                     case FILE:
                         recAttr.setStringValue("testDataFile.dat");
-                        fileData = createImage(-1, -1, recAttr.getStringValue());
+                        fileData = getDefaultImageAsBytes();
                         break;
                     case IMAGE:
                         recAttr.setStringValue("testImgFile.png");
-                        fileData = createImage(-1, -1, recAttr.getStringValue());
+                        fileData = getDefaultImageAsBytes();
                         break;
                     case SPECIES:
                         if (cm == null || !Taxonomic.NONTAXONOMIC.equals(cm.getTaxonomic())) {
@@ -724,11 +728,11 @@ public class LocationAttributeSurveyCreator {
                         case VIDEO:
                         case FILE:
                             recAttr.setStringValue("testGroupDataFile.dat");
-                            fileData = createImage(-1, -1, recAttr.getStringValue());
+                            fileData = getDefaultImageAsBytes();
                             break;
                         case IMAGE:
                             recAttr.setStringValue("testGroupImgFile.png");
-                            fileData = createImage(-1, -1, recAttr.getStringValue());
+                            fileData = getDefaultImageAsBytes();
                             break;
                         case SPECIES:
                             if (cm == null || !Taxonomic.NONTAXONOMIC.equals(cm.getTaxonomic())) {
@@ -760,6 +764,13 @@ public class LocationAttributeSurveyCreator {
         return recordDAO.saveRecord(record);
     }
 
+    private byte[] getDefaultImageAsBytes(){
+        //defensive copy
+        byte[] result = new byte[DEFAULT_IMAGE_BYTES.length];
+        System.arraycopy(DEFAULT_IMAGE_BYTES, 0, result, 0, DEFAULT_IMAGE_BYTES.length);
+        return result;
+    }
+
     /**
      * Creates a new image.
      *
@@ -769,44 +780,57 @@ public class LocationAttributeSurveyCreator {
      * @return the raw bytes of the created image.
      * @throws IOException thrown if there was an issue creating the image.
      */
-    private byte[] createImage(int width, int height, String text) throws IOException {
-        Random random = new Random();
-        if (width < 0) {
-            width = random.nextInt(DEFAULT_MAX_IMAGE_WIDTH - DEFAULT_MIN_IMAGE_WIDTH) + DEFAULT_MIN_IMAGE_WIDTH;
+    private static byte[] createImage(int width, int height, String text)  {
+        byte[] rawBytes = new byte[0];
+        ByteArrayOutputStream baos = null;
+        try {
+            Random random = new Random();
+            if (width < 0) {
+                width = random.nextInt(DEFAULT_MAX_IMAGE_WIDTH - DEFAULT_MIN_IMAGE_WIDTH) + DEFAULT_MIN_IMAGE_WIDTH;
+            }
+            if (height < 0) {
+                height = random.nextInt(DEFAULT_MAX_IMAGE_HEIGHT - DEFAULT_MIN_IMAGE_HEIGHT) + DEFAULT_MIN_IMAGE_HEIGHT;
+            }
+
+            BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+            Graphics2D g2 = (Graphics2D) img.getGraphics();
+            g2.setBackground(new Color(220, 220, 220));
+
+            Dimension size;
+            float fontSize = g2.getFont().getSize();
+            // Make the text as large as possible.
+            do {
+                g2.setFont(g2.getFont().deriveFont(fontSize));
+                FontMetrics metrics = g2.getFontMetrics(g2.getFont());
+                int hgt = metrics.getHeight();
+                int adv = metrics.stringWidth(text);
+                size = new Dimension(adv + 2, hgt + 2);
+                fontSize = fontSize + 1f;
+            } while (size.width < Math.round(0.9 * width) && size.height < Math.round(0.9 * height));
+
+            g2.setColor(Color.DARK_GRAY);
+            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                    RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            g2.drawString(text, (width - size.width) / 2, (height - size.height) / 2);
+            g2.setColor(Color.LIGHT_GRAY);
+            g2.drawRect(0, 0, width - 1, height - 1);
+
+            baos = new ByteArrayOutputStream(width * height);
+            ImageIO.write(img, "png", baos);
+            baos.flush();
+            rawBytes = baos.toByteArray();
+            baos.close();
+        } catch (IOException e) {
+            log.error("Error while creating image.", e);
+        } finally {
+            if (baos != null){
+                try {
+                    baos.close();
+                } catch (IOException ignored) {
+                }
+            }
         }
-        if (height < 0) {
-            height = random.nextInt(DEFAULT_MAX_IMAGE_HEIGHT - DEFAULT_MIN_IMAGE_HEIGHT) + DEFAULT_MIN_IMAGE_HEIGHT;
-        }
-
-        BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-
-        Graphics2D g2 = (Graphics2D) img.getGraphics();
-        g2.setBackground(new Color(220, 220, 220));
-
-        Dimension size;
-        float fontSize = g2.getFont().getSize();
-        // Make the text as large as possible.
-        do {
-            g2.setFont(g2.getFont().deriveFont(fontSize));
-            FontMetrics metrics = g2.getFontMetrics(g2.getFont());
-            int hgt = metrics.getHeight();
-            int adv = metrics.stringWidth(text);
-            size = new Dimension(adv + 2, hgt + 2);
-            fontSize = fontSize + 1f;
-        } while (size.width < Math.round(0.9 * width) && size.height < Math.round(0.9 * height));
-
-        g2.setColor(Color.DARK_GRAY);
-        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-                RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        g2.drawString(text, (width - size.width) / 2, (height - size.height) / 2);
-        g2.setColor(Color.LIGHT_GRAY);
-        g2.drawRect(0, 0, width - 1, height - 1);
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream(width * height);
-        ImageIO.write(img, "png", baos);
-        baos.flush();
-        byte[] rawBytes = baos.toByteArray();
-        baos.close();
 
         return rawBytes;
     }

@@ -67,12 +67,12 @@ public class ThemeService {
     private static final String JSON_KEY_THEME_PAGES = "theme_pages";
     
     @Autowired
-    private FileService fileService;
+    protected FileService fileService;
     
     @Autowired
-    private ThemeDAO themeDAO;
+    protected ThemeDAO themeDAO;
     @Autowired
-    private ManagedFileDAO managedFileDAO;
+    protected ManagedFileDAO managedFileDAO;
     
     private Logger log = Logger.getLogger(ThemeService.class);
     
@@ -124,7 +124,7 @@ public class ThemeService {
      * @param assetContext The string replacement for downloadable assets
      * @throws IOException
      */
-    private void processThemeData(Theme theme, FileSystem themeFiles, File destDir, String assetContext) throws IOException {
+    protected void processThemeData(Theme theme, FileSystem themeFiles, File destDir, String assetContext) throws IOException {
         byte[] buffer = new byte[4096];
         InputStream fis = null;
         FileOutputStream fos = null;

@@ -36,13 +36,13 @@ import com.vividsolutions.jts.util.Assert;
 public abstract class RecordFormTest extends AbstractControllerTest {
     
     @Autowired
-    private LocationDAO locationDAO;
+    protected LocationDAO locationDAO;
     @Autowired
-    private MetadataDAO metadataDAO;
+    protected MetadataDAO metadataDAO;
     @Autowired
-    private SurveyDAO surveyDAO;
-    
-    private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();    
+    protected SurveyDAO surveyDAO;
+
+    protected SpatialUtil locationUtil = new SpatialUtilFactory().getLocationUtil();
     
     protected void testRecordLocations(String requestURI,
                             boolean predefinedLocationsOnly,
@@ -87,7 +87,7 @@ public abstract class RecordFormTest extends AbstractControllerTest {
             loc = new Location();
             loc.setName(String.format("Location %d", i));        
             loc.setUser(admin);
-            loc.setLocation(spatialUtil.createPoint(-40.58+(0.1*i), 153.1+(0.1*i)));
+            loc.setLocation(locationUtil.createPoint(-40.58 + (0.1 * i), 153.1 + (0.1 * i)));
             loc = locationDAO.save(loc);
             survey.getLocations().add(loc);
         }
@@ -111,7 +111,7 @@ public abstract class RecordFormTest extends AbstractControllerTest {
             loc = new Location();
             loc.setName(String.format("Location %d", i));        
             loc.setUser(user);
-            loc.setLocation(spatialUtil.createPoint(-40.58+(0.1*i), 153.1+(0.1*i)));
+            loc.setLocation(locationUtil.createPoint(-40.58 + (0.1 * i), 153.1 + (0.1 * i)));
             loc = locationDAO.save(loc);
             userLocList.add(loc);
         }
