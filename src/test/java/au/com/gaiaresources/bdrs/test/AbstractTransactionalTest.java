@@ -4,13 +4,7 @@ import au.com.gaiaresources.bdrs.MockFactory;
 import au.com.gaiaresources.bdrs.controller.BdrsMockHttpServletRequest;
 import au.com.gaiaresources.bdrs.db.FilterManager;
 import au.com.gaiaresources.bdrs.model.portal.Portal;
-import au.com.gaiaresources.bdrs.model.portal.PortalDAO;
 import au.com.gaiaresources.bdrs.model.portal.impl.PortalInitialiser;
-import au.com.gaiaresources.bdrs.model.theme.ThemeDAO;
-import au.com.gaiaresources.bdrs.model.user.RegistrationService;
-import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.model.user.UserDAO;
-import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.taxonomy.FileTaxonLibSessionFactory;
 import au.com.gaiaresources.bdrs.service.taxonomy.TaxonLibSessionFactory;
 import au.com.gaiaresources.bdrs.servlet.RequestContext;
@@ -61,17 +55,16 @@ public abstract class AbstractTransactionalTest extends
     protected SessionFactory sessionFactory;
 
     private boolean dropDatabase = false;
-    
-    private TaxonLibSessionFactory tlSeshFactory;
 
+    private TaxonLibSessionFactory tlSeshFactory;
 
 
     @BeforeTransaction
     public final void beginTransaction() throws Exception {
-    	tlSeshFactory = new FileTaxonLibSessionFactory();
-    	// create the session that we will use for the whole test unless
-    	// the test does its own session management in which case you need to be careful!
-    	Session sesh = sessionFactory.getCurrentSession();
+        tlSeshFactory = new FileTaxonLibSessionFactory();
+        // create the session that we will use for the whole test unless
+        // the test does its own session management in which case you need to be careful!
+        Session sesh = sessionFactory.getCurrentSession();
         request = createMockHttpServletRequest();
         RequestContext c = new RequestContext(request, applicationContext);
         RequestContextHolder.set(c);
@@ -79,22 +72,38 @@ public abstract class AbstractTransactionalTest extends
         c.setTaxonLibSessionFactory(tlSeshFactory);
         sesh.beginTransaction();
     }
-    
+
     @Before
-    public void primeDatabase() throws Exception{
+    public void primeDatabase() throws Exception {
         dropDatabase = false;
         Session sesh = getSession();
         PortalInitialiser portalInitialiser = MockFactory.newPortalInitialiser();
-        defaultPortal = portalInitialiser.initRootPortal(sesh, null);
+        Portal rootPortal = portalInitialiser.initRootPortal(sesh, null);
+        defaultPortal = getDefaultPortal(sesh, rootPortal);
         FilterManager.setPortalFilter(sesh, defaultPortal);
         FilterManager.setPartialRecordCountFilter(sesh);
         RequestContextHolder.getContext().setPortal(defaultPortal);
     }
 
+    /**
+     * This method exists to provide a hook for subclasses to override if the
+     * default portal is not the root portal.
+     * <p/>
+     * WARNING!! Even if this method is not used inside the core,
+     * some sub-projects use it (e.g GR256-Ecological).
+     *
+     * @param sesh       the session to be used to retrieve the default portal if necessary.
+     * @param rootPortal the root portal that has been automatically initialised.
+     * @return the default portal to be set on the request context.
+     */
+    protected Portal getDefaultPortal(Session sesh, Portal rootPortal) {
+        return rootPortal;
+    }
+
     @AfterTransaction
     public void rollbackTransaction() throws Exception {
-    	Session sesh = getSession();
-        if(RequestContextHolder.getContext().getTaxonLibSessionFactory() == null){
+        Session sesh = getSession();
+        if (RequestContextHolder.getContext().getTaxonLibSessionFactory() == null) {
             // In order to get around new requestContext being created
             RequestContextHolder.getContext().setTaxonLibSessionFactory(tlSeshFactory);
         }
@@ -141,12 +150,12 @@ public abstract class AbstractTransactionalTest extends
     }
 
     public Session getSession() {
-    	return sessionFactory.getCurrentSession();
+        return sessionFactory.getCurrentSession();
     }
-    
+
     private void rollbackSession(Session sesh) {
         if (sesh.isOpen()) {
-            if(sesh.getTransaction().isActive()) {
+            if (sesh.getTransaction().isActive()) {
                 sesh.getTransaction().rollback();
             }
         }
@@ -157,17 +166,18 @@ public abstract class AbstractTransactionalTest extends
             sesh.close();
         }
     }
+
     protected final void requestDropDatabase() {
         dropDatabase = true;
     }
 
     protected void commit() {
-    	Session sesh = getSession();
-    	if (sesh.isOpen()) {
-    		sesh.getTransaction().commit();	
-    	} else {
-    		log.warn("Session is already closed, cannot commit. The session was probably committed earlier which caused the session to close");
-    	}
+        Session sesh = getSession();
+        if (sesh.isOpen()) {
+            sesh.getTransaction().commit();
+        } else {
+            log.warn("Session is already closed, cannot commit. The session was probably committed earlier which caused the session to close");
+        }
 
         if (!sesh.isOpen()) {
             // should open a new session
