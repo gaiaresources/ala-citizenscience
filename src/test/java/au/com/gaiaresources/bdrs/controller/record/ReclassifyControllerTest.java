@@ -17,10 +17,10 @@ import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
 import org.springframework.security.authentication.encoding.PasswordEncoder;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
 
 /**
  * Created with IntelliJ IDEA.
@@ -42,7 +42,6 @@ public class ReclassifyControllerTest extends AbstractControllerTest {
             {"RolePower", "Pettersson", Role.POWERUSER},
             {"RoleUser", "Carlsson", Role.USER},
     };
-
 
     @Before
     public void setUp() throws Exception {
@@ -108,7 +107,7 @@ public class ReclassifyControllerTest extends AbstractControllerTest {
      * @throws Exception
      */
     @Test
-    public void testReclassifyRecordsAdmin() throws Exception {
+    public void testSimpleReclassifyAdmin() throws Exception {
         // user admin always exists
         User admin = userDAO.getUser("admin");
         assertNotNull(admin);
@@ -122,7 +121,10 @@ public class ReclassifyControllerTest extends AbstractControllerTest {
         }
 
         //reclassify all into hoopSnake
-        ModelAndView mv = requestReclassify(admin, hoopSnake, records);
+        ModelAndView mv = new RequestBuilder("POST").
+                setSpecies(hoopSnake).
+                setRecords(records).
+                execute(admin);
 
         for (Record record : records) {
             assertEquals(hoopSnake.getId(), recDAO.getRecord(record.getId()).getSpecies().getId());
@@ -140,7 +142,7 @@ public class ReclassifyControllerTest extends AbstractControllerTest {
      * @throws Exception
      */
     @Test
-    public void testReclassifyRecordsRootAndAdminOnly() throws Exception {
+    public void testReclassifyRootAndAdminOnly() throws Exception {
 
         // Grab the non admin users
         List<User> notAdminUsers = new ArrayList<User>(3);
@@ -174,7 +176,10 @@ public class ReclassifyControllerTest extends AbstractControllerTest {
             }
             // request reclassify all into hoopSnake and check that an AccessDeniedException is thrown
             try {
-                requestReclassify(user, hoopSnake, records);
+                new RequestBuilder("POST").
+                        setSpecies(hoopSnake).
+                        setRecords(records).
+                        execute(user);
                 fail("Non admin user should not be allowed to reclassify");
             } catch (AccessDeniedException e) {
                 allRecords.addAll(records);
@@ -184,7 +189,10 @@ public class ReclassifyControllerTest extends AbstractControllerTest {
         // now admin and root should be able to reclassify even if they are not the records owners
         User admin = userDAO.getUser("RoleAdmin");
         assertNotNull(admin);
-        requestReclassify(admin, hoopSnake, allRecords);
+        new RequestBuilder("POST").
+                setSpecies(hoopSnake).
+                setRecords(allRecords).
+                execute(admin);
         //verify
         for (Record record : allRecords) {
             assertEquals(hoopSnake.getId(), recDAO.getRecord(record.getId()).getSpecies().getId());
@@ -192,7 +200,10 @@ public class ReclassifyControllerTest extends AbstractControllerTest {
 
         User root = userDAO.getUser("RoleRoot");
         assertNotNull(root);
-        requestReclassify(root, surfingBird, allRecords);
+        new RequestBuilder("POST").
+                setSpecies(surfingBird).
+                setRecords(allRecords).
+                execute(root);
         //verify
         for (Record record : allRecords) {
             assertEquals(surfingBird.getId(), recDAO.getRecord(record.getId()).getSpecies().getId());
@@ -204,7 +215,7 @@ public class ReclassifyControllerTest extends AbstractControllerTest {
      * not do anything but forwarding the request to the advancedReview controller.
      */
     @Test
-    public void getMethodNotReclassifying() throws Exception {
+    public void testGetMethodDoNothing() throws Exception {
         User admin = userDAO.getUser("admin");
         assertNotNull(admin);
         //create a record for each species
@@ -217,7 +228,10 @@ public class ReclassifyControllerTest extends AbstractControllerTest {
         }
 
         //reclassify all into hoopSnake
-        ModelAndView mv = requestReclassify(admin, hoopSnake, records, "GET");
+        ModelAndView mv = new RequestBuilder("GET").
+                setSpecies(hoopSnake).
+                setRecords(records).
+                execute(admin);
 
         // check they haven't changed
         for (int i = 0; i < records.size(); i++) {
@@ -229,8 +243,12 @@ public class ReclassifyControllerTest extends AbstractControllerTest {
 
     }
 
+    /**
+     * If the flag massReclassify is set in the request and no facet filter
+     * then all the records are reclassified
+     */
     @Test
-    public void testMassReclassify_all() throws Exception {
+    public void testMassReclassifyWithNoFacet() throws Exception {
         // user admin always exists
         User admin = userDAO.getUser("admin");
         assertNotNull(admin);
@@ -242,7 +260,10 @@ public class ReclassifyControllerTest extends AbstractControllerTest {
                         nyanCat, hoopSnake, nyanCat, surfingBird, surfingBird};
         List<Record> records = createRecords(basicUser, mySpecies);
         IndicatorSpecies newSpecies = dropBear;
-        ModelAndView mv = requestMassReclassify(admin, newSpecies, null);
+        ModelAndView mv = new RequestBuilder("POST").
+                setSpecies(newSpecies).
+                setMassReclassify(null).// set the mass reclassify flag with no facet params!!
+                execute(admin);
         //check
         for (Record record : records) {
             assertEquals(newSpecies.getId(), recDAO.getRecord(record.getId()).getSpecies().getId());
@@ -256,7 +277,7 @@ public class ReclassifyControllerTest extends AbstractControllerTest {
      * Test mass reclassify with within area facet on
      */
     @Test
-    public void testMassReclassify_within_area() throws Exception {
+    public void testMassReclassifyWithinArea() throws Exception {
         User admin = userDAO.getUser("admin");
         assertNotNull(admin);
 
@@ -265,7 +286,7 @@ public class ReclassifyControllerTest extends AbstractControllerTest {
         double originLong = 115.0;
         double originLat = -32.0;
         double areaWidth = 5;
-        Polygon area = geometryBuilder.createSquare(originLong,originLat, areaWidth);
+        Polygon area = geometryBuilder.createSquare(originLong, originLat, areaWidth);
         // create a bunch of surfingBirds records within the area
         IndicatorSpecies[] surfingBirds = new IndicatorSpecies[]
                 {surfingBird, surfingBird, surfingBird, surfingBird, surfingBird,
@@ -275,7 +296,7 @@ public class ReclassifyControllerTest extends AbstractControllerTest {
 
         // create a bunch of surfingBirds records within the area
         for (Record record : surfingBirdsWithin) {
-            int withinOffset = rand.nextInt((int) areaWidth-2) + 1;  // 0 < offset < area width
+            int withinOffset = rand.nextInt((int) areaWidth - 2) + 1;  // 0 < offset < area width
             record.setGeometry(geometryBuilder.createPoint(originLong + withinOffset, originLat + withinOffset));
             recDAO.saveRecord(record);
         }
@@ -283,7 +304,7 @@ public class ReclassifyControllerTest extends AbstractControllerTest {
         // create a bunch of surfingBirds records outside the area
         List<Record> surfingBirdsOutside = createRecords(admin, surfingBirds);
         for (Record record : surfingBirdsOutside) {
-            int outsideOffset = (int)areaWidth + 1 + rand.nextInt(10); // areaWidth <  offset < areaWidth + 10
+            int outsideOffset = (int) areaWidth + 1 + rand.nextInt(10); // areaWidth <  offset < areaWidth + 10
             record.setGeometry(geometryBuilder.createPoint(originLong + outsideOffset, originLat + outsideOffset));
             recDAO.saveRecord(record);
         }
@@ -293,21 +314,63 @@ public class ReclassifyControllerTest extends AbstractControllerTest {
         Map<String, String[]> params = new HashMap<String, String[]>();
         String areaValue = area.toText();  // this should be enough to convert the area in WKT 4326
         params.put("within", new String[]{areaValue});
-        requestMassReclassify(admin, dropBear, params);
+        new RequestBuilder("POST").
+                setSpecies(dropBear).
+                setMassReclassify(params).
+                execute(admin);
 
         //check records
         // within surfingBirds should be dropBears now
         IndicatorSpecies expectedSpecies = dropBear;
         List<Record> records = surfingBirdsWithin;
         for (Record record : records) {
-            assertEquals("records within area haven't been reclassified",expectedSpecies.getId(), recDAO.getRecord(record.getId()).getSpecies().getId());
+            assertEquals("records within area haven't been reclassified", expectedSpecies.getId(), recDAO.getRecord(record.getId()).getSpecies().getId());
         }
 
         // outside surfingBirds should still be surfingBirds
         expectedSpecies = surfingBird;
         records = surfingBirdsOutside;
         for (Record record : records) {
-            assertEquals("records outside area shouldn't be reclassified",expectedSpecies.getId(), recDAO.getRecord(record.getId()).getSpecies().getId());
+            assertEquals("records outside area shouldn't be reclassified", expectedSpecies.getId(), recDAO.getRecord(record.getId()).getSpecies().getId());
+        }
+    }
+
+    /**
+     * If in the request there are recordIDs but also a massReclassify flag
+     * only the records specified with their IDs are reclassify
+     * the controller reclassify only the records
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testPrecedenceRecordIdsOverMassReclassify() throws Exception {
+        User admin = userDAO.getUser("admin");
+        assertNotNull(admin);
+        // create some nyanCats
+        IndicatorSpecies[] mySpecies = new IndicatorSpecies[]{nyanCat, nyanCat, nyanCat, nyanCat, nyanCat};
+        List<Record> records = createRecords(admin, mySpecies);
+
+        //check records
+        for (int i = 0; i < records.size(); i++) {
+            assertEquals(mySpecies[i].getId(), records.get(i).getSpecies().getId());
+        }
+
+        //reclassify the first two
+        List<Record> toReclassify = records.subList(0, 2);
+        new RequestBuilder("POST").
+                setSpecies(dropBear).
+                setRecords(toReclassify).
+                setMassReclassify(null).   // set the mass reclassify flag!!
+                execute(admin);
+
+        //check that the first two are reclassified
+        for (Record record : toReclassify) {
+            assertEquals(dropBear.getId(), recDAO.getRecord(record.getId()).getSpecies().getId());
+        }
+
+        // but not the other ones
+        for (Record record : records.subList(2, records.size())) {
+            assertEquals(nyanCat.getId(), recDAO.getRecord(record.getId()).getSpecies().getId());
         }
     }
 
@@ -324,38 +387,42 @@ public class ReclassifyControllerTest extends AbstractControllerTest {
         return result;
     }
 
-    private ModelAndView requestReclassify(User user, IndicatorSpecies species, List<Record> records) throws Exception {
-        return requestReclassify(user, species, records, "POST"); // the default
-    }
-
-    private ModelAndView requestReclassify(User user, IndicatorSpecies species, List<Record> records, String method) throws Exception {
-        request.removeAllParameters();
-        login(user.getName(), user.getPassword(), user.getRoles());
-        String url = ReclassifyController.RECLASSIFY_URL;
-        request.setRequestURI(url);
-        request.setMethod(method);
-        String paramSpeciesId = species.getId().toString();
-        ArrayList<String> paramRecordIds = new ArrayList<String>(records.size());
-        for (Record record : records) {
-            paramRecordIds.add(record.getId().toString());
+    class RequestBuilder {
+        RequestBuilder(String method) {
+            request.setRequestURI(ReclassifyController.RECLASSIFY_URL);
+            request.setMethod(method);
+            request.removeAllParameters();
         }
-        request.addParameter(ReclassifyController.PARAM_SPECIES_ID, paramSpeciesId);
-        request.addParameter(ReclassifyController.PARAM_RECORD_ID, paramRecordIds.toArray(new String[paramRecordIds.size()]));
-        return handle(request, response);
-    }
 
-    private ModelAndView requestMassReclassify(User user, IndicatorSpecies species, Map<String, String[]> params) throws Exception {
-        request.removeAllParameters();
-        login(user.getName(), user.getPassword(), user.getRoles());
-        String url = ReclassifyController.RECLASSIFY_URL;
-        request.setRequestURI(url);
-        request.setMethod("POST");
-        String paramSpeciesId = species.getId().toString();
-        request.addParameter(ReclassifyController.PARAM_SPECIES_ID, paramSpeciesId);
-        request.addParameter(ReclassifyController.PARAM_MASS_RECLASSIFY, "true");
-        if (params != null) {
-            request.addParameters(params);
+        public RequestBuilder setSpecies(IndicatorSpecies species) {
+            request.addParameter(ReclassifyController.PARAM_SPECIES_ID, species.getId().toString());
+            return this;
         }
-        return handle(request, response);
+
+        public RequestBuilder setRecords(List<Record> records) {
+            ArrayList<String> paramRecordIds = new ArrayList<String>(records.size());
+            for (Record record : records) {
+                paramRecordIds.add(record.getId().toString());
+            }
+            request.addParameter(ReclassifyController.PARAM_RECORD_ID, paramRecordIds.toArray(new String[paramRecordIds.size()]));
+            return this;
+        }
+
+        public RequestBuilder setMassReclassify(Map<String, String[]> facetParams) {
+            request.addParameter(ReclassifyController.PARAM_MASS_RECLASSIFY, "true");
+            if (facetParams != null) {
+                request.addParameters(facetParams);
+            }
+            return this;
+        }
+
+        public ModelAndView execute(User user) throws Exception {
+            login(user.getName(), user.getPassword(), user.getRoles());
+            return handle(request, response);
+        }
+
+        public HttpServletRequest getRequest() {
+            return request;
+        }
     }
 }

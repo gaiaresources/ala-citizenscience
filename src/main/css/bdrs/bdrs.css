@@ -1510,6 +1510,15 @@ div.alaSightingsTableHeaderDoubleLineArrows {
     padding-right: 1em;
 }
 
+.alaSightingsTableViewContent .bulkActionContainer #reclassifyInputPanel {
+    margin: 20px 0px 0px 0px;
+}
+
+.alaSightingsTableViewContent .bulkActionContainer #reclassifyInputPanel #massReclassifyPanel{
+    padding-top: 0px;
+    padding-bottom: 12px;
+}
+
 .alaSightingsTable .typeColumn {
     width: 10%;
 }
