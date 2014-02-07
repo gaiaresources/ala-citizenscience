@@ -124,12 +124,52 @@
     
     <sec:authorize ifAnyGranted="ROLE_USER, ROLE_POWER_USER, ROLE_SUPERVISOR, ROLE_ADMIN">
         <c:if test="${resultsType == 'record' }">
+            <script type="text/javascript">
+                function submitReclassify() {
+                    // Parse input
+                    var selectedRecordIds = [];
+                    jQuery('.recordIdCheckbox:checked').each(function(index, element) {
+                        selectedRecordIds.push(jQuery(element).val());
+                    });
+                    var nbRecordsSelected = selectedRecordIds.length;
+                    var speciesId = jQuery("input#species_id").val();
+                    var speciesName = jQuery("input#survey_species_search").val();
+                    var massReclassifySelected = jQuery('input#massReclassifyCB').is(':checked');
+                    //check input validity
+                    if (!speciesId) {
+                        alert("No species selected for reclassification.");
+                        return false;
+                    }
+                    if (nbRecordsSelected === 0 && !massReclassifySelected){
+                        alert("Please select records to be reclassified or select the Reclassify All option.");
+                        return false;
+                    }
+                    // Everything seems OK.
+                    var isMassReclassify = (nbRecordsSelected === 0 && massReclassifySelected);
+                    var size = nbRecordsSelected;
+                    if (isMassReclassify) {
+                        // to get the number of records we need to read the
+                        // count label at the top of the form
+                        var text = jQuery("span[id='count']").text().trim();
+                        var regex = /^.*(?:[0-9]+)/; // grab the first integer in the text
+                        var result = regex.exec(text);
+                        size = result[0];  // if failed to find a number, size = undefined (which is ok) 
+                    }
+                    var confirmMsg = "You're about to reclassify " + size + " record" + (size > 1 ? "s" : "") + " into:\n" +
+                                     speciesName + ".\n Are you sure?"; 
+                    if (!confirm(confirmMsg)) {
+                        return false;
+                    }
+                    bdrs.advancedReview.submitReclassify(selectedRecordIds, speciesId, isMassReclassify);
+                    return true;
+                }
+            </script>
             <div class="bulkActionContainer">
-                <div id="reclassifyInputPanel" class="reclassify" style="display:none; margin: 20px 0px 0px 0px;">      
+                <div id="reclassifyInputPanel" class="reclassify" style="display:none;">      
                     <table class="form_table">
-                        <tr>
+                        <tr >
                             <th>Species</th>
-                            <td>     
+                            <td style="padding-bottom: 0px">     
                                 <input id="survey_species_search" type="text" name="survey_species_search" class="ui-autocomplete-input" autocomplete="off" role="textbox" aria-autocomplete="list" aria-haspopup="true"/>
                                 <input type="text" class="speciesIdInput" id="species_id" name="speciesId"/>
                                 <script type="text/javascript">
@@ -140,42 +180,13 @@
                             </td>
                             <td>
                                 <input class="form_action" type="button" name="reclassify" value="Reclassify" onclick="submitReclassify();"/>
-                                    <script type="text/javascript">
-                                        function submitReclassify() {
-                                            // selected records
-                                            var recordIds = [];
-                                            jQuery('.recordIdCheckbox:checked').each(function(index, element) {
-                                                recordIds.push(jQuery(element).val());
-                                            });
-                                            var size = recordIds.length;
-                                            var speciesId = jQuery("input#species_id").val();
-                                            var speciesName = jQuery("input#survey_species_search").val();
-
-                                            var isMassReclassify = (size === 0);
-                                            if (isMassReclassify) {
-                                                // to get the number of records we need to read the
-                                                // count label at the top of the form
-                                                var text = jQuery("span[id='count']").text().trim();
-                                                var regex = /^.*(?:[0-9]+)/; // grab the first integer in the text
-                                                var result = regex.exec(text);
-                                                size = result[0];  // if failed to find a number, size = undefined (which is ok) 
-                                            }
-                                            
-                                            //check input validity
-                                            if (!speciesId) {
-                                                alert("No species selected for reclassification.");
-                                                return false;
-                                            }
-
-                                            var confirmMsg = "You're about to reclassify " + size + " record" + (size > 1 ? "s" : "") + " into:\n" +
-                                                             speciesName + ".\n Are you sure?"; 
-                                            if (!confirm(confirmMsg)) {
-                                                return false;
-                                            }
-                                            bdrs.advancedReview.submitReclassify(recordIds, speciesId);
-                                            return true;
-                                        }
-                                    </script>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td id="massReclassifyPanel">
+                                <input id="massReclassifyCB" type="checkbox"/>
+                                <label for="massReclassifyCB">Reclassify All</label>
                             </td>
                         </tr>
                     </table>

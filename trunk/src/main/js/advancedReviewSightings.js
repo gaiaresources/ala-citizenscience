@@ -168,24 +168,19 @@ bdrs.advancedReview.getInitViewStyleDivFcn = function(tableSelector) {
     };
 };
 
-bdrs.advancedReview.submitReclassify = function (recordIds, speciesId) {
-    if (speciesId) {
-        var url = bdrs.portalContextPath + "/bdrs/user/reclassifyRecords.htm";
-        // if no recordIds are given massReclassify = true, means that we reclassify all
-        // the records matching the form filter.
-        var massReclassify = recordIds.length === 0 ? "true" : "false";
-        var params = {
-            recordId: recordIds,
-            speciesId: speciesId,
-            massReclassify: massReclassify
-        };
-        // We always need to pass along all the parameters of the global form.
-        // Even if massReclassify = false. 
-        // It is needed for the redirection to the advancedReview controller.
-        var allParams = bdrs.serializeObject("form");
-        jQuery.extend(allParams, params);
-        bdrs.postWith(url, allParams);
-    }
+bdrs.advancedReview.submitReclassify = function (recordIds, speciesId, massReclassify) {
+    var url = bdrs.portalContextPath + "/bdrs/user/reclassifyRecords.htm";
+    var params = {
+        recordId: recordIds,
+        speciesId: speciesId,
+        massReclassify: massReclassify
+    };
+    // We always need to pass along all the parameters of the global form.
+    // Even if massReclassify = false. 
+    // It is needed for the redirection to the advancedReview controller.
+    var allParams = bdrs.serializeObject("form");
+    jQuery.extend(allParams, params);
+    bdrs.postWith(url, allParams);
 };
 
 
