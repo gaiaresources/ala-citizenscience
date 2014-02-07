@@ -1,12 +1,15 @@
 package au.com.gaiaresources.bdrs.controller.record;
 
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
+import au.com.gaiaresources.bdrs.geometry.GeometryBuilder;
 import au.com.gaiaresources.bdrs.model.record.Record;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
 import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.util.StringUtils;
+import com.vividsolutions.jts.geom.Polygon;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.access.AccessDeniedException;
@@ -14,10 +17,10 @@ import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
 import org.springframework.security.authentication.encoding.PasswordEncoder;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Created with IntelliJ IDEA.
@@ -226,6 +229,88 @@ public class ReclassifyControllerTest extends AbstractControllerTest {
 
     }
 
+    @Test
+    public void testMassReclassify_all() throws Exception {
+        // user admin always exists
+        User admin = userDAO.getUser("admin");
+        assertNotNull(admin);
+        User basicUser = userDAO.getUser("RoleUser");
+        assertNotNull(basicUser);
+        //create 10 records
+        IndicatorSpecies[] mySpecies = new IndicatorSpecies[]
+                {nyanCat, hoopSnake, surfingBird, dropBear,
+                        nyanCat, hoopSnake, nyanCat, surfingBird, surfingBird};
+        List<Record> records = createRecords(basicUser, mySpecies);
+        IndicatorSpecies newSpecies = dropBear;
+        ModelAndView mv = requestMassReclassify(admin, newSpecies, null);
+        //check
+        for (Record record : records) {
+            assertEquals(newSpecies.getId(), recDAO.getRecord(record.getId()).getSpecies().getId());
+        }
+        //check the forward
+        assertEquals("Should forward to the advancedReview", "forward:" + ReclassifyController.DEFAULT_REDIRECT_URL, mv.getViewName());
+
+    }
+
+    /**
+     * Test mass reclassify with within area facet on
+     */
+    @Test
+    public void testMassReclassify_within_area() throws Exception {
+        User admin = userDAO.getUser("admin");
+        assertNotNull(admin);
+
+        // build a square area
+        GeometryBuilder geometryBuilder = new GeometryBuilder(BdrsCoordReferenceSystem.DEFAULT_SRID);
+        double originLong = 115.0;
+        double originLat = -32.0;
+        double areaWidth = 5;
+        Polygon area = geometryBuilder.createSquare(originLong,originLat, areaWidth);
+        // create a bunch of surfingBirds records within the area
+        IndicatorSpecies[] surfingBirds = new IndicatorSpecies[]
+                {surfingBird, surfingBird, surfingBird, surfingBird, surfingBird,
+                        surfingBird, surfingBird, surfingBird, surfingBird, surfingBird};
+        List<Record> surfingBirdsWithin = createRecords(admin, surfingBirds);
+        Random rand = new Random();
+
+        // create a bunch of surfingBirds records within the area
+        for (Record record : surfingBirdsWithin) {
+            int withinOffset = rand.nextInt((int) areaWidth-2) + 1;  // 0 < offset < area width
+            record.setGeometry(geometryBuilder.createPoint(originLong + withinOffset, originLat + withinOffset));
+            recDAO.saveRecord(record);
+        }
+
+        // create a bunch of surfingBirds records outside the area
+        List<Record> surfingBirdsOutside = createRecords(admin, surfingBirds);
+        for (Record record : surfingBirdsOutside) {
+            int outsideOffset = (int)areaWidth + 1 + rand.nextInt(10); // areaWidth <  offset < areaWidth + 10
+            record.setGeometry(geometryBuilder.createPoint(originLong + outsideOffset, originLat + outsideOffset));
+            recDAO.saveRecord(record);
+        }
+
+        //now reclassify the within surfingBirds into dropBears by asking a mass reclassify with the facet
+        // within area on
+        Map<String, String[]> params = new HashMap<String, String[]>();
+        String areaValue = area.toText();  // this should be enough to convert the area in WKT 4326
+        params.put("within", new String[]{areaValue});
+        requestMassReclassify(admin, dropBear, params);
+
+        //check records
+        // within surfingBirds should be dropBears now
+        IndicatorSpecies expectedSpecies = dropBear;
+        List<Record> records = surfingBirdsWithin;
+        for (Record record : records) {
+            assertEquals("records within area haven't been reclassified",expectedSpecies.getId(), recDAO.getRecord(record.getId()).getSpecies().getId());
+        }
+
+        // outside surfingBirds should still be surfingBirds
+        expectedSpecies = surfingBird;
+        records = surfingBirdsOutside;
+        for (Record record : records) {
+            assertEquals("records outside area shouldn't be reclassified",expectedSpecies.getId(), recDAO.getRecord(record.getId()).getSpecies().getId());
+        }
+    }
+
 
     private List<Record> createRecords(User user, IndicatorSpecies[] species) {
         List<Record> result = new ArrayList<Record>(species.length);
@@ -259,4 +344,18 @@ public class ReclassifyControllerTest extends AbstractControllerTest {
         return handle(request, response);
     }
 
+    private ModelAndView requestMassReclassify(User user, IndicatorSpecies species, Map<String, String[]> params) throws Exception {
+        request.removeAllParameters();
+        login(user.getName(), user.getPassword(), user.getRoles());
+        String url = ReclassifyController.RECLASSIFY_URL;
+        request.setRequestURI(url);
+        request.setMethod("POST");
+        String paramSpeciesId = species.getId().toString();
+        request.addParameter(ReclassifyController.PARAM_SPECIES_ID, paramSpeciesId);
+        request.addParameter(ReclassifyController.PARAM_MASS_RECLASSIFY, "true");
+        if (params != null) {
+            request.addParameters(params);
+        }
+        return handle(request, response);
+    }
 }
