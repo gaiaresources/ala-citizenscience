@@ -147,16 +147,21 @@
                                             jQuery('.recordIdCheckbox:checked').each(function(index, element) {
                                                 recordIds.push(jQuery(element).val());
                                             });
-
+                                            var size = recordIds.length;
                                             var speciesId = jQuery("input#species_id").val();
                                             var speciesName = jQuery("input#survey_species_search").val();
 
-                                            var size = recordIds.length;
-                                            //check input validity
-                                            if (size === 0) {
-                                                alert("No records selected for reclassification.");
-                                                return false;
+                                            var isMassReclassify = (size === 0);
+                                            if (isMassReclassify) {
+                                                // to get the number of records we need to read the
+                                                // count label at the top of the form
+                                                var text = jQuery("span[id='count']").text().trim();
+                                                var regex = /^.*(?:[0-9]+)/; // grab the first integer in the text
+                                                var result = regex.exec(text);
+                                                size = result[0];  // if failed to find a number, size = undefined (which is ok) 
                                             }
+                                            
+                                            //check input validity
                                             if (!speciesId) {
                                                 alert("No species selected for reclassification.");
                                                 return false;

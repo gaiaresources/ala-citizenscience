@@ -169,15 +169,19 @@ bdrs.advancedReview.getInitViewStyleDivFcn = function(tableSelector) {
 };
 
 bdrs.advancedReview.submitReclassify = function (recordIds, speciesId) {
-    if (recordIds.length > 0 && speciesId) {
+    if (speciesId) {
         var url = bdrs.portalContextPath + "/bdrs/user/reclassifyRecords.htm";
+        // if no recordIds are given massReclassify = true, means that we reclassify all
+        // the records matching the form filter.
+        var massReclassify = recordIds.length === 0 ? "true" : "false";
         var params = {
             recordId: recordIds,
-            speciesId: speciesId
+            speciesId: speciesId,
+            massReclassify: massReclassify
         };
-        // We need to pass along all the parameters of the
-        // global form for the reclassify controller to redirect them to the 
-        // advancedReview controller.
+        // We always need to pass along all the parameters of the global form.
+        // Even if massReclassify = false. 
+        // It is needed for the redirection to the advancedReview controller.
         var allParams = bdrs.serializeObject("form");
         jQuery.extend(allParams, params);
         bdrs.postWith(url, allParams);
