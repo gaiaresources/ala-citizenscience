@@ -10,6 +10,7 @@ import java.util.Set;
 
 import javax.activation.FileDataSource;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,6 +68,12 @@ public class SurveyImportExportTest extends AbstractGridControllerTest {
     private PreferenceDAO preferenceDAO;
     @Autowired
     private FileService fileService;
+
+    @After
+    public void dropDB() {
+        super.requestDropDatabase();
+    }
+
 
     @Test
     public void testSurveyLocationAttributes() throws Exception {

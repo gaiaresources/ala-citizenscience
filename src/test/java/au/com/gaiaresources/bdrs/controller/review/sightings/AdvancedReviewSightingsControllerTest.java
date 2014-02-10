@@ -12,6 +12,7 @@ import java.util.Set;
 import junit.framework.Assert;
 
 import org.hibernate.FlushMode;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -106,6 +107,12 @@ public class AdvancedReviewSightingsControllerTest extends
                 geoMapService);
         surveyCreator.create(true);
     }
+
+    @After
+    public void dropDB() {
+        super.requestDropDatabase();
+    }
+
 
     private void resetRequest() {
         request.removeAllParameters();

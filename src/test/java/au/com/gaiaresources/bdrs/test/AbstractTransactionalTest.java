@@ -128,12 +128,12 @@ public abstract class AbstractTransactionalTest extends
         if (dropDatabase) {
 
             // the session may have been closed...
-            rollbackSession(sesh);
+            closeSession(sesh);
 
             // check the current session in the session factory in case
             // another session was opened without our knowledge.
             // I have observed this happening in the BulkDataServiceTest.
-            rollbackSession(sessionFactory.getCurrentSession());
+            closeSession(sessionFactory.getCurrentSession());
 
             Session dropDatabaseSesh = sessionFactory.openSession();
             SQLQuery q = dropDatabaseSesh.createSQLQuery("truncate table portal cascade;");
@@ -162,6 +162,12 @@ public abstract class AbstractTransactionalTest extends
         // sessions may be closed automatically when their
         // transactions are rolled back but it is not guaranteed.
         // thus...
+        if (sesh.isOpen()) {
+            sesh.close();
+        }
+    }
+
+    private void closeSession(Session sesh) {
         if (sesh.isOpen()) {
             sesh.close();
         }

@@ -7,6 +7,7 @@ import java.util.List;
 import junit.framework.Assert;
 
 import org.hibernate.FlushMode;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,6 +97,12 @@ public class AdvancedReviewLocationsControllerTest extends
                 spatialUtil, methodDAO, userDAO, taxaDAO, recordDAO, metadataDAO, preferenceDAO, fileService, geoMapService);
         surveyCreator.create(true);
     }
+
+    @After
+    public void dropDB() {
+        super.requestDropDatabase();
+    }
+
 
     private void resetRequest() {
         request.removeAllParameters();
