@@ -11,14 +11,7 @@ import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeDAO;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
+import au.com.gaiaresources.bdrs.model.taxa.*;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import junit.framework.Assert;
@@ -105,7 +98,7 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
         metadataDAO.save(md);
 
         project = addAttribute(survey, "project", "Project", AttributeType.TEXT, AttributeScope.SURVEY);
-        speciesNotes = addAttribute(survey, "Species_Notes", "Notes", AttributeType.TEXT,  AttributeScope.RECORD);
+        speciesNotes = addAttribute(survey, "Species_Notes", "Notes", AttributeType.TEXT, AttributeScope.RECORD);
 
         photoPoint = new CensusMethod();
         photoPoint.setName("Photopoint");
@@ -187,7 +180,9 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
         throw new IllegalArgumentException("No such attribute name");
     }
 
-    /** The server expects a multipart http request */
+    /**
+     * The server expects a multipart http request
+     */
     @Override
     protected MockHttpServletRequest createMockHttpServletRequest() {
         return super.createUploadRequest();
@@ -199,7 +194,7 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
      */
     @Test
     public void testAddTwoSpeciesWithSinglePhotopoint() throws Exception {
-        login("admin", "password", new String[] { Role.ADMIN });
+        login("admin", "password", new String[]{Role.ADMIN});
 
         Assert.assertEquals(0, recordDAO.countRecords(getRequestContext().getUser()).intValue());
 
@@ -224,35 +219,36 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
         handle(request, response);
 
         try {
-        // Should be two records, one Eucalpyt and one Wattle.
-        List<Record> records = recordDAO.getRecords(getRequestContext().getUser());
-        Assert.assertEquals(2, records.size());
+            // Should be two records, one Eucalpyt and one Wattle.
+            List<Record> records = recordDAO.getRecords(getRequestContext().getUser());
+            Assert.assertEquals(2, records.size());
 
-        if (records.get(0).getSpecies().equals(wattle)) {
-            Collections.reverse(records);
-        }
+            // The records order is not guaranteed to be the insertion order
+            // It means that Eucalypt is not necessary the first one
+            if (records.get(0).getSpecies().equals(wattle)) {
+                Collections.reverse(records);
+            }
 
-        Record eucalyptRecord = records.get(0);
-        Assert.assertEquals(Integer.valueOf(1), eucalyptRecord.getNumber());
-        Assert.assertEquals(eucalyptus, eucalyptRecord.getSpecies());
-        Assert.assertEquals("Notes 0", eucalyptRecord.valueOfAttribute(speciesNotes).getStringValue());
+            Record eucalyptRecord = records.get(0);
+            Assert.assertEquals(Integer.valueOf(1), eucalyptRecord.getNumber());
+            Assert.assertEquals(eucalyptus, eucalyptRecord.getSpecies());
+            Assert.assertEquals("Notes 0", eucalyptRecord.valueOfAttribute(speciesNotes).getStringValue());
 
-        String[][] photoPointData = {
-            {"Photopoint 1", "18 Mar 2013", "-32.000", "141.000"}
-        };
-        String [][] imageData = {
-            {"333"}
-        };
-        checkSurveyScopedResults(eucalyptRecord, photoPointData, imageData);
+            String[][] photoPointData = {
+                    {"Photopoint 1", "18 Mar 2013", "-32.000", "141.000"}
+            };
+            String[][] imageData = {
+                    {"333"}
+            };
+            checkSurveyScopedResults(eucalyptRecord, photoPointData, imageData);
 
-        Record wattleRecord = records.get(1);
-        Assert.assertEquals(Integer.valueOf(2), wattleRecord.getNumber());
-        Assert.assertEquals(wattle, wattleRecord.getSpecies());
-        Assert.assertEquals("Notes 1", wattleRecord.valueOfAttribute(speciesNotes).getStringValue());
+            Record wattleRecord = records.get(1);
+            Assert.assertEquals(Integer.valueOf(2), wattleRecord.getNumber());
+            Assert.assertEquals(wattle, wattleRecord.getSpecies());
+            Assert.assertEquals("Notes 1", wattleRecord.valueOfAttribute(speciesNotes).getStringValue());
 
-        checkSurveyScopedResults(wattleRecord, photoPointData, imageData);
-        }
-        catch (Exception e) {
+            checkSurveyScopedResults(wattleRecord, photoPointData, imageData);
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -263,7 +259,7 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
      */
     @Test
     public void testAddSingleSpeciesWithTwoPhotoPointsWithMultipleImages() throws Exception {
-        login("admin", "password", new String[] { Role.ADMIN });
+        login("admin", "password", new String[]{Role.ADMIN});
 
         Assert.assertEquals(0, recordDAO.countRecords(getRequestContext().getUser()).intValue());
 
@@ -291,7 +287,7 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
 
         handle(request, response);
 
-        // Should be two records, one Eucalpyt and one Wattle.
+        // Should be one record, a Eucalpyt.
         final List<Record> records = recordDAO.getRecords(getRequestContext().getUser());
         Assert.assertEquals(1, records.size());
 
@@ -305,7 +301,7 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
                 {"Photopoint 1", "18 Mar 2013", "-32.000", "141.000"},
                 {"Photopoint 2", "19 Mar 2013", "-32.100", "141.100"}
         };
-        String [][] imageData = {
+        String[][] imageData = {
                 {"333", "444", "555"},
                 {"666"}
         };
@@ -318,7 +314,7 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
      */
     @Test
     public void testAddTwoSpeciesWithTwoPhotoPointsWithMultipleImages() throws Exception {
-        login("admin", "password", new String[] { Role.ADMIN });
+        login("admin", "password", new String[]{Role.ADMIN});
 
         Assert.assertEquals(0, recordDAO.countRecords(getRequestContext().getUser()).intValue());
 
@@ -353,6 +349,8 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
         final List<Record> records = recordDAO.getRecords(getRequestContext().getUser());
         Assert.assertEquals(2, records.size());
 
+        // The records order is not guaranteed to be the insertion order
+        // It means that Eucalypt is not necessary the first one
         if (records.get(0).getSpecies().equals(wattle)) {
             Collections.reverse(records);
         }
@@ -367,7 +365,7 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
                 {"Photopoint 1", "18 Mar 2013", "-32.000", "141.000"},
                 {"Photopoint 2", "19 Mar 2013", "-32.100", "141.100"}
         };
-        String [][] imageData = {
+        String[][] imageData = {
                 {"333", "444", "555"},
                 {"666"}
         };
@@ -388,7 +386,7 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
      */
     @Test
     public void testEditSinglePhotopointWithSingleSpecies() throws Exception {
-        login("admin", "password", new String[] { Role.ADMIN });
+        login("admin", "password", new String[]{Role.ADMIN});
 
         Assert.assertEquals(0, recordDAO.countRecords(getRequestContext().getUser()).intValue());
 
@@ -429,7 +427,6 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
         addImageRow(photoPointPrefix, 1, "4444", getRecordId(imagesAttr, 1, result));
         addImageRow(photoPointPrefix, 2, "5555", getRecordId(imagesAttr, 2, result));
 
-        System.out.println();
         handle(request, response);
 
         Record eucalyptRecord = records.get(0);
@@ -441,7 +438,7 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
         String[][] photoPointData = {
                 {"Photopoint 1 - edited", "17 Mar 2013", "-33.000", "142.000"}
         };
-        String [][] imageData = {
+        String[][] imageData = {
                 {"3333", "4444", "5555"}
         };
         checkSurveyScopedResults(eucalyptRecord, photoPointData, imageData);
@@ -453,7 +450,7 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
      */
     @Test
     public void testEditTwoPhotopointsWithSingleSpecies() throws Exception {
-        login("admin", "password", new String[] { Role.ADMIN });
+        login("admin", "password", new String[]{Role.ADMIN});
 
         Assert.assertEquals(0, recordDAO.countRecords(getRequestContext().getUser()).intValue());
 
@@ -504,7 +501,6 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
         addCameraPosition(photoPoint2Prefix, "-32.110", "141.110", getRecordId(cameraPositionAttr, 1, 0, result));
         addImageRow(photoPoint2Prefix, 0, "6666", getRecordId(imagesAttr, 1, 0, result));
 
-        System.out.println();
         handle(request, response);
 
         Record eucalyptRecord = records.get(0);
@@ -517,7 +513,7 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
                 {"Photopoint 1 - edited", "17 Mar 2013", "-33.000", "142.000"},
                 {"Photopoint 2 - edited", "18 Mar 2013", "-32.110", "141.110"}
         };
-        String [][] imageData = {
+        String[][] imageData = {
                 {"3333", "4444", "5555"},
                 {"6666"}
         };
@@ -530,7 +526,7 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
      */
     @Test
     public void testEditSinglePhotopointWithTwoSpecies() throws Exception {
-        login("admin", "password", new String[] { Role.ADMIN });
+        login("admin", "password", new String[]{Role.ADMIN});
 
         Assert.assertEquals(0, recordDAO.countRecords(getRequestContext().getUser()).intValue());
 
@@ -576,8 +572,14 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
         addImageRow(photoPointPrefix, 1, "4444", getRecordId(imagesAttr, 0, 1, result));
         addImageRow(photoPointPrefix, 2, "5555", getRecordId(imagesAttr, 0, 2, result));
 
-        System.out.println();
         handle(request, response);
+
+        // There should be 2 records. A Eucalypt and a Wattle
+        // The records order is not guaranteed to be the insertion order
+        // It means that Eucalypt is not necessary the first one
+        if (records.get(0).getSpecies().equals(wattle)) {
+            Collections.reverse(records);
+        }
 
         Record eucalyptRecord = records.get(0);
         Assert.assertEquals(Integer.valueOf(1), eucalyptRecord.getNumber());
@@ -588,7 +590,7 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
         String[][] photoPointData = {
                 {"Photopoint 1 - edited", "17 Mar 2013", "-33.000", "142.000"}
         };
-        String [][] imageData = {
+        String[][] imageData = {
                 {"3333", "4444", "5555"}
         };
         checkSurveyScopedResults(eucalyptRecord, photoPointData, imageData);
@@ -601,13 +603,13 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
         checkSurveyScopedResults(wattleRecord, photoPointData, imageData);
     }
 
-   /*
-    * Tests editing records using a single site multi taxa survey configured to include nested
-    * census method attributes.
-    */
+    /*
+     * Tests editing records using a single site multi taxa survey configured to include nested
+     * census method attributes.
+     */
     @Test
     public void testEditSinglePhotopointAddNewSpecies() throws Exception {
-        login("admin", "password", new String[] { Role.ADMIN });
+        login("admin", "password", new String[]{Role.ADMIN});
 
         Assert.assertEquals(0, recordDAO.countRecords(getRequestContext().getUser()).intValue());
 
@@ -653,12 +655,17 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
         addImageRow(photoPointPrefix, 1, "4444", getRecordId(imagesAttr, 0, 1, result));
         addImageRow(photoPointPrefix, 2, "5555", getRecordId(imagesAttr, 0, 2, result));
 
-        System.out.println();
         handle(request, response);
 
         records = recordDAO.getRecords(getRequestContext().getUser());
         Assert.assertEquals(2, records.size());
 
+        // There should be 2 records. A Eucalypt and a Wattle
+        // The records order is not guaranteed to be the insertion order
+        // It means that Eucalypt is not necessary the first one
+        if (records.get(0).getSpecies().equals(wattle)) {
+            Collections.reverse(records);
+        }
         Record eucalyptRecord = records.get(0);
         Assert.assertEquals(Integer.valueOf(1), eucalyptRecord.getNumber());
         Assert.assertEquals(eucalyptus, eucalyptRecord.getSpecies());
@@ -668,7 +675,7 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
         String[][] photoPointData = {
                 {"Photopoint 1 - edited", "17 Mar 2013", "-33.000", "142.000"}
         };
-        String [][] imageData = {
+        String[][] imageData = {
                 {"3333", "4444", "5555"}
         };
         checkSurveyScopedResults(eucalyptRecord, photoPointData, imageData);
@@ -687,18 +694,17 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
     }
 
     private void addImageRow(String photoPointPrefix, int rowIndex, String bearingValue, long recordId) {
-        String imagesPrefix = photoPointPrefix+"_"+rowIndex+"_attribute_"+imagesAttr.getId();
-        request.setParameter(imagesPrefix+"_rowIndex", Integer.toString(rowIndex));
+        String imagesPrefix = photoPointPrefix + "_" + rowIndex + "_attribute_" + imagesAttr.getId();
+        request.setParameter(imagesPrefix + "_rowIndex", Integer.toString(rowIndex));
         if (recordId > 0) {
-            imagesPrefix += "_record_"+recordId;
-            request.addParameter(imagesPrefix+"_recordId", Long.toString(recordId));
+            imagesPrefix += "_record_" + recordId;
+            request.addParameter(imagesPrefix + "_recordId", Long.toString(recordId));
 
-            request.addParameter(photoPointPrefix+"_attribute_"+imagesAttr.getId()+"_rowPrefix",
-                    imagesPrefix+"_");
-        }
-        else {
-            request.addParameter(photoPointPrefix+"_attribute_"+imagesAttr.getId()+"_rowPrefix", rowIndex+"_");
-            request.addParameter(imagesPrefix+"_recordId", "0");
+            request.addParameter(photoPointPrefix + "_attribute_" + imagesAttr.getId() + "_rowPrefix",
+                    imagesPrefix + "_");
+        } else {
+            request.addParameter(photoPointPrefix + "_attribute_" + imagesAttr.getId() + "_rowPrefix", rowIndex + "_");
+            request.addParameter(imagesPrefix + "_recordId", "0");
             imagesPrefix += "_record";
         }
         // Now the values
@@ -714,20 +720,19 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
     }
 
     private void addCameraPosition(String photoPointPrefix, String latValue, String lonValue, long recordId) {
-        String cameraPositionPrefix = photoPointPrefix+"_attribute_"+cameraPositionAttr.getId();
+        String cameraPositionPrefix = photoPointPrefix + "_attribute_" + cameraPositionAttr.getId();
         request.addParameter(cameraPositionPrefix + "_rowIndex", "0");
         if (recordId > 0) {
-            cameraPositionPrefix += "_record_"+recordId;
-            request.setParameter(cameraPositionPrefix+"_recordId", Long.toString(recordId));
+            cameraPositionPrefix += "_record_" + recordId;
+            request.setParameter(cameraPositionPrefix + "_recordId", Long.toString(recordId));
 
-        }
-        else {
-            request.setParameter(cameraPositionPrefix+"_recordId", Long.toString(recordId));
+        } else {
+            request.setParameter(cameraPositionPrefix + "_recordId", Long.toString(recordId));
             cameraPositionPrefix += "_record";
         }
         // Now the embedded column based census method attribute (for lat/lon)
-        request.setParameter(cameraPositionPrefix+"_attribute_"+lat.getId(), latValue);
-        request.setParameter(cameraPositionPrefix+"_attribute_"+lon.getId(), lonValue);
+        request.setParameter(cameraPositionPrefix + "_attribute_" + lat.getId(), latValue);
+        request.setParameter(cameraPositionPrefix + "_attribute_" + lon.getId(), lonValue);
     }
 
     private String addPhotoPoint(int rowIndex, String name, String photoDateStr) {
@@ -736,26 +741,25 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
 
     private String addPhotoPoint(int rowIndex, String name, String photoDateStr, long recordId) {
 
-        String photoPointPrefix = rowIndex+"_attribute_"+photoPointAttr.getId();
-        request.setParameter(photoPointPrefix+"_rowIndex", Integer.toString(rowIndex));
+        String photoPointPrefix = rowIndex + "_attribute_" + photoPointAttr.getId();
+        request.setParameter(photoPointPrefix + "_rowIndex", Integer.toString(rowIndex));
 
         if (recordId > 0) {
-            request.addParameter("attribute_"+photoPointAttr.getId()+"_rowPrefix",
-                    rowIndex+"_attribute_"+photoPointAttr.getId()+"_record_"+recordId+"_");
-            request.addParameter(photoPointPrefix+"_recordId", Long.toString(recordId));
-            photoPointPrefix += "_record_"+recordId;
-            request.addParameter(photoPointPrefix+"_recordId", Long.toString(recordId));
+            request.addParameter("attribute_" + photoPointAttr.getId() + "_rowPrefix",
+                    rowIndex + "_attribute_" + photoPointAttr.getId() + "_record_" + recordId + "_");
+            request.addParameter(photoPointPrefix + "_recordId", Long.toString(recordId));
+            photoPointPrefix += "_record_" + recordId;
+            request.addParameter(photoPointPrefix + "_recordId", Long.toString(recordId));
 
 
-        }
-        else {
-            request.addParameter("attribute_"+photoPointAttr.getId()+"_rowPrefix", rowIndex+"_");
-            request.setParameter(photoPointPrefix+"_recordId", Long.toString(recordId));
+        } else {
+            request.addParameter("attribute_" + photoPointAttr.getId() + "_rowPrefix", rowIndex + "_");
+            request.setParameter(photoPointPrefix + "_recordId", Long.toString(recordId));
             photoPointPrefix += "_record";
         }
 
-        request.setParameter(photoPointPrefix+"_attribute_"+photoPointName.getId(), name);
-        request.setParameter(photoPointPrefix+"_attribute_"+photoDate.getId(), photoDateStr);
+        request.setParameter(photoPointPrefix + "_attribute_" + photoPointName.getId(), name);
+        request.setParameter(photoPointPrefix + "_attribute_" + photoDate.getId(), photoDateStr);
 
         return photoPointPrefix;
     }
@@ -766,13 +770,13 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
 
     private void addRecordScopedValues(int speciesRowIndex, IndicatorSpecies species, int numberSeen, long recordId) {
         if (recordId > 0) {
-            request.setParameter(speciesRowIndex+"_recordId", Long.toString(recordId));
+            request.setParameter(speciesRowIndex + "_recordId", Long.toString(recordId));
         }
-        request.addParameter("rowPrefix", speciesRowIndex+"_");
-        request.setParameter(speciesRowIndex+"_survey_species_search", species.getScientificName());
-        request.setParameter(speciesRowIndex+"_species", Integer.toString(species.getId()));
-        request.setParameter(speciesRowIndex+"_number", Integer.toString(numberSeen));
-        request.setParameter(speciesRowIndex+"_attribute_"+Integer.toString(speciesNotes.getId()), "Notes "+speciesRowIndex);
+        request.addParameter("rowPrefix", speciesRowIndex + "_");
+        request.setParameter(speciesRowIndex + "_survey_species_search", species.getScientificName());
+        request.setParameter(speciesRowIndex + "_species", Integer.toString(species.getId()));
+        request.setParameter(speciesRowIndex + "_number", Integer.toString(numberSeen));
+        request.setParameter(speciesRowIndex + "_attribute_" + Integer.toString(speciesNotes.getId()), "Notes " + speciesRowIndex);
     }
 
     private void setupRequestAndRecordProperties() {
@@ -781,7 +785,7 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
 
     private void setupRequestAndRecordProperties(long recordId) {
         request.setMethod("POST");
-        request.setRequestURI(request.getContextPath()+"/bdrs/user/singleSiteMultiTaxa.htm");
+        request.setRequestURI(request.getContextPath() + "/bdrs/user/singleSiteMultiTaxa.htm");
         request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, survey.getId().toString());
         request.setParameter("submit", "Submit");
         request.setParameter("surveyId", Long.toString(survey.getId()));
@@ -797,7 +801,7 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
         request.setParameter("notes", "Test notes");
 
         // Populate survey scoped attributes (not including census method attributes)
-        request.setParameter("attribute_"+project.getId(), "Test Project");
+        request.setParameter("attribute_" + project.getId(), "Test Project");
     }
 
     private void checkSurveyScopedResults(Record record, String[][] photoPointAttributes, String[][] imageAttributes) {
@@ -812,11 +816,11 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
 
         List<Record> records = new ArrayList<Record>(photopointValue.getRecords());
         Collections.sort(records, new WeightComparator());
-        for (int i=0; i<records.size(); i++) {
+        for (int i = 0; i < records.size(); i++) {
             Record photoPointRecord = records.get(i);
-            Assert.assertEquals("Record "+i,Integer.valueOf(i), photoPointRecord.getWeight());
-            Assert.assertEquals("Record "+i, photoPointAttributes[i][0], photoPointRecord.valueOfAttribute(photoPointName).getStringValue());
-            Assert.assertEquals("Record "+i,photoPointAttributes[i][1], photoPointRecord.valueOfAttribute(photoDate).getStringValue());
+            Assert.assertEquals("Record " + i, Integer.valueOf(i), photoPointRecord.getWeight());
+            Assert.assertEquals("Record " + i, photoPointAttributes[i][0], photoPointRecord.valueOfAttribute(photoPointName).getStringValue());
+            Assert.assertEquals("Record " + i, photoPointAttributes[i][1], photoPointRecord.valueOfAttribute(photoDate).getStringValue());
             AttributeValue cameraValue = photoPointRecord.valueOfAttribute(cameraPositionAttr);
             Assert.assertEquals(cameraPositionAttr, cameraValue.getAttribute());
             Assert.assertEquals(1, cameraValue.getRecords().size());
@@ -830,7 +834,7 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
             Assert.assertEquals(imageAttributes[i].length, imagesValue.getRecords().size());
             List<Record> imageRecords = new ArrayList<Record>(imagesValue.getRecords());
             Collections.sort(imageRecords, new WeightComparator());
-            for (int j=0; j<imageRecords.size(); j++) {
+            for (int j = 0; j < imageRecords.size(); j++) {
                 Record imageRecord = imageRecords.get(j);
                 Assert.assertEquals(imageAttributes[i][j], imageRecord.valueOfAttribute(compassBearing).getStringValue());
             }
@@ -864,8 +868,7 @@ public class SingleSiteMultiTaxaCensusMethodTest extends AbstractCensusMethodAtt
     private long getRecordId(Attribute attribute, int photoPointRowIndex, int attributeRowIndex, Record record) {
         if (attribute == photoPointAttr) {
             return getRecordId(attribute, photoPointRowIndex, record);
-        }
-        else {
+        } else {
             List<Record> photoPointRecords = new ArrayList<Record>(record.valueOfAttribute(photoPointAttr).getRecords());
             Collections.sort(photoPointRecords, new WeightComparator());
             return getRecordId(attribute, attributeRowIndex, photoPointRecords.get(photoPointRowIndex));
