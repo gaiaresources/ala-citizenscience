@@ -13,6 +13,7 @@ import java.util.Set;
 
 import junit.framework.Assert;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,6 +113,11 @@ public class YearlySightingsControllerTest extends RecordFormTest {
         locationB.setUser(admin);
         locationB.setLocation(locationUtil.createPoint(-32.58, 154.2));
         locationDAO.save(locationB);
+    }
+
+    @After
+    public void dropDB() {
+        super.requestDropDatabase();
     }
     
     @Test

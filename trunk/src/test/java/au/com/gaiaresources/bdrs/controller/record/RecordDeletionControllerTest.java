@@ -15,6 +15,7 @@ import java.util.Set;
 import junit.framework.Assert;
 
 import org.hibernate.FlushMode;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -331,6 +332,12 @@ public class RecordDeletionControllerTest extends AbstractControllerTest {
 
         getRequestContext().getHibernate().flush();
     }
+
+    @After
+    public void dropDB() {
+        super.requestDropDatabase();
+    }
+
 
     private Record createRecord(Survey survey, CensusMethod cm,
             IndicatorSpecies species, User user) throws ParseException {
