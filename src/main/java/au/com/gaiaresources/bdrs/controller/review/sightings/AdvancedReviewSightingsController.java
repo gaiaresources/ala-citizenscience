@@ -136,7 +136,7 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
 
         String[] recordProperties = {"when", "createdAt", "id", "user", "geometry", "latitude", "longitude", "species", "censusMethod", "survey"};
         String[] speciesProperties = {"scientificName", "commonName"};
-        String[] userProperties = {"name"};
+        String[] userProperties = {"name", "firstName", "lastName"};
         String[] censusMethodProperties = {"type"};
         String[] surveyProperties = {"id"};
 
