@@ -19,7 +19,7 @@ bdrs.advancedReview.TABLE_ROW_TMPL = '\
     <td class=\"openRecord scientificName\">${ species ? species.scientificName : "N/A" }</td>\
     <td class=\"openRecord commonName\">${ species ? species.commonName : "N/A" }</td>\
     <td class=\"openRecord\">${ geometry ? latitude : "N/A" }, ${ geometry ? longitude : "N/A" }</td>\
-    <td class=\"openRecord\">${ user.name }</td>\
+    <td class=\"openRecord\">{{if user.firstName && user.lastName}}${ user.firstName } ${ user.lastName }{{else}}${ user.name }{{/if}}</td>\
     {{if authenticated}}\
        <td><input title=\"Select / deselect this record\" type=\"checkbox\" class=\"recordIdCheckbox\" value=\"${ id }\" \
        {{if user.id !== authenticatedUserId && !(authenticatedRole === \"ROLE_ROOT\" || authenticatedRole === \"ROLE_ADMIN\" || authenticatedRole === \"ROLE_SUPERVISOR\") }}\

@@ -1269,7 +1269,7 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
             // searchInResults or groupId is specified, but is done implicitly anyway when there is only one term
             String searchTerm = !StringUtils.nullOrEmpty(searchInGroups) ? "+" + searchInGroups + "" : "";
             if (!StringUtils.nullOrEmpty(searchInResult)) {
-                searchTerm += " +"+searchInResult + "" ;
+                searchTerm += " +("+searchInResult + ")" ;
             }
 
             if (groupId != null) {
