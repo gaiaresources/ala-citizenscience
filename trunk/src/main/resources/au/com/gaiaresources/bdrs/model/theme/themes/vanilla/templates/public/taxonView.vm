@@ -8,9 +8,9 @@
     <tr class="fieldguide_taxon_rank_row">
         <th class="textright">${taxon.getTaxonRank().getIdentifier()}</th>
         <td
-            #if(${TaxonRank.SPECIES} == ${taxon.getTaxonRank()})
+            #if("species" == ${taxon.getTaxonRank().getIdentifier().toLowerCase()})
                 class="scientificName"
-            #elseif(${TaxonRank.GENUS} == ${taxon.getTaxonRank()})
+            #elseif("genus" == ${taxon.getTaxonRank().getIdentifier().toLowerCase()})
                 class="scientificName"
             #end
         >
