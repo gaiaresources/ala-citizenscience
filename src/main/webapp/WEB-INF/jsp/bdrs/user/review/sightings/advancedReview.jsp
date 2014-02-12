@@ -60,9 +60,11 @@
                                    </c:otherwise>
                                 </c:choose> 
                             />
-                            <a id="downloadViewTab" href="javascript: void(0);">
-                                <div id="downloadViewTab" class="displayTab right <c:if test="${ downloadViewSelected }">displayTabSelected</c:if>">Download</div>
-                            </a>
+                            <c:if test="${not hideDownload}">
+                                <a id="downloadViewTab" href="javascript: void(0);">
+                                    <div id="downloadViewTab" class="displayTab right <c:if test="${ downloadViewSelected }">displayTabSelected</c:if>">Download</div>
+                                </a>
+                            </c:if>
                             <a id="listViewTab" href="javascript: void(0);">
                                <div class="displayTab right <c:if test="${ tableViewSelected }">displayTabSelected</c:if>">List</div>
                             </a>

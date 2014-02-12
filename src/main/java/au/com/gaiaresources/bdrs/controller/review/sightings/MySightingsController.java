@@ -14,9 +14,11 @@ import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
@@ -103,7 +105,10 @@ public class MySightingsController extends SightingsController {
     
     // Model and view key
     public static final String MV_SURVEY_LIST = "survey_list";
-    
+
+    private Logger log = Logger.getLogger(getClass());
+
+
     @Autowired
     private RecordDAO recordDAO;
     @Autowired
@@ -216,7 +221,10 @@ public class MySightingsController extends SightingsController {
         mv.addObject("download_kml_selected", Arrays.binarySearch(downloadFormat, RecordDownloadFormat.KML.toString()) > -1);
         mv.addObject("download_shp_selected", Arrays.binarySearch(downloadFormat, RecordDownloadFormat.SHAPEFILE.toString()) > -1);
         mv.addObject("download_xls_selected", Arrays.binarySearch(downloadFormat, RecordDownloadFormat.XLS.toString()) > -1);
-        
+
+        // A limited user should not see the download tab
+        mv.addObject("hideDownload", user.isLimitedUser());
+
         GeoMap geoMap = geoMapDAO.getForOwner(null, MapOwner.REVIEW);
         mv.addObject(BdrsWebConstants.MV_WEB_MAP, geoMap != null ? new WebMap(geoMap) : null);
         return mv;
@@ -444,13 +452,20 @@ public class MySightingsController extends SightingsController {
                                     @RequestParam(value = QUERY_PARAM_SORT_BY, required = true) String sortBy,
                                     @RequestParam(value = QUERY_PARAM_SORT_ORDER, required = true) String sortOrderStr, 
                                     @RequestParam(value = QUERY_PARAM_DOWNLOAD_FORMAT, required = false) String[] downloadFormat) throws Exception {
-        
+
         User user = getRequestContext().getUser();
+        // All users except the limited ones can download.
+        boolean isAuthorized = !user.isLimitedUser();
+        if (!isAuthorized) {
+            log.warn("Limited user '" + user.getName() + "' on portal " + user.getPortal().getId() + " cannot download!!");
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
         SortOrder sortOrder = SortOrder.valueOf(sortOrderStr);
 
         RecordFilter filter = getRecordFilter(surveyId, taxonGroupId, taxonSearch, startDate, endDate, user, userRecordsOnly, limit, false);
         ScrollableRecords sr = getScrollableRecords(filter, sortBy, sortOrder);
-        
+
         List<Survey> surveyList;
         if (surveyId == 0) {
             surveyList = surveyDAO.getReadableSurveys(user);

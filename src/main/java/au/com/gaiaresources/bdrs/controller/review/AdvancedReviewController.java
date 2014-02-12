@@ -175,6 +175,10 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
         GeoMap geoMap = geoMapDAO.getForOwner(null, MapOwner.REVIEW);
         mv.addObject(BdrsWebConstants.MV_WEB_MAP, geoMap != null ? new WebMap(geoMap) : null);
 
+        User user = getRequestContext().getUser();
+        // A limited user should not see the download tab
+        mv.addObject("hideDownload", user.isLimitedUser());
+
         return mv;
     }
 

@@ -337,22 +337,29 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
                                        HttpServletResponse response,
                                        @RequestParam(value=SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME, required=false) Integer surveyId,
                                        @RequestParam(value=QUERY_PARAM_DOWNLOAD_FORMAT, required=true) String[] downloadFormat) throws Exception {
+        User currentUser = currentUser();
+        // All users except the limited ones can download.
+        boolean isAuthorized = !currentUser.isLimitedUser();
+        if (!isAuthorized) {
+            log.warn("Limited user '" + currentUser.getName() + "' on portal " + currentUser.getPortal().getId() + " cannot download!!");
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
         configureHibernateSession();
         HashMap<String, String[]> newParamMap = new HashMap<String, String[]>(request.getParameterMap());
-        
-        User currentUser = currentUser();
+
         // some locations have been selected, add them to the parameters as facet selections
         String locations = getParameter(newParamMap, PARAM_LOCATIONS);
         String locationArea = getParameter(newParamMap, PARAM_LOCATION_AREA);
         List<Location> locList = getLocationsFromParameter(locations);
         List<Facet> facetList = facetService.getLocationFacetList(currentUser, newParamMap);
-        
-        ScrollableResults<Location> sc = getScrollableResults(facetList, surveyId, 
-                                                              getParameter(newParamMap, SORT_BY_QUERY_PARAM_NAME), 
+
+        ScrollableResults<Location> sc = getScrollableResults(facetList, surveyId,
+                                                              getParameter(newParamMap, SORT_BY_QUERY_PARAM_NAME),
                                                               getParameter(newParamMap, SORT_ORDER_QUERY_PARAM_NAME),
-                                                              getParameter(newParamMap, SEARCH_QUERY_PARAM_NAME), 
+                                                              getParameter(newParamMap, SEARCH_QUERY_PARAM_NAME),
                                                               locationArea, locList);
-        
+
         downloadLocations(request, response, downloadFormat, sc, locList);
     }
     
