@@ -306,6 +306,12 @@ public class User extends PortalPersistentImpl implements Comparable<User> {
         return hasRole(Role.POWERUSER);
     }
 
+    @Transient
+    @Sensitive
+    public boolean isLimitedUser() {
+        return hasRole(Role.LIMITED_USER);
+    }
+
     /**
      * Determines if the user has the given role.
      * @param role the role to test for in the user

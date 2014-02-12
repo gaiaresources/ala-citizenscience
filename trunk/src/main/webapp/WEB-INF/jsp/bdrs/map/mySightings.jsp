@@ -276,20 +276,22 @@
                     Table
                 </div>
             </a>
-            <a id="download_tab_handle" class="tab_handle" href="javascript:void(0);">
-                <div
-                    <c:choose>
-                        <c:when test="${ \"download\" == selected_tab }">
-                            class="displayTab left displayTabSelected"
-                        </c:when>
-                        <c:otherwise>
-                            class="displayTab left"
-                        </c:otherwise>
-                    </c:choose>
-                    >
-                    Download
-                </div>
-            </a>
+            <c:if test="${not hideDownload}">
+                <a id="download_tab_handle" class="tab_handle" href="javascript:void(0);">
+                    <div
+                        <c:choose>
+                            <c:when test="${ \"download\" == selected_tab }">
+                                class="displayTab left displayTabSelected"
+                            </c:when>
+                            <c:otherwise>
+                                class="displayTab left"
+                            </c:otherwise>
+                        </c:choose>
+                        >
+                        Download
+                    </div>
+                </a>
+            </c:if>
             <span id="loading" class="right" style="display:none"><img class="vertmiddle" src="${pageContext.request.contextPath}/images/icons/ajax-loader.gif" alt="This is a loading spinner" title="Data Loading"/><span>Loading</span></span>
             <div class="clear">
             </div>

@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import au.com.gaiaresources.bdrs.MockFactory;
 import au.com.gaiaresources.bdrs.model.preference.Preference;
 import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
 import junit.framework.Assert;
@@ -29,6 +30,8 @@ import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Tests all aspects of the <code>MySightingsController</code>.
@@ -706,6 +709,19 @@ public class MySightingsControllerTest extends AbstractGridControllerTest {
         ModelAndView mv = handle(request, response);
 
         ModelAndViewAssert.assertModelAttributeValue(mv, "selected_tab", MySightingsController.TABLE_TAB);
+    }
+
+    @Test
+    public void testLimitedUserCannotDownload() throws Exception {
+        User limited = MockFactory.createUser(userDAO, Role.USER, Role.LIMITED_USER);
+        assert(limited.isLimitedUser());
+        login(limited.getName(), limited.getPassword(), limited.getRoles());
+        request.setMethod("GET");
+        request.setRequestURI(MySightingsController.MY_SIGHTINGS_DOWNLOAD_URL);
+        request.setParameters(sortedRecordsCriteriaParamMap);
+        handle(request, response);
+        Assert.assertEquals(HttpServletResponse.SC_FORBIDDEN, response.getStatus());
+        Assert.assertEquals(0, response.getContentLength());
     }
     
     private void testMySightings(Map<String, String[]> queryParams, ModelAndView mv) throws Exception {

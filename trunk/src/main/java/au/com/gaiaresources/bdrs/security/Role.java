@@ -11,10 +11,11 @@ public class Role {
     public static final String SUPERVISOR = "ROLE_SUPERVISOR";
     public static final String POWERUSER = "ROLE_POWER_USER";
     public static final String USER = "ROLE_USER";
+    public static final String LIMITED_USER = "ROLE_LIMITED_USER";  // same as USER but cannot download.
     public static final String ANONYMOUS = "ROLE_BDRS_ANONYMOUS";
 
     private static final String[] ROLE_ORDER = { ROOT, ADMIN, SUPERVISOR,
-            POWERUSER, USER, ANONYMOUS };
+            POWERUSER, USER, LIMITED_USER, ANONYMOUS };
 
     public static void checkRole(String text) throws SecurityException {
         for (String s : ROLE_ORDER) {

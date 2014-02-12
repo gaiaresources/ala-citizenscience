@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import au.com.gaiaresources.bdrs.MockFactory;
+import au.com.gaiaresources.bdrs.controller.review.sightings.AdvancedReviewSightingsController;
 import junit.framework.Assert;
 
 import org.hibernate.FlushMode;
@@ -49,6 +51,8 @@ import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.util.KMLUtils;
 import au.com.gaiaresources.bdrs.util.SpatialUtil;
 import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Tests all aspects of the <code>AdvancedReviewSightingsController</code>.
@@ -314,6 +318,24 @@ public class AdvancedReviewLocationsControllerTest extends
         Assert.assertEquals(AdvancedReviewController.SIGHTINGS_DOWNLOAD_CONTENT_TYPE, response.getContentType());
         Assert.assertTrue(response.getContentAsByteArray().length > 0);
     }
+
+    @Test
+    public void testLimitedUserCannotDownload() throws Exception {
+        User limited = MockFactory.createUser(userDAO, Role.USER, Role.LIMITED_USER);
+        assert(limited.isLimitedUser());
+        Survey survey = surveyDAO.getSurveys(surveyCreator.getAdmin()).get(0);
+        login(limited.getName(), limited.getPassword(), limited.getRoles());
+        request.setMethod("GET");
+        request.setRequestURI("/review/sightings/advancedReviewDownloadLocations.htm");
+        request.addParameter(SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME, survey.getId().toString());
+        request.addParameter(AdvancedReviewController.QUERY_PARAM_DOWNLOAD_FORMAT, RecordDownloadFormat.KML.toString());
+        request.addParameter(AdvancedReviewController.QUERY_PARAM_DOWNLOAD_FORMAT, RecordDownloadFormat.XLS.toString());
+        request.addParameter(AdvancedReviewController.QUERY_PARAM_DOWNLOAD_FORMAT, RecordDownloadFormat.SHAPEFILE.toString());
+        handle(request, response);
+        Assert.assertEquals(HttpServletResponse.SC_FORBIDDEN, response.getStatus());
+        Assert.assertEquals(0, response.getContentLength());
+    }
+
 
     //@Test
     public void testSightingsSorting() throws Exception {

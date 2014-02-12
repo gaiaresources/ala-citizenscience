@@ -355,31 +355,38 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
                                        HttpServletResponse response,
                                        @RequestParam(value=SurveyFacet.SURVEY_ID_QUERY_PARAM_NAME, required=false) Integer surveyId,
                                        @RequestParam(value=QUERY_PARAM_DOWNLOAD_FORMAT, required=true) String[] downloadFormat) throws Exception {
-        configureHibernateSession();
-        
         User currentUser = currentUser();
+        // All users except the limited ones can download.
+        boolean isAuthorized = !currentUser.isLimitedUser();
+        if (!isAuthorized) {
+            log.warn("Limited user '" + currentUser.getName() + "' on portal " + currentUser.getPortal().getId() + " cannot download!!");
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+        configureHibernateSession();
+
         HashMap<String, String[]> newParamMap = new HashMap<String, String[]>(request.getParameterMap());
-        
+
         List<Facet> facetList = facetService.getFacetList(currentUser, newParamMap);
-        
+
         SurveyFacet surveyFacet = facetService.getFacetByType(facetList, RecordSurveyFacet.class);
-        
+
         // list of surveys to download
         List<Survey> surveyList = surveyFacet.getSelectedSurveys();
-               
+
         // In the case that no surveys are selected to filter by - we will use
         // all the surveys available for the accessing user
         if (surveyList.isEmpty()) {
             surveyList = surveyDAO.getReadableSurveys(currentUser);
         }
-        
+
         // I think 'surveyId' is not used for AdvancedReview but is used for MySightings
         ScrollableResults<Record> sc = getScrollableResults(facetList,
-                                                     surveyId,
-                                                     getParameter(newParamMap, SORT_BY_QUERY_PARAM_NAME), 
-                                                     getParameter(newParamMap, SORT_ORDER_QUERY_PARAM_NAME),
-                                                     getParameter(newParamMap, SEARCH_QUERY_PARAM_NAME));
-        
+                surveyId,
+                getParameter(newParamMap, SORT_BY_QUERY_PARAM_NAME),
+                getParameter(newParamMap, SORT_ORDER_QUERY_PARAM_NAME),
+                getParameter(newParamMap, SEARCH_QUERY_PARAM_NAME));
+
         downloadSightings(request, response, downloadFormat, sc, surveyList);
     }
 

@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import au.com.gaiaresources.bdrs.MockFactory;
 import junit.framework.Assert;
 
 import org.hibernate.FlushMode;
@@ -60,6 +61,8 @@ import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.util.KMLUtils;
 import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Tests all aspects of the <code>AdvancedReviewSightingsController</code>.
@@ -348,6 +351,22 @@ public class AdvancedReviewSightingsControllerTest extends
         Assert.assertEquals(AdvancedReviewSightingsController.SIGHTINGS_DOWNLOAD_CONTENT_TYPE, response.getContentType());
         Assert.assertTrue(response.getContentAsByteArray().length > 0);
     }
+
+    @Test
+    public void testLimitedUserCannotDownload() throws Exception {
+        User limited = MockFactory.createUser(userDAO, Role.USER, Role.LIMITED_USER);
+        assert(limited.isLimitedUser());
+        login(limited.getName(), limited.getPassword(), limited.getRoles());
+        request.setMethod("GET");
+        request.setRequestURI("/review/sightings/advancedReviewDownload.htm");
+        request.addParameter(AdvancedReviewSightingsController.QUERY_PARAM_DOWNLOAD_FORMAT, RecordDownloadFormat.KML.toString());
+        request.addParameter(AdvancedReviewSightingsController.QUERY_PARAM_DOWNLOAD_FORMAT, RecordDownloadFormat.XLS.toString());
+        request.addParameter(AdvancedReviewSightingsController.QUERY_PARAM_DOWNLOAD_FORMAT, RecordDownloadFormat.SHAPEFILE.toString());
+        handle(request, response);
+        Assert.assertEquals(HttpServletResponse.SC_FORBIDDEN, response.getStatus());
+        Assert.assertEquals(0, response.getContentLength());
+    }
+
 
     //@Test
     public void testSightingsSorting() throws Exception {

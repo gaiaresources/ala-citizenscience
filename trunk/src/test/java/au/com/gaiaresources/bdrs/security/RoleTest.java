@@ -10,8 +10,8 @@ public class RoleTest extends TestCase {
     private String SECOND_HIGHEST = Role.ADMIN;
     
     private String LOWEST = Role.ANONYMOUS;
-    private String SECOND_LOWEST = Role.USER;
-    
+    private String SECOND_LOWEST = Role.LIMITED_USER;
+
     private String[] allRoles = Role.getAllRoles();
     
     @Test
@@ -29,11 +29,12 @@ public class RoleTest extends TestCase {
         String[] result3 = Role.getRolesLowerThan(SECOND_LOWEST);
         Assert.assertEquals(1, result3.length);
         
-        //ROOT, ADMIN, SUPERVISOR, POWERUSER, USER
+        //ROOT, ADMIN, SUPERVISOR, POWERUSER, USER, LIMITED_USER
         Assert.assertEquals(Role.ADMIN, result[0]);
         Assert.assertEquals(Role.SUPERVISOR, result[1]);
         Assert.assertEquals(Role.POWERUSER, result[2]);
         Assert.assertEquals(Role.USER, result[3]);
+        Assert.assertEquals(Role.LIMITED_USER, result[4]);
     }
     
     @Test
