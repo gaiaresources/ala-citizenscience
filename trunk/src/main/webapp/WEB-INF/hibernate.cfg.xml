@@ -70,9 +70,6 @@
 
         <mapping class="au.com.gaiaresources.bdrs.model.showcase.Gallery"/>
         
-        <mapping class="au.com.gaiaresources.bdrs.model.detect.BDRSWurflCapability"/>
-        <mapping class="au.com.gaiaresources.bdrs.model.detect.BDRSWurflDevice"/>
-        
         <mapping class="au.com.gaiaresources.bdrs.model.report.Report"/>
 
         <mapping class="au.com.gaiaresources.bdrs.model.form.CustomForm"/>

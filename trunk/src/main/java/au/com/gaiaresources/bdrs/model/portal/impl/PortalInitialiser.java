@@ -25,7 +25,6 @@ import au.com.gaiaresources.bdrs.model.user.RegistrationService;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.content.ContentService;
-import au.com.gaiaresources.bdrs.service.detect.BDRSWurflLoadService;
 import au.com.gaiaresources.bdrs.service.theme.ThemeService;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 import au.com.gaiaresources.bdrs.util.TransactionHelper;
@@ -72,7 +71,6 @@ public class PortalInitialiser implements ServletContextListener {
         try {
             Transaction tx = sesh.beginTransaction();
             
-            BDRSWurflLoadService loadService = AppContext.getBean(BDRSWurflLoadService.class);
             List<Portal> portalList = portalDAO.getPortals();
             if (!portalList.isEmpty()) {
                 log.info("ROOT portal already exists, skipping initialisation");
@@ -94,9 +92,7 @@ public class PortalInitialiser implements ServletContextListener {
                 initRootPortal(sesh, context_path);
                 // Running this here because if you run it in initRootPortal the tests
                 // just never finish
-                loadService.loadWurflXML("wurfl.xml");
             }
-            loadService.loadWurflXML("wurfl_patch.xml");
             
             // update the default themes for all portals
             log.info("Updating default themes for all portals");
