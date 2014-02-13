@@ -800,3 +800,13 @@ BEGIN;
     alter table record add column gps_altitude float8;
 ROLLBACK;
 </code>
+
+= r558 =
+Removed Wurfl
+<code language="sql>
+BEGIN;
+  drop TABLE device_capability ;
+  drop TABLE wurfldevice ;
+  drop TABLE wurflcapability ;
+ROLLBACK;
+</code>
