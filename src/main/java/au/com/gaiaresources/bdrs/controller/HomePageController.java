@@ -31,13 +31,8 @@ public class HomePageController extends AbstractController {
     private UserDAO userDAO;
     @Autowired
     private SurveyDAO surveyDAO;
-//    @Autowired
-//    private BDRSWurflDeviceDAO deviceDAO;
 
     Logger log = Logger.getLogger(getClass());
-
-//    private static final String[] MOBILE_TAGS = { "android", "iphone", "ipad" };
-//    private static final String[] DEVICES_WITH_APP = { "Android"};
 
     public static final String HOME_URL = "/home.htm";
     public static final String REDIRECT_HOME_URL = "/redirectHome.htm";
@@ -47,58 +42,6 @@ public class HomePageController extends AbstractController {
     @RequestMapping(value = HOME_URL)
     public ModelAndView render(HttpServletRequest request,
             HttpServletResponse response) {
-    	
-//    	log.info("User-Agent = " +request.getHeader("User-Agent"));
-//        
-//		ModelAndView view = new ModelAndView();
-//		String sessionType = (String) request.getSession().getAttribute("sessionType");
-//		
-//		if ((sessionType != null) && sessionType.equals("mobile")) {
-//			// view mobile, forced by user
-//			view.setView(new PortalRedirectView(request.getSession().getServletContext().getContextPath() + "/mobile/"));
-//		} else if ((sessionType != null) && sessionType.equals("desktop")) {
-//			
-//			// view desktop, forced by user session
-//			if (request.getParameter("signin") != null) {
-//				view.setViewName("signin");
-//			} else {
-//				view.setViewName("home");
-//				Record latestRecord = recordDAO.getLatestRecord();
-//				view.addObject("recordCount", recordDAO.countAllRecords());
-//				view.addObject("latestRecord", latestRecord);
-//				view.addObject("uniqueSpeciesCount", recordDAO.countUniqueSpecies());
-//				view.addObject("userCount", userDAO.countUsers());
-//				view.addObject("publicSurveys", surveyDAO.getActivePublicSurveys(true));
-//			}
-//			
-//		} else {
-//			// view based on device detection
-//			BDRSWurflDevice d = deviceDAO.getByUserAgent(request.getHeader("User-Agent"));
-//			String capabilityValue = deviceDAO.getCapabilityValue(d,"is_wireless_device");
-//			if (!Boolean.parseBoolean(capabilityValue)) {
-//				//view desktop
-//				if (request.getParameter("signin") != null) {
-//					view.setViewName("signin");
-//				} else {
-//					view.setViewName("home");
-//					Record latestRecord = recordDAO.getLatestRecord();
-//					view.addObject("recordCount", recordDAO.countAllRecords());
-//					view.addObject("latestRecord", latestRecord);
-//					view.addObject("uniqueSpeciesCount", recordDAO.countUniqueSpecies());
-//					view.addObject("userCount", userDAO.countUsers());
-//					view.addObject("publicSurveys", surveyDAO.getActivePublicSurveys(true));
-//				}
-//			} else {
-//				RedirectView redirectView = new PortalRedirectView("/mobile/", true, true, true);
-//				String deviceOs = deviceDAO.getCapabilityValue(d, "device_os");
-//				if (deviceOs != null){
-//					view.addObject("hasApp", deviceOs);
-//				}
-//				view.setView(redirectView);
-//			}
-//		}
-//
-//		return view;
         ModelAndView view = new ModelAndView();
         if (request.getParameter("signin") != null) {
             view.setViewName("signin");
@@ -153,45 +96,6 @@ public class HomePageController extends AbstractController {
                 log.warn("A redirect to a malformed URL was requested after signing ing: "+redirectTo);
             }
         }
-    }
-
-    @RequestMapping(value = "/deviceDataStore.htm", method = RequestMethod.POST)
-    public void storeDeviceData(HttpServletRequest request,
-            HttpServletResponse response) {
-        request.getSession().setAttribute("screenwidth", request.getParameter("screenwidth"));
-        request.getSession().setAttribute("screenheight", request.getParameter("screenheight"));
-        request.getSession().setAttribute("useragent", request.getHeader("User-Agent"));
-        if (new Integer(request.getParameter("screenwidth")) > 480)
-            request.getSession().setAttribute("device", "netbook");
-    }
-
-    /**
-     * Returns true if the device is a mobile device, and they have not
-     * requested a desktop session.
-     * 
-     * @param req
-     * @return
-     */
-    public boolean mobileHeaderCheck(HttpServletRequest req) {
-//        req.getSession().setAttribute("device", "desktop");
-//
-//        String userAgent = req.getHeader("user-agent").toLowerCase();
-//        if (req.getSession().getAttribute("sessionType") != null) {
-//            if (req.getSession().getAttribute("sessionType").equals("desktop")) {
-//                return false;
-//            } else if (req.getSession().getAttribute("sessionType").equals("mobile")) {
-//                return true;
-//            }
-//        }
-//
-//        for (int i = 0; i < MOBILE_TAGS.length; i++) {
-//            if (userAgent.contains(MOBILE_TAGS[i].toLowerCase())) {
-//                req.getSession().setAttribute("device", MOBILE_TAGS[i]);
-//                return true;
-//            }
-//        }
-
-        return false;
     }
 
     /**

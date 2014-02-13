@@ -97,17 +97,6 @@ class UserDefinitionMetadata(models.Model):
         db_table = u'user_definition_metadata'
 
 
-class DeviceCapability(models.Model):
-    id = db.MultiFieldPK('wurfldevice_device', 'capabilities_capability')
-    wurfldevice_device = models.ForeignKey('Wurfldevice')
-    capabilities_capability = models.ForeignKey('Wurflcapability')
-
-    objects = PortalManager()
-
-    class Meta:
-        db_table = u'device_capability'
-
-
 class CensusMethodAttribute(models.Model):
     id = db.MultiFieldPK('census_method_census_method', 'attributes_attribute')
     census_method_census_method = models.ForeignKey('CensusMethod')

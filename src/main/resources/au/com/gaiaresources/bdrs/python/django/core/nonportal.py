@@ -55,43 +55,6 @@ class ReportReportView(models.Model):
         db_table = u'report_report_view'
 
 
-class Wurflcapability(models.Model):
-    capability_id = models.IntegerField(primary_key=True)
-    weight = models.IntegerField(null=True, blank=True)
-    created_at = models.DateTimeField(null=True, blank=True)
-    updated_at = models.DateTimeField(null=True, blank=True)
-    created_by = models.IntegerField(null=True, blank=True)
-    updated_by = models.IntegerField(null=True, blank=True)
-    name = models.CharField(max_length=255, blank=True)
-    value = models.CharField(max_length=255, blank=True)
-    capability_group = models.CharField(max_length=255, blank=True)
-
-    objects = PortalManager()
-
-    class Meta:
-        db_table = u'wurflcapability'
-
-
-class Wurfldevice(models.Model):
-    device_id = models.IntegerField(primary_key=True)
-    weight = models.IntegerField(null=True, blank=True)
-    created_at = models.DateTimeField(null=True, blank=True)
-    updated_at = models.DateTimeField(null=True, blank=True)
-    created_by = models.IntegerField(null=True, blank=True)
-    updated_by = models.IntegerField(null=True, blank=True)
-    useragent = models.CharField(max_length=255, blank=True)
-    deviceidstring = models.CharField(max_length=255, blank=True)
-    fallback = models.ForeignKey('self', null=True, blank=True)
-
-    wurflcapabilities = models.ManyToManyField('Wurflcapability',
-        through='DeviceCapability', related_name='wurfldevices')
-
-    objects = PortalManager()
-
-    class Meta:
-        db_table = u'wurfldevice'
-
-
 class ThemeCssFile(models.Model):
     id = db.MultiFieldPK('theme_theme', 'array_index')
     theme_theme = models.ForeignKey('Theme')

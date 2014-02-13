@@ -87,9 +87,6 @@
 				<value>au.com.gaiaresources.bdrs.model.map.AssignedGeoMapLayer</value>
 				<value>au.com.gaiaresources.bdrs.model.showcase.Gallery</value>
 		        <value>au.com.gaiaresources.bdrs.model.map.BaseMapLayer</value>
-    
-		        <value>au.com.gaiaresources.bdrs.model.detect.BDRSWurflDevice</value>
-		        <value>au.com.gaiaresources.bdrs.model.detect.BDRSWurflCapability</value>
 		        
 		        <value>au.com.gaiaresources.bdrs.model.report.Report</value>
                 <value>au.com.gaiaresources.bdrs.model.form.CustomForm</value>
