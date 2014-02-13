@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import au.com.bytecode.opencsv.CSVWriter;
 import au.com.gaiaresources.bdrs.controller.AbstractController;
+import au.com.gaiaresources.bdrs.db.impl.PaginationFilter;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.group.Group;
@@ -186,6 +187,27 @@ public class SurveyService extends AbstractController {
         }
     }
 
+    @RequestMapping(value = "/webservice/survey/speciesByGroup.htm", method = RequestMethod.GET)
+    public void speciesByGroup(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            @RequestParam(value = GROUP_ID_PARAMETER, defaultValue = "0") int groupPk,
+            @RequestParam(value = "q", defaultValue = "") String speciesSearch)
+            throws IOException {
+        List<IndicatorSpecies> speciesList;
+        if (groupPk > 0) {
+        	TaxonGroup g = taxaDAO.getTaxonGroup(groupPk);
+        	speciesList = taxaDAO.getIndicatorSpecies(g, speciesSearch);
+        }
+        else {
+        	speciesList = taxaDAO.getIndicatorSpeciesByNameSearch(speciesSearch, true); 
+        }
+        
+        JSONArray array = convertSpeciesToJson(speciesList);
+        
+        super.writeJson(response, array.toString());
+    }
+
     @RequestMapping(value = "/webservice/survey/speciesForSurvey.htm", method = RequestMethod.GET)
     public void speciesForSurvey(
             HttpServletRequest request,
@@ -204,20 +226,25 @@ public class SurveyService extends AbstractController {
             // speciesList.add(taxaService.getFieldSpecies());
         }
 
-        JSONArray array = new JSONArray();
-        for (IndicatorSpecies species : speciesList) {
-            Map<String, Object> flattendSpecies = species.flatten();
-            String sn = species.getScientificName();
-            String cn = species.getCommonName();
-            flattendSpecies.put("label", sn + " | " + cn);
-            flattendSpecies.put("value", sn);
-            array.add(flattendSpecies);
-        }
-
-        response.setContentType("application/json");
-        response.getWriter().write(array.toString());
+        JSONArray array = convertSpeciesToJson(speciesList);
+        
+        super.writeJson(response, array.toString());
     }
 
+    @SuppressWarnings("unchecked")
+    private JSONArray convertSpeciesToJson(List<IndicatorSpecies> speciesList) {
+        JSONArray array = new JSONArray();
+        for (IndicatorSpecies species : speciesList) {
+            Map<String, Object> flattenedSpecies = species.flatten();
+            String sn = species.getScientificName();
+            String cn = species.getCommonName();
+            flattenedSpecies.put("label", sn + " | " + cn);
+            flattenedSpecies.put("value", sn);
+            array.add(flattenedSpecies);
+        }
+        return array;
+    }
+    
     @RequestMapping(value = "/webservice/survey/surveySpeciesForTaxon.htm", method = RequestMethod.GET)
     public void surveySpeciesForTaxon(
             HttpServletRequest request,

@@ -87,7 +87,7 @@ public class RegionDAOImpl extends AbstractDAOImpl implements RegionDAO {
     	if (point.getSRID() != BdrsCoordReferenceSystem.DEFAULT_SRID) {
     		throw new IllegalArgumentException("Point not in default srid, " + point.getSRID());
     	}
-    	Query q = getSession().createQuery("from Region r where contains(transform(r.boundary," +
+    	Query q = getSession().createQuery("from Region r where st_contains(st_transform(r.boundary," +
     			BdrsCoordReferenceSystem.DEFAULT_SRID + "), ?) = true");
     	
     	// the geometry comes first

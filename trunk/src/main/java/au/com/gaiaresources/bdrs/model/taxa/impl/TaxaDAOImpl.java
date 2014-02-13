@@ -531,10 +531,15 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
 
     @Override
     public List<IndicatorSpecies> getIndicatorSpecies() {
-        IndicatorSpecies fieldSpecies = taxaService.getFieldSpecies();
-        return find("from IndicatorSpecies sp where sp != ?", fieldSpecies);
+        return find("from IndicatorSpecies sp where sp.scientificName != ?", IndicatorSpecies.FIELD_SPECIES_NAME);
     }
 
+    @Override
+    public List<IndicatorSpecies> getIndicatorSpecies(Session sess) {
+    	IndicatorSpecies fieldSpecies = taxaService.getFieldSpecies(sess);
+        return find(sess, "from IndicatorSpecies sp where sp != ?", fieldSpecies);
+    }
+    
     @Override
     public List<IndicatorSpecies> getIndicatorSpeciesById(Integer[] pks) {
         Query q = getSession().createQuery(
@@ -692,20 +697,19 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
         String searchString = toSQLSearchString(name);
         if (includeFieldSpecies) {
             return find("from IndicatorSpecies i where UPPER(commonName) like UPPER(?) or UPPER(scientificName) like UPPER (?)", 
-                        new Object[] {searchString, searchString}, 30);
+                        new Object[] {searchString, searchString}, AUTOCOMPLETE_RESULTS_COUNT);
         } else {
             // exclude the field species!
             IndicatorSpecies fieldSpecies = taxaService.getFieldSpecies();
             return find("from IndicatorSpecies i where i != ? and (UPPER(commonName) like UPPER(?) or UPPER(scientificName) like UPPER (?))", 
-                        new Object[] {fieldSpecies, searchString, searchString}, 30);
+                        new Object[] {fieldSpecies, searchString, searchString}, AUTOCOMPLETE_RESULTS_COUNT);
         }
-        
     }
     
     @Override
     public List<IndicatorSpecies> getIndicatorSpeciesByNameSearchExact(String name) {
     	return find("from IndicatorSpecies i where UPPER(commonName) like UPPER(?) or UPPER(scientificName) like UPPER (?)", 
-                new Object[] {name, name}, 30);
+                new Object[] {name, name}, AUTOCOMPLETE_RESULTS_COUNT);
     }
     
     @Override
@@ -1024,17 +1028,13 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
         return list;
     }
     
-    @Override
-    public PagedQueryResult<IndicatorSpecies> getIndicatorSpecies(TaxonGroup taxonGroup, PaginationFilter filter) {
-
-        HqlQuery q = new HqlQuery("from IndicatorSpecies s");
-        if (taxonGroup != null) {
-            q.and(Predicate.eq("s.taxonGroup.id", taxonGroup.getId()));
-        }
-        
-        return new QueryPaginator<IndicatorSpecies>().page(this.getSession(), q.getQueryString(), q.getParametersValue(), filter);
+    @Override 
+    public List<IndicatorSpecies> getIndicatorSpecies(TaxonGroup taxonGroup, String search) {
+    	String searchString = toSQLSearchString(search);
+        return find("from IndicatorSpecies i where (UPPER(commonName) like UPPER(?) or UPPER(scientificName) like UPPER (?)) and i.taxonGroup = ?", 
+                new Object[] {searchString, searchString, taxonGroup}, AUTOCOMPLETE_RESULTS_COUNT);
     }
-
+    		
     public PagedQueryResult<IndicatorSpecies> getIndicatorSpeciesByGroup(Integer taxonGroupId, PaginationFilter filter) {
         HqlQuery q = new HqlQuery("select distinct s from IndicatorSpecies s");
         if (taxonGroupId != null) {

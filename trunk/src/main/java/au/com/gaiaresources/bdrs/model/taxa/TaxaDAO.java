@@ -18,6 +18,8 @@ public interface TaxaDAO extends TransactionDAO {
 
     /** Allows the client to qualify the desired behaviour when searching by taxon group */
     static enum TaxonGroupSearchType {PRIMARY, SECONDARY, PRIMARY_OR_SECONDARY};
+    
+    public static final int AUTOCOMPLETE_RESULTS_COUNT = 30;
 
     TaxonGroup createTaxonGroup(String name, boolean includeBehaviour, boolean includeFirstAppearance,
                                 boolean includeLastAppearance, boolean includeHabitat, boolean includeWeather,
@@ -131,6 +133,12 @@ public interface TaxaDAO extends TransactionDAO {
      * @return - List<IndicatorSpecies>
      */
     List<IndicatorSpecies> getIndicatorSpecies();
+    
+    /**
+     * Returns all of the species in the database using the provided session
+     * @return - List<IndicatorSpecies>
+     */
+    List<IndicatorSpecies> getIndicatorSpecies(Session sess);
 
     List<IndicatorSpecies> getIndicatorSpeciesById(Integer[] pks);
     
@@ -484,14 +492,14 @@ public interface TaxaDAO extends TransactionDAO {
     List<TaxonGroup> getTaxonGroupsSortedByName();
 
     /**
-     * Get Paginated IndicatorSpecies
+     * Get First 30 IndicatorSpecies in Group
      * @param taxonGroup TaxonGroup to filter by.
-     * @param filter Pagination details.
+     * @param search Search string to match in species name (sci or common)
      * @return Paginated search result.
      */
-    PagedQueryResult<IndicatorSpecies> getIndicatorSpecies(
-            TaxonGroup taxonGroup, PaginationFilter filter);
-
+    List<IndicatorSpecies> getIndicatorSpecies(
+            TaxonGroup taxonGroup, String search);
+    
     /**
      * Get the child taxa for an IndicatorSpecies.
      * @param taxon Parent IndicatorSpecies.

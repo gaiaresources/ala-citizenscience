@@ -164,7 +164,7 @@ public class LocationDAOImpl extends AbstractDAOImpl implements LocationDAO {
     	}
     	StringBuilder sb = new StringBuilder("from Location l where");
     	sb.append(" l.user = :user");
-    	sb.append(" and (within(transform(l.location,"+BdrsCoordReferenceSystem.DEFAULT_SRID+"),:withinGeom) = true)");
+    	sb.append(" and (within(st_transform(l.location,"+BdrsCoordReferenceSystem.DEFAULT_SRID+"),:withinGeom) = true)");
     	sb.append(" order by l.name");
     	Query q = getSession().createQuery(sb.toString());
     	CustomType geometryType = new CustomType(GeometryUserType.class, null);

@@ -237,6 +237,21 @@ public class Location extends PortalPersistentImpl implements Attributable<Attri
         return surveyValues;
     }
     
+    /**
+     * Returns the string value for a given attribute, or null if it doesn't
+     * exist
+     * @return
+     */
+    @Transient
+    public String getAttributeGetValue(String attributeName) {
+    	for (AttributeValue a : getAttributes()) {
+    		if (a.getAttribute().getName().equals(attributeName)) {
+    			return a.getValue();
+    		}
+    	}
+    	return null;
+    }
+    
     @Transient
     public Point getPoint() {
         if (getLocation() == null) {
