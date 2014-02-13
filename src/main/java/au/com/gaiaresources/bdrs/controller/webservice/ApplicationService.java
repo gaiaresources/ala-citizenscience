@@ -835,6 +835,7 @@ public class ApplicationService extends AbstractController {
             mv.addObject("message", jsonObj.toString());
             return mv;
         } else {
+            log.debug(jsonObj.toString());
             this.writeJson(request, response, jsonObj.toString());
             return null;
         }
@@ -1026,15 +1027,16 @@ public class ApplicationService extends AbstractController {
         Record rec;
         if(recordPk < 1) {
             rec = recordDAO.getRecordByClientID(clientID);
-            if(rec == null) {
-                rec = new Record();
-            }
         } else {
             rec = recordDAO.getRecord(recordPk);
             if (rec == null) {
                 log.error("Sync record: Retrieved null record for record pk = " + recordPk);
                 throw new IllegalStateException("Record cannot be null here");
             }
+        }
+
+        if(rec == null) {
+            rec = new Record();
         }
 
         String latitudeString = getJSONString(jsonRecordBean, "latitude", "");
@@ -1124,11 +1126,13 @@ public class ApplicationService extends AbstractController {
         rec.setUser(user);
         if(surveyPk != null) {
         	Survey s = surveyDAO.getSurvey(surveyPk);
-            rec.setSurvey(s);
-            rec.setRecordVisibility(s.getDefaultRecordVisibility());
+            if (s != null) {
+                rec.setSurvey(s);
+                rec.setRecordVisibility(s.getDefaultRecordVisibility());
+                rec = recordDAO.saveRecord(rec);
+            }
         }
 
-        rec = recordDAO.saveRecord(rec);
         
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("id", clientID);
@@ -1206,6 +1210,10 @@ public class ApplicationService extends AbstractController {
         }
 
         AttributeValue attrVal = attrValPk < 1 ? new AttributeValue() : attributeValueDAO.get(attrValPk);
+        if (attrVal == null) {
+            attrVal = new AttributeValue();
+        }
+
         attrVal.setAttribute(attr);
         String filename = null;
         String base64 = null;

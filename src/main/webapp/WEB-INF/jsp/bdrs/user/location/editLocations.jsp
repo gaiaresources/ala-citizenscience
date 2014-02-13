@@ -1,5 +1,6 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
 <%@ taglib uri="http://tiles.apache.org/tags-tiles" prefix="tiles" %>
 <%@ taglib uri="/WEB-INF/cw.tld" prefix="cw" %>
 
@@ -46,13 +47,15 @@
     jQuery(function() {
 			
 		var locationArray = new Array();	
+		<c:set var="search" value="'"/>
+		<c:set var="replace" value="\\'"/>
 		<c:forEach items="${locations}" var="loc" varStatus="status">
         {
 			var locationJson = {
 				id: '${loc.id}',
 				latitude: bdrs.map.roundLatOrLon(${loc.y}),
 				longitude: bdrs.map.roundLatOrLon(${loc.x}),
-				name: '${loc.name}',
+				name: '${fn:replace(loc.name, search, replace)}',
 				wkt: '${loc.location}'
 			};
 			

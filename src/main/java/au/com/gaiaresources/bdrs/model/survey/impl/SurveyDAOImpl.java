@@ -433,7 +433,7 @@ public class SurveyDAOImpl extends AbstractDAOImpl implements SurveyDAO {
         GeometryBuilder geometryBuilder = new GeometryBuilder();
         GeometryFactory geometryFactory = geometryBuilder.getFactory();
         Set<Point> pointSet = new HashSet<Point>();
-        String hql = "select sp from Survey s join s.species sp  join sp.regions r WHERE  s = :survey AND intersects(r.boundary, :locations) = TRUE";
+        String hql = "select sp from Survey s join s.species sp  join sp.regions r WHERE  s = :survey AND st_intersects(r.boundary, :locations) = TRUE";
         Query q = getSession().createQuery(hql);
         q.setParameter("survey", s);
         CustomType geometryType = new CustomType(GeometryUserType.class, null);
