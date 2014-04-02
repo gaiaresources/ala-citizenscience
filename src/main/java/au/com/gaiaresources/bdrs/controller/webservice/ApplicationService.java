@@ -3,6 +3,7 @@ package au.com.gaiaresources.bdrs.controller.webservice;
 import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
+import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
 import au.com.gaiaresources.bdrs.file.FileService;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONException;
@@ -289,7 +290,7 @@ public class ApplicationService extends AbstractController {
         log.debug("Flatted Taxon Groups in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
         
         for(CensusMethod method : survey.getCensusMethods()) {
-            censusMethodArray.add(recurseFlattenCensusMethod(method));
+            recurseFlattenCensusMethod(censusMethodArray, method);
         }
         log.debug("Flatted Census Methods in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
         
@@ -400,17 +401,21 @@ public class ApplicationService extends AbstractController {
             // Not sending any location scoped attributes because they do not get populated by the recording form.
             if(!AttributeScope.LOCATION.equals(a.getScope())) {
                 attArray.add(a.flatten(1, true, true));
+
+                if(a.getCensusMethod() != null) {
+                    recurseFlattenCensusMethod(censusMethodArray, a.getCensusMethod());
+                }
             }
         }
         log.debug("Flattened attributes in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
-        
+
         for (Location l : survey.getLocations()) {
             locArray.add(l.flatten(1, true, true));
         }
         log.debug("Flatted locations in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
         
         for(CensusMethod method : survey.getCensusMethods()) {
-            censusMethodArray.add(recurseFlattenCensusMethod(method));
+            recurseFlattenCensusMethod(censusMethodArray, method);
         }
         log.debug("Flatted Census Methods in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
         
@@ -602,14 +607,14 @@ public class ApplicationService extends AbstractController {
                 
                 // This should be a list of objects that map the client id 
                 // to the new server id.
-                List<Map<String, Object>> syncResponseList = new ArrayList<Map<String, Object>>(); 
+                SyncResponse syncResponse = new SyncResponse();
                 JSONArray clientData = JSONArray.fromString(jsonData);
                 SoftValueHashMap attrCache = new SoftValueHashMap();
                 for(Object jsonLocationBean : clientData){
-                    syncLocation(syncResponseList, jsonLocationBean, user, attrCache, spatialUtilFactory);
+                    syncLocation(syncResponse, jsonLocationBean, user, attrCache, spatialUtilFactory);
                 }
                 
-                status.put("sync_result", syncResponseList);
+                status.put("sync_result", syncResponse.getResponse());
                 jsonObj.put(CLIENT_SYNC_STATUS_KEY, HttpServletResponse.SC_OK);
                 jsonObj.put(HttpServletResponse.SC_OK, status);
             } else {
@@ -648,7 +653,7 @@ public class ApplicationService extends AbstractController {
         }
     }
     
-    private void syncLocation(List<Map<String, Object>> syncResponseList,
+    private void syncLocation(SyncResponse syncResponse,
                               Object jsonLocationBean, User user, SoftValueHashMap attrCache, 
                               SpatialUtilFactory spatialUtilFactory)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, IOException {
@@ -695,7 +700,7 @@ public class ApplicationService extends AbstractController {
         // Attribute Values
         List<Object> locAttrBeanList = (List<Object>) PropertyUtils.getProperty(jsonLocationBean, "attributes");
         for(Object jsonLocAttrValBean : locAttrBeanList) { 
-            AttributeValue locAttrVal = syncAttributeValue(syncResponseList, jsonLocAttrValBean, attrCache);
+            AttributeValue locAttrVal = syncAttributeValue(syncResponse, jsonLocAttrValBean, attrCache);
             if (locAttrVal != null) {
                 loc.getAttributes().add(locAttrVal);
             }
@@ -722,12 +727,8 @@ public class ApplicationService extends AbstractController {
         }
         
         loc = locationDAO.save(loc);
-        
-        Map<String, Object> map = new HashMap<String, Object>();
-        map.put("id", clientID);
-        map.put("server_id", loc.getId());
-        map.put("klass", Location.class.getSimpleName());
-        syncResponseList.add(map);
+
+        syncResponse.add(Location.class, clientID, loc);
     }
     
     @RequestMapping(value = "/webservice/application/clientSync.htm", method = RequestMethod.POST)
@@ -777,28 +778,26 @@ public class ApplicationService extends AbstractController {
                     recordGroupJsonArray = new JSONArray();
                 }
 
-                List<Map<String, Object>> recordGroupResponseList =
-                        syncRecordGroups(recordGroupJsonArray, user);
-
                 JSONObject status = new JSONObject();
 
                 // The list of json objects that shall be passed back to the 
                 // client.
                 // This should be a list of objects that map the client id 
                 // to the new server id.
-                List<Map<String, Object>> syncResponseList = new ArrayList<Map<String, Object>>();
+                SyncResponse syncResponse = new SyncResponse();
+
+                syncRecordGroups(syncResponse, recordGroupJsonArray, user);
+
                 JSONArray clientData = JSONArray.fromString(jsonData);
 
                 SoftValueHashMap attrCache = new SoftValueHashMap();
                 SoftValueHashMap recordGroupCache = new SoftValueHashMap();
                 for(Object jsonRecordBean : clientData) {
-                    syncRecord(syncResponseList,
+                    syncRecord(syncResponse,
                             jsonRecordBean, user, attrCache, recordGroupCache, spatialUtilFactory);
                 }
 
-                syncResponseList.addAll(recordGroupResponseList);
-                
-                status.put("sync_result", syncResponseList);
+                status.put("sync_result", syncResponse.getResponse());
                 int recordsForUser = recordDAO.countRecords(user);
                 status.put(JSON_KEY_SERVER_RECORDS_FOR_USER, recordsForUser);
                 jsonObj.put(CLIENT_SYNC_STATUS_KEY, HttpServletResponse.SC_OK);
@@ -841,10 +840,7 @@ public class ApplicationService extends AbstractController {
         }
     }
 
-    private List<Map<String, Object>> syncRecordGroups(JSONArray recordGroupArray, User user) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-
-        List<Map<String, Object>> result =
-                new ArrayList<Map<String, Object>>(recordGroupArray.size());
+    private void syncRecordGroups(SyncResponse syncResponse, JSONArray recordGroupArray, User user) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
 
         for (int i=0; i<recordGroupArray.size(); ++i) {
             JSONObject recordGroupJson = recordGroupArray.getJSONObject(i);
@@ -877,16 +873,10 @@ public class ApplicationService extends AbstractController {
             group.setStartDate(getJSONDate(recordGroupJson, "startDate", null));
             group.setEndDate(getJSONDate(recordGroupJson, "endDate", null));
 
-            Map<String, Object> responseObj = new HashMap<String, Object>();
-            responseObj.put("id", recordGroupClientId);
-            responseObj.put("server_id", group.getId());
-            responseObj.put("klass", RecordGroup.class.getSimpleName());
-            result.add(responseObj);
+            syncResponse.add(RecordGroup.class, recordGroupClientId, group);
         }
 
         this.getRequestContext().getHibernate().flush();
-
-        return result;
     }
 
     /**
@@ -1012,7 +1002,7 @@ public class ApplicationService extends AbstractController {
         }
     }
     
-    private void syncRecord(List<Map<String, Object>> syncResponseList,
+    private void syncRecord(SyncResponse syncResponse,
             Object jsonRecordBean, User user, SoftValueHashMap attrCache,
             SoftValueHashMap recordGroupCache,
     		SpatialUtilFactory spatialUtilFactory)
@@ -1038,6 +1028,9 @@ public class ApplicationService extends AbstractController {
         if(rec == null) {
             rec = new Record();
         }
+
+        int weight = getJSONInteger(jsonRecordBean, "weight", PersistentImpl.DEFAULT_WEIGHT);
+        rec.setWeight(weight);
 
         String latitudeString = getJSONString(jsonRecordBean, "latitude", "");
         Double latitude = latitudeString.trim().isEmpty() ? null : Double.parseDouble(latitudeString);
@@ -1096,9 +1089,33 @@ public class ApplicationService extends AbstractController {
             rec.setCensusMethod(censusMethodDAO.get(censusMethodPk));
         }
 
+        // This section operates if the id is a server side primary key.
         Integer parentRecordPk = getJSONInteger(jsonRecordBean, "parentRecord_id", null);
         if(parentRecordPk != null) {
             rec.setParentRecord(recordDAO.getRecord(parentRecordPk));
+        }
+
+        // This operates on a client side id.
+        String clientParentId = getJSONString(jsonRecordBean, "parentId", null);
+        if(clientParentId != null) {
+            Record p = (Record)syncResponse.getPersistentForClientId(Record.class, clientParentId);
+            rec.setParentRecord(p);
+        }
+
+        {
+            String clientParentAttributeValueId = getJSONString(jsonRecordBean, "parentAttributeValueId", null);
+            if(clientParentAttributeValueId != null) {
+                AttributeValue av = (AttributeValue)syncResponse.getPersistentForClientId(AttributeValue.class, clientParentAttributeValueId);
+                rec.setAttributeValue(av);
+            }
+        }
+
+        {
+            String clientParentAttributeValueSid = getJSONString(jsonRecordBean, "parentAttributeValueSid", null);
+            if(clientParentAttributeValueSid != null) {
+                AttributeValue av = attributeValueDAO.get(Integer.parseInt(clientParentAttributeValueSid));
+                rec.setAttributeValue(av);
+            }
         }
 
         Integer surveyPk = getJSONInteger(jsonRecordBean, "survey_id", null);
@@ -1134,16 +1151,11 @@ public class ApplicationService extends AbstractController {
         }
 
         
-        Map<String, Object> map = new HashMap<String, Object>();
-        map.put("id", clientID);
-        map.put("server_id", rec.getId());
-        map.put("klass", Record.class.getSimpleName());
+        syncResponse.add(Record.class, clientID, rec);
 
-        syncResponseList.add(map);
-        
         List<Object> recAttrBeanList = (List<Object>) PropertyUtils.getProperty(jsonRecordBean, "attributeValues");
         for(Object jsonRecAttrBean : recAttrBeanList) {
-            AttributeValue recAttr = syncAttributeValue(syncResponseList, jsonRecAttrBean, attrCache);
+            AttributeValue recAttr = syncAttributeValue(syncResponse, jsonRecAttrBean, attrCache);
             if (recAttr != null) {
                 rec.getAttributes().add(recAttr);
             }
@@ -1183,7 +1195,7 @@ public class ApplicationService extends AbstractController {
         recordDAO.saveRecord(rec);
     }
     
-    private AttributeValue syncAttributeValue(List<Map<String, Object>> syncResponseList, Object jsonRecAttrBean, SoftValueHashMap attrCache)
+    private AttributeValue syncAttributeValue(SyncResponse syncResponse, Object jsonRecAttrBean, SoftValueHashMap attrCache)
         throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException {
         String id = getJSONString(jsonRecAttrBean, "id", null);
         if(id == null) {
@@ -1333,16 +1345,12 @@ public class ApplicationService extends AbstractController {
         }
         attrVal = attributeValueDAO.save(attrVal);
 
+
         if(filename != null && base64 != null) {
             fileService.createFile(attrVal.getClass(), attrVal.getId(), filename, Base64.decode(base64));
         }
         
-        Map<String, Object> map = new HashMap<String, Object>();
-        map.put("id", id);
-        map.put("server_id", attrVal.getId());
-        map.put("klass", AttributeValue.class.getSimpleName());
-
-        syncResponseList.add(map);
+        syncResponse.add(AttributeValue.class, id, attrVal);
         return attrVal;
     }
     
@@ -1385,22 +1393,25 @@ public class ApplicationService extends AbstractController {
         return str == null ? str : str.replaceAll("\"", "\\\\\"");
     }
     
-    private Map<String, Object> recurseFlattenCensusMethod(CensusMethod method) {
+    private void recurseFlattenCensusMethod(JSONArray censusMethodArray, CensusMethod method) {
         // Not using the depth because I do not want all the sub census methods.
         Map<String, Object> flatCensusMethod = method.flatten(0, true, true);
         
         List<Map<String, Object>> attributeList = new ArrayList<Map<String, Object>>();
         for(Attribute attr : method.getAttributes()) {
             attributeList.add(attr.flatten(1, true, true));
+            if(attr.getCensusMethod() != null) {
+                recurseFlattenCensusMethod(censusMethodArray, attr.getCensusMethod());
+            }
         }
         flatCensusMethod.put("attributes", attributeList);
 
-        List<Map<String, Object>> subCensusMethodList = new ArrayList<Map<String, Object>>();
+        JSONArray subCensusMethodList = new JSONArray();
         for(CensusMethod subMethod : method.getCensusMethods()) {
-            subCensusMethodList.add(recurseFlattenCensusMethod(subMethod));
+            recurseFlattenCensusMethod(subCensusMethodList, subMethod);
         }
         flatCensusMethod.put("censusMethods", subCensusMethodList);
         
-        return flatCensusMethod;
+        censusMethodArray.add(flatCensusMethod);
     }
 }
