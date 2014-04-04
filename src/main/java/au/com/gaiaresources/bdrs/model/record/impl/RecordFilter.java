@@ -33,7 +33,7 @@ public interface RecordFilter {
 
     /**
      * Get a query for {@link Record} objects based on all set parameters.
-     * @param sesh The {@link Session} to create the query in.
+     * @param session The {@link Session} to create the query in.
      * @param sortCriteria A list of {@link SortingCriteria} that specifies columns and thier ordering for the query.
      * @return A {@link Query} object that can be used to get results.
      */
@@ -110,13 +110,12 @@ public interface RecordFilter {
 
     /**
      * Optional parameter for paging
-     * @return
+     * @return page number
      */
     public Integer getPageNumber();
     
     /**
      * Optional parameter for paging. AKA 'limit'
-     * @param pageNumber
      */
     public Integer getEntriesPerPage();
 
@@ -127,13 +126,13 @@ public interface RecordFilter {
 
     /**
      * Optional parameter for paging. AKA 'limit'
-     * @param number
+     * @param number set number of items per page
      */
     public void setEntriesPerPage(Integer number);
 
     /**
      * Optional parameter - uses left join fetching in query. Defaults to false
-     * @param fetch
+     * @param fetch set fetch
      */
     public void setFetch(boolean fetch);
 
@@ -158,7 +157,7 @@ public interface RecordFilter {
      * 'order by x, y, z' where x, y, and z are elements from the select clause.
      * It must use the sortCriteria to build the ordering.
      * @param sortCriteria A {@link List} of {@link SortingCriteria} to order the query by
-     * @return
+     * @return returns ordering clause
      */
     public String getOrderingClause(List<SortingCriteria> sortCriteria);
 
@@ -183,4 +182,12 @@ public interface RecordFilter {
      * @param held Boolean indicating whether to return held (true) records or unheld (false) records.
      */
     public void setHeld(Boolean held);
+
+    /**
+     * If set to true, the start date and end date (if they are non null) wil be
+     * rounded to the start of the day and end of the day respectively.
+     * If set to false the raw values will be used.
+     * @param roundDateRange boolean setting
+     */
+    public void setRoundDateRange(boolean roundDateRange);
 }

@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.ws.http.HTTPException;
 
+import au.com.gaiaresources.bdrs.model.taxa.*;
 import org.apache.log4j.Logger;
 import org.hibernate.FlushMode;
 import org.hibernate.Session;
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import au.com.gaiaresources.bdrs.controller.AbstractController;
+import au.com.gaiaresources.bdrs.controller.BadWebParameterException;
 import au.com.gaiaresources.bdrs.db.impl.PagedQueryResult;
 import au.com.gaiaresources.bdrs.db.impl.PaginationFilter;
 import au.com.gaiaresources.bdrs.json.JSONArray;
@@ -41,12 +43,6 @@ import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeScope;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaService;
-import au.com.gaiaresources.bdrs.model.taxa.TypedAttributeValue;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.service.bulkdata.AbstractBulkDataService;
@@ -57,6 +53,8 @@ import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 @Controller
 public class RecordService extends AbstractController {
+
+    public static final String SEARCH_RECORDS_URL = "/webservice/record/searchRecords.htm";
 
     /**
      * URL for jqgrid compliant ajax request for retrieving child records
@@ -73,7 +71,27 @@ public class RecordService extends AbstractController {
     /**
      * Ident of user
      */
-    public static final String PARAM_IDENT = "regkey";
+    public static final String PARAM_REGKEY = "regkey";
+    /**
+     * Ident of user again - different param name.
+     * Leaving both in code to avoid breaking code that
+     * uses these webservices.
+     */
+    public static final String PARAM_IDENT = "ident";
+    public static final String PARAM_SPECIES = "species";
+    public static final String PARAM_USER = "user";
+    public static final String PARAM_GROUP = "group";
+    public static final String PARAM_SURVEY = "survey";
+    public static final String PARAM_TAXON_GROUP = "taxon_group";
+    public static final String PARAM_DATE_START = "date_start";
+    public static final String PARAM_DATE_END = "date_end";
+    public static final String PARAM_LIMIT = "limit";
+    public static final String PARAM_ONLY_MY_RECORDS = "only_my_records";
+    public static final String PARAM_DEEP_FLATTEN = "deep_flatten";
+    public static final String PARAM_ROUND_DATE_RANGE = "round_date_range";
+    public static final String PARAM_PAGE_NUMBER = "page_number";
+
+    public static final String ERROR_FORMAT_PARAM_FORMAT = "%s parameter must be of the format %s";
     
     /**
      * Request parameter for census method ID
@@ -88,6 +106,8 @@ public class RecordService extends AbstractController {
     @Autowired
     private UserDAO userDAO;
     @Autowired
+    private AttributeValueDAO attrValueDAO;
+    @Autowired
     private TaxaService taxaService;
     @Autowired
     private AbstractBulkDataService bulkDataService;
@@ -96,12 +116,14 @@ public class RecordService extends AbstractController {
     
     private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
 
+    private SimpleDateFormat dateFormatter = new SimpleDateFormat(BdrsWebConstants.DATE_FORMAT);
+
     @RequestMapping(value = "/webservice/record/lastRecords.htm", method = RequestMethod.GET)
     public void getLatestRecords(
             @RequestParam(value = "species", defaultValue = "") String species,
             @RequestParam(value = "user", defaultValue = "0") int userPk,
             @RequestParam(value = "limit", defaultValue = "5") int limit,
-            HttpServletRequest request, HttpServletResponse response)
+            HttpServletResponse response)
             throws IOException {
         // RequestParam user - the user
         // RequestParam limit - the number of records to return
@@ -148,39 +170,96 @@ public class RecordService extends AbstractController {
 
     }
 
-    @RequestMapping(value = "/webservice/record/searchRecords.htm", method = RequestMethod.GET)
+    /**
+     * Search records
+     *
+     * @param ident ident of the logged in user.
+     * @param species filters records by species name.
+     * @param userPk filters records by owning user. Ignored if onlyMyRecords is true.
+     * @param groupPk filters records by owning user's group.
+     * @param surveyPk filters records by survey.
+     * @param taxonGroupPk filters records by taxon group.
+     * @param startDate filters records by 'when' field.
+     * @param endDate filters records by 'when' field.
+     * @param limit limits the number of records returned.
+     * @param onlyMyRecords if true will only return records owned by logged in user. If false
+     *                      will allow the userPk field to come into effect. If the logged
+     *                      in user is not an admin, this field will always be read as true.
+     * @param deepFlatten if true flattens more of the record - will make the query slower.
+     * @param roundDateRange if true start / end dates will be rounded to the nearest start and
+     *                       end of days respectively. If false the start and end dates will not
+     *                       be rounded.
+     * @param pageNumber page number to return. starts at 1
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @throws IOException on error writing to output stream
+     */
+    @RequestMapping(value = SEARCH_RECORDS_URL, method = RequestMethod.GET)
     public void searchRecords(
-            @RequestParam(value = "ident", defaultValue = "") String ident,
-            @RequestParam(value = "species", defaultValue = "") String species,
-            @RequestParam(value = "user", defaultValue = "0") int userPk,
-            @RequestParam(value = "group", defaultValue = "0") int groupPk,
-            @RequestParam(value = "survey", defaultValue = "0") int surveyPk,
-            @RequestParam(value = "taxon_group", defaultValue = "0") int taxonGroupPk,
-            @RequestParam(value = "date_start", defaultValue = "01 Jan 1970") Date startDate,
-            @RequestParam(value = "date_end", defaultValue = "01 Jan 9999") Date endDate,
-            @RequestParam(value = "limit", defaultValue = "5000") int limit,
+            @RequestParam(value = PARAM_IDENT, defaultValue = "") String ident,
+            @RequestParam(value = PARAM_SPECIES, defaultValue = "") String species,
+            @RequestParam(value = PARAM_USER, defaultValue = "0") int userPk,
+            @RequestParam(value = PARAM_GROUP, defaultValue = "0") int groupPk,
+            @RequestParam(value = PARAM_SURVEY, defaultValue = "0") int surveyPk,
+            @RequestParam(value = PARAM_TAXON_GROUP, defaultValue = "0") int taxonGroupPk,
+            @RequestParam(value = PARAM_DATE_START, defaultValue = "01 Jan 1970") Date startDate,
+            @RequestParam(value = PARAM_DATE_END, defaultValue = "01 Jan 9999") Date endDate,
+            @RequestParam(value = PARAM_LIMIT, defaultValue = "5000") int limit,
+            @RequestParam(value = PARAM_ONLY_MY_RECORDS, defaultValue = "true") boolean onlyMyRecords,
+            @RequestParam(value = PARAM_DEEP_FLATTEN, defaultValue = "false") boolean deepFlatten,
+            @RequestParam(value = PARAM_ROUND_DATE_RANGE, defaultValue = "true") boolean roundDateRange,
+            @RequestParam(value = PARAM_PAGE_NUMBER, defaultValue = "1") int pageNumber,
+            HttpServletRequest request,
             HttpServletResponse response) throws IOException {
 
-        User user;
+        User loggedInUser;
         if (ident.isEmpty()) {
             throw new HTTPException(HttpServletResponse.SC_UNAUTHORIZED);
         } else {
-            user = userDAO.getUserByRegistrationKey(ident);
-            if (user == null) {
+            loggedInUser = userDAO.getUserByRegistrationKey(ident);
+            if (loggedInUser == null) {
                 throw new HTTPException(HttpServletResponse.SC_UNAUTHORIZED);
+            }
+        }
+
+        if (!roundDateRange) {
+            // reassign start and end dates
+            // Needed to be done this way as spring RequestParam refused to
+            // parse the time component of any passed string - not sure why.
+            // Tried using explicit @DateTimeFormat provided by spring and still
+            // had no luck.
+            Map paramMap = request.getParameterMap();
+            try {
+                startDate = parseDate(paramMap, PARAM_DATE_START, new Date(0));
+                endDate = parseDate(paramMap, PARAM_DATE_END, new Date(Long.MAX_VALUE));
+            } catch (BadWebParameterException e) {
+                response.getWriter().write(e.getLocalizedMessage());
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                return;
             }
         }
 
         Session sesh = getRequestContext().getHibernate();
         sesh.setFlushMode(FlushMode.MANUAL);
-        /*List<Record> recordList = recordDAO.getRecord(userPk, groupPk,
-                surveyPk, taxonGroupPk, startDate, endDate, species, limit);*/
-        ScrollableRecords sr = recordDAO.getScrollableRecords(user, groupPk, surveyPk, taxonGroupPk, startDate, endDate, species, 1, limit);
+
+        // non admin users will only be able to search their own records
+        onlyMyRecords = !loggedInUser.isAdmin() || onlyMyRecords;
+
+        // The default userPk = 0 will return a null user which will
+        // search through all users.
+        User requestedUser = loggedInUser;
+        if (!onlyMyRecords) {
+            requestedUser = userDAO.getUser(userPk);
+        }
+
+        ScrollableRecords sr = recordDAO.getScrollableRecords(requestedUser,
+                groupPk, surveyPk, taxonGroupPk, startDate, endDate, species, pageNumber, limit, loggedInUser,
+                roundDateRange);
         
         int recordCount = 0;
         JSONArray array = new JSONArray();
         while(sr.hasMoreElements()) {
-            array.add(sr.nextElement().flatten());
+            array.add(sr.nextElement().flatten(deepFlatten ? 4 : 0));
             if (++recordCount % ScrollableRecords.RESULTS_BATCH_SIZE == 0) {
                 sesh.clear();
             }
@@ -237,7 +316,7 @@ public class RecordService extends AbstractController {
             record.setPoint(spatialUtil.createPoint(latitude, longitude));
             record.setNotes(jsonRecord.getString("notes"));
             String number_string = request.getParameter("numberseen");
-            if (number_string != "" & (number_string != null)) {
+            if (!"".equals(number_string) & (number_string != null)) {
                 // set number seen if there are any
                 record.setNumber(Integer.valueOf(number_string));
             }
@@ -276,7 +355,7 @@ public class RecordService extends AbstractController {
                         date_custom = cal_custom.getTime();
                         recAttr.setDateValue(date_custom);
                     }
-                    recAttr = recordDAO.saveAttributeValue(recAttr);
+                    recAttr = attrValueDAO.save(recAttr);
                     // save attribute and store in Set
                     newAttributes.add(recAttr);
                 }
@@ -439,8 +518,7 @@ public class RecordService extends AbstractController {
     /**
      * Returns the records of a particular user and survey
      * 
-     * @param request
-     *            HttpServletRequest
+     *
      * @param response
      *            HttpServletResponse
      * @param regkey
@@ -450,10 +528,9 @@ public class RecordService extends AbstractController {
      * @throws IOException
      */
     @RequestMapping(value = "/webservice/record/recordsForSurvey.htm", method = RequestMethod.GET)
-    public void recordsForSurvey(HttpServletRequest request,
-            HttpServletResponse response,
-            @RequestParam(value = "regkey", defaultValue = "0") String regkey,
-            @RequestParam(value = BdrsWebConstants.PARAM_SURVEY_ID, defaultValue = "0") int surveyId)
+    public void recordsForSurvey(HttpServletResponse response,
+                                 @RequestParam(value = PARAM_REGKEY, defaultValue = "0") String regkey,
+                                 @RequestParam(value = BdrsWebConstants.PARAM_SURVEY_ID, defaultValue = "0") int surveyId)
             throws IOException {
 
         // check authorisation
@@ -573,8 +650,6 @@ public class RecordService extends AbstractController {
      *
      * @param ident
      *            The users registration key.
-     * @param recordIds
-     *            The ids of the records that need to be deleted.
      * @throws IOException
      */
     @RequestMapping(value = "/webservice/record/deleteRecords.htm", method = RequestMethod.POST)
@@ -615,7 +690,7 @@ public class RecordService extends AbstractController {
 
     @RequestMapping(value = "/webservice/record/getRecordById.htm", method = RequestMethod.GET)
     public void getRecordById(
-            @RequestParam(value = "regkey", required = true) String ident,
+            @RequestParam(value = PARAM_REGKEY, required = true) String ident,
             @RequestParam(value = BdrsWebConstants.PARAM_RECORD_ID, defaultValue = "0", required = true) int recordPk,
             HttpServletResponse response) throws IOException {
         User user;
@@ -664,7 +739,7 @@ public class RecordService extends AbstractController {
      */
     @RequestMapping(value = GET_RECORD_BY_ID_V2_URL, method = RequestMethod.GET)
     public void getRecordByIdV2(
-            @RequestParam(value = PARAM_IDENT, required = false) String ident,
+            @RequestParam(value = PARAM_REGKEY, required = false) String ident,
             @RequestParam(value = BdrsWebConstants.PARAM_RECORD_ID, defaultValue = "0", required = true) int recordPk,
             @RequestParam(value = "serializeAv", required = false, defaultValue = "true") boolean serializeLazyLoadedAttributes,
             HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -723,7 +798,6 @@ public class RecordService extends AbstractController {
      * @param request - HttpServletRequest
      * @param response - HttpServletResponse
      * @param ident - The users registration key.
-     * @param JSONrecords - The records that need to be updated or removed.
      * @throws IOException
      */
     @RequestMapping(value = "/webservice/record/syncToServer.htm", method = RequestMethod.POST)
@@ -959,5 +1033,46 @@ public class RecordService extends AbstractController {
             }
         }
         this.writeJson(request, response, builder.toJson());
+    }
+
+    /**
+     * Helper to parse dates from HttpServletRequest.
+     *
+     * @param paramMap http parameter map
+     * @param paramName Name of date parameter
+     * @param defaultValue Default value to use if the parameter name is missing
+     *                     from the parameter map.
+     * @return Date if successful, null if not successful. The controller should
+     * check this result of this method and return immediately if the result is null.
+     * @throws au.com.gaiaresources.bdrs.controller.BadWebParameterException when
+     * the string value is incorrect
+     */
+    private Date parseDate(Map<String, String[]> paramMap,
+                           String paramName, Date defaultValue) throws BadWebParameterException {
+        if (paramName == null) {
+            throw new IllegalArgumentException("String cannot be null");
+        }
+        if (defaultValue == null) {
+            throw new IllegalArgumentException("Date cannot be null");
+        }
+        String[] valueArray = paramMap.get(paramName);
+        if (valueArray.length > 0) {
+            String dateString = paramMap.get(paramName)[0];
+            if (dateString == null) {
+                return defaultValue;
+            } else {
+                try {
+                    return dateFormatter.parse(dateString);
+                } catch (ParseException e) {
+                    throw new BadWebParameterException(
+                            String.format(ERROR_FORMAT_PARAM_FORMAT, paramName, BdrsWebConstants.DATE_FORMAT), e);
+                } catch (IllegalArgumentException e) {
+                    throw new BadWebParameterException(
+                            String.format(ERROR_FORMAT_PARAM_FORMAT, paramName, BdrsWebConstants.DATE_FORMAT), e);
+                }
+            }
+        } else {
+            return null;
+        }
     }
 }

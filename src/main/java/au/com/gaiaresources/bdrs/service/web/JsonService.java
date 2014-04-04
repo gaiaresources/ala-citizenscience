@@ -68,6 +68,8 @@ public class JsonService {
     // first + last name of the recording user
     public static final String RECORD_KEY_USER = "owner";
     public static final String RECORD_KEY_USER_ID = "ownerId";
+    public static final String RECORD_KEY_USER_FIRST_NAME = "ownerFirstName";
+    public static final String RECORD_KEY_USER_LAST_NAME = "ownerLastName";
 
     public static final String DATE_FORMAT = "dd-MMM-yyyy";
     private SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
@@ -117,7 +119,11 @@ public class JsonService {
                 addToAttributeMap(attrMap, RECORD_KEY_CENSUS_METHOD, "Standard Taxonomic");
             }
 
-            addToAttributeMap(attrMap, RECORD_KEY_USER, record.getUser().getFirstName() + " " + record.getUser().getLastName());
+            String firstName = record.getUser().getFirstName();
+            String lastName = record.getUser().getLastName();
+            addToAttributeMap(attrMap, RECORD_KEY_USER, firstName + " " + lastName);
+            addToAttributeMap(attrMap, RECORD_KEY_USER_FIRST_NAME, firstName);
+            addToAttributeMap(attrMap, RECORD_KEY_USER_LAST_NAME, lastName);
 
             if (record.getSpecies() != null) {
                 addToAttributeMap(attrMap, RECORD_KEY_SPECIES, record.getSpecies().getScientificName());
@@ -278,6 +284,11 @@ public class JsonService {
                     }
                     obj.accumulate(JSON_KEY_ATTR_VALUE, recObj);
                 }
+                break;
+            case TIME:
+            case MULTI_CHECKBOX:
+            case MULTI_SELECT:
+                obj.accumulate(JSON_KEY_ATTR_VALUE, av.getStringValue());
                 break;
             default:
                 // ignore

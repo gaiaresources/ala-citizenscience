@@ -471,7 +471,7 @@ public class ApplicationService extends AbstractController {
             @RequestParam(value=PARAM_FIRST, required=true) Integer first,
             @RequestParam(value=PARAM_MAX_RESULTS, required=true) Integer maxResults,
             @RequestParam(value=PARAM_INCLUDE_PROFILE, defaultValue="true") Boolean includeProfile) throws IOException {
-        
+
         Survey s = surveyDAO.get(surveyId);
         JSONObject result = new JSONObject();
         if (s == null) {
