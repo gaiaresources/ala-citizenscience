@@ -39,6 +39,8 @@ public abstract class AbstractRecordFilter implements RecordFilter {
     private Boolean taxonomic = null;
     private boolean fetch = false;
     private Boolean held = null;
+    private boolean roundDateRange = true;
+
     /**
      * The {@link CensusMethod} to query for.  This property is ignored unless 
      * explicitly set.  To query for null census methods, either explicitly call 
@@ -372,30 +374,32 @@ public abstract class AbstractRecordFilter implements RecordFilter {
         // be retrieved by this query generator.
         if (getStartDate() != null || getEndDate() != null) {
             
-            Calendar cal = new GregorianCalendar();
-            
+
             if (getStartDate() == null) {
                 setStartDate(new Date(1l));
             }
-        
-            cal.setTime(getStartDate());
-            cal.set(Calendar.HOUR_OF_DAY, 0);
-            cal.set(Calendar.MINUTE, 0);
-            cal.set(Calendar.SECOND, 0);
-            cal.set(Calendar.MILLISECOND, 0);
-            setStartDate(cal.getTime());
-        
+
             if (getEndDate() == null) {
                 setEndDate(new Date(System.currentTimeMillis()));
             }
-            
-            cal.clear();
-            cal.setTime(getEndDate());
-            cal.set(Calendar.HOUR_OF_DAY, 23);
-            cal.set(Calendar.MINUTE, 59);
-            cal.set(Calendar.SECOND, 59);
-            cal.set(Calendar.MILLISECOND, 999);
-            setEndDate(cal.getTime());
+
+            if (isRoundDateRange()) {
+                Calendar cal = new GregorianCalendar();
+                cal.setTime(getStartDate());
+                cal.set(Calendar.HOUR_OF_DAY, 0);
+                cal.set(Calendar.MINUTE, 0);
+                cal.set(Calendar.SECOND, 0);
+                cal.set(Calendar.MILLISECOND, 0);
+                setStartDate(cal.getTime());
+
+                cal.clear();
+                cal.setTime(getEndDate());
+                cal.set(Calendar.HOUR_OF_DAY, 23);
+                cal.set(Calendar.MINUTE, 59);
+                cal.set(Calendar.SECOND, 59);
+                cal.set(Calendar.MILLISECOND, 999);
+                setEndDate(cal.getTime());
+            }
             
             // records with no "when" should also be retrieved because they are 
             // neither inside nor outside the time range
@@ -495,4 +499,18 @@ public abstract class AbstractRecordFilter implements RecordFilter {
      * @see au.com.gaiaresources.bdrs.model.record.impl.RecordFilter#createTableJoin()
      */
     public abstract String createTableJoin();
+
+    /**
+     * If true, the start date and end date (if they are non null) wil be
+     * rounded to the start of the day and end of the day respectively.
+     * If false the raw values will be used.
+     * @return is round days setting
+     */
+    public boolean isRoundDateRange() {
+        return roundDateRange;
+    }
+
+    public void setRoundDateRange(boolean roundDateRange) {
+        this.roundDateRange = roundDateRange;
+    }
 }

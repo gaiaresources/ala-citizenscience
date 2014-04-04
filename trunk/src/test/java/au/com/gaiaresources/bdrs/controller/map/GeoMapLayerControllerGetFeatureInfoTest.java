@@ -471,7 +471,7 @@ public class GeoMapLayerControllerGetFeatureInfoTest extends
         request.setParameter(BdrsWebConstants.PARAM_RECORD_ID, recordId.toString());
 
         if (u != null) {
-            request.setParameter(RecordService.PARAM_IDENT, u.getRegistrationKey());
+            request.setParameter(RecordService.PARAM_REGKEY, u.getRegistrationKey());
         }
         
         this.handle(request,  response);

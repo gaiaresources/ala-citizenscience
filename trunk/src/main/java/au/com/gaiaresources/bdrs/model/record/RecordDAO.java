@@ -70,7 +70,7 @@ public interface RecordDAO extends FacetDAO {
 
     /**
      * Gets last modified record for a user
-     * @param user
+     * @param user owner of record
      * @return Record if one exists. Null otherwise.
      */
     Record getLatestRecord(User user);
@@ -133,6 +133,27 @@ public interface RecordDAO extends FacetDAO {
                 int pageNumber, int entriesPerPage);
 
     /**
+     * Get scrollable records query. Parameters passed are used to filter records.
+     *
+     * @param user User to search for. Can be null.
+     * @param groupPk User group pk to search for. Can be 0
+     * @param surveyPk Survey pk to searh for. Can be 0
+     * @param taxonGroupPk TaxonGroup pk to search for. Can be 0
+     * @param startDate Start of date range. Can be null.
+     * @param endDate End of date range. Can be null.
+     * @param species Species contained in survey. Can be null.
+     * @param pageNumber Pagination : page number to return.
+     * @param entriesPerPage Pagination : entries per page.
+     * @param accessor User requesting the query. Can be null. Non admins will only have public records returned.
+     * @param roundDateRange Whether to round startDate and endDate to the nearest day.
+     * @return Query results
+     */
+    ScrollableRecords getScrollableRecords(User user, int groupPk, int surveyPk,
+                                           int taxonGroupPk, Date startDate, Date endDate, String species,
+                                           int pageNumber, int entriesPerPage, User accessor,
+                                           boolean roundDateRange);
+
+    /**
      * Get scrollable records with the following criteria
      * A null or empty parameter will ignore that parameter.
      *
@@ -154,8 +175,8 @@ public interface RecordDAO extends FacetDAO {
 	 * Stopping the madness of too many args when filtering for records. Encapsulate all
 	 * future querying in the RecordFilter object
 	 * 
-	 * @param recFilter
-	 * @return
+	 * @param recFilter query filter parameters
+	 * @return Query result
 	 */
 	ScrollableRecords getScrollableRecords(RecordFilter recFilter);
 	
@@ -177,7 +198,7 @@ public interface RecordDAO extends FacetDAO {
 	 * Note: if you don't use AdvancedRecordCountFilter as the concrete impl
 	 * of RecordFilter, this method will break in RecordDAOImpl
 	 * 
-	 * @param recFilter
+	 * @param recFilter query filter parameters
 	 * @return the number of records that match the filter.
 	 */
 	int countRecords(RecordFilter recFilter);
@@ -208,21 +229,21 @@ public interface RecordDAO extends FacetDAO {
 
 	/**
 	 * 
-	 * @param recAttr
-	 * @return
+	 * @param attrValue AttributeValue to save
+	 * @return saved AttributeValue
 	 * @deprecated Use {@link AttributeValueDAO#save(AttributeValue)} instead.
 	 */
 	@Deprecated
-	AttributeValue saveAttributeValue(AttributeValue recAttr);
+	AttributeValue saveAttributeValue(AttributeValue attrValue);
 	
 	/**
 	 * 
-	 * @param recAttr
-	 * @return
+	 * @param attrValue AttributeValue to update
+	 * @return updated AttributeValue
 	 * @deprecated Use {@link AttributeValueDAO#update(AttributeValue) instead.
 	 */
 	@Deprecated
-	AttributeValue updateAttributeValue(AttributeValue recAttr);
+	AttributeValue updateAttributeValue(AttributeValue attrValue);
 
 	List<Record> getRecords(String userRegistrationKey, int surveyPk,
 			int locationPk);
@@ -231,7 +252,7 @@ public interface RecordDAO extends FacetDAO {
 	 * Finds potential duplicates for records based on configurable distance,
 	 * time and record properties
 	 * 
-	 * @param record
+	 * @param record Find duplicates of this record
 	 * @param extendMetres
 	 *            - how far to buffer around the record
 	 * @param calendarField
@@ -243,7 +264,7 @@ public interface RecordDAO extends FacetDAO {
 	 * @param excludeRecordIds
 	 *            - an array of record ids that you want to specifically exclude
 	 *            from search
-	 * @return
+	 * @return A set of duplicate records
 	 */
 	HashSet<Record> getDuplicateRecords(Record record, double extendMetres,
 			int calendarField, int extendTime, Integer[] excludeRecordIds,
@@ -280,7 +301,7 @@ public interface RecordDAO extends FacetDAO {
 	/**
 	 * Returns a list of the latest species recorded for a user.
 	 * @param userPk the user
-	 * @return
+	 * @return query result
 	 */
     List<IndicatorSpecies> getLastSpecies(int userPk, int limit);
 
@@ -288,11 +309,11 @@ public interface RecordDAO extends FacetDAO {
 
     /**
      * 
-     * @param recAttr
+     * @param attrValue AttributeValue to delete
      * @deprecated Use {@link AttributeValueDAO#delete(AttributeValue)} instead
      */
     @Deprecated
-    void delete(AttributeValue recAttr);
+    void delete(AttributeValue attrValue);
     
     PagedQueryResult<Record> search(PaginationFilter filter, Integer surveyPk, List<Integer> userId);
     
@@ -315,15 +336,15 @@ public interface RecordDAO extends FacetDAO {
      * false: publish is anything but OWNER_ONLY. null: don't care
      * @param userId - The id of the owner of the record. If the user passed here matches the owner of the record
      * the record will be returned regardless of the isPrivate flag.
-     * @return
+     * @return query result
      */
     List<Record> find(Integer[] mapLayerId, Geometry intersectGeom, Boolean isPrivate, Integer userId);
     
     /**
-     * Returns a count number of records, ordered by id, starting with offset.
-     * @param count
-     * @param offset
-     * @return
+     * Basic pagination: Returns a count number of records, ordered by id, starting with offset.
+     * @param count maximum number of items to return
+     * @param offset number of records into the list.
+     * @return query result
      */
     public List<Record> getRecords(int count, int offset);
 

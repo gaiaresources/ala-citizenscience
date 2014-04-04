@@ -426,6 +426,15 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
     public ScrollableRecords getScrollableRecords(User user, int groupPk,
             int surveyPk, int taxonGroupPk, Date startDate, Date endDate,
             String species, int pageNumber, int entriesPerPage) {
+        return getScrollableRecords(user, groupPk, surveyPk, taxonGroupPk,
+                startDate, endDate, species, pageNumber, entriesPerPage, null, true);
+    }
+
+    @Override
+    public ScrollableRecords getScrollableRecords(User user, int groupPk, int surveyPk,
+                                                  int taxonGroupPk, Date startDate, Date endDate, String species,
+                                                  int pageNumber, int entriesPerPage, User accessor,
+                                                  boolean roundDateRange) {
         RecordFilter filter = new AdvancedRecordFilter();
         filter.setUser(user);
         filter.setGroupPk(groupPk);
@@ -434,7 +443,9 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
         filter.setStartDate(startDate);
         filter.setEndDate(endDate);
         filter.setSpeciesSearch(species);
-        
+        filter.setAccessor(accessor);
+        filter.setRoundDateRange(roundDateRange);
+
         Query q = getRecordQuery(filter);
         return new ScrollableRecordsImpl(q, pageNumber, entriesPerPage);
     }
@@ -458,7 +469,7 @@ public class RecordDAOImpl extends AbstractDAOImpl implements RecordDAO {
             return new ScrollableRecordsImpl(q);
         }
     }
-    
+
     private Query getRecordQuery(RecordFilter recFilter,
             List<SortingCriteria> sortCriteria) {
         Query q = recFilter.getRecordQuery(getSession(), sortCriteria);

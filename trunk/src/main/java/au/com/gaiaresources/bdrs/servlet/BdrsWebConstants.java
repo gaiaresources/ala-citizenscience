@@ -95,4 +95,8 @@ public class BdrsWebConstants {
      * jsonp requests
       */
     public static final String JSONP_CALLBACK_PARAM = "callback";
+    /**
+     * Spring's default date format when using @RequestParam to parse dates
+     */
+    public static final String DATE_FORMAT = "dd MMM yyyy hh:mm:ss";
 }
