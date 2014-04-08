@@ -2641,16 +2641,17 @@ bdrs.map.addGeocodeControl = function(geocodeOptions){
 
 //Takes a text string, sets map view to point with no return
 bdrs.map.geocode = function(options, address, doAfter){
-    if (address.length > 3 && window.GClientGeocoder !== undefined) {
+    if (address.length > 3) {
         address = address + ', Australia';
-        var geocoder = new GClientGeocoder();
+        var geocoder = new google.maps.Geocoder();
         if (geocoder) {
 
-            geocoder.getLocations(address, function(placemark) {
-                if (placemark && placemark.Placemark[0]) {
-                    if (placemark.Placemark[0].ExtendedData) {
-                        var extents = placemark.Placemark[0].ExtendedData.LatLonBox;
-                        var bounds = new OpenLayers.Bounds(extents.west, extents.south, extents.east, extents.north);
+            geocoder.geocode({'address':address}, function(results, status) {
+                if (status == google.maps.GeocoderStatus.OK && results && results[0] && results[0].geometry) {
+                    var geometry = results[0].geometry;
+                    if (geometry.viewport) {
+                        var extents = geometry.viewport;
+                        var bounds = new OpenLayers.Bounds(extents.getSouthWest().lng(), extents.getSouthWest().lat(), extents.getNorthEast().lng(), extents.getNorthEast().lat());
                         bdrs.map.baseMap.zoomToExtent(bounds.transform(bdrs.map.WGS84_PROJECTION, bdrs.map.GOOGLE_PROJECTION), true);
                     }
                     else {
@@ -2660,8 +2661,8 @@ bdrs.map.geocode = function(options, address, doAfter){
                         } else {
                             zoom = options.zoom;
                         }
-                        var centre = placemark.Placemark[0].Point.coordinates;
-                        var lonLat = new OpenLayers.LonLat(centre[0], centre[1]);
+                        var centre = geometry.location;
+                        var lonLat = new OpenLayers.LonLat(centre.lng(), centre.lat());
                         bdrs.map.baseMap.setCenter(lonLat.transform(bdrs.map.WGS84_PROJECTION, bdrs.map.GOOGLE_PROJECTION), zoom);
                     }
                 }
