@@ -257,7 +257,7 @@ public class FieldGuideController extends AbstractController {
                 // add a message that no surveys were found for the species
                 getRequestContext().addMessage("bdrs.survey.noneForTaxa", new String[]{species.getCommonName()});
                 log.warn("No surveys found for species id "+speciesId);
-                return new ModelAndView(new PortalRedirectView(request.getParameter("redirectURL")), request.getParameterMap());
+                return new ModelAndView(new PortalRedirectView(request.getParameter("redirectURL"), true), request.getParameterMap());
             } else if (surveys.size() > 1) {
                 // Redirect to survey chooser so the use
                 ModelAndView surveyChooser = new ModelAndView(VIEW_RECORD_NOW_SURVEY_CHOOSER);
