@@ -271,7 +271,7 @@ public class FieldGuideController extends AbstractController {
         } catch (Exception e) {
             log.error("Error occurred rendering survey for species id: "+request.getParameter(PARAM_SPECIES_ID), e);
             getRequestContext().addMessage("bdrs.survey.taxonomy.error");
-            return new ModelAndView(new PortalRedirectView(request.getParameter("redirectURL")), request.getParameterMap());
+            return new ModelAndView(new PortalRedirectView(request.getParameter("redirectURL"), true), request.getParameterMap());
         }
     }
 
