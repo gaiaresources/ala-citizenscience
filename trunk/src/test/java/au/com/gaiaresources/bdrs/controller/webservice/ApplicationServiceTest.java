@@ -3,6 +3,7 @@ package au.com.gaiaresources.bdrs.controller.webservice;
 import au.com.gaiaresources.bdrs.controller.AbstractControllerTest;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordProperty;
 import au.com.gaiaresources.bdrs.controller.attribute.formfield.RecordPropertyType;
+import au.com.gaiaresources.bdrs.geometry.GeometryBuilder;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
 import au.com.gaiaresources.bdrs.model.file.ManagedFile;
@@ -11,6 +12,7 @@ import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.location.LocationDAO;
 import au.com.gaiaresources.bdrs.model.metadata.Metadata;
 import au.com.gaiaresources.bdrs.model.metadata.MetadataDAO;
+import au.com.gaiaresources.bdrs.model.survey.BdrsCoordReferenceSystem;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
 import au.com.gaiaresources.bdrs.model.survey.SurveyFormRendererType;
@@ -20,6 +22,10 @@ import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.service.survey.SurveyImportExportService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
+import au.com.gaiaresources.bdrs.util.SpatialUtil;
+import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Point;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Before;
@@ -36,10 +42,14 @@ import java.util.Set;
 
 public class ApplicationServiceTest extends AbstractControllerTest {
 
+    private static final double COORD_TOLERANCE = 0.000001;
+
     private Logger log = Logger.getLogger(getClass());
     private Survey frogSurveyInDb, birdAndFrogSurveyInDb, allSurvey;
 
     private IndicatorSpecies frog1, frog2, bird1, bird2, bird3;
+
+    private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
 
     @Autowired
     private SurveyDAO surveyDAO;
@@ -72,6 +82,9 @@ public class ApplicationServiceTest extends AbstractControllerTest {
     private ManagedFileDAO managedFileDAO;
 
     private ManagedFile testFile;
+
+    private Location l1;
+    private Location l2;
 
     @Before
     public void setup() {
@@ -184,16 +197,24 @@ public class ApplicationServiceTest extends AbstractControllerTest {
         birdAndFrogAttributes.add(attributeDAO.save(birdAndFrogSurveyAttribute2));
         birdAndFrogAttributes.add(attributeDAO.save(birdAndFrogSurveyAttribute3));
 
+        GeometryBuilder latLonGeomBuilder = new GeometryBuilder(BdrsCoordReferenceSystem.WGS84.getSrid());
+        GeometryBuilder zoneGeomBuilder = new GeometryBuilder(BdrsCoordReferenceSystem.MGA50.getSrid());
+
         //create locations for survey
         List<Location> locations = new ArrayList<Location>();
         List<Location> birdSurveyLocations = new ArrayList<Location>();
-        Location l1 = new Location();
-        Location l2 = new Location();
+        l1 = new Location();
+        l2 = new Location();
         Location birdSurveyLocation1 = new Location();
+        birdSurveyLocation1.setLocation(latLonGeomBuilder.createPoint(150, 10));
         Location birdSurveyLocation2 = new Location();
+        birdSurveyLocation2.setLocation(zoneGeomBuilder.createPoint(594934, 5636174));
         Location birdSurveyLocation3 = new Location();
+        birdSurveyLocation3.setLocation(latLonGeomBuilder.createPoint(-110, -20));
         l1.setName("location1");
+        l1.setLocation(latLonGeomBuilder.createPoint(115, -31));
         l2.setName("location2");
+        l2.setLocation(zoneGeomBuilder.createPoint(600000, 5500000));
         birdSurveyLocation1.setName("location1");
         birdSurveyLocation2.setName("location2");
         birdSurveyLocation3.setName("location3");
@@ -283,6 +304,26 @@ public class ApplicationServiceTest extends AbstractControllerTest {
         JSONArray locations = JSONArray.fromString(responseContent.get("locations").toString());
         Assert.assertEquals("Expected the locations size to be " + locations.size() + " but it was " + frogSurveyInDb.getLocations().size(), locations.size(), frogSurveyInDb.getLocations().size());
 
+        for (int i=0; i<locations.size(); ++i) {
+            JSONObject locObj = (JSONObject)locations.get(i);
+
+            int id = locObj.getInt("server_id");
+            Location loc = locationDAO.getLocation(id);
+            Assert.assertNotNull("Location cant be null", loc);
+
+            String wkt = locObj.getString("location");
+            String coordStr = wkt.substring(wkt.indexOf("(") + 1, wkt.indexOf(")"));
+            String[] coordStrSplit = coordStr.split(" ");
+            double lon = Double.valueOf(coordStrSplit[0]);
+            double lat = Double.valueOf(coordStrSplit[1]);
+
+            Geometry expectedGeom = spatialUtil.transform(loc.getLocation());
+            Point expectedPoint = expectedGeom.getCentroid();
+
+            Assert.assertEquals("wrong lon", expectedPoint.getX(), lon, COORD_TOLERANCE);
+            Assert.assertEquals("wrong lat", expectedPoint.getY(), lat, COORD_TOLERANCE);
+        }
+
         if (includeSpecies) {
             //count the species in the survey
             JSONArray indicatorSpecies = JSONArray.fromString(responseContent.get("indicatorSpecies").toString());
@@ -295,6 +336,13 @@ public class ApplicationServiceTest extends AbstractControllerTest {
         Assert.assertEquals("wrong survey template name",
                 frogSurveyInDb.getName(),
                 surveyTemplate.getJSONObject("Survey").getJSONObject(frogSurveyInDb.getId().toString()).getString("name"));
+
+        // finally make sure our 2 test locations have the correct projection
+        // to make sure our session eviction has worked.
+        Location l1Fresh = locationDAO.getLocation(l1.getId());
+        Location l2Fresh = locationDAO.getLocation(l2.getId());
+        Assert.assertEquals("wrong srid", 4326, l1Fresh.getLocation().getSRID());
+        Assert.assertEquals("wrong srid", 28350, l2Fresh.getLocation().getSRID());
     }
 
     /**
