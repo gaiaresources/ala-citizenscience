@@ -1056,7 +1056,7 @@ public class RecordService extends AbstractController {
             throw new IllegalArgumentException("Date cannot be null");
         }
         String[] valueArray = paramMap.get(paramName);
-        if (valueArray.length > 0) {
+        if (valueArray != null && valueArray.length > 0) {
             String dateString = paramMap.get(paramName)[0];
             if (dateString == null) {
                 return defaultValue;

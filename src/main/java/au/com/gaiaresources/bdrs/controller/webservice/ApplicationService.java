@@ -37,6 +37,7 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.log4j.Logger;
 import org.codehaus.plexus.util.StringUtils;
 import org.hibernate.FlushMode;
+import org.hibernate.Session;
 import org.postgresql.util.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -174,6 +175,8 @@ public class ApplicationService extends AbstractController {
     private SurveyImportExportService surveyImportExportService;
     
     private SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy");
+
+    private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
     
     /**
      * Download a survey and all of its species.
@@ -264,9 +267,10 @@ public class ApplicationService extends AbstractController {
             }
         }
         log.debug("Flattened attributes in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
-        
+
+        Session sesh = RequestContextHolder.getContext().getHibernate();
         for (Location l : survey.getLocations()) {
-            locArray.add(l.flatten(1, true, true));
+            locArray.add(flattenLocation(sesh, l));
         }
         log.debug("Flatted locations in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
         
@@ -409,8 +413,9 @@ public class ApplicationService extends AbstractController {
         }
         log.debug("Flattened attributes in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
 
+        Session sesh = RequestContextHolder.getContext().getHibernate();
         for (Location l : survey.getLocations()) {
-            locArray.add(l.flatten(1, true, true));
+            locArray.add(flattenLocation(sesh, l));
         }
         log.debug("Flatted locations in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
         
@@ -1413,5 +1418,23 @@ public class ApplicationService extends AbstractController {
         flatCensusMethod.put("censusMethods", subCensusMethodList);
         
         censusMethodArray.add(flatCensusMethod);
+    }
+
+    /**
+     * Transforms the contained geometry into lat / lon and evits the location
+     * from the session so the stored value in the DB is unchanged.
+     * @param sesh database session
+     * @param l location to flatten
+     * @return Map of flattened location
+     */
+    private Map<String, Object> flattenLocation(Session sesh, Location l) {
+        // Evict object from session so we can transform the contained geometry
+        sesh.evict(l);
+        // Reproject if necessary
+        if (l.getLocation() != null) {
+            l.setLocation(spatialUtil.transform(l.getLocation()));
+        }
+        // flatten as usual
+        return l.flatten(1, true, true);
     }
 }
