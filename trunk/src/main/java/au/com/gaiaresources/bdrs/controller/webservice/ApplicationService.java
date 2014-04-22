@@ -438,7 +438,7 @@ public class ApplicationService extends AbstractController {
         for (Location l : survey.getLocations()) {
             locArray.add(flattenLocation(sesh, l));
         }
-        log.debug("Flatted locations in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
+        log.debug("Flatted locations in  :" + (System.currentTimeMillis() - now));
         surveyData.put(JSON_KEY_LOCATIONS, locArray);
 
         return surveyData;
