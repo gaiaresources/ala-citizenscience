@@ -52,15 +52,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Controller
 public class ApplicationService extends AbstractController {
@@ -268,12 +260,6 @@ public class ApplicationService extends AbstractController {
         }
         log.debug("Flattened attributes in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
 
-        Session sesh = RequestContextHolder.getContext().getHibernate();
-        for (Location l : survey.getLocations()) {
-            locArray.add(flattenLocation(sesh, l));
-        }
-        log.debug("Flatted locations in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
-        
         Map<String, Object> speciesMap = null;
         for (IndicatorSpecies s : species) {
             
@@ -309,13 +295,23 @@ public class ApplicationService extends AbstractController {
         // Store restructured survey data in JSONObject
         JSONObject surveyData = new JSONObject();
         surveyData.put(JSON_KEY_ATTR_AND_OPTS, attArray);
-        surveyData.put(JSON_KEY_LOCATIONS, locArray);
         surveyData.put("indicatorSpecies_server_ids", survey.flatten());
         surveyData.put("indicatorSpecies", speciesArray);
         surveyData.put("taxonGroups", taxonGroupArray);
         surveyData.put(JSON_KEY_CENSUS_METHODS, censusMethodArray);
         surveyData.put(JSON_KEY_RECORD_PROP, recordPropertiesArray);
         surveyData.put(JSON_KEY_SURVEY_TEMPLATE, surveyImportExportService.exportObject(survey));
+
+        // Serialize locations AFTER all lazy loading has been done.
+        // Inside the flattenLocation() method we evict the locations
+        // from the hibernate cache
+        now = System.currentTimeMillis();
+        Session sesh = getRequestContext().getHibernate();
+        for (Location l : survey.getLocations()) {
+            locArray.add(flattenLocation(sesh, l));
+        }
+        log.debug("Flatted locations in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
+        surveyData.put(JSON_KEY_LOCATIONS, locArray);
 
         // support for JSONP
         String callback = validateCallback(request.getParameter("callback"));
@@ -413,12 +409,6 @@ public class ApplicationService extends AbstractController {
         }
         log.debug("Flattened attributes in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
 
-        Session sesh = RequestContextHolder.getContext().getHibernate();
-        for (Location l : survey.getLocations()) {
-            locArray.add(flattenLocation(sesh, l));
-        }
-        log.debug("Flatted locations in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
-        
         for(CensusMethod method : survey.getCensusMethods()) {
             recurseFlattenCensusMethod(censusMethodArray, method);
         }
@@ -435,12 +425,22 @@ public class ApplicationService extends AbstractController {
         // Store restructured survey data in JSONObject
         JSONObject surveyData = new JSONObject();
         surveyData.put(JSON_KEY_ATTR_AND_OPTS, attArray);
-        surveyData.put(JSON_KEY_LOCATIONS, locArray);
         surveyData.put(JSON_KEY_SURVEY, survey.flatten());
         surveyData.put(JSON_KEY_CENSUS_METHODS, censusMethodArray);
         surveyData.put(JSON_KEY_RECORD_PROP, recordPropertiesArray);
         surveyData.put(JSON_KEY_SURVEY_TEMPLATE, surveyImportExportService.exportObject(survey));
-        
+
+        // Serialize locations AFTER all lazy loading has been done.
+        // Inside the flattenLocation() method we evict the locations
+        // from the hibernate cache
+        now = System.currentTimeMillis();
+        Session sesh = getRequestContext().getHibernate();
+        for (Location l : survey.getLocations()) {
+            locArray.add(flattenLocation(sesh, l));
+        }
+        log.debug("Flatted locations in  :" + (System.currentTimeMillis() - now));now = System.currentTimeMillis();
+        surveyData.put(JSON_KEY_LOCATIONS, locArray);
+
         return surveyData;
     }
     
@@ -1421,20 +1421,29 @@ public class ApplicationService extends AbstractController {
     }
 
     /**
-     * Transforms the contained geometry into lat / lon and evits the location
+     * Transforms the contained geometry into lat / lon and evicts the location
      * from the session so the stored value in the DB is unchanged.
+     * This method should be called after all required lazy loading
+     * in calling method is complete. Otherwise you will get a
+     * hibernate exception when lazy loading is attempted.
+     *
      * @param sesh database session
      * @param l location to flatten
      * @return Map of flattened location
      */
     private Map<String, Object> flattenLocation(Session sesh, Location l) {
-        // Evict object from session so we can transform the contained geometry
-        sesh.evict(l);
+
         // Reproject if necessary
         if (l.getLocation() != null) {
             l.setLocation(spatialUtil.transform(l.getLocation()));
         }
         // flatten as usual
-        return l.flatten(1, true, true);
+        Map<String, Object> result = l.flatten(1, true, true);
+
+        // Evict object from session so we can transform the contained geometry
+        // evict after potential lazy load
+        sesh.evict(l);
+
+        return result;
     }
 }

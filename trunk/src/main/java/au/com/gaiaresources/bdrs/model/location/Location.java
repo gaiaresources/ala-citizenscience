@@ -203,7 +203,7 @@ public class Location extends PortalPersistentImpl implements Attributable<Attri
      * @return {@link Set} of {@link RecordAttribute}
      */
     @CompactAttribute
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY)
     @Override
     @IndexedEmbedded
     public Set<AttributeValue> getAttributes() {

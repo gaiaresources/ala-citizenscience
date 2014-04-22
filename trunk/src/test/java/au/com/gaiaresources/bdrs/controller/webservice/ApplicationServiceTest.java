@@ -81,6 +81,9 @@ public class ApplicationServiceTest extends AbstractControllerTest {
     @Autowired
     private ManagedFileDAO managedFileDAO;
 
+    @Autowired
+    private AttributeValueDAO attrValueDAO;
+
     private ManagedFile testFile;
 
     private Location l1;
@@ -261,6 +264,29 @@ public class ApplicationServiceTest extends AbstractControllerTest {
         allSurvey.setName("All survey");
         allSurvey.setDescription("This survey has all the species");
         surveyDAO.save(allSurvey);
+
+        // Add some child elements to a location...
+        Attribute locationAttribute = new Attribute();
+        locationAttribute.setName("loc_attr");
+        locationAttribute.setScope(AttributeScope.LOCATION);
+        locationAttribute.setTypeCode(AttributeType.STRING.getCode());
+        attributeDAO.save(locationAttribute);
+
+        AttributeValue l1LocAttr = new AttributeValue();
+        l1LocAttr.setAttribute(locationAttribute);
+        l1LocAttr.setStringValue("hello world");
+        attrValueDAO.save(l1LocAttr);
+
+        Set<AttributeValue> l1LocAttrSet = new HashSet<AttributeValue>();
+        l1LocAttrSet.add(l1LocAttr);
+
+        l1.setAttributes(l1LocAttrSet);
+
+        List<Survey> l1SurveyList = new ArrayList<Survey>();
+        l1SurveyList.add(birdAndFrogSurvey);
+        l1.setSurveys(l1SurveyList);
+
+        locationDAO.save(l1);
     }
 
     private void addProfileItem(IndicatorSpecies sp) {
@@ -286,6 +312,10 @@ public class ApplicationServiceTest extends AbstractControllerTest {
         request.setRequestURI(this.getDownloadSurveyUrl(includeSpecies));
         request.setParameter("ident", userDAO.getUser("user").getRegistrationKey());
         request.setParameter("sid", frogSurveyInDb.getId().toString());
+
+        // clear the session before our request...
+
+        getRequestContext().getHibernate().clear();
 
         handle(request, response);
 
