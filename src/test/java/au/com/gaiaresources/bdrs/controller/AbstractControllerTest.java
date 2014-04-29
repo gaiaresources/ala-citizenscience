@@ -126,6 +126,7 @@ public abstract class AbstractControllerTest extends AbstractTransactionalTest {
     private ModelAndView mv;
     private Object controller;
     private HandlerInterceptor[] interceptors;
+    private int weightCounter = 0;
 
     protected SimpleDateFormat bdrsDateFormat = new SimpleDateFormat("dd MMM yyyy");
 
@@ -656,7 +657,11 @@ public abstract class AbstractControllerTest extends AbstractTransactionalTest {
                 break;
             case SPECIES:
             {
-                valueObj = getRandomSpecies(seed).getScientificName();
+                IndicatorSpecies randomSpecies = getRandomSpecies(seed);
+                valueObj = randomSpecies.getScientificName();
+                if (assign) {
+                    av.setSpecies(randomSpecies);
+                }
                 break;
             }
             default:
@@ -1087,6 +1092,8 @@ public abstract class AbstractControllerTest extends AbstractTransactionalTest {
         a.setRequired(required);
         a.setTag(isTag);
         a.setTypeCode(type.getCode());
+        a.setWeight(weightCounter);
+        weightCounter += 100;
         
         a.setRunThreshold(false);
         

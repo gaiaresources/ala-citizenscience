@@ -31,7 +31,7 @@ public enum BdrsCoordReferenceSystem implements JSONEnum {
 
 	public static final int DEFAULT_SRID = 4326;
 	
-	private static final int NO_SPECIFIED_ZONE = -1;	
+	public static final int NO_SPECIFIED_ZONE = -1;
 
 	private String displayName;
 	private String zoneName;

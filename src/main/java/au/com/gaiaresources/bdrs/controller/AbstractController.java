@@ -7,6 +7,7 @@ import au.com.gaiaresources.bdrs.servlet.RequestContext;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
 import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 import au.com.gaiaresources.bdrs.util.StringUtils;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -29,6 +30,8 @@ public abstract class AbstractController {
     public static final String REDIRECT_SECURE_HOME = "redirectWithoutModel:/secure/home.htm";
     public static final String REDIRECT_ADMIN_HOME = "redirectWithoutModel:/admin/home.htm";
     public static final String REDIRECT_MOBILE_HOME = "redirectWithoutModel:/bdrs/mobile/home.htm";
+
+    private Logger log = Logger.getLogger(getClass());
     
     protected synchronized TransactionTemplate getTransactionTemplate() {
         if (transactionTemplate == null) {
@@ -93,6 +96,16 @@ public abstract class AbstractController {
     	response.setContentType("application/json");
 	    response.getWriter().write(json);
 	    response.getWriter().flush();
+    }
+
+    protected void writeText(HttpServletResponse response, String text) {
+        response.setContentType("text/plain");
+        try {
+            response.getWriter().write(text);
+            response.getWriter().flush();
+        } catch (IOException e) {
+            log.error("Could not write to response stream", e);
+        }
     }
     
     protected String getRedirectHome() {
