@@ -115,7 +115,7 @@ public class RedirectionService {
                 && a.getType() != AttributeType.IMAGE 
                 && a.getType() != AttributeType.AUDIO
                 && a.getType() != AttributeType.VIDEO) {
-            throw new IllegalArgumentException("AttributeValue av needs to be of type FILE, AUDIO or IMAGE to request download URL");
+            throw new IllegalArgumentException("AttributeValue av needs to be of type FILE, AUDIO, IMAGE or VIDEO to request download URL");
         }
         if (av.getId() == null) {
             throw new IllegalStateException("Integer av.id cannot be null");
