@@ -686,19 +686,24 @@ public class AtlasService {
         if (family != null && !family.isEmpty() && !family.equalsIgnoreCase("null")) {
             taxon = createTaxonMetadata(taxon, Metadata.TAXON_FAMILY, family.trim());
         }
-        
+
+        String groupToUse;
+        if (group != null && !group.trim().isEmpty()) {
+            groupToUse = group.trim();
+        } else {
+            groupToUse = groupName.trim();
+        }
+        TaxonGroup g = taxaDAO.getTaxonGroup(groupToUse);
+        if (g == null) {
+            g = taxaDAO.createTaxonGroup(groupToUse, false, false, false, false, false, true);
+        }
+
         if (taxon.getTaxonGroup() == null) {
-        	String groupToUse = null;
-        	if (group != null && !group.trim().isEmpty()) {
-        		groupToUse = group.trim();
-        	} else {
-        		groupToUse = groupName.trim();
-        	}
-        	TaxonGroup g = taxaDAO.getTaxonGroup(groupToUse);
-    		if (g == null) {
-                g = taxaDAO.createTaxonGroup(groupToUse, false, false, false, false, false, true);
-            }
             taxon.setTaxonGroup(g);
+        } else {
+            if (taxon.getTaxonGroup() != g && !taxon.getSecondaryGroups().contains(g)) {
+                taxon.addSecondaryGroup(g);
+            }
         }
         
         return taxon;
