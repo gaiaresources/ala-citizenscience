@@ -8,15 +8,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBException;
 
+import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
+import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 
 import au.com.gaiaresources.bdrs.db.ScrollableResults;
-import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.bulkdata.BulkDataService;
-import au.com.gaiaresources.bdrs.util.KMLUtils;
 
 /**
  * Abstract download writer class that contains the re-usable parts of writing files.
@@ -25,7 +25,23 @@ import au.com.gaiaresources.bdrs.util.KMLUtils;
 public abstract class AbstractDownloadWriter<T> {
     
     private Logger log = Logger.getLogger(AbstractDownloadWriter.class);
-    
+
+    protected PreferenceDAO preferenceDAO;
+    protected String serverURL;
+
+    /**
+     * Create a new download writer
+     * @param prefDAO PreferenceDAO
+     * @param serverURL The serverURL is a combination of domain, tomcat context path and
+     * portal context path.
+     * e.g. http://core.gaiaresources.com.au/bdrs-core/portal/1
+     * e.g. http://core.gaiaresources.com.au/bdrs-core/erwa
+     */
+    public AbstractDownloadWriter(PreferenceDAO prefDAO,
+                                  String serverURL) {
+        this.preferenceDAO = prefDAO;
+        this.serverURL = serverURL;
+    }
 
     /**
      * Writes out the results using the specified format to the response. This
@@ -36,7 +52,7 @@ public abstract class AbstractDownloadWriter<T> {
      * @param request the browser request for encoded records.
      * @param response the server response to the browser.
      * @param sr the records to encode.
-     * @param format the encoding format. Note that this function does not support XLS format. Use {@link #write(BulkDataService, RecordDownloadFormat, OutputStream, Session, String, Survey, User, ScrollableRecords)}
+     * @param format the encoding format. Note that this function does not support XLS format. Use {@link #write(au.com.gaiaresources.bdrs.service.bulkdata.BulkDataService, RecordDownloadFormat, java.io.OutputStream, org.hibernate.Session, au.com.gaiaresources.bdrs.model.survey.Survey, au.com.gaiaresources.bdrs.model.user.User, au.com.gaiaresources.bdrs.db.ScrollableResults)}
      * @param accessingUser the user requesting the encoding of records.
      * @throws Exception
      */
@@ -57,7 +73,7 @@ public abstract class AbstractDownloadWriter<T> {
         
         switch (format) {
         case KML:
-            response.setContentType(KMLUtils.KML_CONTENT_TYPE);
+            response.setContentType(BdrsWebConstants.KML_CONTENT_TYPE);
             response.setHeader("Content-Disposition", "attachment;filename=layer_"+System.currentTimeMillis()+".kml");
             break;
         case SHAPEFILE:
@@ -73,7 +89,7 @@ public abstract class AbstractDownloadWriter<T> {
         }
         
         try {
-            write(null, format, response.getOutputStream(), sesh, request.getContextPath(), null, accessingUser, sr);
+            write(null, format, response.getOutputStream(), sesh, null, accessingUser, sr);
         } catch (IOException ioe) {
             // This may occur if the user has 
             // switched tabs before the kml has been provided.
@@ -87,19 +103,18 @@ public abstract class AbstractDownloadWriter<T> {
      * @param format the format to encode the records.
      * @param out the output stream where encoded records will be written.
      * @param sesh the database session to retrieve the records.
-     * @param contextPath the context path of the web application.
      * @param survey the survey containing the records. Only used for XLS formay. Can be null for other formats.
      * @param accessingUser the user requesting the encoding of records.
      * @param sc the records to be encoded.
      * @throws Exception
      */
     public void write(BulkDataService bulkDataService, RecordDownloadFormat format, OutputStream out,
-            Session sesh, String contextPath, Survey survey, User accessingUser,
+            Session sesh, Survey survey, User accessingUser,
             ScrollableResults<T> sc) throws Exception {
         
         switch (format) {
         case KML:
-            writeKMLRecords(out, sesh, contextPath, accessingUser, sc);
+            writeKMLRecords(out, sesh, accessingUser, sc);
             break;
         case SHAPEFILE:
             writeSHPRecords(out, sesh, accessingUser, survey, sc);
@@ -145,12 +160,11 @@ public abstract class AbstractDownloadWriter<T> {
      * Writes the results to a kml file.
      * @param out the output stream where encoded records will be written.
      * @param sesh the database session to retrieve the records.
-     * @param contextPath the context path of the web application.
      * @param accessingUser the user requesting the encoding of records.
      * @param sc the records to be encoded.
      * @throws JAXBException
      */
     protected abstract void writeKMLRecords(OutputStream out, Session sesh,
-            String contextPath, User accessingUser, ScrollableResults<T> sc)
+            User accessingUser, ScrollableResults<T> sc)
             throws JAXBException;
 }

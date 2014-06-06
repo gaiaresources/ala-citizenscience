@@ -14,6 +14,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBException;
 
+import au.com.gaiaresources.bdrs.kml.BDRSKMLWriter;
+import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
+import au.com.gaiaresources.bdrs.service.content.ContentService;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.FlushMode;
@@ -59,7 +62,6 @@ import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.web.JsonService;
 import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 import au.com.gaiaresources.bdrs.spatial.ShapeFileReader;
-import au.com.gaiaresources.bdrs.util.KMLUtils;
 import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 import au.com.gaiaresources.bdrs.util.TransactionHelper;
 
@@ -145,7 +147,7 @@ public class GeoMapLayerController extends AbstractController {
     @Autowired
     private GeoMapFeatureDAO featureDAO;
     @Autowired
-    private JsonService jsonService;
+    private PreferenceDAO preferenceDAO;
     @Autowired
     private SessionFactory sessionFactory;
     
@@ -400,18 +402,16 @@ public class GeoMapLayerController extends AbstractController {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 return;
             }
-            
+
+            BDRSKMLWriter writer = new BDRSKMLWriter(preferenceDAO,
+                    getRequestContext().getServerURL(), request.getParameter("placemark_color"));
+
             Integer[] mapLayerIds = new Integer[] { gml.getId() };
             User accessingUser = getRequestContext().getUser();                             
             List<Record> recList = getRecordsToDisplay(mapLayerIds, accessingUser, null);
             
             try {
-                KMLUtils.writeRecordsToKML(accessingUser,
-                                           request.getContextPath(), 
-                                           request.getParameter("placemark_color"), 
-                                           recList, 
-                                           response.getOutputStream(),
-                                           false);
+                writer.writeRecordsToKML(accessingUser, recList, response.getOutputStream(), false);
             } catch (JAXBException e) {
                 log.error(e);
                 throw e;
@@ -428,7 +428,7 @@ public class GeoMapLayerController extends AbstractController {
     /**
      * Get the KML for a single record
      * 
-     * @param layerPk 
+     * @param recordPk
      * @param request
      * @param response
      * @throws Exception
@@ -441,17 +441,17 @@ public class GeoMapLayerController extends AbstractController {
         
         response.setContentType("application/vnd.google-earth.kml+xml");
         response.setHeader("Content-Disposition", "attachment;filename=layer_"+System.currentTimeMillis()+".kml");
+
+        BDRSKMLWriter writer = new BDRSKMLWriter(preferenceDAO, getRequestContext().getServerURL(),
+                request.getParameter("placemark_color"));
         
         try {
             Record rec = recDAO.getRecord(recordPk);
             List<Record> recordList = new LinkedList<Record>();
             recordList.add(rec);
-            KMLUtils.writeRecordsToKML(getRequestContext().getUser(),
-                                       request.getContextPath(), 
-                                       request.getParameter("placemark_color"), 
-                                       recordList, 
-                                       response.getOutputStream(),
-                                       true);
+            writer.writeRecordsToKML(getRequestContext().getUser(), recordList,
+                    response.getOutputStream(), true);
+
         } catch (JAXBException e) {
             log.error(e);
             throw e;
@@ -479,6 +479,8 @@ public class GeoMapLayerController extends AbstractController {
             this.writeJson(response, "{}");
             return;
         }
+        JsonService jsonService = new JsonService(preferenceDAO,
+                getRequestContext().getServerURL());
         this.writeJson(response, jsonService.toJson(gmf, true).toString());
     }
     
@@ -506,11 +508,13 @@ public class GeoMapLayerController extends AbstractController {
         User accessingUser = getRequestContext().getUser();                             
         List<Record> recList = getRecordsToDisplay(mapLayedIds, accessingUser, spatialFilter);
 
+        JsonService jsonService = new JsonService(preferenceDAO, getRequestContext().getServerURL());
+
         SpatialUtilFactory spatialUtilFactory = new SpatialUtilFactory();
         JSONArray itemArray = new JSONArray();
         for (Record record : recList) {
             AccessControlledRecordAdapter recordAdapter = new AccessControlledRecordAdapter(record, accessingUser);
-            itemArray.add(jsonService.toJson(recordAdapter, request.getContextPath(), spatialUtilFactory));
+            itemArray.add(jsonService.toJson(recordAdapter, spatialUtilFactory));
         }
         for (GeoMapFeature f : gmfList) {
             itemArray.add(jsonService.toJson(f));

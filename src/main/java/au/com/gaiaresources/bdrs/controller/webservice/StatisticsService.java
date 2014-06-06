@@ -2,6 +2,7 @@ package au.com.gaiaresources.bdrs.controller.webservice;
 
 import au.com.gaiaresources.bdrs.controller.AbstractController;
 import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
 import au.com.gaiaresources.bdrs.model.record.AccessControlledRecordAdapter;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.record.RecordDAO;
@@ -19,8 +20,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA.
@@ -42,8 +41,9 @@ public class StatisticsService extends AbstractController {
     @Autowired
     private UserDAO userDAO;
     @Autowired
-    private JsonService jsonService;
+    private PreferenceDAO preferenceDAO;
 
+    @SuppressWarnings("UnusedDeclaration")
     private Logger log = Logger.getLogger(getClass());
 
     @RequestMapping(value = LATEST_STATS_URL, method = RequestMethod.GET)
@@ -61,8 +61,9 @@ public class StatisticsService extends AbstractController {
         obj.put("recordCount", recordDAO.countAllRecords());
         obj.put("uniqueSpeciesCount", recordDAO.countUniqueSpecies());
         obj.put("userCount", userDAO.countUsers());
+        String serverURL = getRequestContext().getServerURL();
         if (latestRecord != null) {
-            obj.put("latestRecord", getRecordJson(latestRecord, request));
+            obj.put("latestRecord", getRecordJson(latestRecord, serverURL));
         }
 
         if (user != null) {
@@ -75,15 +76,16 @@ public class StatisticsService extends AbstractController {
 
             Record userLatestRecord = recordDAO.getLatestRecord(user);
             if (userLatestRecord != null) {
-                obj.put("userLatestRecord", getRecordJson(userLatestRecord, request));
+                obj.put("userLatestRecord", getRecordJson(userLatestRecord, serverURL));
             }
         }
         writeJson(request, response, obj.toString());
         response.setStatus(HttpServletResponse.SC_OK);
     }
 
-    private JSONObject getRecordJson(Record r, HttpServletRequest request) {
+    private JSONObject getRecordJson(Record r, String serverURL) {
         AccessControlledRecordAdapter ar = new AccessControlledRecordAdapter(r, null);
-        return jsonService.toJson(ar, request.getContextPath(), new SpatialUtilFactory(), true);
+        JsonService jsonService = new JsonService(preferenceDAO, serverURL);
+        return jsonService.toJson(ar, new SpatialUtilFactory(), true);
     }
 }

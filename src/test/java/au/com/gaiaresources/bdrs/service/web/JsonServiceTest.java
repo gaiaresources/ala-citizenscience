@@ -7,6 +7,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
+import au.com.gaiaresources.bdrs.model.taxa.*;
 import junit.framework.Assert;
 
 import au.com.gaiaresources.bdrs.json.JSONArray;
@@ -20,11 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import au.com.gaiaresources.bdrs.model.record.AccessControlledRecordAdapter;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.test.AbstractSpringContextTest;
@@ -32,14 +29,13 @@ import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 public class JsonServiceTest extends AbstractSpringContextTest {
 
-	@Autowired
     private JsonService jsonService;
     private Record record;
     private User owner;
     private User nonOwner;
     private User admin;
-    
-    private final static String CONTEXT_PATH = "contextPath";
+
+    private final static String SERVER_URL = "http://test.gaiaresources.com.au/bdrs/portal/1";
     
     Attribute sattr1;
     Attribute sattr2;
@@ -53,8 +49,14 @@ public class JsonServiceTest extends AbstractSpringContextTest {
     
     private Logger log = Logger.getLogger(getClass());
 
+    @Autowired
+    private PreferenceDAO preferenceDAO;
+
     @Before
     public void setup() {
+
+        jsonService = new JsonService(preferenceDAO, SERVER_URL);
+
     	spatialUtilFactory = new SpatialUtilFactory();
         
         Survey survey = new Survey();
@@ -142,7 +144,7 @@ public class JsonServiceTest extends AbstractSpringContextTest {
     
     private void testRecordToJson_showAll(User accessor) {
         AccessControlledRecordAdapter recAdapter = new AccessControlledRecordAdapter(record, accessor);
-        JSONObject obj = jsonService.toJson(recAdapter, CONTEXT_PATH, spatialUtilFactory, true);
+        JSONObject obj = jsonService.toJson(recAdapter, spatialUtilFactory, true);
         
         Assert.assertEquals("indicatus specius", obj.getString(JsonService.RECORD_KEY_SPECIES));
         Assert.assertEquals(owner.getFirstName() + " " + owner.getLastName(), obj.getString(JsonService.RECORD_KEY_USER));
@@ -160,9 +162,9 @@ public class JsonServiceTest extends AbstractSpringContextTest {
         JSONObject fileItem = getItemByName(attributes, fileAttr.getDescription());
         Assert.assertNotNull(fileItem);
         
-        Assert.assertEquals("<a href=\"" + CONTEXT_PATH + "/files/download.htm?className=au.com.gaiaresources.bdrs.model.taxa.AttributeValue" 
-                            + "&id=" + av3.getId().toString()
-                            + "&fileName=" + av3.getStringValue() + "\">Download file</a>", 
+        Assert.assertEquals("<a href=\"" +
+                        AttributeValueUtil.getDownloadURL(SERVER_URL, av3)
+                            + "\">Download file</a>",
                             fileItem.getString(JsonService.JSON_KEY_ATTR_VALUE));
     }
     
@@ -179,7 +181,7 @@ public class JsonServiceTest extends AbstractSpringContextTest {
     @Test
     public void testRecordToJson_asNonOwner() {
         AccessControlledRecordAdapter recAdapter = new AccessControlledRecordAdapter(record, nonOwner);
-        JSONObject obj = jsonService.toJson(recAdapter, CONTEXT_PATH, spatialUtilFactory, true);
+        JSONObject obj = jsonService.toJson(recAdapter, spatialUtilFactory, true);
         
         Assert.assertEquals(owner.getFirstName() + " " + owner.getLastName(), obj.getString(JsonService.RECORD_KEY_USER));
         Assert.assertEquals(owner.getId().intValue(), obj.getInt(JsonService.RECORD_KEY_USER_ID));
@@ -200,7 +202,7 @@ public class JsonServiceTest extends AbstractSpringContextTest {
     @Test
     public void testRecordToJsonAsNonOwnerNoSerializeAttributes() {
         AccessControlledRecordAdapter recAdapter = new AccessControlledRecordAdapter(record, nonOwner);
-        JSONObject obj = jsonService.toJson(recAdapter, CONTEXT_PATH, spatialUtilFactory, false);
+        JSONObject obj = jsonService.toJson(recAdapter, spatialUtilFactory, false);
 
         Assert.assertFalse("should not have owner field", obj.has(JsonService.RECORD_KEY_USER));
 

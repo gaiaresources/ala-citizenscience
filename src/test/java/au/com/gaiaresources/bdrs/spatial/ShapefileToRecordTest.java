@@ -68,6 +68,8 @@ import com.vividsolutions.jts.geom.Point;
 
 public class ShapefileToRecordTest extends AbstractTransactionalTest {
 
+    private static final String SERVER_URL = "http://test.gaiaresources.com.au/bdrs/portal/1";
+
     @Autowired
     SurveyDAO surveyDAO;
     @Autowired
@@ -281,7 +283,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         ShapefileToRecordEntryTransformer transformer = new ShapefileToRecordEntryTransformer(klu);
         
         // create the template:
-        ShapeFileWriter writer = new ShapeFileWriter();
+        ShapeFileWriter writer = new ShapeFileWriter(SERVER_URL);
         File file = writer.createZipShapefile(survey, null, ShapefileType.POINT);
         
         ShapeFileReader reader = new ShapeFileReader(file);
@@ -358,7 +360,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         ShapefileToRecordEntryTransformer transformer = new ShapefileToRecordEntryTransformer(klu);
         
         // create the template:
-        ShapeFileWriter writer = new ShapeFileWriter();
+        ShapeFileWriter writer = new ShapeFileWriter(SERVER_URL);
         File file = writer.createZipShapefile(survey, null, shpType);
         
         ShapeFileReader reader = new ShapeFileReader(file);
@@ -510,7 +512,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         ShapefileToRecordEntryTransformer transformer = new ShapefileToRecordEntryTransformer(klu);
         
         // create the template:
-        ShapeFileWriter writer = new ShapeFileWriter();
+        ShapeFileWriter writer = new ShapeFileWriter(SERVER_URL);
         File file = writer.createZipShapefile(survey, cm, ShapefileType.POINT);
         
         ShapeFileReader reader = new ShapeFileReader(file);
@@ -660,7 +662,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         ShapefileToRecordEntryTransformer transformer = new ShapefileToRecordEntryTransformer(klu);
         
         // create the template:
-        ShapeFileWriter writer = new ShapeFileWriter();
+        ShapeFileWriter writer = new ShapeFileWriter(SERVER_URL);
         File file = writer.createZipShapefile(survey, taxaCm, ShapefileType.POINT);
         
         ShapeFileReader reader = new ShapeFileReader(file);
@@ -807,7 +809,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         ShapefileToRecordEntryTransformer transformer = new ShapefileToRecordEntryTransformer(klu);
         
         // create the template:
-        ShapeFileWriter writer = new ShapeFileWriter();
+        ShapeFileWriter writer = new ShapeFileWriter(SERVER_URL);
         File file = writer.createZipShapefile(survey, null, ShapefileType.POINT);
         
         ShapeFileReader reader = new ShapeFileReader(file);
@@ -895,7 +897,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         ShapefileToRecordEntryTransformer transformer = new ShapefileToRecordEntryTransformer(klu);
         
         // create the template:
-        ShapeFileWriter writer = new ShapeFileWriter();
+        ShapeFileWriter writer = new ShapeFileWriter(SERVER_URL);
         File file = writer.createZipShapefile(survey, null, ShapefileType.POINT);
         
         ShapeFileReader reader = new ShapeFileReader(file);
@@ -1007,7 +1009,7 @@ public class ShapefileToRecordTest extends AbstractTransactionalTest {
         ShapefileToRecordEntryTransformer transformer = new ShapefileToRecordEntryTransformer(klu);
         
         // create the template:
-        ShapeFileWriter writer = new ShapeFileWriter();
+        ShapeFileWriter writer = new ShapeFileWriter(SERVER_URL);
         File file = writer.createZipShapefile(basicSurvey, null, ShapefileType.POINT);
         
         ShapeFileReader reader = new ShapeFileReader(file);

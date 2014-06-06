@@ -13,12 +13,14 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
 import junit.framework.Assert;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -39,14 +41,19 @@ import au.com.gaiaresources.bdrs.spatial.ShapeFileReader;
 public class RecordDownloadWriterTest extends AbstractShapefileTest {
 	
     private static final String KML_DESCRIPTION_TAG = "description";
+    private static final String SERVER_URL = "http://test.gaiaresources.com.au/test/portal/2";
     
     private Logger log = Logger.getLogger(getClass());
     
     private RecordDownloadWriter downloadWriter;
+
+    @Autowired
+    private PreferenceDAO preferenceDAO;
     
     @Before
     public void recordDownloadWriterTestSetup() {
-    	downloadWriter = new RecordDownloadWriter(true);
+    	downloadWriter = new RecordDownloadWriter(preferenceDAO,
+                SERVER_URL, true);
     }
     
     // the export 'no' record case is the same as exporting a template
@@ -281,5 +288,10 @@ public class RecordDownloadWriterTest extends AbstractShapefileTest {
         }
         result.put(JsonService.JSON_KEY_ITEMS, items);
         return result;
+    }
+
+    @Override
+    protected String getServerURL() {
+        return SERVER_URL;
     }
 }

@@ -1,32 +1,30 @@
 package au.com.gaiaresources.bdrs.controller.review.sightings;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.JAXBException;
-
-import org.apache.log4j.Logger;
-import org.hibernate.Session;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import au.com.gaiaresources.bdrs.controller.map.RecordDownloadFormat;
 import au.com.gaiaresources.bdrs.controller.map.RecordDownloadWriter;
 import au.com.gaiaresources.bdrs.controller.record.RecordController;
 import au.com.gaiaresources.bdrs.db.ScrollableResults;
-import au.com.gaiaresources.bdrs.kml.KMLWriter;
+import au.com.gaiaresources.bdrs.kml.BDRSKMLWriter;
+import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
 import au.com.gaiaresources.bdrs.model.record.Record;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.service.bulkdata.BulkDataService;
 import au.com.gaiaresources.bdrs.util.FileUtils;
-import au.com.gaiaresources.bdrs.util.KMLUtils;
+import org.apache.log4j.Logger;
+import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.JAXBException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public abstract class SightingsController extends RecordController {
     
+    @SuppressWarnings("UnusedDeclaration")
     private Logger log = Logger.getLogger(getClass());
 
     public static final String QUERY_PARAM_DOWNLOAD_FORMAT = "download_format";
@@ -38,19 +36,20 @@ public abstract class SightingsController extends RecordController {
     
     @Autowired
     protected BulkDataService bulkDataService;
+    @Autowired
+    private PreferenceDAO preferenceDAO;
     
     /**
      * For some scrollable records, create files in the requested download format and
      * zip them up
-     * 
-     * @param request - the http request object.
+     *
      * @param response - the http response object.
      * @param downloadFormat - array containing the download formats.
      * @param sc - the scrollable results object.
      * @param surveyList - the list of surveys to download.
      * @throws Exception
      */
-    protected void downloadSightings(HttpServletRequest request, 
+    protected void downloadSightings(
             HttpServletResponse response, 
             String[] downloadFormat, 
             ScrollableResults<Record> sc, 
@@ -68,9 +67,11 @@ public abstract class SightingsController extends RecordController {
         ZipOutputStream zos = new ZipOutputStream(response.getOutputStream());
         try {
             if (downloadFormat != null) {
+                String serverURL = getRequestContext().getServerURL();
                 Session sesh = getRequestContext().getHibernate();
-                String contextPath = request.getContextPath();
-                RecordDownloadWriter downloadWriter = new RecordDownloadWriter(true);
+                BDRSKMLWriter kmlWriter = new BDRSKMLWriter(preferenceDAO, serverURL, null);
+                RecordDownloadWriter downloadWriter =
+                        new RecordDownloadWriter(preferenceDAO, serverURL, true);
                 for (String format : downloadFormat) {
 
                     RecordDownloadFormat rdf = RecordDownloadFormat.valueOf(format);
@@ -80,7 +81,7 @@ public abstract class SightingsController extends RecordController {
                         sc.rewind();
                         ZipEntry kmlEntry = new ZipEntry(KML_FILENAME);
                         zos.putNextEntry(kmlEntry);
-                        writeKML(zos, sesh, contextPath, user, sc, true);
+                        writeKML(zos, sesh, kmlWriter, user, sc, true);
                         zos.closeEntry();
                         break;
                     }
@@ -100,7 +101,7 @@ public abstract class SightingsController extends RecordController {
                             // already belongs to the correct session this will have no effect.
                             survey = surveyDAO.getSurvey(sesh, survey.getId());
                             
-                            downloadWriter.write(bulkDataService, rdf, zos, sesh, contextPath, survey, user, sc);
+                            downloadWriter.write(bulkDataService, rdf, zos, sesh, survey, user, sc);
                             zos.closeEntry();
                         }
                         break;
@@ -121,7 +122,7 @@ public abstract class SightingsController extends RecordController {
                             // already belongs to the correct session this will have no effect.
                             survey = surveyDAO.getSurvey(sesh, survey.getId());
                             
-                            downloadWriter.write(bulkDataService, rdf, zos, sesh, contextPath, survey, user, sc);
+                            downloadWriter.write(bulkDataService, rdf, zos, sesh, survey, user, sc);
                             zos.closeEntry();
                         }
                         break;
@@ -142,33 +143,34 @@ public abstract class SightingsController extends RecordController {
     /**
      * Write KML
      * 
-     * @param zos
-     * @param sesh
-     * @param contextPath
-     * @param user
-     * @param sc
+     * @param zos ZipOutputStream
+     * @param sesh Hibernate session
+     * @param writer BDRSKMLWriter
+     * @param user User requesting the write
+     * @param sc Hibernate scrollable record results
      * @param serializeAttributes Whether to include record attributes as json which is embedded in the KML.
      * Very slow database access for large numbers of records and may also cause heap problems!
      * @throws JAXBException
      */
-    private static void writeKML(ZipOutputStream zos, Session sesh, String contextPath, User user, ScrollableResults<Record> sc,
+    private void writeKML(ZipOutputStream zos, Session sesh, BDRSKMLWriter writer, User user, ScrollableResults<Record> sc,
             boolean serializeAttributes) throws JAXBException {
         int recordCount = 0;
         List<Record> rList = new ArrayList<Record>(ScrollableResults.RESULTS_BATCH_SIZE);
-        KMLWriter writer = KMLUtils.createKMLWriter(contextPath, null, KMLUtils.KML_RECORD_FOLDER);
+
         while (sc.hasMoreElements()) {
             rList.add(sc.nextElement());
             // evict to ensure garbage collection
             if (++recordCount % ScrollableResults.RESULTS_BATCH_SIZE == 0) {
-                
-                KMLUtils.writeRecords(writer, user, contextPath, rList, serializeAttributes);
+
+                writer.writeRecords(user, rList, serializeAttributes);
+
                 rList.clear();
                 sesh.clear();
             }
         }
         
         // Flush the remainder out of the list.
-        KMLUtils.writeRecords(writer, user, contextPath, rList, serializeAttributes);
+        writer.writeRecords(user, rList, serializeAttributes);
         sesh.clear();
         
         writer.write(false, zos);

@@ -72,6 +72,8 @@ import com.vividsolutions.jts.geom.Point;
 
 
 public class BulkDataControllerShapefileTest extends AbstractControllerTest {
+
+    private static final String SERVER_URL = "http://test.gaiaresources.com.au/bdrs/portal/1";
     
     @Autowired
     SurveyDAO surveyDAO;
@@ -186,7 +188,7 @@ public class BulkDataControllerShapefileTest extends AbstractControllerTest {
         RecordKeyLookup klu = new ShapefileRecordKeyLookup();
         
         // create the template:
-        ShapeFileWriter writer = new ShapeFileWriter();
+        ShapeFileWriter writer = new ShapeFileWriter(SERVER_URL);
         File file = writer.createZipShapefile(survey, null, ShapefileType.POINT);
         
         ShapeFileReader reader = new ShapeFileReader(file);
@@ -284,7 +286,7 @@ public class BulkDataControllerShapefileTest extends AbstractControllerTest {
         RecordKeyLookup klu = new ShapefileRecordKeyLookup();
         
         // create the template:
-        ShapeFileWriter writer = new ShapeFileWriter();
+        ShapeFileWriter writer = new ShapeFileWriter(SERVER_URL);
         File file = writer.createZipShapefile(survey, null, ShapefileType.POINT);
         
         ShapeFileReader reader = new ShapeFileReader(file);

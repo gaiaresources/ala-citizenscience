@@ -15,12 +15,14 @@ import au.com.gaiaresources.bdrs.model.user.User;
 public class ExportRecordToShapefileTest extends AbstractShapefileTest {
 	
     private Logger log = Logger.getLogger(getClass());
+
+    private static final String SERVER_URL = "http://test.gaiaresources.com.au/bdrs-core/testportal";
     
     // the export 'no' record case is the same as exporting a template
     @Test 
     public void testExportSingleRecord() throws Exception {
         User accessor = owner;
-        ShapeFileWriter writer = new ShapeFileWriter();
+        ShapeFileWriter writer = new ShapeFileWriter(SERVER_URL);
         List<Record> recList = new LinkedList<Record>();
         recList.add(r1);
         File exportedFile = writer.exportRecords(recList, accessor);
@@ -40,7 +42,7 @@ public class ExportRecordToShapefileTest extends AbstractShapefileTest {
     @Test
     public void testExportMultiSurveyNoCensusMethod() throws Exception {
         User accessor = owner;
-        ShapeFileWriter writer = new ShapeFileWriter();
+        ShapeFileWriter writer = new ShapeFileWriter(SERVER_URL);
         List<Record> recList = new LinkedList<Record>();
         recList.add(r1);
         recList.add(r3);
@@ -64,7 +66,7 @@ public class ExportRecordToShapefileTest extends AbstractShapefileTest {
     @Test
     public void testExportMultiSingleSurveyWithNonTaxaCensusMethod() throws Exception {
         User accessor = owner;
-        ShapeFileWriter writer = new ShapeFileWriter();
+        ShapeFileWriter writer = new ShapeFileWriter(SERVER_URL);
         List<Record> recList = new LinkedList<Record>();
         recList.add(r1);
         recList.add(r3);
@@ -91,7 +93,7 @@ public class ExportRecordToShapefileTest extends AbstractShapefileTest {
     @Test
     public void testExportSingleSurveyMultiCensusMethod() throws Exception {
         User accessor = owner;
-        ShapeFileWriter writer = new ShapeFileWriter();
+        ShapeFileWriter writer = new ShapeFileWriter(SERVER_URL);
         List<Record> recList = new LinkedList<Record>();
         recList.add(r1);
         recList.add(r2);
@@ -116,7 +118,7 @@ public class ExportRecordToShapefileTest extends AbstractShapefileTest {
     }
     
     private void testExportMultiSurveyMultiCensus(User accessor) throws Exception {      
-        ShapeFileWriter writer = new ShapeFileWriter();
+        ShapeFileWriter writer = new ShapeFileWriter(SERVER_URL);
         List<Record> recList = new LinkedList<Record>();
         recList.add(r1);
         recList.add(r2);
@@ -156,6 +158,11 @@ public class ExportRecordToShapefileTest extends AbstractShapefileTest {
     @Test
     public void testMultiSurveyMultiCensusExport_ByNonOwner() throws Exception {
         testExportMultiSurveyMultiCensus(nonOwner);
+    }
+
+    @Override
+    protected String getServerURL() {
+        return SERVER_URL;
     }
 }
 
