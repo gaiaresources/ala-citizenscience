@@ -1,27 +1,12 @@
 package au.com.gaiaresources.bdrs.controller.map;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-
-import javax.annotation.security.RolesAllowed;
-import javax.imageio.ImageIO;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import au.com.gaiaresources.bdrs.controller.AbstractController;
+import au.com.gaiaresources.bdrs.kml.BDRSKMLWriter;
+import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
+import au.com.gaiaresources.bdrs.model.record.RecordDAO;
+import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
+import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.security.Role;
 import org.apache.log4j.Logger;
 import org.hibernate.FlushMode;
 import org.hibernate.Session;
@@ -35,25 +20,29 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
-import au.com.gaiaresources.bdrs.controller.AbstractController;
-import au.com.gaiaresources.bdrs.model.record.RecordDAO;
-import au.com.gaiaresources.bdrs.model.record.ScrollableRecords;
-import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.util.KMLUtils;
+import javax.annotation.security.RolesAllowed;
+import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.List;
 
 
 @Controller
 public class RecordMapController extends AbstractController {
 
-    public static final int DEFAULT_LIMIT = 300;
-
-    public static final long MILLISECONDS_IN_DAY = 86400000;
-
     private Logger log = Logger.getLogger(getClass());
 
     @Autowired
     private RecordDAO recordDAO;
+    @Autowired
+    private PreferenceDAO preferenceDAO;
 
     public RecordMapController() {
         super();
@@ -115,9 +104,9 @@ public class RecordMapController extends AbstractController {
             return;
         } else {
             // if not an admin but the user is requesting records of someone who is not them...
-            if (!currentUser.isAdmin() && userPk != currentUser.getId().intValue()) {
-                log.warn("User has attempted unauthorized access to all records. user id : " 
-                         + currentUser.getId() != null ? currentUser.getId() : "unknown");
+            if (!currentUser.isAdmin() && userPk != currentUser.getId()) {
+                log.warn("User has attempted unauthorized access to all records. user id : "
+                        + currentUser.getId());
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                 return;
             }
@@ -132,10 +121,12 @@ public class RecordMapController extends AbstractController {
                                                               endDate, 
                                                               speciesScientificNameSearch,
                                                               1, limit);
-        new RecordDownloadWriter(false).write(sesh, request, response, sc, format, currentUser);
+
+        new RecordDownloadWriter(preferenceDAO, getRequestContext().getServerURL(), false)
+                .write(sesh, request, response, sc, format, currentUser);
     }
 
-    @RequestMapping(value = KMLUtils.GET_RECORD_PLACEMARK_PNG_URL, method = RequestMethod.GET)
+    @RequestMapping(value = BDRSKMLWriter.GET_RECORD_PLACEMARK_PNG_URL, method = RequestMethod.GET)
     public void renderRecordPlacemark(HttpServletRequest request, HttpServletResponse response)
         throws IOException {
         BufferedImage img = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);

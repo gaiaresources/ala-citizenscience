@@ -99,4 +99,9 @@ public class BdrsWebConstants {
      * Spring's default date format when using @RequestParam to parse dates
      */
     public static final String DATE_FORMAT = "dd MMM yyyy hh:mm:ss";
+
+    /*
+     * KML content MIME type
+     */
+    public static final String KML_CONTENT_TYPE = "application/vnd.google-earth.kml+xml";;
 }

@@ -8,6 +8,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import au.com.gaiaresources.bdrs.service.content.ContentService;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -306,8 +307,7 @@ public class RequestContext {
         return taxonLibSessionFactory;
     }
     /**
-     * Returns an {@link ITaxonLibSession} 
-     * @param create as to whether to try to create a session or just return the active session. 
+     * Returns an {@link ITaxonLibSession}
      * @return {@link ITaxonLibSession} or null
      * @throws IllegalArgumentException
      * @throws BdrsTaxonLibException
@@ -330,5 +330,26 @@ public class RequestContext {
             return taxonLibSessionFactory.getSessionOrNull();
         }
         return null;
+    }
+
+    /**
+     * The serverURL is a combination of domain, tomcat context path and
+     * portal context path.
+     * e.g. http://core.gaiaresources.com.au/bdrs-core/portal/1
+     * e.g. http://core.gaiaresources.com.au/bdrs-core/erwa
+     * @return Returns the server URL
+     */
+    public String getServerURL() {
+        String requestURL = getRequestPath();
+        String domainAndContextPath = ContentService.getRequestURL(requestURL);
+        String portalContextPath = getPortal().getPortalContextPath();
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(domainAndContextPath);
+        if (!domainAndContextPath.endsWith("/") && !portalContextPath.startsWith("/")) {
+            sb.append("/");
+        }
+        sb.append(portalContextPath);
+        return sb.toString();
     }
 }

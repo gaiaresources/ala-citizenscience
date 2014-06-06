@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import au.com.gaiaresources.bdrs.model.taxa.*;
 import junit.framework.Assert;
 
 import org.apache.log4j.Logger;
@@ -33,13 +34,6 @@ import au.com.gaiaresources.bdrs.model.record.RecordDAO;
 import au.com.gaiaresources.bdrs.model.record.RecordVisibility;
 import au.com.gaiaresources.bdrs.model.survey.Survey;
 import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
-import au.com.gaiaresources.bdrs.model.taxa.Attribute;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeOption;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeType;
-import au.com.gaiaresources.bdrs.model.taxa.AttributeValue;
-import au.com.gaiaresources.bdrs.model.taxa.IndicatorSpecies;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TaxonGroup;
 import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.model.user.UserDAO;
 import au.com.gaiaresources.bdrs.security.Role;
@@ -154,6 +148,7 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
         taxaCmList.add(createAttribute("cattr_8", AttributeType.TEXT, true));
         taxaCmList.add(createAttribute("cattr_9", AttributeType.STRING_WITH_VALID_VALUES, true, new String[] { "hello", "world", "goodbye"} ));
         taxaCmList.add(createAttribute("cattr_10", AttributeType.REGEX, true));
+        taxaCmList.add(createAttribute("cattr_11", AttributeType.IMAGE, true));
         // html comment types do not have a name in the database.
         taxaCmList.add(createAttribute("", AttributeType.HTML_COMMENT, false));
         taxaCm.setAttributes(taxaCmList);
@@ -176,6 +171,7 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
         cmAttrList.add(createAttribute("cattr_8", AttributeType.TEXT, true));
         cmAttrList.add(createAttribute("cattr_9", AttributeType.STRING_WITH_VALID_VALUES, true, new String[] { "hello", "world", "goodbye"} ));
         cmAttrList.add(createAttribute("cattr_10", AttributeType.REGEX, true));
+        cmAttrList.add(createAttribute("cattr_11", AttributeType.IMAGE, true));
         // html comment types do not have a name in the database.
         cmAttrList.add(createAttribute("", AttributeType.HTML_COMMENT, false));
         cm.setAttributes(cmAttrList);
@@ -197,6 +193,7 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
         surveyAttrList.add(createAttribute("sattr_8", AttributeType.TEXT, true));
         surveyAttrList.add(createAttribute("sattr_9", AttributeType.STRING_WITH_VALID_VALUES, true, new String[] { "hello", "world", "goodbye"} ));
         surveyAttrList.add(createAttribute("sattr_10", AttributeType.REGEX, true));
+        surveyAttrList.add(createAttribute("sattr_11", AttributeType.IMAGE, true));
         // html comment types do not have a name in the database.
         surveyAttrList.add(createAttribute("", AttributeType.HTML_COMMENT, false));
         survey.setAttributes(surveyAttrList);
@@ -222,6 +219,7 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
         surveyAttrList2.add(createAttribute("sattr_8", AttributeType.TEXT, true));
         surveyAttrList2.add(createAttribute("sattr_9", AttributeType.STRING_WITH_VALID_VALUES, true, new String[] { "hello", "world", "goodbye"} ));
         surveyAttrList2.add(createAttribute("sattr_10", AttributeType.REGEX, true));
+        surveyAttrList2.add(createAttribute("sattr_11", AttributeType.IMAGE, true));
         // html comment types do not have a name in the database.
         surveyAttrList2.add(createAttribute("", AttributeType.HTML_COMMENT, false));
         secondSurvey.setAttributes(surveyAttrList2);
@@ -277,6 +275,8 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
         avSet.add(createAttributeValue(getAttributeByName(surveyAttrList, "sattr_7"), "autocomplete"));
         avSet.add(createAttributeValue(getAttributeByName(surveyAttrList, "sattr_8"), "text"));
         avSet.add(createAttributeValue(getAttributeByName(surveyAttrList, "sattr_9"), "string with valid values"));
+        avSet.add(createAttributeValue(getAttributeByName(surveyAttrList, "sattr_10"), "regextext"));
+        avSet.add(createAttributeValue(getAttributeByName(surveyAttrList, "sattr_11"), "image.png"));
     
         if (cm != null) {
             List<Attribute> cmAttrList = cm.getAttributes();
@@ -290,6 +290,8 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
             avSet.add(createAttributeValue(getAttributeByName(cmAttrList, "cattr_7"), "autocomplete"));
             avSet.add(createAttributeValue(getAttributeByName(cmAttrList, "cattr_8"), "text"));
             avSet.add(createAttributeValue(getAttributeByName(cmAttrList, "cattr_9"), "string with valid values"));
+            avSet.add(createAttributeValue(getAttributeByName(cmAttrList, "cattr_10"), "regextext2"));
+            avSet.add(createAttributeValue(getAttributeByName(cmAttrList, "cattr_11"), "image2.png"));
         }
         record.setAttributes(avSet);
         
@@ -509,7 +511,7 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
                 return a;
             }
         }
-        return null;
+        throw new IllegalArgumentException("Could not find attribute with name " + name);
     }
 
     protected void assertAttributeValue(AttributeValue av, SimpleFeature feature, Map<Integer, String> attrIdNameMap) {
@@ -573,6 +575,15 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
         case AUDIO:
         case VIDEO:
         case FILE:
+        {
+            if (av.getBooleanValue() == null) {
+                assertFeatureStringValue(feature, shpAttrName, null);
+            } else {
+                assertFeatureStringValue(feature, shpAttrName,
+                        AttributeValueUtil.getDownloadURL(getServerURL(), av));
+            }
+        }
+            break;
         case CENSUS_METHOD_ROW:
         case CENSUS_METHOD_COL:
             Assert.fail("Cannot properly assert this attribute type : " + a.getTypeCode());
@@ -599,9 +610,7 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
             assertFeatureDoubleValue(feature, shpAttrName, 0d);                
             break;
         
-        case DATE:    
-            assertFeatureStringValue(feature, shpAttrName, "");
-            break;
+        case DATE:
         case REGEX:
         case BARCODE:
         case TIME:
@@ -615,17 +624,14 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
         case STRING_WITH_VALID_VALUES:
         case MULTI_CHECKBOX:
         case MULTI_SELECT:
-            assertFeatureStringValue(feature, shpAttrName, "");
-            break;
-            
         case SINGLE_CHECKBOX:
-            assertFeatureStringValue(feature, shpAttrName, ""); 
-            break;
-            
         case IMAGE:
         case AUDIO:
         case VIDEO:
         case FILE:
+            assertFeatureStringValue(feature, shpAttrName, "");
+            break;
+
         case CENSUS_METHOD_ROW:
         case CENSUS_METHOD_COL:
             Assert.fail("Cannot properly assert this attribute type : " + a.getTypeCode());
@@ -633,4 +639,6 @@ public abstract class AbstractShapefileTest extends AbstractControllerTest {
             break;
         }
     }
+
+    abstract protected String getServerURL();
 }

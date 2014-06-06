@@ -156,4 +156,36 @@ public class AttributeValueUtil {
         // the attribute value has been deemed to have an equal value.
         return true;
     }
+
+    /**
+     * Get the download URL for an AttributeValue that holds a downloadable file
+     *
+     * @param serverURL The serverURL is a combination of domain, tomcat context path and
+     * portal context path.
+     * e.g. http://core.gaiaresources.com.au/bdrs-core/portal/1
+     * e.g. http://core.gaiaresources.com.au/bdrs-core/erwa
+     * @param av AttributeValue of type FILE, IMAGE, AUDIO or VIDEO. Will throw
+     *           IllegalArgumentException if another type of attribute value is passed
+     * @return The download URL
+     */
+    public static String getDownloadURL(String serverURL, AttributeValue av) {
+
+        Attribute attr = av.getAttribute();
+        if (attr.getType().equals(AttributeType.FILE)
+                || attr.getType().equals(AttributeType.AUDIO)
+                || attr.getType().equals(AttributeType.VIDEO)
+                || attr.getType().equals(AttributeType.IMAGE)) {
+
+            StringBuilder sb = new StringBuilder(serverURL);
+            sb.append("/files/download.htm?className=au.com.gaiaresources.bdrs.model.taxa.AttributeValue&id=");
+            sb.append(av.getId().toString());
+            sb.append("&fileName=");
+            sb.append(av.getStringValue());
+            return sb.toString();
+
+        } else {
+            throw new IllegalArgumentException(
+                    "Cannot create a download URL for attribute type : " + attr.getTypeCode());
+        }
+    }
 }

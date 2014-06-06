@@ -14,6 +14,7 @@ import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -115,6 +116,8 @@ public class MySightingsController extends SightingsController {
     private TaxaDAO taxaDAO;
     @Autowired
     private GeoMapDAO geoMapDAO;
+    @Autowired
+    private PreferenceDAO preferenceDAO;
 
     /**
      * Displays a tabbed view of a selected set of records.
@@ -416,8 +419,9 @@ public class MySightingsController extends SightingsController {
         SortOrder sortOrder = SortOrder.valueOf(sortOrderStr);
         RecordFilter filter = getRecordFilter(surveyId, taxonGroupId, taxonSearch, startDate, endDate, user, userRecordsOnly, limit, false);
         ScrollableRecords sr = getScrollableRecords(filter, sortBy, sortOrder);
-        
-        new RecordDownloadWriter(false).write(getRequestContext().getHibernate(), request, response, sr, RecordDownloadFormat.KML, user);
+
+        new RecordDownloadWriter(preferenceDAO, getRequestContext().getServerURL(), false)
+            .write(getRequestContext().getHibernate(), request, response, sr, RecordDownloadFormat.KML, user);
     }
     
     /**
@@ -473,7 +477,7 @@ public class MySightingsController extends SightingsController {
             surveyList = new ArrayList<Survey>();
             surveyList.add(surveyDAO.get(surveyId));
         }
-        this.downloadSightings(request, response, downloadFormat, sr, surveyList);
+        this.downloadSightings(response, downloadFormat, sr, surveyList);
     }
     
 

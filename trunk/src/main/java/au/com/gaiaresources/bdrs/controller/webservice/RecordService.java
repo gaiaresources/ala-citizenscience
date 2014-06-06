@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.ws.http.HTTPException;
 
+import au.com.gaiaresources.bdrs.model.preference.PreferenceDAO;
 import au.com.gaiaresources.bdrs.model.taxa.*;
 import org.apache.log4j.Logger;
 import org.hibernate.FlushMode;
@@ -112,7 +113,7 @@ public class RecordService extends AbstractController {
     @Autowired
     private AbstractBulkDataService bulkDataService;
     @Autowired
-    private JsonService jsonService;
+    private PreferenceDAO prefDAO;
     
     private SpatialUtil spatialUtil = new SpatialUtilFactory().getLocationUtil();
 
@@ -750,7 +751,10 @@ public class RecordService extends AbstractController {
         // Filter data based on user permissions. Null user is OK
         AccessControlledRecordAdapter ar = new AccessControlledRecordAdapter(record, user);
 
-        JSONObject recJson = jsonService.toJson(ar, request.getContextPath(), new SpatialUtilFactory(),
+        JsonService jsonService = new JsonService(prefDAO,
+                getRequestContext().getServerURL());
+
+        JSONObject recJson = jsonService.toJson(ar, new SpatialUtilFactory(),
                 serializeLazyLoadedAttributes);
 
         // return JSON

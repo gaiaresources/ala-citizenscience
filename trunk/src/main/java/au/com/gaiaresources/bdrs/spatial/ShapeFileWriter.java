@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import au.com.gaiaresources.bdrs.model.taxa.AttributeValueUtil;
 import org.apache.log4j.Logger;
 import org.codehaus.plexus.util.StringUtils;
 import org.geotools.data.DefaultTransaction;
@@ -96,6 +97,23 @@ public class ShapeFileWriter {
     
     private TemplateService templateService = AppContext.getBean(TemplateService.class);
 
+    private String serverURL;
+
+    /**
+     * Create a new ShapeFileWriter
+     * @param serverURL The serverURL is a combination of domain, tomcat context path and
+     * portal context path.
+     * e.g. http://core.gaiaresources.com.au/bdrs-core/portal/1
+     * e.g. http://core.gaiaresources.com.au/bdrs-core/erwa
+     */
+    public ShapeFileWriter(String serverURL) {
+
+        if (au.com.gaiaresources.bdrs.util.StringUtils.nullOrEmpty(serverURL)) {
+            throw new IllegalArgumentException("String cannot be null or empty");
+        }
+        this.serverURL = serverURL;
+    }
+
     public File exportRecords(List<Record> recList, User accessor) throws Exception {
         
         Set<Survey> surveySet = new HashSet<Survey>();
@@ -125,9 +143,9 @@ public class ShapeFileWriter {
     /**
      * Create a zip file containing .shp, .dbf, .prj, .shx files. 
      * 
-     * @param name
-     * @param survey
-     * @param cm
+     * @param survey Survey to write
+     * @param cm Census method to write
+     * @param shapefileType The SHP type
      * @throws Exception 
      */
     public File createZipShapefile(Survey survey, CensusMethod cm, ShapefileType shapefileType) throws Exception {
@@ -149,8 +167,10 @@ public class ShapeFileWriter {
         }
         Set<ShapefileType> shapefileTypeSet = new HashSet<ShapefileType>(1);
         shapefileTypeSet.add(shapefileType);
-        
-        return createZipShapefile(surveyList, cmList, shapefileTypeSet, Collections.EMPTY_LIST, null, DEFAULT_SRID);
+
+        //noinspection unchecked
+        return createZipShapefile(surveyList, cmList, shapefileTypeSet,
+                Collections.EMPTY_LIST, null, DEFAULT_SRID);
     }
     
     /**
@@ -164,7 +184,8 @@ public class ShapeFileWriter {
      * @return Zipped shapefile package.
      * @throws Exception
      */
-    private File createZipShapefile(List<Survey> surveyList, List<CensusMethod> cmList, 
+    @SuppressWarnings("StringBufferReplaceableByString")
+    private File createZipShapefile(List<Survey> surveyList, List<CensusMethod> cmList,
             Set<ShapefileType> shapefileTypeSet, List<Record> recList, User accessor, int srid) throws Exception {
         
         if (shapefileTypeSet.isEmpty()) {
@@ -454,7 +475,7 @@ public class ShapeFileWriter {
             if (cmIds.isEmpty()) {
                 cmIds.add("0");
             }
-            
+
             StringBuilder sb = new StringBuilder();
             sb.append(SURVEY_ID_KEY);
             sb.append(HELPER_FILE_SEPARATOR);
@@ -464,7 +485,7 @@ public class ShapeFileWriter {
             sb.append(HELPER_FILE_SEPARATOR);
             sb.append(org.apache.commons.lang.StringUtils.join(cmIds.toArray(),  ID_DELIM));
             sb.append(newline);
-            
+
             helperFileWriter.write(sb.toString());
             
             // write attribute id map
@@ -508,7 +529,7 @@ public class ShapeFileWriter {
                 mdParam.put("surveyStartDate", metadataDateFormat.format(survey.getStartDate()));
             } else {
                 mdParam.put("shpPurpose", "Shape file template for making new recordings for the Biological Data Recording System (BDRS)");
-                mdParam.put("surveyDescription", "Log into your BDRS site to see detailed information about the surveys in this shapefile");;
+                mdParam.put("surveyDescription", "Log into your BDRS site to see detailed information about the surveys in this shapefile");
                 mdParam.put("westBoundLongitude", "-180");
                 mdParam.put("eastBoundLongitude", "180");
                 mdParam.put("northBoundLatitude", "90");
@@ -598,10 +619,12 @@ public class ShapeFileWriter {
         StringBuilder filenameBuilder = new StringBuilder();
         if (!hasRecords) {
             // is a record import template...
-            filenameBuilder.append(exportType+"_import_template");
+            filenameBuilder.append(exportType);
+            filenameBuilder.append("_import_template");
         } else {
             // is a record export
-            filenameBuilder.append(exportType+"_export");
+            filenameBuilder.append(exportType);
+            filenameBuilder.append("_export");
         }
         switch (shpType) {
         case POINT:
@@ -691,11 +714,17 @@ public class ShapeFileWriter {
                             targetMap.put(name, av.getSpecies().getScientificName());
                         }
                         break;
-                    // not supported
+                    // write download link
                     case IMAGE:
                     case AUDIO:
                     case VIDEO:
                     case FILE:
+                        if (av.getStringValue() != null) {
+                            targetMap.put(name, AttributeValueUtil.getDownloadURL(serverURL, av));
+                        }
+                        break;
+
+                    // not supported
                     case CENSUS_METHOD_ROW:
                     case CENSUS_METHOD_COL:
                         // don't add
@@ -752,15 +781,14 @@ public class ShapeFileWriter {
                         case MULTI_CHECKBOX:
                         case SINGLE_CHECKBOX:
                         case MULTI_SELECT:
-            case SPECIES:
-                            context.addString(name, a, a.getDescription());
-                            break;
-                        
-                        // not supported
+                        case SPECIES:
                         case IMAGE:
                         case AUDIO:
                         case VIDEO:
                         case FILE:
+                            context.addString(name, a, a.getDescription());
+                            break;
+
                         case CENSUS_METHOD_ROW:
                         case CENSUS_METHOD_COL:
                             // don't add
@@ -783,8 +811,9 @@ public class ShapeFileWriter {
     
     /**
      * Exports the list of locations to a shapefile.
-     * @param locList
-     * @return
+     * @param locList List of BDRS locations
+     * @param srid Desired SRID to use in output SHP
+     * @return new Shapefile
      * @throws Exception
      */
     public File exportLocations(List<Location> locList, int srid) throws Exception {
@@ -802,11 +831,12 @@ public class ShapeFileWriter {
     
     /**
      * Creates a zipped shapefile set of the list of locations
-     * @param shapefileTypeSet
-     * @param locList
-     * @return
+     * @param shapefileTypeSet Set of ShapeFileTypes that we are creating
+     * @param locList List of BDRS locations
+     * @return new Shapefile
      * @throws Exception
      */
+    @SuppressWarnings("StringBufferReplaceableByString")
     public File createZipShapefile(Set<ShapefileType> shapefileTypeSet, List<Location> locList, int srid) throws Exception {
         
         if (shapefileTypeSet.isEmpty()) {
@@ -974,9 +1004,7 @@ public class ShapeFileWriter {
             filesToCompress.add(FileUtils.getFileFromDir(tempdir, filename + ".dbf"));
         }        
         filesToCompress.add(FileUtils.getFileFromDir(tempdir, FIELD_DESCRIPTION_FILE));
-        //filesToCompress.add(FileUtils.getFileFromDir(tempdir, HELPER_FILE));
-        //filesToCompress.add(FileUtils.getFileFromDir(tempdir, METADATA_FILE));
-        
+
         ZipUtils.compress(filesToCompress, outfile);
         
         return outfile; 

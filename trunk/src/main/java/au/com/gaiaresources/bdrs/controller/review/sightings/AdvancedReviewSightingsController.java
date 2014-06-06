@@ -9,7 +9,7 @@ import au.com.gaiaresources.bdrs.db.impl.PortalPersistentImpl;
 import au.com.gaiaresources.bdrs.db.impl.Predicate;
 import au.com.gaiaresources.bdrs.db.impl.ScrollableResultsImpl;
 import au.com.gaiaresources.bdrs.json.JSONArray;
-import au.com.gaiaresources.bdrs.kml.KMLWriter;
+import au.com.gaiaresources.bdrs.kml.BDRSKMLWriter;
 import au.com.gaiaresources.bdrs.model.location.Location;
 import au.com.gaiaresources.bdrs.model.method.CensusMethod;
 import au.com.gaiaresources.bdrs.model.record.Record;
@@ -27,7 +27,6 @@ import au.com.gaiaresources.bdrs.service.facet.SurveyFacet;
 import au.com.gaiaresources.bdrs.service.facet.record.RecordSurveyFacet;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.servlet.RequestContextHolder;
-import au.com.gaiaresources.bdrs.util.KMLUtils;
 import au.com.gaiaresources.bdrs.util.SpatialUtil;
 import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 import au.com.gaiaresources.bdrs.util.StringUtils;
@@ -387,7 +386,7 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
                 getParameter(newParamMap, SORT_ORDER_QUERY_PARAM_NAME),
                 getParameter(newParamMap, SEARCH_QUERY_PARAM_NAME));
 
-        downloadSightings(request, response, downloadFormat, sc, surveyList);
+        downloadSightings(response, downloadFormat, sc, surveyList);
     }
 
     /**
@@ -648,9 +647,9 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
     * @see au.com.gaiaresources.bdrs.controller.review.AdvancedReviewController#writeKMLResults(au.com.gaiaresources.bdrs.kml.KMLWriter, au.com.gaiaresources.bdrs.model.user.User, java.lang.String, java.util.List)
     */
     @Override
-    protected void writeKMLResults(KMLWriter writer, User currentUser,
-            String contextPath, List<Record> rList, boolean serializeAttributes) {
-        KMLUtils.writeRecords(writer, currentUser, contextPath, rList, serializeAttributes);
+    protected void writeKMLResults(BDRSKMLWriter writer, User currentUser,
+                                   List<Record> rList, boolean serializeAttributes) {
+        writer.writeRecords(currentUser, rList, serializeAttributes);
     }
 
     /*
@@ -673,6 +672,6 @@ public class AdvancedReviewSightingsController extends AdvancedReviewController<
 
     @Override
     protected String getKMLFolderName() {
-        return KMLUtils.KML_RECORD_FOLDER;
+        return BDRSKMLWriter.KML_RECORD_FOLDER;
     }
 }

@@ -1,19 +1,18 @@
 package au.com.gaiaresources.bdrs.controller.bulkdata;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.ParseException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map.Entry;
-
-import javax.annotation.security.RolesAllowed;
-import javax.security.sasl.AuthenticationException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import au.com.gaiaresources.bdrs.attribute.AttributeDictionaryFactory;
+import au.com.gaiaresources.bdrs.controller.AbstractController;
+import au.com.gaiaresources.bdrs.deserialization.record.*;
+import au.com.gaiaresources.bdrs.model.method.CensusMethod;
+import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
+import au.com.gaiaresources.bdrs.model.survey.Survey;
+import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
+import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
+import au.com.gaiaresources.bdrs.model.user.User;
+import au.com.gaiaresources.bdrs.security.Role;
+import au.com.gaiaresources.bdrs.service.bulkdata.*;
+import au.com.gaiaresources.bdrs.spatial.*;
+import au.com.gaiaresources.bdrs.util.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.HibernateException;
@@ -26,34 +25,17 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 
-import au.com.gaiaresources.bdrs.attribute.AttributeDictionaryFactory;
-import au.com.gaiaresources.bdrs.controller.AbstractController;
-import au.com.gaiaresources.bdrs.deserialization.record.AttributeParser;
-import au.com.gaiaresources.bdrs.deserialization.record.RecordDeserializer;
-import au.com.gaiaresources.bdrs.deserialization.record.RecordDeserializerResult;
-import au.com.gaiaresources.bdrs.deserialization.record.RecordEntry;
-import au.com.gaiaresources.bdrs.deserialization.record.RecordKeyLookup;
-import au.com.gaiaresources.bdrs.model.method.CensusMethod;
-import au.com.gaiaresources.bdrs.model.method.CensusMethodDAO;
-import au.com.gaiaresources.bdrs.model.survey.Survey;
-import au.com.gaiaresources.bdrs.model.survey.SurveyDAO;
-import au.com.gaiaresources.bdrs.model.taxa.TaxaDAO;
-import au.com.gaiaresources.bdrs.model.user.User;
-import au.com.gaiaresources.bdrs.security.Role;
-import au.com.gaiaresources.bdrs.service.bulkdata.AmbiguousDataException;
-import au.com.gaiaresources.bdrs.service.bulkdata.BulkDataService;
-import au.com.gaiaresources.bdrs.service.bulkdata.BulkUpload;
-import au.com.gaiaresources.bdrs.service.bulkdata.DataReferenceException;
-import au.com.gaiaresources.bdrs.service.bulkdata.InvalidSurveySpeciesException;
-import au.com.gaiaresources.bdrs.service.bulkdata.MissingDataException;
-import au.com.gaiaresources.bdrs.spatial.ShapeFileReader;
-import au.com.gaiaresources.bdrs.spatial.ShapeFileWriter;
-import au.com.gaiaresources.bdrs.spatial.ShapefileAttributeDictionaryFactory;
-import au.com.gaiaresources.bdrs.spatial.ShapefileAttributeParser;
-import au.com.gaiaresources.bdrs.spatial.ShapefileRecordKeyLookup;
-import au.com.gaiaresources.bdrs.spatial.ShapefileToRecordEntryTransformer;
-import au.com.gaiaresources.bdrs.spatial.ShapefileType;
-import au.com.gaiaresources.bdrs.util.FileUtils;
+import javax.annotation.security.RolesAllowed;
+import javax.security.sasl.AuthenticationException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.ParseException;
+import java.util.LinkedList;
+import java.util.List;
 
 @RolesAllowed( {Role.USER,Role.POWERUSER,Role.SUPERVISOR,Role.ADMIN} )
 @Controller
@@ -309,7 +291,7 @@ public class BulkDataController extends AbstractController {
         response.setHeader("Content-Disposition", "attachment;filename="
                 + filename);
 
-        ShapeFileWriter shpWriter = new ShapeFileWriter();
+        ShapeFileWriter shpWriter = new ShapeFileWriter(getRequestContext().getServerURL());
         File zipFile = shpWriter.createZipShapefile(survey, cm, shpType);
         
         InputStream in = null;

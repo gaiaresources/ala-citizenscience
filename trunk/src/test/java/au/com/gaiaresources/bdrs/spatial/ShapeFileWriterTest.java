@@ -23,6 +23,8 @@ import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.test.AbstractTransactionalTest;
 
 public class ShapeFileWriterTest extends AbstractTransactionalTest {
+
+    private static final String SERVER_URL = "http://test.gaiaresources.com.au/bdrs/portal/1";
     
 	@Autowired
     private GeoMapService geoMapService;
@@ -55,7 +57,7 @@ public class ShapeFileWriterTest extends AbstractTransactionalTest {
     }
     
     private void testWriter(ShapefileType shpType) throws Exception {
-        ShapeFileWriter writer = new ShapeFileWriter();
+        ShapeFileWriter writer = new ShapeFileWriter(SERVER_URL);
         
         Survey survey = new Survey();
         //survey.setId(99);

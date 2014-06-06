@@ -16,6 +16,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBException;
 
+import au.com.gaiaresources.bdrs.kml.BDRSKMLWriter;
+import au.com.gaiaresources.bdrs.service.content.ContentService;
 import org.apache.log4j.Logger;
 import org.apache.lucene.queryParser.ParseException;
 import org.hibernate.Query;
@@ -52,7 +54,6 @@ import au.com.gaiaresources.bdrs.service.facet.Facet;
 import au.com.gaiaresources.bdrs.service.facet.SurveyFacet;
 import au.com.gaiaresources.bdrs.service.facet.option.FacetOption;
 import au.com.gaiaresources.bdrs.util.DateFormatter;
-import au.com.gaiaresources.bdrs.util.KMLUtils;
 import au.com.gaiaresources.bdrs.util.SpatialUtil;
 import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 import au.com.gaiaresources.bdrs.util.StringUtils;
@@ -439,8 +440,8 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
         try {
             if (downloadFormat != null) {
                 Session sesh = getRequestContext().getHibernate();
-                String contextPath = request.getContextPath();
-                LocationDownloadWriter downloadWriter = new LocationDownloadWriter();
+                LocationDownloadWriter downloadWriter =
+                        new LocationDownloadWriter(preferenceDAO, getRequestContext().getServerURL());
                 for (String format : downloadFormat) {
                     RecordDownloadFormat rdf = RecordDownloadFormat.valueOf(format);
                     switch (rdf) {
@@ -449,7 +450,7 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
                         sc.rewind();
                         ZipEntry kmlEntry = new ZipEntry(KML_FILENAME);
                         zos.putNextEntry(kmlEntry);
-                        writeKML(zos, sesh, contextPath, user, sc);
+                        writeKML(zos, sesh, sc);
                         zos.closeEntry();
                         break;
                     }
@@ -461,7 +462,7 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
                                 String.format(SHAPEFILE_ZIP_ENTRY_FORMAT));
                         zos.putNextEntry(shpEntry);
 
-                        downloadWriter.write(bulkDataService, rdf, zos, sesh, contextPath, null, user, sc);
+                        downloadWriter.write(bulkDataService, rdf, zos, sesh, null, user, sc);
                         zos.closeEntry();
                         break;
                     }
@@ -473,7 +474,7 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
                                 String.format(XLS_ZIP_ENTRY_FORMAT));
                         zos.putNextEntry(shpEntry);
 
-                        downloadWriter.write(bulkDataService, rdf, zos, sesh, contextPath, null, user, sc);
+                        downloadWriter.write(bulkDataService, rdf, zos, sesh, null, user, sc);
                         zos.closeEntry();
                         break;
                     }
@@ -508,13 +509,13 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
     }
 
     @Override
-    protected void writeKMLResults(KMLWriter writer, User currentUser,
-            String contextPath, List<Location> rList, boolean serializeAttributes) {
+    protected void writeKMLResults(BDRSKMLWriter writer, User currentUser,
+            List<Location> rList, boolean serializeAttributes) {
         if (!serializeAttributes) {
             throw new IllegalArgumentException("This implementation always serializes attributes");
         }
         // Ignore serializeAttributes for locations - we always serialize the attributes.
-        KMLUtils.writeLocations(writer, contextPath, rList);
+        writer.writeLocations(rList);
     }
     
     @Override
@@ -522,23 +523,22 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
         return "location.name";
     }
     
-    private void writeKML(ZipOutputStream zos, Session sesh, String contextPath, User user, ScrollableResults<Location> sc) throws JAXBException {
+    private void writeKML(ZipOutputStream zos, Session sesh, ScrollableResults<Location> sc) throws JAXBException {
         int recordCount = 0;
         List<Location> locList = new ArrayList<Location>(ScrollableResults.RESULTS_BATCH_SIZE);
-        KMLWriter writer = KMLUtils.createKMLWriter(contextPath, null, getKMLFolderName());
+        BDRSKMLWriter writer = new BDRSKMLWriter(preferenceDAO, getRequestContext().getServerURL(), null);
         while (sc.hasMoreElements()) {
             locList.add(sc.nextElement());
             // evict to ensure garbage collection
             if (++recordCount % ScrollableResults.RESULTS_BATCH_SIZE == 0) {
-                
-                KMLUtils.writeLocations(writer, contextPath, locList);
+                writer.writeLocations(locList);
                 locList.clear();
                 sesh.clear();
             }
         }
         
         // Flush the remainder out of the list.
-        KMLUtils.writeLocations(writer, contextPath, locList);
+        writer.writeLocations(locList);
         sesh.clear();
         
         writer.write(false, zos);
@@ -551,7 +551,7 @@ public class AdvancedReviewLocationsController extends AdvancedReviewController<
 
     @Override
     protected String getKMLFolderName() {
-        return KMLUtils.KML_LOCATION_FOLDER;
+        return BDRSKMLWriter.KML_LOCATION_FOLDER;
     }
     
     /**

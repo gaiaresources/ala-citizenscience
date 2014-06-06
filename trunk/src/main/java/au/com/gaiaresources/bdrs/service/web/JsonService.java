@@ -8,8 +8,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import au.com.gaiaresources.bdrs.db.impl.PersistentImpl;
@@ -30,7 +28,6 @@ import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
 import au.com.gaiaresources.bdrs.util.SpatialUtil;
 import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
-@Service
 public class JsonService {
 
     public static final String JSON_KEY_ITEMS = "items";
@@ -76,15 +73,36 @@ public class JsonService {
 
     private Logger log = Logger.getLogger(getClass());
 
-    @Autowired
     private PreferenceDAO prefDAO;
+
+    private String serverURL;
+
+    /**
+     * Create a JsonService object
+     *
+     * @param prefDAO PreferenceDAO
+     * @param serverURL The Server URL
+     */
+    public JsonService(PreferenceDAO prefDAO, String serverURL) {
+
+        if (prefDAO == null) {
+            throw new IllegalArgumentException("PreferenceDAO cannot be null");
+        }
+
+        if (!StringUtils.hasLength(serverURL)) {
+            throw new IllegalArgumentException("String cannot be null or empty");
+        }
+
+        this.serverURL = serverURL;
+        this.prefDAO = prefDAO;
+    }
 
     /**
      * @param record      - the record to convert to json
      * @return jsonified record
      */
-    public JSONObject toJson(AccessControlledRecordAdapter record, String contextPath, SpatialUtilFactory spatialUtilFactory) {
-        return toJson(record, contextPath, spatialUtilFactory, false);
+    public JSONObject toJson(AccessControlledRecordAdapter record, SpatialUtilFactory spatialUtilFactory) {
+        return toJson(record, spatialUtilFactory, false);
     }
 
     /**
@@ -94,10 +112,7 @@ public class JsonService {
      *                 when iterating over large amounts of records.
      * @return jsonified record
      */
-    public JSONObject toJson(AccessControlledRecordAdapter record, String contextPath, SpatialUtilFactory spatialUtilFactory, boolean serializelazyLoadedValues) {
-        if (contextPath == null) {
-            throw new IllegalArgumentException("String, contextPath, cannot be null");
-        }
+    public JSONObject toJson(AccessControlledRecordAdapter record, SpatialUtilFactory spatialUtilFactory, boolean serializelazyLoadedValues) {
         if (record == null) {
             throw new IllegalArgumentException("AccessControlledRecordAdapter, record, cannot be null");
         }
@@ -131,7 +146,7 @@ public class JsonService {
                 addToAttributeMap(attrMap, RECORD_KEY_NUMBER, record.getNumber());
             }
 
-            addToAttributeMap(attrMap, JSON_KEY_ATTRIBUTES, getOrderedAttributes(record.getOrderedAttributes(), contextPath));
+            addToAttributeMap(attrMap, JSON_KEY_ATTRIBUTES, getOrderedAttributes(record.getOrderedAttributes()));
         }
 
         addToAttributeMap(attrMap, RECORD_KEY_BEHAVIOUR, record.getBehaviour());
@@ -197,9 +212,9 @@ public class JsonService {
         attrMap.put(JSON_KEY_ID, feature.getId());
         attrMap.put(JSON_KEY_TYPE, JSON_ITEM_TYPE_MAP_FEATURE);
         // it's ok to use an empty context path here since GeoMapFeatures cannot have file attributes
-        // which is the only type that requires the contextPath to create the download link
+        // which is the only type that requires the portalContextPath to create the download link
         if (serializeAttributes) {
-            attrMap.put(JSON_KEY_ATTRIBUTES, getOrderedAttributes(feature.getOrderedAttributes(), ""));
+            attrMap.put(JSON_KEY_ATTRIBUTES, getOrderedAttributes(feature.getOrderedAttributes()));
         }
         return JSONObject.fromMapToJSONObject(attrMap);
     }
@@ -213,15 +228,15 @@ public class JsonService {
         }
     }
 
-    private JSONArray getOrderedAttributes(List<AttributeValue> attributeValues, String contextPath) {
+    private JSONArray getOrderedAttributes(List<AttributeValue> attributeValues) {
         JSONArray array = new JSONArray();
         for (AttributeValue av : attributeValues) {
-            array.add(toJson(av, contextPath));
+            array.add(toJson(av));
         }
         return array;
     }
 
-    private JSONObject toJson(AttributeValue av, String contextPath) {
+    private JSONObject toJson(AttributeValue av) {
         Preference sciNamePref = prefDAO.getPreferenceByKey(Preference.SHOW_SCIENTIFIC_NAME_KEY);
         // default to true.
         Boolean showSciName = sciNamePref != null ? Boolean.valueOf(sciNamePref.getValue()) : true;
@@ -259,7 +274,7 @@ public class JsonService {
             case AUDIO:
             case VIDEO:
             case FILE:
-                obj.accumulate(JSON_KEY_ATTR_VALUE, getAttributeValueFileDownloadLink(av, contextPath));
+                obj.accumulate(JSON_KEY_ATTR_VALUE, getAttributeValueFileDownloadLink(av));
                 break;
             case SPECIES: {
                 IndicatorSpecies species = av.getSpecies();
@@ -278,7 +293,7 @@ public class JsonService {
                     for (Record record : records) {
                         JSONObject attObj = new JSONObject();
                         for (AttributeValue recordValue : record.getAttributes()) {
-                            attObj.accumulate(JSON_KEY_ATTR_VALUE, toJson(recordValue, contextPath));
+                            attObj.accumulate(JSON_KEY_ATTR_VALUE, toJson(recordValue));
                         }
                         recObj.accumulate(JSON_ITEM_TYPE_RECORD, attObj);
                     }
@@ -296,10 +311,10 @@ public class JsonService {
         return obj;
     }
 
-    private String getAttributeValueFileDownloadLink(AttributeValue av, String contextPath) {
+    private String getAttributeValueFileDownloadLink(AttributeValue av) {
         StringBuilder sb = new StringBuilder();
         sb.append("<a href=\"");
-        sb.append(contextPath);
+        sb.append(serverURL);
         sb.append("/files/download.htm?className=au.com.gaiaresources.bdrs.model.taxa.AttributeValue&id=");
         sb.append(av.getId().toString());
         sb.append("&fileName=");
@@ -312,10 +327,9 @@ public class JsonService {
      * Returns a JSON representation of a location.  (Used for writing kml records)
      *
      * @param location    the location to jsonify
-     * @param contextPath the contextPath of the application
      * @return A JSONObject representing the location.
      */
-    public JSONObject toJson(Location location, String contextPath, SpatialUtilFactory spatialUtilFactory) {
+    public JSONObject toJson(Location location, SpatialUtilFactory spatialUtilFactory) {
         Map<String, Object> attrMap = new HashMap<String, Object>(16);
         addToAttributeMap(attrMap, "name", location.getName());
         addToAttributeMap(attrMap, "description", location.getDescription());
@@ -341,7 +355,7 @@ public class JsonService {
             addToAttributeMap(attrMap, RECORD_KEY_Y_COORD, spatialUtil.truncate(location.getLatitude()));
         }
 
-        attrMap.put(JSON_KEY_ATTRIBUTES, getOrderedAttributes(location.getOrderedAttributes(), contextPath));
+        attrMap.put(JSON_KEY_ATTRIBUTES, getOrderedAttributes(location.getOrderedAttributes()));
 
         return JSONObject.fromMapToJSONObject(attrMap);
     }

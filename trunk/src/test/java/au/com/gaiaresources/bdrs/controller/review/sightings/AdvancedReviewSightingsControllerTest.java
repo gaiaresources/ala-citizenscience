@@ -59,7 +59,6 @@ import au.com.gaiaresources.bdrs.service.facet.record.RecordSurveyFacet;
 import au.com.gaiaresources.bdrs.service.facet.record.RecordUserFacet;
 import au.com.gaiaresources.bdrs.service.map.GeoMapService;
 import au.com.gaiaresources.bdrs.servlet.BdrsWebConstants;
-import au.com.gaiaresources.bdrs.util.KMLUtils;
 import au.com.gaiaresources.bdrs.util.SpatialUtilFactory;
 
 import javax.servlet.http.HttpServletResponse;
@@ -319,7 +318,7 @@ public class AdvancedReviewSightingsControllerTest extends
         request.addParameter("viewType", "map");
 
         handle(request, response);
-        Assert.assertEquals(KMLUtils.KML_CONTENT_TYPE, response.getContentType());
+        Assert.assertEquals(BdrsWebConstants.KML_CONTENT_TYPE, response.getContentType());
         Assert.assertTrue(response.getContentAsString().length() > 0);
     }
 
