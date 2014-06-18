@@ -70,16 +70,25 @@
 
   function bindField(field) {
     var validations = extractValidations(field);
-    var errorContainer = field.after(options.errorContainer.clone()).next();
-    var contOl = errorContainer.find('ol');
     var visibleContainer = false;
 
-    $(window).resize(function() {
-      options.initialPositionContainer(errorContainer, field);
-    }).trigger('resize');
-
+    var errorContainer = null;
+    var contOl = null;
     field.blur(function() {
-      var errList = buildErrorList(validations, field);
+        // Lazily add the error container to prevent big slowdowns on page load.
+        if (errorContainer == null) {
+            errorContainer = field.after(options.errorContainer.clone()).next();
+
+            $(window).resize(function() {
+               options.initialPositionContainer(errorContainer, field);
+            });
+            options.initialPositionContainer(errorContainer, field);
+            contOl = errorContainer.find('ol');
+
+
+        }
+
+        var errList = buildErrorList(validations, field);
       if(errList.length) {
         if(!visibleContainer) {
           contOl.html(errList);
