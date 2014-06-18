@@ -75,33 +75,34 @@
     var errorContainer = null;
     var contOl = null;
     field.blur(function() {
-        // Lazily add the error container to prevent big slowdowns on page load.
-        if (errorContainer == null) {
-            errorContainer = field.after(options.errorContainer.clone()).next();
 
-            $(window).resize(function() {
-               options.initialPositionContainer(errorContainer, field);
-            });
-            options.initialPositionContainer(errorContainer, field);
-            contOl = errorContainer.find('ol');
-
-
-        }
-
-        var errList = buildErrorList(validations, field);
+      var errList = buildErrorList(validations, field);
       if(errList.length) {
-        if(!visibleContainer) {
-          contOl.html(errList);
-          options.showContainer(errorContainer);
-          visibleContainer = true;
-        } else {
-          contOl.html(errList);
-        }
+          // Lazily add the error container to prevent big slowdowns on page load.
+          if (errorContainer == null) {
+              errorContainer = field.after(options.errorContainer.clone()).next();
 
-        options.positionContainer(errorContainer, field);
+              $(window).resize(function() {
+                  options.initialPositionContainer(errorContainer, field);
+              });
+              options.initialPositionContainer(errorContainer, field);
+              contOl = errorContainer.find('ol');
+          }
+
+          if(!visibleContainer) {
+            contOl.html(errList);
+            options.showContainer(errorContainer);
+            visibleContainer = true;
+          } else {
+            contOl.html(errList);
+          }
+
+          options.positionContainer(errorContainer, field);
       } else {
-        options.hideContainer(errorContainer);
-        visibleContainer = false;
+          if (errorContainer != null) {
+            options.hideContainer(errorContainer);
+          }
+          visibleContainer = false;
       }
     });
 
