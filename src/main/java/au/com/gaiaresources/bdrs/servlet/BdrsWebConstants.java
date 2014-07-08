@@ -98,7 +98,7 @@ public class BdrsWebConstants {
     /**
      * Spring's default date format when using @RequestParam to parse dates
      */
-    public static final String DATE_FORMAT = "dd MMM yyyy hh:mm:ss";
+    public static final String DATE_FORMAT = "dd MMM yyyy HH:mm:ss";
 
     /*
      * KML content MIME type

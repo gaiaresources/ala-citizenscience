@@ -83,10 +83,11 @@ public class RecordServiceTest extends AbstractControllerTest {
         r1.setWhen(new Date(10000));
         r2 = recordFactory.create(s1, nonAdminUser);
         r2.setWhen(new Date(20000));
+        // Offset next 2 dates to make it past noon to test 24 hour time
         r3 = recordFactory.create(s2, adminUser);
-        r3.setWhen(new Date(30000));
+        r3.setWhen(new Date(30000+14400000));
         r4 = recordFactory.create(s2, nonAdminUser);
-        r4.setWhen(new Date(40000));
+        r4.setWhen(new Date(40000+14400000));
 
         recDAO.update(r1);
         recDAO.update(r2);
