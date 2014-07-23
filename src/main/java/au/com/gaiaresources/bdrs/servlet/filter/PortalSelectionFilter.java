@@ -101,6 +101,7 @@ public class PortalSelectionFilter implements Filter {
      * @throws IOException if there is an error writing the response.
      */
     private void redirectToNewPortal(ServletResponse response, HttpServletRequest httpRequest, String url) throws IOException {
+        log.warn("***Invalidating session from existing portal***, URL="+ url+", Request="+httpRequest.getRequestURI());
         httpRequest.getSession().invalidate();
         String queryString = httpRequest.getQueryString();
         String redirect = url + (queryString != null ? "?"+queryString : "");
