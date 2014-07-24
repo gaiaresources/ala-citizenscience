@@ -62,9 +62,9 @@ public class PortalSelectionFilter implements Filter {
                 // If we are currently using one portal and enter the URL for another, invalidate the session
                 // and redirect the user to the new Portal.
                 if(currentPortal != null && !urlSpecifiedPortal.getId().equals(currentPortal.getId())) {
-                    redirectToNewPortal(response, httpRequest, url);
+                    redirectToNewPortal(response, httpRequest, url, currentPortal);
                 }
-            } else {
+            } else if (currentPortal == null) {
                 List<Portal> portalList = portalDAO.getActivePortals(sesh, true);
                 if (!portalList.isEmpty() && !response.isCommitted()) {
 
@@ -100,8 +100,8 @@ public class PortalSelectionFilter implements Filter {
      * @param url the URL (minus query parameters) to redirect to.
      * @throws IOException if there is an error writing the response.
      */
-    private void redirectToNewPortal(ServletResponse response, HttpServletRequest httpRequest, String url) throws IOException {
-        log.warn("***Invalidating session from existing portal***, URL="+ url+", Request="+httpRequest.getRequestURI());
+    private void redirectToNewPortal(ServletResponse response, HttpServletRequest httpRequest, String url, Portal currentPortal) throws IOException {
+        log.warn("***Invalidating session "+httpRequest.getSession().getId()+" from existing portal "+currentPortal.getId()+"***, URL="+ url+", Request="+httpRequest.getRequestURI());
         httpRequest.getSession().invalidate();
         String queryString = httpRequest.getQueryString();
         String redirect = url + (queryString != null ? "?"+queryString : "");
@@ -149,7 +149,7 @@ public class PortalSelectionFilter implements Filter {
             // and redirect them to their desired URL which will take them
             // to Portal 2.
             if (currentPortal != null && !matchedPortal.getId().equals(currentPortal.getId())) {
-                redirectToNewPortal(response, httpRequest, url);
+                redirectToNewPortal(response, httpRequest, url, currentPortal);
             }
             // else set the Portal ID for the matched portal (below)
         }
