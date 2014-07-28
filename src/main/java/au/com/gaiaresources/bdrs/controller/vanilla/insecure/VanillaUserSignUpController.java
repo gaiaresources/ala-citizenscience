@@ -80,7 +80,9 @@ public class VanillaUserSignUpController extends AbstractController {
             return redirect;
         }
         String contextPath = ContentService.getRequestURL(request);
-        
+        username = username.trim();
+        password = password.trim();
+
         User saveResult = registrationService.signUp(username, email, firstName, lastName, password, contextPath, "ROLE_USER");
 
         List<UserMetaData> metaList = umdService.getMetadataMap(request);
