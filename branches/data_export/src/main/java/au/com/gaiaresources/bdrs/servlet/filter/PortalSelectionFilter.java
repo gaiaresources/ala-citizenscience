@@ -74,6 +74,9 @@ public class PortalSelectionFilter implements Filter {
                     log.error("No portals defined. Unable to set Portal ID");
                 }
             }
+            else {
+                requestContext.setPortal(currentPortal);
+            }
             boolean rollbackRequired = result.getSecond();
             if (rollbackRequired) {
                 sesh.getTransaction().rollback();
