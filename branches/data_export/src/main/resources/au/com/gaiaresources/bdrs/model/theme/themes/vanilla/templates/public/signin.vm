@@ -53,23 +53,23 @@ Welcome to the Biological Data Recording System.
         jQuery("#browser").show();
     }
 
-    var passwordWarningContainer = $('<div>', {
+    var passwordWarningContainer = jQuery('<div>', {
         'class':  'ketchup-error-container',
-        html:     '<ol><li>The password you entered conatains leading or trailing spaces.<br/>Is this deliberate?  Spaces are treated as valid characters.</li></ol><span></span>'
-    });
+        html:     '<ol><li>The password you entered conatains leading or trailing spaces.  <br/>Is this deliberate?  Spaces are treated as valid characters.</li></ol><span></span>'
+    }).appendTo('body');
 
-    var passwordField = $('[name=j_password]');
+    var passwordField = jQuery('[name=j_password]');
     var fOffset = passwordField.position();
 
     passwordWarningContainer.css({
-        left: fOffset.left + field.width() - 10,
+        left: fOffset.left + passwordField.width() - 10,
         top: fOffset.top - passwordWarningContainer.height()
     });
 
-    passwordField.change(function(e) {
+    passwordField.keyup(function(e) {
         var value = passwordField.val();
 
-        if ($.trim(value) !== value) {
+        if (jQuery.trim(value) !== value) {
             passwordWarningContainer.show();
         }
         else {
