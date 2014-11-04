@@ -1031,7 +1031,7 @@ public class TaxaDAOImpl extends AbstractDAOImpl implements TaxaDAO {
     @Override 
     public List<IndicatorSpecies> getIndicatorSpecies(TaxonGroup taxonGroup, String search) {
     	String searchString = toSQLSearchString(search);
-        return find("from IndicatorSpecies i where (UPPER(commonName) like UPPER(?) or UPPER(scientificName) like UPPER (?)) and i.taxonGroup = ?", 
+        return find("from IndicatorSpecies i where (UPPER(commonName) like UPPER(?) or UPPER(scientificName) like UPPER (?)) and i.taxonGroup = ? order by i.scientificName", 
                 new Object[] {searchString, searchString, taxonGroup}, AUTOCOMPLETE_RESULTS_COUNT);
     }
     		
