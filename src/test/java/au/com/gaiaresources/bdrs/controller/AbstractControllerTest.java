@@ -193,6 +193,17 @@ public abstract class AbstractControllerTest extends AbstractTransactionalTest {
         RequestContextHolder.getContext().setUserDetails(userDetails);
     }
 
+    /**
+     * Does a logout.
+     * Implemented by doing the inverse operations to login
+     * 1. Clears the security context
+     * 2. Clears the user details
+     */
+    protected void logout() {
+        SecurityContextHolder.clearContext();
+        RequestContextHolder.getContext().setUserDetails(null);
+    }
+
     protected ModelAndView handle(HttpServletRequest request,
             HttpServletResponse response) throws Exception {
         // The introduction of the mvc:resources for serving static content has introduced extra mappings

@@ -242,22 +242,6 @@ public class RecordGeoJsonService extends AbstractController {
                                 new RecordGroupLineMfFeature(r.getRecordGroup(), sr,
                                         spatialUtil, sesh);
                         geoJSONWriter.encodeFeature(lineFeature);
-
-                        /*
-                        List<Record> recList = new ArrayList<Record>();
-
-                        while (sr.hasMoreElements()) {
-                            recList.add(sr.nextElement());
-                            sesh.clear();
-                        }
-
-                        // must have 2 points for track
-                        if (recList.size() > 1) {
-                            MfFeature lineFeature =
-                                    new RecordGroupLineMfFeature(r.getRecordGroup(), recList);
-                            geoJSONWriter.encodeFeature(lineFeature);
-                        } // else we cant draw a line. ignore this record group.
-                        */
                     }
                 } // else we ignore the record
             }

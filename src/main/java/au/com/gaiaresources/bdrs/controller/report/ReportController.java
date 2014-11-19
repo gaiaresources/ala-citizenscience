@@ -11,12 +11,15 @@ import au.com.gaiaresources.bdrs.model.report.Report;
 import au.com.gaiaresources.bdrs.model.report.ReportCapability;
 import au.com.gaiaresources.bdrs.model.report.ReportDAO;
 import au.com.gaiaresources.bdrs.model.report.impl.ReportView;
+import au.com.gaiaresources.bdrs.model.user.User;
 import au.com.gaiaresources.bdrs.security.Role;
 import au.com.gaiaresources.bdrs.service.python.report.ReportService;
 import au.com.gaiaresources.bdrs.servlet.view.PortalRedirectView;
 import au.com.gaiaresources.bdrs.util.FileUtils;
 import au.com.gaiaresources.bdrs.util.ImageUtil;
+import au.com.gaiaresources.bdrs.util.StringUtils;
 import au.com.gaiaresources.bdrs.util.ZipUtils;
+import edu.emory.mathcs.backport.java.util.Arrays;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +39,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipInputStream;
 
@@ -101,6 +105,10 @@ public class ReportController extends AbstractController {
      * The JSON configuration attribute for the pages where the report may be accessed.
      */
     public static final String JSON_CONFIG_VIEWS = "views";
+    /**
+     * The minimum level of user role required to access the report.
+     */
+    public static final String JSON_CONFIG_USER_ROLE = "user_role";
     
     /**
      * The resized width of the report icon. This is the icon that is 
@@ -143,7 +151,6 @@ public class ReportController extends AbstractController {
      * @param response the server response.
      * @return a list of all reports currently in the system.
      */
-    @RolesAllowed({  Role.USER, Role.POWERUSER, Role.SUPERVISOR, Role.ADMIN })
     @RequestMapping(value = REPORT_LISTING_URL, method = RequestMethod.GET)
     public ModelAndView listReports(HttpServletRequest request,
             HttpServletResponse response) {
@@ -184,6 +191,7 @@ public class ReportController extends AbstractController {
                     String reportDescription = config.optString(JSON_CONFIG_DESCRIPTION, null);
                     String iconFilename = config.optString(JSON_CONFIG_ICON);
                     String reportDirName = config.optString(JSON_CONFIG_REPORT);
+                    String reportUserRole = config.optString(JSON_CONFIG_USER_ROLE);
                     JSONArray capabilityArray = config.optJSONArray(JSON_CONFIG_CAPABILITY);
                     JSONArray viewArray = config.optJSONArray(JSON_CONFIG_VIEWS);
                     if(viewArray == null) {
@@ -192,19 +200,33 @@ public class ReportController extends AbstractController {
                     if(capabilityArray == null) {
                         capabilityArray = new JSONArray();
                     }
+
+                    boolean validUserRole = true;
+                    if(StringUtils.nullOrEmpty(reportUserRole)) {
+                        // default
+                        reportUserRole = Role.USER;
+                    } else {
+                        List roleList = Arrays.asList(Role.getAllRoles());
+                        if (!roleList.contains(reportUserRole)) {
+                            log.error("Attempted to assign an invalid user role to a report : " + reportUserRole);
+                            validUserRole = false;
+                        }
+                    }
                     
                     File iconFile = new File(tempReportDir, iconFilename);
                     File reportDir = new File(tempReportDir, reportDirName);
                     File reportPy = new File(reportDir, ReportService.PYTHON_REPORT);
                     
                     boolean isReportValid = reportName != null && !reportName.isEmpty() && 
-                                            reportDescription != null && !reportDescription.isEmpty() && !viewArray.isEmpty();
+                                            reportDescription != null &&
+                            !reportDescription.isEmpty() && !viewArray.isEmpty() && validUserRole;
                     boolean isFilesValid = iconFile.exists() && reportDir.exists() && reportPy.exists(); 
                     
                     if(isReportValid && isFilesValid) {
                         
                         String targetIconFilename = String.format("%s.%s", FilenameUtils.removeExtension(iconFilename), ICON_FORMAT);
                         Report report = new Report(reportName, reportDescription, targetIconFilename, true);
+                        report.setUserRole(reportUserRole);
 
                         // Report capability
                         Set<ReportCapability> capabilitySet = new HashSet<ReportCapability>();
@@ -250,7 +272,7 @@ public class ReportController extends AbstractController {
                         
                     } else {
                         // Invalid Report Config or Content
-                        log.error("Failed to add report because the name or description is null or the report or icon cannot be found.");
+                        log.error("Failed to add report because the name or description is null or the report or icon cannot be found or the user role is invalid.");
                         getRequestContext().addMessage("bdrs.report.add.error");
                     }
                 } else {
@@ -323,12 +345,26 @@ public class ReportController extends AbstractController {
      * @param response the server response.
      * @param reportId the primary key of the report to be rendered.
      */
-    @RolesAllowed({  Role.USER, Role.POWERUSER, Role.SUPERVISOR, Role.ADMIN })
     @RequestMapping(value = REPORT_RENDER_URL)
     public ModelAndView renderReport(HttpServletRequest request,
                                      HttpServletResponse response,
                                      @PathVariable(REPORT_ID_PATH_VAR) int reportId) {
-        return reportService.renderReport(request, response, reportDAO.getReport(reportId));
+        Report report = reportDAO.getReport(reportId);
+        User loggedInUser = getRequestContext().getUser();
+        boolean auth;
+        String reportUserRole = report.getUserRole();
+        if (loggedInUser == null) {
+            auth = reportUserRole.equals(Role.ANONYMOUS);
+        } else {
+            String ur = Role.getHighestRole(loggedInUser.getRoles());
+            auth = Role.isRoleHigherThanOrEqualTo(ur, reportUserRole);
+        }
+        if (auth) {
+            return reportService.renderReport(request, response, report);
+        } else {
+            getRequestContext().addMessage("bdrs.report.render.auth_fail");
+            return new ModelAndView(new PortalRedirectView(REPORT_LISTING_URL, true));
+        }
     }
     
     /**
@@ -342,7 +378,6 @@ public class ReportController extends AbstractController {
      * @param reportId the primary key of the report containing the static file.
      * @param fileName the relative path of the file to retrieve.
      */
-    @RolesAllowed({  Role.USER, Role.POWERUSER, Role.SUPERVISOR, Role.ADMIN })
     @RequestMapping(value = REPORT_STATIC_URL, method = RequestMethod.GET)
     public ModelAndView downloadStaticReportFile(HttpServletRequest request,
                                      HttpServletResponse response,

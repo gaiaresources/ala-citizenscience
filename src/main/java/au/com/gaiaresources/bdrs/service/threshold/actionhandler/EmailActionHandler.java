@@ -1,5 +1,6 @@
 package au.com.gaiaresources.bdrs.service.threshold.actionhandler;
 
+import au.com.gaiaresources.bdrs.model.user.User;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 
@@ -49,6 +50,17 @@ public class EmailActionHandler implements ActionHandler {
         String subject = String.format(propertyService.getMessage("action.handler.email.subject.template"), entityDisplayName);
 
         StringBuilder builder = new StringBuilder();
+
+        if (entity instanceof User) {
+            User u = (User)entity;
+            // No need for null checks. These fields are non nullable
+            // in the User model object.
+            builder.append(String.format("First Name : %s\n", u.getFirstName()));
+            builder.append(String.format("Last Name : %s\n", u.getLastName()));
+            builder.append(String.format("Login : %s\n", u.getName()));
+            builder.append(String.format("Email : %s\n\n", u.getEmailAddress()));
+        }
+
         for (Condition condition : threshold.getConditions()) {
 
             builder.append(condition.getPropertyPath());

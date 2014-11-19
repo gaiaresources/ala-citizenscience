@@ -127,7 +127,7 @@ public class ThresholdEventListener implements PostUpdateEventListener,
                         
                         // Conditions Passed. Applying Actions
                         if (conditionsPassed) {
-                            
+
                             for (Action action : threshold.getActions()) {
                                 // only run the action if it is create and update or
                                 // it is create and the created and updated time are the same or

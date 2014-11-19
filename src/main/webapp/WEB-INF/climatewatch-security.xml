@@ -27,6 +27,8 @@
         <intercept-url pattern="/bdrs/mobile/**/*" access="ROLE_ANONYMOUS,IS_AUTHENTICATED_ANONYMOUSLY"/>
         <intercept-url pattern="/mobile/**/*" access="ROLE_ANONYMOUS,IS_AUTHENTICATED_ANONYMOUSLY"/>
         <intercept-url pattern="/vanilla/**/*" access="ROLE_ANONYMOUS,IS_AUTHENTICATED_ANONYMOUSLY"/>
+        <intercept-url pattern="*/report/**" access="ROLE_ANONYMOUS,IS_AUTHENTICATED_ANONYMOUSLY"/>
+        <intercept-url pattern="*/report/**/*" access="ROLE_ANONYMOUS,IS_AUTHENTICATED_ANONYMOUSLY"/>
         
         <intercept-url pattern="/bdrs/user/tracker.htm" access="ROLE_ANONYMOUS,IS_AUTHENTICATED_ANONYMOUSLY"/>
          
@@ -50,6 +52,8 @@
         <intercept-url pattern="/portal/*/bdrs/mobile/**/*" access="ROLE_ANONYMOUS,IS_AUTHENTICATED_ANONYMOUSLY"/>
         <intercept-url pattern="/portal/*/mobile/**/*" access="ROLE_ANONYMOUS,IS_AUTHENTICATED_ANONYMOUSLY"/>
         <intercept-url pattern="/portal/*/vanilla/**/*" access="ROLE_ANONYMOUS,IS_AUTHENTICATED_ANONYMOUSLY"/>
+        <intercept-url pattern="/portal/*/report/**/*" access="ROLE_ANONYMOUS,IS_AUTHENTICATED_ANONYMOUSLY"/>
+        <intercept-url pattern="/*/report/**/*" access="ROLE_ANONYMOUS,IS_AUTHENTICATED_ANONYMOUSLY"/>
         
         <intercept-url pattern="/portal/*/bdrs/user/tracker.htm" access="ROLE_ANONYMOUS,IS_AUTHENTICATED_ANONYMOUSLY"/>
          
@@ -84,6 +88,7 @@
         <intercept-url pattern="/*/bdrs/user/yearlySightings.htm" method="GET" access="ROLE_ANONYMOUS,IS_AUTHENTICATED_ANONYMOUSLY"/>
 
         <intercept-url pattern="/**" access="ROLE_USER,ROLE_STUDENT,ROLE_POWERSTUDENT,ROLE_ADMIN,ROLE_TEACHER,ROLE_SUPERVISOR,ROLE_POWER_USER,ROLE_BDRS_ANONYMOUS"/>
+
         <!--intercept-url pattern="/html/mobile/*.manifest" access="ROLE_USER,ROLE_STUDENT,ROLE_POWERSTUDENT,ROLE_ADMIN,ROLE_TEACHER"/-->
         <!-- intercept-url pattern="/public/**/*" access=""/ -->
         
