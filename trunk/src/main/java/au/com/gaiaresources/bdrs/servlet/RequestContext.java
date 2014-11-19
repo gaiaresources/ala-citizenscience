@@ -190,12 +190,17 @@ public class RequestContext {
     }
 
     public void setUserDetails(UserDetails userDetails) {
-        this.user = userDetails;
-        this.roles = new String[userDetails.getAuthorities().size()];
-        int i = 0;
-        for (GrantedAuthority auth : userDetails.getAuthorities()) {
-            this.roles[i] = auth.getAuthority();
-            i++;
+        if (userDetails == null) {
+            this.user = null;
+            this.roles = null;
+        } else {
+            this.user = userDetails;
+            this.roles = new String[userDetails.getAuthorities().size()];
+            int i = 0;
+            for (GrantedAuthority auth : userDetails.getAuthorities()) {
+                this.roles[i] = auth.getAuthority();
+                i++;
+            }
         }
     }
 

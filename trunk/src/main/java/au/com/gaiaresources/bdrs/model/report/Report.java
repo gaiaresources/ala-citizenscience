@@ -30,6 +30,7 @@ public class Report extends AbstractPythonRenderable {
     private String name;
     private String description;
     private String iconFilename;
+    private String userRole;
     private boolean active = true;
 
     private Set<ReportCapability> capabilities = new HashSet<ReportCapability>();
@@ -95,6 +96,23 @@ public class Report extends AbstractPythonRenderable {
     @Column(name = "ACTIVE", nullable = false)
     public boolean isActive() {
         return active;
+    }
+
+    /**
+     * Return the minimum level of user role required to access this report
+     * @return
+     */
+    @Column(name = "USER_ROLE", nullable = true)
+    public String getUserRole() {
+        return userRole;
+    }
+
+    /**
+     * Set the minimum level of user role required to access this report
+     * @param userRole
+     */
+    public void setUserRole(String userRole) {
+        this.userRole = userRole;
     }
 
     /**

@@ -89,6 +89,9 @@ public class ReportControllerTest extends AbstractGridControllerTest {
         String baseIconName = FilenameUtils.getBaseName(config.getString(ReportController.JSON_CONFIG_ICON));
         String expectedIconFilename = String.format("%s.%s", baseIconName, ReportController.ICON_FORMAT);
         Assert.assertEquals(expectedIconFilename, report.getIconFilename());
+
+        // user role should be set to a default as the config file lacks a user_role key
+        Assert.assertEquals("Wrong user role", Role.USER, report.getUserRole());
     }
 
     /**
@@ -427,6 +430,88 @@ public class ReportControllerTest extends AbstractGridControllerTest {
         }
         handle(request, response);
         Assert.assertTrue(getRequestContext().getMessageContents().isEmpty());
+    }
+
+    /**
+     * Tests a report that sets the user role access level
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testAddUserRoleReport() throws Exception {
+        login("admin", "password", new String[] { Role.ADMIN });
+
+        String testReportName = "SetUserRoleReport";
+
+        request.setMethod("POST");
+        request.setRequestURI(ReportController.REPORT_ADD_URL);
+        MockMultipartHttpServletRequest req = (MockMultipartHttpServletRequest)request;
+        req.addFile(getTestReport(testReportName));
+
+        ModelAndView mv = handle(request, response);
+        assertRedirect(mv, ReportController.REPORT_LISTING_URL);
+        Assert.assertEquals(1, getRequestContext().getMessageContents().size());
+
+        JSONObject config = getConfigFile(testReportName);
+        String reportName = config.getString(ReportController.JSON_CONFIG_NAME);
+        Report report = ReportTestUtil.getReportByName(reportDAO, reportName);
+
+        Assert.assertEquals(config.getString(ReportController.JSON_CONFIG_NAME), report.getName());
+        Assert.assertEquals(config.getString(ReportController.JSON_CONFIG_DESCRIPTION), report.getDescription());
+
+        String baseIconName = FilenameUtils.getBaseName(config.getString(ReportController.JSON_CONFIG_ICON));
+        String expectedIconFilename = String.format("%s.%s", baseIconName, ReportController.ICON_FORMAT);
+        Assert.assertEquals(expectedIconFilename, report.getIconFilename());
+
+        // user role should be set to a default as the config file lacks a user_role key
+        Assert.assertEquals("Wrong user role", Role.ADMIN, report.getUserRole());
+
+        String renderURL = ReportTestUtil.getReportRenderURL(report);
+
+        // Render the report start page
+        request.setMethod("GET");
+        request.setRequestURI(renderURL);
+        handle(request, response);
+        // If everything works as desired, there should be no messages
+        List<String> messageContents = getRequestContext().getMessageContents();
+        Assert.assertTrue("Got messages but expected none", messageContents.isEmpty());
+
+        // now log out...
+        logout();
+
+        handle(request, response);
+        // If everything works as desired, there should be no messages
+        List<String> messageContents2 = getRequestContext().getMessageContents();
+        Assert.assertEquals("wrong message count", 1, messageContents2.size());
+    }
+
+    /**
+     * Tests that a report with a malformed config file shows the
+     * appropriate error.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testAddReportBadUserRole() throws Exception {
+        login("admin", "password", new String[] { Role.ADMIN });
+
+        String testReportName = "BadUserRoleReport";
+        int origReportCount = reportDAO.getReports().size();
+
+        request.setMethod("POST");
+        request.setRequestURI(ReportController.REPORT_ADD_URL);
+        MockMultipartHttpServletRequest req = (MockMultipartHttpServletRequest)request;
+        req.addFile(getTestReport(testReportName));
+
+        ModelAndView mv = handle(request, response);
+        assertRedirect(mv, ReportController.REPORT_LISTING_URL);
+
+        // We have the correct number of error message
+        Assert.assertEquals(1, getRequestContext().getMessages().size());
+        Assert.assertEquals("bdrs.report.add.error", getRequestContext().getMessages().get(0).getCode());
+
+        // No reports added
+        Assert.assertEquals(origReportCount, reportDAO.getReports().size());
     }
     
     private MockMultipartFile getTestReport(String reportName) throws URISyntaxException, IOException {

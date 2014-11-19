@@ -561,6 +561,7 @@ class Report(models.Model):
     created_by = models.IntegerField(null=True, blank=True)
     updated_by = models.IntegerField(null=True, blank=True)
     name = models.CharField(max_length=255)
+    user_role = models.CharField(max_length=255)
     active = models.BooleanField()
     description = models.TextField()
     iconfilename = models.CharField(max_length=255)
