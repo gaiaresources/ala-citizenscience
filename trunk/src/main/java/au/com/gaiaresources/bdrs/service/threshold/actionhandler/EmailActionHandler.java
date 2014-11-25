@@ -55,10 +55,10 @@ public class EmailActionHandler implements ActionHandler {
             User u = (User)entity;
             // No need for null checks. These fields are non nullable
             // in the User model object.
-            builder.append(String.format("First Name : %s\n", u.getFirstName()));
-            builder.append(String.format("Last Name : %s\n", u.getLastName()));
-            builder.append(String.format("Login : %s\n", u.getName()));
-            builder.append(String.format("Email : %s\n\n", u.getEmailAddress()));
+            builder.append(String.format("First Name : %s%n", u.getFirstName()));
+            builder.append(String.format("Last Name : %s%n", u.getLastName()));
+            builder.append(String.format("Login : %s%n", u.getName()));
+            builder.append(String.format("Email : %s%n%n", u.getEmailAddress()));
         }
 
         for (Condition condition : threshold.getConditions()) {
