@@ -17,8 +17,8 @@ public class SpeciesProfileTaxonNameConsvCodeBuilder extends SpeciesProfileBuild
     public static final Map<String, String> CODE_LOOKUP;
     static {
         Map<String, String> temp = new HashMap<String, String>();
-        temp.put("T", "T: Threatened Flora (Declared Rare Flora — Extant)");
-        temp.put("X", "X: Presumed Extinct Flora (Declared Rare Flora — Extinct)");
+        temp.put("T", "T: Threatened Flora (Declared Rare Flora - Extant)");
+        temp.put("X", "X: Presumed Extinct Flora (Declared Rare Flora - Extinct)");
         temp.put("1", "1: Priority One: Poorly-known taxa");
         temp.put("2", "2: Priority Two: Poorly-known taxa");
         temp.put("3", "3: Priority Three: Poorly-known taxa");
