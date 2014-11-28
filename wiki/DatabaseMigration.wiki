@@ -810,3 +810,13 @@ BEGIN;
   drop TABLE wurflcapability ;
 ROLLBACK;
 </code>
+
+= r588 =
+Report role settings
+
+<code language="sql">
+BEGIN;
+  alter table report add column user_role text;
+  update report set user_role = 'ROLE_USER';
+ROLLBACK;
+</code>
