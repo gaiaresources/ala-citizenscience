@@ -63,6 +63,15 @@ class RecordMetadata(models.Model):
     class Meta:
         db_table = u'record_metadata'
 
+class RecordGroupMetadata(models.Model):
+    id = db.MultiFieldPK('record_group_record_group', 'metadata')
+    record_group_record_group = models.ForeignKey('RecordGroup')
+    metadata = models.ForeignKey('Metadata')
+
+    objects = PortalManager()
+
+    class Meta:
+        db_table = u'record_group_metadata'
 
 class IndicatorSpeciesMetadata(models.Model):
     id = db.MultiFieldPK('indicator_species_indicator_species', 'metadata')
