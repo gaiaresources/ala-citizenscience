@@ -3,6 +3,7 @@ package au.com.gaiaresources.bdrs.controller.report;
 import au.com.gaiaresources.bdrs.controller.AbstractGridControllerTest;
 import au.com.gaiaresources.bdrs.json.JSONArray;
 import au.com.gaiaresources.bdrs.json.JSONObject;
+import au.com.gaiaresources.bdrs.message.Message;
 import au.com.gaiaresources.bdrs.model.report.Report;
 import au.com.gaiaresources.bdrs.model.report.ReportCapability;
 import au.com.gaiaresources.bdrs.model.report.ReportDAO;
@@ -430,6 +431,152 @@ public class ReportControllerTest extends AbstractGridControllerTest {
         }
         handle(request, response);
         Assert.assertTrue(getRequestContext().getMessageContents().isEmpty());
+    }
+
+    /**
+     * Tests SpeciesListReport render by name
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testSpeciesListReportRenderByName() throws Exception {
+        login("admin", "password", new String[] { Role.ADMIN });
+
+        String testReportName = "SpeciesListReport";
+
+        // Upload the Report
+        request.setMethod("POST");
+        request.setRequestURI(ReportController.REPORT_ADD_URL);
+
+        MockMultipartHttpServletRequest req = (MockMultipartHttpServletRequest) request;
+        File reportDir = new File(SPECIES_LIST_REPORT_DIR);
+        req.addFile(ReportTestUtil.getTestReport(reportDir, testReportName));
+
+        handle(request, response);
+        Assert.assertFalse(reportDAO.getReports().isEmpty());
+        Assert.assertEquals(1, getRequestContext().getMessageContents().size());
+
+        JSONObject config = ReportTestUtil.getConfigFile(reportDir);
+        String reportName = config.getString(ReportController.JSON_CONFIG_NAME);
+        Report report = ReportTestUtil.getReportByName(reportDAO, reportName);
+
+        String renderURL = ReportController.REPORT_RENDER_BY_NAME_URL;
+
+        // Render the report start page
+        request.setMethod("GET");
+        request.setRequestURI(renderURL);
+        request.setParameter(ReportController.REPORT_NAME, report.getName());
+
+        handle(request, response);
+        // If everything works as desired, there should be no messages
+        Assert.assertTrue(getRequestContext().getMessageContents().isEmpty());
+
+        // Test the report on each individual survey
+        for(Survey s : surveyDAO.getActiveSurveysForUser(currentUser)) {
+            request.setMethod("GET");
+            request.setRequestURI(renderURL);
+            request.setParameter(BdrsWebConstants.PARAM_SURVEY_ID, String.valueOf(s.getId()));
+            handle(request, response);
+            Assert.assertTrue(getRequestContext().getMessageContents().isEmpty());
+        }
+
+        // Test all reports
+        request.setMethod("GET");
+        request.setRequestURI(renderURL);
+        for(Survey s : surveyDAO.getActiveSurveysForUser(currentUser)) {
+            request.addParameter(BdrsWebConstants.PARAM_SURVEY_ID, String.valueOf(s.getId()));
+        }
+        handle(request, response);
+        Assert.assertTrue(getRequestContext().getMessageContents().isEmpty());
+    }
+
+    /**
+     * Tests SpeciesListReport render by name with duplicate names
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testSpeciesListReportRenderByNameDuplicateName() throws Exception {
+        login("admin", "password", new String[] { Role.ADMIN });
+
+        String testReportName = "SpeciesListReport";
+
+        // Upload the Report
+        request.setMethod("POST");
+        request.setRequestURI(ReportController.REPORT_ADD_URL);
+
+        MockMultipartHttpServletRequest req = (MockMultipartHttpServletRequest) request;
+        File reportDir = new File(SPECIES_LIST_REPORT_DIR);
+        req.addFile(ReportTestUtil.getTestReport(reportDir, testReportName));
+
+        handle(request, response);
+        Assert.assertEquals("wrong report count", reportDAO.getReports().size(), 1);
+        Assert.assertEquals(1, getRequestContext().getMessageContents().size());
+
+        handle(request, response);
+        Assert.assertEquals("wrong report count", reportDAO.getReports().size(), 2);
+        Assert.assertEquals(1, getRequestContext().getMessageContents().size());
+
+
+        JSONObject config = ReportTestUtil.getConfigFile(reportDir);
+        String reportName = config.getString(ReportController.JSON_CONFIG_NAME);
+        Report report = ReportTestUtil.getReportByName(reportDAO, reportName);
+
+        String renderURL = ReportController.REPORT_RENDER_BY_NAME_URL;
+
+        // Render the report start page
+        request.setMethod("GET");
+        request.setRequestURI(renderURL);
+        request.setParameter(ReportController.REPORT_NAME, report.getName());
+
+        handle(request, response);
+
+        List<Message> messages = getRequestContext().getMessages();
+        Assert.assertEquals("wrong message count", 1, messages.size());
+
+        Assert.assertEquals("wrong message", "bdrs.report.render.non_unique_name", messages.get(0).getCode());
+    }
+
+    /**
+     * Tests SpeciesListReport render by name with bad name that won't be found
+     * in the database
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testSpeciesListReportRenderByNameNotFound() throws Exception {
+        login("admin", "password", new String[] { Role.ADMIN });
+
+        String testReportName = "SpeciesListReport";
+
+        // Upload the Report
+        request.setMethod("POST");
+        request.setRequestURI(ReportController.REPORT_ADD_URL);
+
+        MockMultipartHttpServletRequest req = (MockMultipartHttpServletRequest) request;
+        File reportDir = new File(SPECIES_LIST_REPORT_DIR);
+        req.addFile(ReportTestUtil.getTestReport(reportDir, testReportName));
+
+        handle(request, response);
+        Assert.assertEquals("wrong report count", reportDAO.getReports().size(), 1);
+        Assert.assertEquals(1, getRequestContext().getMessageContents().size());
+
+        JSONObject config = ReportTestUtil.getConfigFile(reportDir);
+        String reportName = config.getString(ReportController.JSON_CONFIG_NAME);
+
+        String renderURL = ReportController.REPORT_RENDER_BY_NAME_URL;
+
+        // Render the report start page
+        request.setMethod("GET");
+        request.setRequestURI(renderURL);
+        request.setParameter(ReportController.REPORT_NAME, "bad name, won't be found");
+
+        handle(request, response);
+
+        List<Message> messages = getRequestContext().getMessages();
+        Assert.assertEquals("wrong message count", 1, messages.size());
+
+        Assert.assertEquals("wrong message", "bdrs.report.render.cant_find_report_by_name", messages.get(0).getCode());
     }
 
     /**

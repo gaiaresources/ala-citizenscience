@@ -34,6 +34,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.security.RolesAllowed;
 import javax.imageio.ImageIO;
+import javax.persistence.NonUniqueResultException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
@@ -70,6 +71,10 @@ public class ReportController extends AbstractController {
      * The URL that GETs rendered reports.
      */
     public static final String REPORT_RENDER_URL = "/report/{reportId}/render.htm";
+    /**
+     * The URL that GETs rendered reports by name.
+     */
+    public static final String REPORT_RENDER_BY_NAME_URL = "/report/renderByName.htm";
     /**
      * The URL to GET static report files.
      */
@@ -133,6 +138,10 @@ public class ReportController extends AbstractController {
      * The query parameter name containing the file path of a static report file.
      */
     public static final String FILENAME_QUERY_PARAM = "fileName";
+    /**
+     * The query parameter to define the name of the report to render.
+     */
+    public static final String REPORT_NAME = "reportName";
 
     
     @Autowired
@@ -350,6 +359,50 @@ public class ReportController extends AbstractController {
                                      HttpServletResponse response,
                                      @PathVariable(REPORT_ID_PATH_VAR) int reportId) {
         Report report = reportDAO.getReport(reportId);
+        return renderSingleReport(request, response, report);
+    }
+
+    /**
+     * Renders the specified report.
+     *
+     * @param request the browser request.
+     * @param response the server response.
+     * @param reportName the name of the report to be rendered.
+     */
+    @RequestMapping(value = REPORT_RENDER_BY_NAME_URL)
+    public ModelAndView renderReportByName(HttpServletRequest request,
+                                     HttpServletResponse response,
+                                     @RequestParam(value = REPORT_NAME, defaultValue = "") String reportName) {
+        try {
+            Report report = reportDAO.getReport(reportName);
+            if (report != null) {
+                return renderSingleReport(request, response, report);
+            } else {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                getRequestContext().addMessage("bdrs.report.render.cant_find_report_by_name");
+                return new ModelAndView(new PortalRedirectView(REPORT_LISTING_URL, true));
+            }
+        } catch (NonUniqueResultException nre) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            getRequestContext().addMessage("bdrs.report.render.non_unique_name");
+            return new ModelAndView(new PortalRedirectView(REPORT_LISTING_URL, true));
+        }
+    }
+
+    /**
+     * Render a single report
+     *
+     * @param request the browser request
+     * @param response the browser response
+     * @param report the Report to render
+     * @return ModelAndView of rendered report
+     */
+    private ModelAndView renderSingleReport(HttpServletRequest request,
+                                      HttpServletResponse response,
+                                      Report report) {
+        if (report == null) {
+            throw new IllegalArgumentException("Report cannot be null");
+        }
         User loggedInUser = getRequestContext().getUser();
         boolean auth;
         String reportUserRole = report.getUserRole();
