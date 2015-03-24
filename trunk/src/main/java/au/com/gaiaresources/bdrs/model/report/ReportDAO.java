@@ -2,6 +2,7 @@ package au.com.gaiaresources.bdrs.model.report;
 
 import au.com.gaiaresources.bdrs.model.report.impl.ReportView;
 
+import javax.persistence.NonUniqueResultException;
 import java.util.List;
 
 /**
@@ -48,4 +49,13 @@ public interface ReportDAO {
      * @param report the report to be deleted.
      */
     public void delete(Report report);
+
+    /**
+     * Returns a report with the given name
+     *
+     * @param reportName search for this report name.
+     * @return the report specified by reportName or null if one does not exist
+     * @throws javax.persistence.NonUniqueResultException if there is a non unique result
+     */
+    public Report getReport(String reportName) throws NonUniqueResultException;
 }

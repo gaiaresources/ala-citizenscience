@@ -11,6 +11,8 @@ import au.com.gaiaresources.bdrs.db.impl.AbstractDAOImpl;
 import au.com.gaiaresources.bdrs.model.report.Report;
 import au.com.gaiaresources.bdrs.model.report.ReportDAO;
 
+import javax.persistence.NonUniqueResultException;
+
 @Repository
 public class ReportDAOImpl extends AbstractDAOImpl implements ReportDAO {
 
@@ -28,6 +30,25 @@ public class ReportDAOImpl extends AbstractDAOImpl implements ReportDAO {
     @Override
     public Report getReport(int reportId) {
         return super.getByID(Report.class, reportId);
+    }
+
+    /**
+     * (non-Javadoc)
+     * @see au.com.gaiaresources.bdrs.model.report.ReportDAO#getReport(String)
+     */
+    @Override
+    public Report getReport(String reportName) throws NonUniqueResultException {
+        String queryString = "select r from Report r where r.name = :name";
+        Session session = getSessionFactory().getCurrentSession();
+        Query query = session.createQuery(queryString);
+        query.setParameter("name", reportName);
+
+        List<Report> result = query.list();
+        if (result.size() > 1) {
+            throw new NonUniqueResultException("There is more than one report with the name " + reportName);
+        } else {
+            return result.isEmpty() ? null : result.get(0);
+        }
     }
 
     /* (non-Javadoc)
