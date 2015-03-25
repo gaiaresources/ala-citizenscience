@@ -176,7 +176,7 @@ public abstract class AdvancedReviewController<T> extends SightingsController {
 
         User user = getRequestContext().getUser();
         // A limited user should not see the download tab
-        mv.addObject("hideDownload", user.isLimitedUser());
+        mv.addObject("hideDownload", user != null ? user.isLimitedUser() : true);
 
         return mv;
     }
