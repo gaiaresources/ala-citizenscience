@@ -130,7 +130,7 @@ public class BulkDataController extends AbstractController {
             MultipartFile uploadedFile = req.getFile("spreadsheet");
 
             if(uploadedFile != null) {
-                if(CONTENT_TYPE_XLS.equals(uploadedFile.getContentType())) {
+                if(CONTENT_TYPE_XLS.equals(uploadedFile.getContentType()) || uploadedFile.getOriginalFilename().endsWith("xls")) {
 
                     InputStream inp = uploadedFile.getInputStream();
                     boolean createMissing = req.getParameter("createMissing") != null;
