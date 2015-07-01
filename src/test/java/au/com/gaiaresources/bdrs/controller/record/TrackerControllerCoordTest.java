@@ -151,23 +151,24 @@ public class TrackerControllerCoordTest extends AbstractControllerTest {
 		
 		assertCoord(r, BdrsCoordReferenceSystem.MGA50.getSrid(), 385346, 6447726);
 	}
-	
-	@Test
-	public void testMissingZone() throws Exception {
-		login("admin", "password", new String[] { Role.ADMIN });
-		geoMap.setCrs(BdrsCoordReferenceSystem.MGA);
-		
-		request.setParameter(TrackerController.PARAM_LONGITUDE, "385346");
-		request.setParameter(TrackerController.PARAM_LATITUDE, "6447726");
-		
-		ModelAndView mv = handle(request, response);
-		
-		ModelAndViewAssert.assertModelAttributeAvailable(mv, TrackerController.MV_ERROR_MAP);
-		
-		Map<String, String> errorMap = getErrorMap(mv);
-		Assert.assertEquals("wrong msg", propService.getMessage(AbstractValidator.REQUIRED_MESSAGE_KEY), 
-				errorMap.get(BdrsWebConstants.PARAM_SRID));
-	}
+
+// This test has been disabled because there are no longer any invalid coordinate reference systems.
+//	@Test
+//	public void testMissingZone() throws Exception {
+//		login("admin", "password", new String[] { Role.ADMIN });
+//		geoMap.setCrs(BdrsCoordReferenceSystem.MGA);
+//
+//		request.setParameter(TrackerController.PARAM_LONGITUDE, "385346");
+//		request.setParameter(TrackerController.PARAM_LATITUDE, "6447726");
+//
+//		ModelAndView mv = handle(request, response);
+//
+//		ModelAndViewAssert.assertModelAttributeAvailable(mv, TrackerController.MV_ERROR_MAP);
+//
+//		Map<String, String> errorMap = getErrorMap(mv);
+//		Assert.assertEquals("wrong msg", propService.getMessage(AbstractValidator.REQUIRED_MESSAGE_KEY),
+//				errorMap.get(BdrsWebConstants.PARAM_SRID));
+//	}
 	
 	@Test
 	public void testInvalidZone() throws Exception {
@@ -184,7 +185,7 @@ public class TrackerControllerCoordTest extends AbstractControllerTest {
 		ModelAndViewAssert.assertModelAttributeAvailable(mv, TrackerController.MV_ERROR_MAP);
 		
 		Map<String, String> errorMap = getErrorMap(mv);
-		Assert.assertEquals("wrong msg", propService.getMessage(CrsValidator.MESSAGE_KEY_INVALID_CRS), 
+		Assert.assertEquals("wrong msg", propService.getMessage(CrsValidator.MESSAGE_KEY_INVALID_CRS),
 				errorMap.get(BdrsWebConstants.PARAM_SRID));
 	}
 	
