@@ -26,7 +26,7 @@ public enum BdrsCoordReferenceSystem implements JSONEnum {
 	MGA57(28357, true, "GDA94 Zone 57", "Northings", "Eastings", "57", 100000d, 1116915d, 999999d, 9999999d, 3),
 	MGA58(28358, true, "GDA94 Zone 58", "Northings", "Eastings", "58", 100000d, 1116915d, 999999d, 9999999d, 3),
 	// MGA, zone not defined. Use -1 for all coordinate reference system 'groups'.
-	MGA(-1, true,"GDA94", "Northings", "Eastings", "", 100000d, 1116915d, 999999d, 9999999d, 3,
+	MGA(4283, true,"GDA94", "Northings", "Eastings", "", 100000d, 1116915d, 999999d, 9999999d, 3,
 			MGA50, MGA51, MGA52, MGA53, MGA54, MGA55, MGA56, MGA57, MGA58);
 
 	public static final int DEFAULT_SRID = 4326;
