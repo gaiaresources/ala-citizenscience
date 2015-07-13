@@ -24,6 +24,10 @@
 
 <% pageContext.setAttribute("replaceChar", " "); %>
 
+<%-- Access the facade to retrieve the preference information --%>
+<jsp:useBean id="bdrsPluginFacade" scope="request" type="au.com.gaiaresources.bdrs.servlet.BdrsPluginFacade"></jsp:useBean>
+<c:set var="showScientificName" value="<%= bdrsPluginFacade.getPreferenceBooleanValue(\"taxon.showScientificName\") %>" />
+
 <%-- we use inputName in scriptlets so we need to 'usebean' the variable... --%>
 <jsp:useBean id="inputName" type="java.lang.String"/>
 
